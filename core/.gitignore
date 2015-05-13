@@ -1,0 +1,14 @@
+# Package Files #
+*.jar
+
+# Build files #
+target/
+
+# Eclipse #
+.settings/
+.project
+.classpath
+
+# Intellij #
+*.iml
+.idea/
