@@ -1,12 +1,16 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>io.github.tcdl</groupId>
+    <artifactId>msb-java</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.github.tcdl</groupId>
-  <artifactId>msb-java</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
-  <name>msb java</name>
-  <description>msb java</description>
-  <packaging>pom</packaging>
+  <artifactId>msb-java-core</artifactId>
+  <name>msb java core</name>
+  <description>msb java core</description>
+  <packaging>jar</packaging>
   <scm>
     <url>https://github.com/tcdl/msb-java</url>
     <connection>https://github.com/tcdl/msb-java.git</connection>
@@ -16,19 +20,8 @@
     <name>tcdl</name>
     <url>https://github.com/tcdl</url>
   </organization>
-  <modules>
-    <module>core</module>
-    <module>aqmp</module>
-  </modules>
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>io.github.tcdl</groupId>
-        <artifactId>msb-java-core</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+  <dependencies>
+  </dependencies>
   <build>
     <plugins>
       <plugin>
