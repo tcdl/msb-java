@@ -1,4 +1,4 @@
-MSB-Java
+MSB-Java ![Project status](https://travis-ci.org/tcdl/msb-java.svg?branch=master)
 ===========
 
 Microservice bus - Java API
