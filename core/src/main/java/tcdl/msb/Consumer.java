@@ -1,10 +1,5 @@
 package tcdl.msb;
 
-import java.util.HashMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import tcdl.msb.adapters.Adapter;
 import tcdl.msb.adapters.AdapterFactory;
 import tcdl.msb.config.MsbConfigurations;
@@ -14,6 +9,8 @@ import tcdl.msb.exception.JsonConversionException;
 import tcdl.msb.exception.JsonSchemaValidationException;
 import tcdl.msb.messages.Message;
 import tcdl.msb.support.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by rdro on 4/23/2015.
@@ -36,15 +33,13 @@ public class Consumer {
 		this.msgOptions = msgOptions;
 
 		// just stub,will be provided by init and provided
-		this.rawAdapter = AdapterFactory.getInstance().createAdapter(
-				msbConfig.getBrokerType(), new HashMap<String, String>());
+		this.rawAdapter = AdapterFactory.getInstance().createAdapter(msbConfig.getBrokerType(), topic);
 	}
 
 	public Consumer subscribe() {
 		// merge msgOptions with msbConfig
 		// do other stuff
-		rawAdapter.subscribe(new HashMap<String, String>(),
-				new Adapter.RawMessageHandler() {
+		rawAdapter.subscribe(new Adapter.RawMessageHandler() {
 					public void onMessage(String jsonMessage) {
 						log.debug("Message recieved {}", jsonMessage);
 						Exception error = null;

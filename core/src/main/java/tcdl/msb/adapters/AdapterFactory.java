@@ -1,10 +1,6 @@
 package tcdl.msb.adapters;
 
-import java.util.Map;
-
 import tcdl.msb.config.MsbConfigurations.BrokerAdapter;
-
-import java.util.Properties;
 
 /**
  * Created by rdro on 4/24/2015.
@@ -20,14 +16,11 @@ public class AdapterFactory {
 		return instance;
 	}
 
-	public Adapter createAdapter(BrokerAdapter brokerName, Map<String, String> brokerConf) {
-		// hardcoded
-		return MockAdapter.getInstance();
+	public Adapter createAdapter(BrokerAdapter brokerName, String topic) {
+		if (brokerName == BrokerAdapter.AMQP) {
+			return new AmqpAdapter(topic);
+		} else {
+			return MockAdapter.getInstance();
+		}
 	}
-
-    public Adapter createAdapter(Properties options) {
-        return MockAdapter.getInstance();
-        //return new AMQPAdapter();
-    }
-
 }

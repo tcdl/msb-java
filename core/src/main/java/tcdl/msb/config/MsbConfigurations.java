@@ -92,6 +92,10 @@ public class MsbConfigurations {
         this.msbBroker = BrokerAdapter.valueOf(brokerName);
     }
 
+	public AmqpBrokerConfig getAmqpBrokerConf() {
+		return amqpBrokerConf;
+	}
+
 	@Override
 	public String toString() {
 		return "MsbConfigurations [serviceDetails=" + serviceDetails + ", amqpBrokerConf=" + amqpBrokerConf

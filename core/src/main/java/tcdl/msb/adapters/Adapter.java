@@ -1,7 +1,5 @@
 package tcdl.msb.adapters;
 
-import java.util.Map;
-
 import tcdl.msb.exception.ChannelException;
 
 /**
@@ -9,9 +7,9 @@ import tcdl.msb.exception.ChannelException;
  */
 public interface Adapter {
 
-    void publish(String topic, String jsonMessage) throws ChannelException;
+    void publish(String jsonMessage) throws ChannelException;
 
-    void subscribe(Map<String,String> subscriberConfig, RawMessageHandler onMessageHandler);
+    void subscribe(RawMessageHandler onMessageHandler);
 
     interface RawMessageHandler {
         void onMessage(String jsonMessage);

@@ -182,23 +182,29 @@
                             </sources>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>add-integration-test-resources</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>add-test-resource</goal>
-                        </goals>
-                        <configuration>
-                            <resources>
-                                <resource>
-                                    <directory>${integrationResourceDirectory}</directory>
-                                    <targetPath>${integrationOutputDirectory}</targetPath>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.7</version>
+				<executions>
+					<execution>
+						<id>add-integration-test-resources</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${integrationOutputDirectory}</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${integrationResourceDirectory}</directory>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

@@ -2,8 +2,6 @@ package tcdl.msb;
 
 import tcdl.msb.support.Utils;
 
-import static tcdl.msb.support.Utils.ifNull;
-
 /**
  * Created by rdro on 5/5/2015.
  */
@@ -12,7 +10,7 @@ public class ServiceDetails {
     private String name;
     private String version;
     private String instanceId;
-    private String hostName;
+    private String hostname;
     private String ip;
     private Integer pid;
 
@@ -26,7 +24,7 @@ public class ServiceDetails {
         setInstanceId(Utils.generateId());
 
         // TODO
-        setHostName("localhost");
+        setHostname("localhost");
         setIp("127.0.0.1");
         setPid(Utils.getPid());
     }
@@ -55,12 +53,12 @@ public class ServiceDetails {
         this.instanceId = instanceId;
     }
 
-    public String getHostName() {
-        return hostName;
+    public String getHostname() {
+        return hostname;
     }
 
-    public void setHostName(String hostName) {
-        this.hostName = hostName;
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
     }
 
     public String getIp() {
