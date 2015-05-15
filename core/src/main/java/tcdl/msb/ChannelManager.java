@@ -1,0 +1,121 @@
+package tcdl.msb;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.time.DateUtils;
+
+import tcdl.msb.config.MsbConfigurations;
+import tcdl.msb.config.MsbMessageOptions;
+import tcdl.msb.events.Event;
+import tcdl.msb.events.EventEmitter;
+import tcdl.msb.events.TwoArgumentsAdapter;
+import tcdl.msb.messages.Message;
+import tcdl.msb.support.Utils;
+
+/**
+ * Created by rdro on 4/23/2015.
+ */
+public class ChannelManager extends EventEmitter {
+
+    public final static Event PRODUCER_NEW_TOPIC_EVENT = new Event("newProducerOnTopic");
+    public final static Event PRODUCER_NEW_MESSAGE_EVENT = new Event("newProducedMessage");
+    public final static Event CONSUMER_NEW_TOPIC_EVENT = new Event("newConsumerOnTopic");
+    public final static Event CONSUMER_REMOVED_TOPIC_EVENT = new Event("removedConsumerOnTopic");
+    public final static Event CONSUMER_NEW_MESSAGE_EVENT = new Event("newConsumedMessage");
+    public final static Event MESSAGE_EVENT = new Event("message");
+
+    private static ChannelManager INSTANCE = new ChannelManager();
+    private MsbConfigurations msbConfig;
+    private Map<String, Producer> producersByTopic;
+    private Map<String, Consumer> consumersByTopic;
+
+    public static ChannelManager getInstance() {
+        return INSTANCE;
+    }
+
+    private ChannelManager() {
+        this.msbConfig = MsbConfigurations.msbConfiguration();
+        producersByTopic = new ConcurrentHashMap<String, Producer>();
+        consumersByTopic = new ConcurrentHashMap<String, Consumer>();
+    }
+
+    public Producer findOrCreateProducer(final String topic) {
+        Validate.notNull(topic, "field 'topic' is null");
+        Producer producer = producersByTopic.get(topic);
+        if (producer == null) {
+            producer = createProducer(topic, this.msbConfig);
+            producersByTopic.put(topic, producer);
+
+            emit(PRODUCER_NEW_TOPIC_EVENT, topic);
+        }
+
+        return producer;
+    }
+
+    public Consumer findOrCreateConsumer(final String topic, final MsbMessageOptions msgOptions) {
+        Validate.notNull(topic, "field 'topic' is null");
+        Consumer consumer = consumersByTopic.get(topic);
+        if (consumer == null) {
+            consumer = createConsumer(topic, this.msbConfig, msgOptions);           
+            consumersByTopic.put(topic, consumer);
+            consumer.subscribe();
+
+            emit(CONSUMER_NEW_TOPIC_EVENT, topic);
+        }
+
+        return consumer;
+    }
+
+    public void removeProducer(String topic) {
+        Producer producer = producersByTopic.get(topic);
+        if (producer == null)
+            return;
+        producersByTopic.remove(topic);
+    }
+
+    public void removeConsumer(String topic) {
+        Consumer consumer = consumersByTopic.get(topic);
+        if (consumer == null)
+            return;
+
+        consumer.end();
+        consumersByTopic.remove(topic);
+
+        emit(CONSUMER_REMOVED_TOPIC_EVENT, topic);
+    }
+
+    private Producer createProducer(String topic, MsbConfigurations msbConfig) {
+        Utils.validateTopic(topic);
+        return new Producer(topic, msbConfig).withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
+            public void onEvent(Message message, Exception exception) {
+                emit(PRODUCER_NEW_MESSAGE_EVENT, topic);
+            }
+        });
+    }
+
+    private Consumer createConsumer(String topic, MsbConfigurations msbConfig, MsbMessageOptions msgOptions) {
+        Utils.validateTopic(topic);
+        return new Consumer(topic, msbConfig, msgOptions)
+                .withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
+                    @Override
+                    public void onEvent(Message message, Exception exception) {
+                        if (isMessageExpired(message))
+                            return;
+                        emit(CONSUMER_NEW_MESSAGE_EVENT, topic);
+                        emit(MESSAGE_EVENT, message);
+                    }
+                });
+    }
+
+    private boolean isMessageExpired(Message message) {
+        return message.getMeta() != null
+                && message.getMeta().getTtl() != null
+                && DateUtils.addMilliseconds(message.getMeta().getCreatedAt(), message.getMeta().getTtl()).after(
+                        new Date());
+    }
+}
