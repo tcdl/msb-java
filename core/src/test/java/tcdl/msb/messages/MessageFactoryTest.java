@@ -115,9 +115,9 @@ public class MessageFactoryTest {
         assertEquals(meta.getServiceDetails().getName(), msbConf.getServiceDetails().getName());
         assertEquals(meta.getServiceDetails().getVersion(), msbConf.getServiceDetails().getVersion());
         assertEquals(meta.getServiceDetails().getInstanceId(), msbConf.getServiceDetails().getInstanceId());
-        assertEquals(meta.getServiceDetails().getHostName(), msbConf.getServiceDetails().getHostName());
+        assertEquals(meta.getServiceDetails().getHostname(), msbConf.getServiceDetails().getHostName());
         assertEquals(meta.getServiceDetails().getIp(), msbConf.getServiceDetails().getIp());
-        assertEquals(meta.getServiceDetails().getPid(), msbConf.getServiceDetails().getPid());
+        assertEquals((int) meta.getServiceDetails().getPid(), msbConf.getServiceDetails().getPid());
     }
 
     @Test

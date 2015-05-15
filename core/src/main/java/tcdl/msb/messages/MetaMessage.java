@@ -2,7 +2,7 @@ package tcdl.msb.messages;
 
 import java.util.Date;
 
-import tcdl.msb.config.ServiceDetails;
+import tcdl.msb.ServiceDetails;
 
 /**
  * Created by rdro on 4/22/2015.

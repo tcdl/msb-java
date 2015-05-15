@@ -2,16 +2,16 @@ package tcdl.msb.messages;
 
 import java.util.Date;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.lang3.Validate;
 
 import tcdl.msb.config.MsbConfigurations;
 import tcdl.msb.config.MsbMessageOptions;
-import tcdl.msb.config.ServiceDetails;
+import tcdl.msb.ServiceDetails;
 import tcdl.msb.messages.payload.RequestPayload;
 import tcdl.msb.messages.payload.ResponsePayload;
 import tcdl.msb.support.Utils;
+
+import javax.annotation.Nullable;
 
 /**
  * Created by rdro on 4/22/2015.
@@ -22,19 +22,28 @@ public class MessageFactory {
     private ServiceDetails serviceDetails;
 
     private MessageFactory() {
-        this.serviceDetails = MsbConfigurations.msbConfiguration().getServiceDetails();
+		tcdl.msb.config.ServiceDetails configServiceDetails = MsbConfigurations.msbConfiguration().getServiceDetails();
+
+		// TODO Get rid of 2 classes ServiceDetails and eliminate this explicit copy
+		this.serviceDetails = new ServiceDetails();
+		this.serviceDetails.setHostname(configServiceDetails.getHostName());
+		this.serviceDetails.setInstanceId(configServiceDetails.getInstanceId());
+		this.serviceDetails.setIp(configServiceDetails.getIp());
+		this.serviceDetails.setName(configServiceDetails.getName());
+		this.serviceDetails.setPid((int) configServiceDetails.getPid());
+		this.serviceDetails.setVersion(configServiceDetails.getVersion());
     }
 
     Message createBaseMessage(@Nullable IncommingMessage originalMessage, boolean isRequestMessage) {
         Message baseMessage = new Message()
-                .withId(Utils.generateId())
+				.withId(Utils.generateId())
                 .withCorrelationId(
-                        originalMessage != null && originalMessage.getCorrelationId() != null ? originalMessage
+						originalMessage != null && originalMessage.getCorrelationId() != null ? originalMessage
                                 .getCorrelationId() : Utils.generateId()).withTopics(new Topics());
 
         if (isRequestMessage) {
             baseMessage.withPayload(new RequestPayload());
-        } else {
+		} else {
             baseMessage.withPayload(new ResponsePayload());
         }
 
@@ -42,7 +51,7 @@ public class MessageFactory {
     }
 
     public Message createRequestMessage(MsbMessageOptions config, IncommingMessage originalMessage) {
-        Message message = createBroadcastMessage(config, originalMessage);
+		Message message = createBroadcastMessage(config, originalMessage);
         message.getTopics().setResponse(config.getNamespace() + ":response:" + this.serviceDetails.getInstanceId());
         return message;
     }
@@ -54,7 +63,7 @@ public class MessageFactory {
     }
 
     public Message createResponseMessage(Message originalMessage, Acknowledge ack, ResponsePayload payload) {
-        Validate.notNull(originalMessage);
+		Validate.notNull(originalMessage);
         Validate.notNull(originalMessage.getTopics());
 
         Message message = createBaseMessage(originalMessage, false);

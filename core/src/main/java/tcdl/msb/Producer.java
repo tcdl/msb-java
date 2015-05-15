@@ -1,7 +1,5 @@
 package tcdl.msb;
 
-import java.util.HashMap;
-
 import tcdl.msb.adapters.Adapter;
 import tcdl.msb.adapters.AdapterFactory;
 import tcdl.msb.config.MsbConfigurations;
@@ -20,8 +18,7 @@ public class Producer {
 
 	public Producer(String topic, MsbConfigurations msbConfig) {
 		this.topic = topic;
-		this.rawAdapter = AdapterFactory.getInstance().createAdapter(
-				msbConfig.getBrokerType(), new HashMap<>());
+		this.rawAdapter = AdapterFactory.getInstance().createAdapter(msbConfig.getBrokerType(), topic);
 	}
 
 	public Producer publish(Message message) {
@@ -29,7 +26,7 @@ public class Producer {
 		Exception error = null;
 
 		try {
-			rawAdapter.publish(topic, jsonMessage);
+			rawAdapter.publish(jsonMessage);
 		} catch (Exception e) {
 			error = e;
 		}

@@ -27,7 +27,7 @@ public class MockAdapter implements Adapter {
         return instance;
     }
 
-    public void publish(String topic, String jsonMessage) {
+    public void publish(String jsonMessage) {
         requests.offer(jsonMessage);
 
         log.debug("Sending request {}", jsonMessage);
@@ -36,7 +36,7 @@ public class MockAdapter implements Adapter {
     }
 
     @Override
-    public void subscribe(Map<String,String> subscriberConfig, RawMessageHandler messageHandler) {
+    public void subscribe(RawMessageHandler messageHandler) {
         this.messageHandler = messageHandler;
         if (messageHandler != null && !requests.isEmpty()) {
             String jsonMessage = requests.peek();

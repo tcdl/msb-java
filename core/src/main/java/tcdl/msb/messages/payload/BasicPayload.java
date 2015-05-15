@@ -11,6 +11,7 @@ public class BasicPayload <T extends BasicPayload> {
 
     private Map<String, String> headers = new HashMap<>();
     private Map<?, ?> body = new HashMap<>();
+    private Map<?, ?> bodyBuffer = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     public T withHeaders(Map<String, String> headers) {
@@ -24,6 +25,12 @@ public class BasicPayload <T extends BasicPayload> {
         return (T) this;
     }
 
+    @SuppressWarnings("unchecked")
+    public T withBodyBuffer(Map<?, ?> bodyBuffer) {
+        this.bodyBuffer = bodyBuffer;
+        return (T) this;
+    }
+
     public Map<?, ?> getHeaders() {
         return headers;
     }
@@ -34,6 +41,6 @@ public class BasicPayload <T extends BasicPayload> {
 
     @Override
     public String toString() {
-        return "BasicPayload [headers=" + headers + ", body=" + body + "]";
+        return String.format("BasicPayload [headers=%s, body=%s, bodyBuffer=%s]", headers, body, bodyBuffer);
     }
 }
