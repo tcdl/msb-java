@@ -1,7 +1,6 @@
 package io.github.tcdl.adapters;
 
 import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import org.slf4j.Logger;
@@ -27,11 +26,8 @@ public class MockAdapter implements Adapter {
     }
 
     public void publish(String jsonMessage) {
+        log.info("Sending request {}", jsonMessage);
         requests.offer(jsonMessage);
-
-        log.debug("Sending request {}", jsonMessage);
-
-        System.out.println(jsonMessage);
     }
 
     @Override
@@ -41,20 +37,14 @@ public class MockAdapter implements Adapter {
             String jsonMessage = requests.peek();
             handleMessage(jsonMessage);
         }
-    }
-
-    public void consume(String jsonMessage) {
-        if (messageHandler != null) {
-            log.debug("Retrieved response {}", jsonMessage);
-            messageHandler.onMessage(jsonMessage);
-        }
-    }
+    } 
 
     private void handleMessage(String jsonMessage) {
-        CompletableFuture.supplyAsync(() -> {
-            log.debug("Retrieved response {}", jsonMessage);
-            messageHandler.onMessage(jsonMessage);
-            return null;
-        });
+        log.debug("Retrieved response {}", jsonMessage);
+        messageHandler.onMessage(jsonMessage);
+    }
+    
+    public void clearAllMessages () {
+        requests.clear();
     }
 }

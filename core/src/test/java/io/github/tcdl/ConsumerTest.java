@@ -17,6 +17,7 @@ import io.github.tcdl.adapters.MockAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.TwoArgumentsAdapter;
+import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
@@ -34,10 +35,12 @@ public class ConsumerTest {
     }
 
     @Test
-    public void testConsume() {
+    public void testConsume() throws JsonConversionException {
         final Holder<Boolean> messageConsumedEventFired = new Holder<Boolean>();
         final Holder<Message> messageHolder = new Holder<Message>();
         final Holder<Exception> exceptionHolder = new Holder<Exception>();
+        
+        MockAdapter.getInstance().publish(Utils.toJson(TestUtils.createMsbResponseMessage()));
 
         new Consumer(config.getNamespace(), MsbConfigurations.msbConfiguration(), new MsbMessageOptions())
                 .withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
@@ -47,9 +50,7 @@ public class ConsumerTest {
                         messageHolder.value = message;
                         exceptionHolder.value = exception;
                     }
-                }).subscribe();
-
-        MockAdapter.getInstance().consume(Utils.toJson(TestUtils.createSimpleMsbMessage()));
+                }).subscribe();     
 
         assertTrue(messageConsumedEventFired.value);
         assertNotNull(messageHolder.value);

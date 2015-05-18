@@ -1,29 +1,42 @@
 package io.github.tcdl.messages;
 
+import org.apache.commons.lang3.Validate;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Created by rdro on 4/23/2015.
  */
-public class Topics {
+public final class Topics {
 
-    private String to;
-    private String response;
+    private final String to;
+    private final String response;
 
-    public Topics withTo(String to) {
+    @JsonCreator
+    private Topics(@JsonProperty("to") String to, @JsonProperty("response") String response) {
+        Validate.notNull(to, "the 'to' must not be null");
         this.to = to;
-        return this;
-    }
-
-    public Topics withResponse(String response) {
         this.response = response;
-        return this;
     }
 
-    public void setTo(String to) {
-        this.to = to;
-    }
+    public static class TopicsBuilder {
 
-    public void setResponse(String response) {
-        this.response = response;
+        private String to;
+        private String response;
+
+        public TopicsBuilder setTo(String to) {
+            this.to = to;
+            return this;
+        }
+
+        public TopicsBuilder setResponse(String response) {
+            this.response = response;
+            return this;
+        }
+
+        public Topics build() {
+            return new Topics(to, response);
+        }
     }
 
     public String getTo() {

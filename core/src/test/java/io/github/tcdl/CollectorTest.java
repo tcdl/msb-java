@@ -8,6 +8,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.MessageFactory;
+import io.github.tcdl.support.TestUtils;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,13 +24,6 @@ import javax.xml.ws.Holder;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.MessageFactory;
-import io.github.tcdl.messages.payload.RequestPayload;
-import io.github.tcdl.support.TestUtils;
 
 /**
  * Created by rdro on 4/27/2015.
@@ -182,7 +180,7 @@ public class CollectorTest {
 
         // take max timeout if there no responses by id
         timeoutCalled.value = false;
-        Acknowledge acknowledge = new Acknowledge().withResponderId("a").withTimeoutMs(1500);
+        Acknowledge acknowledge = new Acknowledge.AcknowledgeBuilder().setResponderId("a").setTimeoutMs(1500).build();
 
         _m(collector, "processAck", new Object[] { acknowledge }, Acknowledge.class);
         assertEquals(Integer.valueOf(3000), _g(collector, "currentTimeoutMs"));
@@ -190,7 +188,7 @@ public class CollectorTest {
 
         // take timeout by responder id
         timeoutCalled.value = false;
-        acknowledge = new Acknowledge().withResponderId("a").withTimeoutMs(5000);
+        acknowledge = new Acknowledge.AcknowledgeBuilder().setResponderId("a").setTimeoutMs(5000).build();
 
         _m(collector, "setResponsesRemainingForResponderId", new Object[] { "a", 1 }, String.class, Integer.class);
         _m(collector, "processAck", new Object[] { acknowledge }, Acknowledge.class);
@@ -212,7 +210,7 @@ public class CollectorTest {
         collector.listenForResponses(topic, shouldAcceptMessage);
         ChannelManager channelManager = _g(collector, "channelManager");
 
-        Message message = TestUtils.createSimpleMsbMessage().withPayload(new RequestPayload());
+        Message message = TestUtils.createMsbResponseMessage();
 
         channelManager.emit(ChannelManager.MESSAGE_EVENT, message);
         Collection<?> payloadMessages = _g(collector, "payloadMessages");
@@ -233,7 +231,7 @@ public class CollectorTest {
         collector.listenForResponses(topic, shouldAcceptMessage);
         channelManager = _g(collector, "channelManager");
 
-        message = message.withAck(new Acknowledge()).withPayload(null);
+        message = TestUtils.createMsbAckMessage();
 
         channelManager.emit(ChannelManager.MESSAGE_EVENT, message);
         Collection<?> acknowledgeMessages = _g(collector, "ackMessages");

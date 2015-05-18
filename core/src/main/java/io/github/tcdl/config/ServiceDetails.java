@@ -8,14 +8,17 @@ import java.net.UnknownHostException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.jcabi.manifests.Manifests;
+
 import io.github.tcdl.support.Utils;
 import com.typesafe.config.Config;
 
 /**
  * Class contains configuration data related to service instance *
  */
-public class ServiceDetails {
+public final class ServiceDetails {
     public final static Logger log = LoggerFactory.getLogger(ServiceDetails.class);
 
     private final String name;
@@ -25,8 +28,10 @@ public class ServiceDetails {
     private final String ip;
     private final long pid;
 
-    public ServiceDetails(String name, String version, String instanceId, String hostname, String ip, long pid) {
-        super();
+    @JsonCreator
+    private ServiceDetails(@JsonProperty("name") String name, @JsonProperty("version") String version, @JsonProperty("instanceId") String instanceId,
+            @JsonProperty("hostname") String hostname, @JsonProperty("ip") String ip, @JsonProperty("pid") long pid) {
+
         this.name = name;
         this.version = version;
         this.instanceId = instanceId;
@@ -91,7 +96,7 @@ public class ServiceDetails {
         return instanceId;
     }
 
-    public String getHostName() {
+    public String getHostname() {
         return hostname;
     }
 

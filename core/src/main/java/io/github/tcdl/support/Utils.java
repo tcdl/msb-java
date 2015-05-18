@@ -1,12 +1,14 @@
 package io.github.tcdl.support;
 
+import io.github.tcdl.exception.JsonConversionException;
+import io.github.tcdl.exception.JsonSchemaValidationException;
+
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -14,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.JsonNodeReader;
@@ -21,8 +24,6 @@ import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import io.github.tcdl.exception.JsonConversionException;
-import io.github.tcdl.exception.JsonSchemaValidationException;
 
 /**
  * Created by rdro on 4/22/2015.
@@ -53,22 +54,28 @@ public class Utils {
         return value != null ? value : other;
     }
 
+    public static ObjectMapper getMsbJsonObjectMapper() {
+        ObjectMapper objectMapper =  new ObjectMapper().setDateFormat(JSON_DATE_FORMAT);
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        return objectMapper;
+    }
+
     public static String toJson(Object object) throws JsonConversionException {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setDateFormat(JSON_DATE_FORMAT);
+        ObjectMapper mapper = getMsbJsonObjectMapper();
         try {
             return mapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
+            LOG.error("Failed parse to JSON from: " + object, e);
             throw new JsonConversionException(e.getMessage());
         }
     }
 
-    public static Object fromJson(String json, Class clazz) throws JsonConversionException {
+    public static <T> T fromJson(String json, Class<T> clazz) throws JsonConversionException {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         try {
             return mapper.readValue(json, clazz);
         } catch (IOException e) {
+            LOG.error("Failed parse JSON: {} to object of type: {}", json, clazz, e);
             throw new JsonConversionException(e.getMessage());
         }
     }
