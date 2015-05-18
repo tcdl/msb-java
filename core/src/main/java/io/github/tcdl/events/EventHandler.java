@@ -5,6 +5,6 @@ package io.github.tcdl.events;
  */
 public interface EventHandler {
 
-    void onEvent(Object ... args);
+    void onEvent(Object... args);
 
 }

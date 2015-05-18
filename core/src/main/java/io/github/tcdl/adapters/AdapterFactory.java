@@ -7,20 +7,20 @@ import io.github.tcdl.config.MsbConfigurations.BrokerAdapter;
  */
 public class AdapterFactory {
 
-	private static AdapterFactory instance = new AdapterFactory();
+    private static AdapterFactory instance = new AdapterFactory();
 
-	private AdapterFactory() {
-	}
+    private AdapterFactory() {
+    }
 
-	public static AdapterFactory getInstance() {
-		return instance;
-	}
+    public static AdapterFactory getInstance() {
+        return instance;
+    }
 
-	public Adapter createAdapter(BrokerAdapter brokerName, String topic) {
-		if (brokerName == BrokerAdapter.AMQP) {
-			return new AmqpAdapter(topic);
-		} else {
-			return MockAdapter.getInstance();
-		}
-	}
+    public Adapter createAdapter(BrokerAdapter brokerName, String topic) {
+        if (brokerName == BrokerAdapter.AMQP) {
+            return new AmqpAdapter(topic);
+        } else {
+            return MockAdapter.getInstance();
+        }
+    }
 }

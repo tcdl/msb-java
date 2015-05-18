@@ -28,7 +28,7 @@ public class TestUtils {
     public static Message createSimpleMsbMessage() {
         Topics topic = new Topics();
         MsbMessageOptions conf = createSimpleConfig();
-        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();    
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
         topic.setTo(conf.getNamespace());
         topic.setResponse(conf.getNamespace() + ":response:" + msbConf.getServiceDetails().getInstanceId());
         return new Message().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic);

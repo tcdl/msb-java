@@ -22,28 +22,28 @@ public class MessageFactory {
     private ServiceDetails serviceDetails;
 
     private MessageFactory() {
-		io.github.tcdl.config.ServiceDetails configServiceDetails = MsbConfigurations.msbConfiguration().getServiceDetails();
+        io.github.tcdl.config.ServiceDetails configServiceDetails = MsbConfigurations.msbConfiguration().getServiceDetails();
 
-		// TODO Get rid of 2 classes ServiceDetails and eliminate this explicit copy
-		this.serviceDetails = new ServiceDetails();
-		this.serviceDetails.setHostname(configServiceDetails.getHostName());
-		this.serviceDetails.setInstanceId(configServiceDetails.getInstanceId());
-		this.serviceDetails.setIp(configServiceDetails.getIp());
-		this.serviceDetails.setName(configServiceDetails.getName());
-		this.serviceDetails.setPid((int) configServiceDetails.getPid());
-		this.serviceDetails.setVersion(configServiceDetails.getVersion());
+        // TODO Get rid of 2 classes ServiceDetails and eliminate this explicit copy
+        this.serviceDetails = new ServiceDetails();
+        this.serviceDetails.setHostname(configServiceDetails.getHostName());
+        this.serviceDetails.setInstanceId(configServiceDetails.getInstanceId());
+        this.serviceDetails.setIp(configServiceDetails.getIp());
+        this.serviceDetails.setName(configServiceDetails.getName());
+        this.serviceDetails.setPid((int) configServiceDetails.getPid());
+        this.serviceDetails.setVersion(configServiceDetails.getVersion());
     }
 
     Message createBaseMessage(@Nullable IncommingMessage originalMessage, boolean isRequestMessage) {
         Message baseMessage = new Message()
-				.withId(Utils.generateId())
+                .withId(Utils.generateId())
                 .withCorrelationId(
-						originalMessage != null && originalMessage.getCorrelationId() != null ? originalMessage
+                        originalMessage != null && originalMessage.getCorrelationId() != null ? originalMessage
                                 .getCorrelationId() : Utils.generateId()).withTopics(new Topics());
 
         if (isRequestMessage) {
             baseMessage.withPayload(new RequestPayload());
-		} else {
+        } else {
             baseMessage.withPayload(new ResponsePayload());
         }
 
@@ -51,19 +51,19 @@ public class MessageFactory {
     }
 
     public Message createRequestMessage(MsbMessageOptions config, IncommingMessage originalMessage) {
-		Message message = createBroadcastMessage(config, originalMessage);
+        Message message = createBroadcastMessage(config, originalMessage);
         message.getTopics().setResponse(config.getNamespace() + ":response:" + this.serviceDetails.getInstanceId());
         return message;
     }
 
     private Message createBroadcastMessage(MsbMessageOptions config, IncommingMessage originalMessage) {
-        Message message = createBaseMessage(originalMessage,true);
+        Message message = createBaseMessage(originalMessage, true);
         message.getTopics().setTo(config.getNamespace());
         return message;
     }
 
     public Message createResponseMessage(Message originalMessage, Acknowledge ack, ResponsePayload payload) {
-		Validate.notNull(originalMessage);
+        Validate.notNull(originalMessage);
         Validate.notNull(originalMessage.getTopics());
 
         Message message = createBaseMessage(originalMessage, false);

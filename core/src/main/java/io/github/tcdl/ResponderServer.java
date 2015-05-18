@@ -38,7 +38,9 @@ public class ResponderServer {
         eventEmitter.on(Responder.RESPONDER_EVENT, onResponder);
 
         return this;
-    };
+    }
+
+    ;
 
     private EventHandler onResponder = new SingleArgumentAdapter<Responder>() {
         @Override
@@ -50,7 +52,8 @@ public class ResponderServer {
                             .withErrorHandler(new ThreeArgumentsAdapter<BasicPayload, Response, Exception>() {
                                 @Override
                                 public void onEvent(BasicPayload request, Response response, Exception error) {
-                                    if (error == null) return;
+                                    if (error == null)
+                                        return;
                                     errorHandler(request, response, error);
                                 }
                             })

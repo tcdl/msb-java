@@ -28,7 +28,8 @@ public class EventEmitter {
 
     public EventEmitter emit(Event event, Object... args) {
         List<EventHandler> eventHandlers = handlersByEvent.get(event);
-        if (eventHandlers == null) return this;
+        if (eventHandlers == null)
+            return this;
 
         for (EventHandler eventHandler : eventHandlers) {
             eventHandler.onEvent(args);

@@ -92,7 +92,7 @@ public class Utils {
                 return false;
             }
 
-        } catch (IOException |  ProcessingException e) {
+        } catch (IOException | ProcessingException e) {
             throw new JsonSchemaValidationException(e.getMessage());
         }
     }

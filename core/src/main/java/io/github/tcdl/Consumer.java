@@ -16,54 +16,54 @@ import org.slf4j.LoggerFactory;
  * Created by rdro on 4/23/2015.
  */
 public class Consumer {
-	
-	public static Logger log = LoggerFactory.getLogger(Consumer.class);
 
-	private Adapter rawAdapter;
-	private String topic;
-	private EventHandler messageHandler;
-	private MsbConfigurations msbConfig; // not sure we need this here
-	MsbMessageOptions msgOptions;
+    public static Logger log = LoggerFactory.getLogger(Consumer.class);
 
-	public Consumer(String topic, MsbConfigurations msbConfig,
-			MsbMessageOptions msgOptions) {
+    private Adapter rawAdapter;
+    private String topic;
+    private EventHandler messageHandler;
+    private MsbConfigurations msbConfig; // not sure we need this here
+    MsbMessageOptions msgOptions;
 
-		this.topic = topic;
-		this.msbConfig = msbConfig;
-		this.msgOptions = msgOptions;
+    public Consumer(String topic, MsbConfigurations msbConfig,
+            MsbMessageOptions msgOptions) {
 
-		// just stub,will be provided by init and provided
-		this.rawAdapter = AdapterFactory.getInstance().createAdapter(msbConfig.getBrokerType(), topic);
-	}
+        this.topic = topic;
+        this.msbConfig = msbConfig;
+        this.msgOptions = msgOptions;
 
-	public Consumer subscribe() {
-		// merge msgOptions with msbConfig
-		// do other stuff
-		rawAdapter.subscribe(new Adapter.RawMessageHandler() {
-					public void onMessage(String jsonMessage) {
-						log.debug("Message recieved {}", jsonMessage);
-						Exception error = null;
-						Message message = null;
+        // just stub,will be provided by init and provided
+        this.rawAdapter = AdapterFactory.getInstance().createAdapter(msbConfig.getBrokerType(), topic);
+    }
 
-						try {
-							if (msbConfig.getSchema() != null
-									&& !isServiceChannel(topic)) {
-								Utils.validateJsonWithSchema(jsonMessage,
-										msbConfig.getSchema());
-							}
-							message = (Message) Utils.fromJson(jsonMessage,
-									Message.class);
-						} catch (JsonConversionException | JsonSchemaValidationException e) {
-							error = e;
-						}
+    public Consumer subscribe() {
+        // merge msgOptions with msbConfig
+        // do other stuff
+        rawAdapter.subscribe(new Adapter.RawMessageHandler() {
+            public void onMessage(String jsonMessage) {
+                log.debug("Message recieved {}", jsonMessage);
+                Exception error = null;
+                Message message = null;
 
-						if (messageHandler != null) {
-							messageHandler.onEvent(message, error);
-						}
-					}					
-				});
-		return this;
-	}
+                try {
+                    if (msbConfig.getSchema() != null
+                            && !isServiceChannel(topic)) {
+                        Utils.validateJsonWithSchema(jsonMessage,
+                                msbConfig.getSchema());
+                    }
+                    message = (Message) Utils.fromJson(jsonMessage,
+                            Message.class);
+                } catch (JsonConversionException | JsonSchemaValidationException e) {
+                    error = e;
+                }
+
+                if (messageHandler != null) {
+                    messageHandler.onEvent(message, error);
+                }
+            }
+        });
+        return this;
+    }
 
     public Consumer withMessageHandler(EventHandler messageHandler) {
         this.messageHandler = messageHandler;

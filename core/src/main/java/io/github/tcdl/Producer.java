@@ -12,31 +12,31 @@ import io.github.tcdl.support.Utils;
  */
 public class Producer {
 
-	private EventHandler messageHandler;
-	private String topic;
-	private Adapter rawAdapter;
+    private EventHandler messageHandler;
+    private String topic;
+    private Adapter rawAdapter;
 
-	public Producer(String topic, MsbConfigurations msbConfig) {
-		this.topic = topic;
-		this.rawAdapter = AdapterFactory.getInstance().createAdapter(msbConfig.getBrokerType(), topic);
-	}
+    public Producer(String topic, MsbConfigurations msbConfig) {
+        this.topic = topic;
+        this.rawAdapter = AdapterFactory.getInstance().createAdapter(msbConfig.getBrokerType(), topic);
+    }
 
-	public Producer publish(Message message) {
-		String jsonMessage = Utils.toJson(message);
-		Exception error = null;
+    public Producer publish(Message message) {
+        String jsonMessage = Utils.toJson(message);
+        Exception error = null;
 
-		try {
-			rawAdapter.publish(jsonMessage);
-		} catch (Exception e) {
-			error = e;
-		}
+        try {
+            rawAdapter.publish(jsonMessage);
+        } catch (Exception e) {
+            error = e;
+        }
 
-		if (messageHandler != null) {
+        if (messageHandler != null) {
             messageHandler.onEvent(message, error);
-		}
-		
-		return this;
-	}
+        }
+
+        return this;
+    }
 
     public Producer withMessageHandler(EventHandler messageHandler) {
         this.messageHandler = messageHandler;

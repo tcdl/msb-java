@@ -26,33 +26,33 @@ import io.github.tcdl.support.Utils;
  */
 public class ConsumerTest {
 
-	private MsbMessageOptions config;
+    private MsbMessageOptions config;
 
     @Before
     public void setUp() {
         config = TestUtils.createSimpleConfig();
     }
 
-	@Test
-	public void testConsume() {
-		final Holder<Boolean> messageConsumedEventFired = new Holder<Boolean>();
-		final Holder<Message> messageHolder = new Holder<Message>();
-		final Holder<Exception> exceptionHolder = new Holder<Exception>();
+    @Test
+    public void testConsume() {
+        final Holder<Boolean> messageConsumedEventFired = new Holder<Boolean>();
+        final Holder<Message> messageHolder = new Holder<Message>();
+        final Holder<Exception> exceptionHolder = new Holder<Exception>();
 
-		new Consumer(config.getNamespace(), MsbConfigurations.msbConfiguration(), new MsbMessageOptions())
-			.withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
-					@Override
-					public void onEvent(Message message, Exception exception) {
-						messageConsumedEventFired.value = true;
-						messageHolder.value = message;
-						exceptionHolder.value = exception;
-					}
-			}).subscribe();
-        
+        new Consumer(config.getNamespace(), MsbConfigurations.msbConfiguration(), new MsbMessageOptions())
+                .withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
+                    @Override
+                    public void onEvent(Message message, Exception exception) {
+                        messageConsumedEventFired.value = true;
+                        messageHolder.value = message;
+                        exceptionHolder.value = exception;
+                    }
+                }).subscribe();
+
         MockAdapter.getInstance().consume(Utils.toJson(TestUtils.createSimpleMsbMessage()));
 
-		assertTrue(messageConsumedEventFired.value);
-		assertNotNull(messageHolder.value);
-		assertNull(exceptionHolder.value);
-	}
+        assertTrue(messageConsumedEventFired.value);
+        assertNotNull(messageHolder.value);
+        assertNull(exceptionHolder.value);
+    }
 }

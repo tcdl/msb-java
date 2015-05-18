@@ -23,12 +23,12 @@ public class Requester extends Collector {
 
     private MetaMessage meta;
     private Message message;
-   
+
     MessageFactory messageFactory;
 
     public Requester(MsbMessageOptions config, IncommingMessage originalMessage) {
         super(config);
-        this.messageFactory =MessageFactory.getInstance();
+        this.messageFactory = MessageFactory.getInstance();
         this.meta = messageFactory.createMeta(config);
         this.message = messageFactory.createRequestMessage(config, originalMessage);
     }
@@ -40,8 +40,8 @@ public class Requester extends Collector {
 
         if (isWaitForResponses()) {
             listenForResponses(message.getTopics().getTo(), new Predicate<Message>() {
-                public boolean test(Message responsMessage) {                	
-                	return Objects.equals(responsMessage.getCorrelationId(), message.getCorrelationId());
+                public boolean test(Message responsMessage) {
+                    return Objects.equals(responsMessage.getCorrelationId(), message.getCorrelationId());
                 }
             });
         }
@@ -49,19 +49,21 @@ public class Requester extends Collector {
         messageFactory.completeMeta(message, meta);
 
         channelManager.findOrCreateProducer(message.getTopics().getTo())
-            .withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
-                public void onEvent(Message message, Exception exception) {
-                    if (exception != null) {
-                        emit(ERROR_EVENT, exception);
-                        return;
-                    }
+                .withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
+                    public void onEvent(Message message, Exception exception) {
+                        if (exception != null) {
+                            emit(ERROR_EVENT, exception);
+                            return;
+                        }
 
-                    if (!isAwaitingResponses()) end();
-                    enableTimeout();
-                }})
-            .publish(message);
+                        if (!isAwaitingResponses())
+                            end();
+                        enableTimeout();
+                    }
+                })
+                .publish(message);
     }
-    
+
     Message getMessage() {
         return message;
     }

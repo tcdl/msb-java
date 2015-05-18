@@ -2,9 +2,9 @@ package io.github.tcdl.messages;
 
 public class IncommingMessage {
 
-	String correlationId;
+    String correlationId;
 
-	public String getCorrelationId() {
-		return correlationId;
-	}
+    public String getCorrelationId() {
+        return correlationId;
+    }
 }
