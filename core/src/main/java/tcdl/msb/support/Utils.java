@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -64,6 +65,7 @@ public class Utils {
 
     public static Object fromJson(String json, Class clazz) throws JsonConversionException {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         try {
             return mapper.readValue(json, clazz);
         } catch (IOException e) {
