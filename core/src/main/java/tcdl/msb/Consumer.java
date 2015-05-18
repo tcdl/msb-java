@@ -39,28 +39,26 @@ public class Consumer {
 	public Consumer subscribe() {
 		// merge msgOptions with msbConfig
 		// do other stuff
-		rawAdapter.subscribe(new Adapter.RawMessageHandler() {
-					public void onMessage(String jsonMessage) {
-						log.debug("Message recieved {}", jsonMessage);
-						Exception error = null;
-						Message message = null;
+		rawAdapter.subscribe((jsonMessage) -> {
+					log.debug("Message received {}", jsonMessage);
+					Exception error = null;
+					Message message = null;
 
-						try {
-							if (msbConfig.getSchema() != null
-									&& !isServiceChannel(topic)) {
-								Utils.validateJsonWithSchema(jsonMessage,
-										msbConfig.getSchema());
-							}
-							message = (Message) Utils.fromJson(jsonMessage,
-									Message.class);
-						} catch (JsonConversionException | JsonSchemaValidationException e) {
-							error = e;
+					try {
+						if (msbConfig.getSchema() != null
+								&& !isServiceChannel(topic)) {
+							Utils.validateJsonWithSchema(jsonMessage,
+									msbConfig.getSchema());
 						}
+						message = (Message) Utils.fromJson(jsonMessage,
+								Message.class);
+					} catch (JsonConversionException | JsonSchemaValidationException e) {
+						error = e;
+					}
 
-						if (messageHandler != null) {
-							messageHandler.onEvent(message, error);
-						}
-					}					
+					if (messageHandler != null) {
+						messageHandler.onEvent(message, error);
+					}
 				});
 		return this;
 	}

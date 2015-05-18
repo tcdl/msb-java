@@ -258,7 +258,7 @@ public class Collector extends EventEmitter {
 
     private int getWaitForResponses(MsbMessageOptions messageConfigs) {
         if (messageConfigs == null || messageConfigs.getWaitForResponses() == null
-                || messageConfigs.getAckTimeout() == -1) {
+                || messageConfigs.getAckTimeout() == null || messageConfigs.getAckTimeout() == -1) {
             return 0;
         }
         return messageConfigs.getWaitForResponses();
