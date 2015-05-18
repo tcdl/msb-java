@@ -18,7 +18,7 @@
   </organization>
   <modules>
     <module>core</module>
-    <module>aqmp</module>
+    <module>amqp</module>
   </modules>
 
   <properties>
@@ -44,7 +44,7 @@
       </dependency>
         <dependency>
             <groupId>io.github.tcdl</groupId>
-            <artifactId>msb-java-aqmp</artifactId>
+            <artifactId>msb-java-amqp</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
