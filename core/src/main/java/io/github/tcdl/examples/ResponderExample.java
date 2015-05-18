@@ -1,9 +1,10 @@
-package tcdl.msb.examples;
+package io.github.tcdl.examples;
 
-import tcdl.msb.Responder;
-import tcdl.msb.config.MsbMessageOptions;
-import tcdl.msb.messages.payload.RequestPayload;
-import tcdl.msb.messages.payload.ResponsePayload;
+
+import io.github.tcdl.Responder;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.messages.payload.RequestPayload;
+import io.github.tcdl.messages.payload.ResponsePayload;
 
 import java.util.HashMap;
 import java.util.Map;
