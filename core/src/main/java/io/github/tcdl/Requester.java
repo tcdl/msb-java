@@ -39,11 +39,9 @@ public class Requester extends Collector {
         }
 
         if (isWaitForResponses()) {
-            listenForResponses(message.getTopics().getTo(), new Predicate<Message>() {
-                public boolean test(Message responsMessage) {
-                    return Objects.equals(responsMessage.getCorrelationId(), message.getCorrelationId());
-                }
-            });
+            listenForResponses(message.getTopics().getResponse(), (responseMessage) ->
+                            Objects.equals(responseMessage.getCorrelationId(), message.getCorrelationId())
+            );
         }
 
         messageFactory.completeMeta(message, meta);
