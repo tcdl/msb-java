@@ -58,7 +58,7 @@ public class Collector extends EventEmitter {
         this.timeoutMs = getResponseTimeout(config);
         this.currentTimeoutMs = timeoutMs;
 
-        this.waitForAcksUntil = config != null && config.getAckTimeout() != null 
+        this.waitForAcksUntil = config != null && config.getAckTimeout() != null
                 ? startedAt + config.getAckTimeout() : 0;
 
         this.waitForResponses = getWaitForResponses(config);
@@ -71,11 +71,15 @@ public class Collector extends EventEmitter {
 
     public boolean isAwaitingAcks() {
         return waitForAcksUntil > System.currentTimeMillis();
-    };
+    }
+
+    ;
 
     public boolean isAwaitingResponses() {
         return getResponsesRemaining() > 0;
-    };
+    }
+
+    ;
 
     public void listenForResponses(String topic, final Predicate<Message> shouldAcceptMessagePredicate) {
         channelManager.on(ChannelManager.MESSAGE_EVENT, new SingleArgumentAdapter<Message>() {
@@ -129,7 +133,9 @@ public class Collector extends EventEmitter {
         clearTimeout(timeout);
         Long newTimeoutMs = currentTimeoutMs - (System.currentTimeMillis() - startedAt);
         timeout = setTimeout(onTimeout, newTimeoutMs);
-    };
+    }
+
+    ;
 
     private TimerTask onTimeout = new TimerTask() {
         @Override
@@ -142,7 +148,9 @@ public class Collector extends EventEmitter {
         if (ackTimeout != null)
             return;
         ackTimeout = setTimeout(onAckTimeout, waitForAcksUntil - System.currentTimeMillis());
-    };
+    }
+
+    ;
 
     private TimerTask onAckTimeout = new TimerTask() {
         @Override
@@ -174,14 +182,16 @@ public class Collector extends EventEmitter {
         }
     }
 
-    private Integer setTimeoutMsForResponderId(String responderId, Integer timeoutMs) {        
-        if (timeoutMsById!= null && timeoutMsById.containsKey(responderId) && timeoutMsById.get(responderId).equals(timeoutMs)) {
+    private Integer setTimeoutMsForResponderId(String responderId, Integer timeoutMs) {
+        if (timeoutMsById != null && timeoutMsById.containsKey(responderId) && timeoutMsById.get(responderId).equals(timeoutMs)) {
             return 0; // Not changed
         }
         timeoutMsById.put(responderId, timeoutMs);
 
         return timeoutMs;
-    };
+    }
+
+    ;
 
     private Integer getResponsesRemaining() {
         if (responsesRemainingById == null || responsesRemainingById.isEmpty()) {
@@ -194,7 +204,9 @@ public class Collector extends EventEmitter {
         }
 
         return Math.max(responsesRemaining, sumOfResponsesRemaining);
-    };
+    }
+
+    ;
 
     private int getMaxTimeoutMs() {
         if (timeoutMsById.isEmpty()) {
@@ -211,11 +223,15 @@ public class Collector extends EventEmitter {
         }
 
         return maxTimeoutMs;
-    };
+    }
+
+    ;
 
     private Integer incResponsesRemaining(Integer inc) {
         return (responsesRemaining = Math.max(responsesRemaining + inc, 0));
-    };
+    }
+
+    ;
 
     private int setResponsesRemainingForResponderId(String responderId, Integer responsesRemaining) {
         boolean notChanged = (responsesRemainingById != null && responsesRemainingById.containsKey(responderId) && responsesRemainingById
@@ -236,7 +252,9 @@ public class Collector extends EventEmitter {
         }
 
         return responsesRemainingById.get(responderId);
-    };
+    }
+
+    ;
 
     private Timer setTimeout(TimerTask onTimeout, long delay) {
         Timer timer = new Timer();

@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
  * Created by rdro on 4/24/2015.
  */
 public class MockAdapter implements Adapter {
-	
-	public static Logger log = LoggerFactory.getLogger(MockAdapter.class);
+
+    public static Logger log = LoggerFactory.getLogger(MockAdapter.class);
 
     private static MockAdapter instance = new MockAdapter();
 

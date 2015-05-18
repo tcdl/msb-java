@@ -47,7 +47,7 @@ public class Responder {
         return this.originalMessage;
     }
 
-    public void sendAck(Integer timeoutMs, Integer responsesRemaining, EventHandler callback) { 
+    public void sendAck(Integer timeoutMs, Integer responsesRemaining, EventHandler callback) {
         this.ack.withTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
         this.ack.withResponsesRemaining(ifNull(responsesRemaining, 1));
 
@@ -59,7 +59,9 @@ public class Responder {
         this.ack.withResponsesRemaining(-1);
         Message message = this.messageFactory.createResponseMessage(originalMessage, ack, payload);
         sendMessage(message, callback);
-    };
+    }
+
+    ;
 
     private void sendMessage(Message message, EventHandler callback) {
         this.responseMessage = this.messageFactory.completeMeta(message, meta);

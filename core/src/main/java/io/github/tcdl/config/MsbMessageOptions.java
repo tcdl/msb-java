@@ -5,58 +5,58 @@ package io.github.tcdl.config;
  */
 public class MsbMessageOptions {
 
-	private String namespace;
-	private Integer ackTimeout;
-	private Integer responseTimeout;
-	private Integer waitForResponses;
-	private Integer ttl;
+    private String namespace;
+    private Integer ackTimeout;
+    private Integer responseTimeout;
+    private Integer waitForResponses;
+    private Integer ttl;
 
-	public String getNamespace() {
-		return namespace;
-	}
+    public String getNamespace() {
+        return namespace;
+    }
 
-	public Integer getAckTimeout() {
-		return ackTimeout;
-	}
+    public Integer getAckTimeout() {
+        return ackTimeout;
+    }
 
-	public Integer getResponseTimeout() {
-		return responseTimeout;
-	}
+    public Integer getResponseTimeout() {
+        return responseTimeout;
+    }
 
-	public Integer getWaitForResponses() {
-		return waitForResponses;
-	}
+    public Integer getWaitForResponses() {
+        return waitForResponses;
+    }
 
-	public Integer getTtl() {
-		return ttl;
-	}
+    public Integer getTtl() {
+        return ttl;
+    }
 
-	public void setNamespace(String namespace) {
-		this.namespace = namespace;
-	}
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
 
-	public void setAckTimeout(Integer ackTimeout) {
-		this.ackTimeout = ackTimeout;
-	}
+    public void setAckTimeout(Integer ackTimeout) {
+        this.ackTimeout = ackTimeout;
+    }
 
-	public void setResponseTimeout(Integer responseTimeout) {
-		this.responseTimeout = responseTimeout;
-	}
+    public void setResponseTimeout(Integer responseTimeout) {
+        this.responseTimeout = responseTimeout;
+    }
 
-	public void setWaitForResponses(Integer waitForResponses) {
-		this.waitForResponses = waitForResponses;
-	}
+    public void setWaitForResponses(Integer waitForResponses) {
+        this.waitForResponses = waitForResponses;
+    }
 
-	public void setTtl(Integer ttl) {
-		this.ttl = ttl;
-	}
+    public void setTtl(Integer ttl) {
+        this.ttl = ttl;
+    }
 
-	@Override
-	public String toString() {
-		return "MsbMessageOptions [namespace=" + namespace + ", ackTimeout="
-				+ ackTimeout + ", responseTimeout=" + responseTimeout
-				+ ", waitForResponses=" + waitForResponses + ", ttl=" + ttl
-				+ "]";
-	}
+    @Override
+    public String toString() {
+        return "MsbMessageOptions [namespace=" + namespace + ", ackTimeout="
+                + ackTimeout + ", responseTimeout=" + responseTimeout
+                + ", waitForResponses=" + waitForResponses + ", ttl=" + ttl
+                + "]";
+    }
 
 }

@@ -7,7 +7,7 @@ import java.util.Map;
  * Created by rdro on 4/23/2015.
  */
 @SuppressWarnings("rawtypes")
-public class BasicPayload <T extends BasicPayload> {
+public class BasicPayload<T extends BasicPayload> {
 
     private Map<String, String> headers = new HashMap<>();
     private Map<?, ?> body = new HashMap<>();

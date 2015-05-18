@@ -5,13 +5,13 @@ package io.github.tcdl.messages;
  */
 public class Topics {
 
-    private String to;   
+    private String to;
     private String response;
 
     public Topics withTo(String to) {
         this.to = to;
         return this;
-    }  
+    }
 
     public Topics withResponse(String response) {
         this.response = response;
@@ -34,8 +34,8 @@ public class Topics {
         return response;
     }
 
-	@Override
-	public String toString() {
-		return "Topics [to=" + to + ", response=" + response + "]";
-	} 
+    @Override
+    public String toString() {
+        return "Topics [to=" + to + ", response=" + response + "]";
+    }
 }

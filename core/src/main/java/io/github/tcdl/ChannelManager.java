@@ -59,7 +59,7 @@ public class ChannelManager extends EventEmitter {
         Validate.notNull(topic, "field 'topic' is null");
         Consumer consumer = consumersByTopic.get(topic);
         if (consumer == null) {
-            consumer = createConsumer(topic, this.msbConfig, msgOptions);           
+            consumer = createConsumer(topic, this.msbConfig, msgOptions);
             consumersByTopic.put(topic, consumer);
             consumer.subscribe();
 
@@ -114,6 +114,6 @@ public class ChannelManager extends EventEmitter {
         return message.getMeta() != null
                 && message.getMeta().getTtl() != null
                 && DateUtils.addMilliseconds(message.getMeta().getCreatedAt(), message.getMeta().getTtl()).after(
-                        new Date());
+                new Date());
     }
 }
