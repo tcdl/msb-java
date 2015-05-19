@@ -4,6 +4,7 @@ import io.github.tcdl.Requester;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.events.TwoArgsEventHandler;
+import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 
@@ -29,9 +30,13 @@ public class RequesterExample {
 
         Requester requester = new Requester(options, null);
 
-        requester.on(Event.RESPONSE_EVENT, (Payload payload, Message message) -> {
-                System.out.println(">>> RESPONSE body: " + payload.getBody());
-        });
+        requester
+                .on(Event.ACKNOWLEDGE_EVENT, (Acknowledge acknowledge) -> {
+                    System.out.println(">>> ACK timeout: " + acknowledge.getTimeoutMs());
+                })
+                .on(Event.RESPONSE_EVENT, (Payload payload) -> {
+                    System.out.println(">>> RESPONSE body: " + payload.getBody());
+                });
 
         requester.publish(requestPayload);
     }

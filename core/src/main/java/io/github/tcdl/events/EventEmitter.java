@@ -39,12 +39,12 @@ public class EventEmitter {
     }
 
     public EventEmitter emit(Event event, Object... args) {
-        List<GenericEventHandler> GenericEventHandlers = handlersByEvent.get(event);
-        if (GenericEventHandlers == null)
+        List<GenericEventHandler> eventHandlers = handlersByEvent.get(event);
+        if (eventHandlers == null)
             return this;
 
-        for (GenericEventHandler GenericEventHandler : GenericEventHandlers) {
-            GenericEventHandler.onEvent(args);
+        for (GenericEventHandler eventHandler : eventHandlers) {
+            eventHandler.onEvent(args);
         }
 
         return this;
@@ -55,10 +55,10 @@ public class EventEmitter {
         return this;
     }
 
-    public void removeListener(Event event, GenericEventHandler GenericEventHandler) {
-        List<GenericEventHandler> GenericEventHandlers = handlersByEvent.get(event);
-        if (GenericEventHandlers != null) {
-            GenericEventHandlers.remove(GenericEventHandler);
+    public void removeListener(Event event, GenericEventHandler genericEventHandler) {
+        List<GenericEventHandler> eventHandlers = handlersByEvent.get(event);
+        if (eventHandlers != null) {
+            eventHandlers.remove(genericEventHandler);
         }
     }
 
