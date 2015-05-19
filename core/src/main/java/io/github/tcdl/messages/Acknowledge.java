@@ -1,5 +1,7 @@
 package io.github.tcdl.messages;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.Validate;
 
 /**
@@ -11,7 +13,10 @@ public final class Acknowledge {
     private final Integer responsesRemaining;
     private final Integer timeoutMs;
 
-    private Acknowledge(String responderId, Integer responsesRemaining, Integer timeoutMs) {
+    @JsonCreator
+    private Acknowledge(@JsonProperty("responderId") String responderId,
+            @JsonProperty("responsesRemaining") Integer responsesRemaining,
+            @JsonProperty("timeoutMs") Integer timeoutMs) {
         Validate.notNull(responderId, "the 'responderId' must not be null");
         this.responderId = responderId;
         this.responsesRemaining = responsesRemaining;

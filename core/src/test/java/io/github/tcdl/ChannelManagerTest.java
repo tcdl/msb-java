@@ -6,13 +6,14 @@ import static org.junit.Assert.assertTrue;
 
 import javax.xml.ws.Holder;
 
+import io.github.tcdl.events.Event;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.SingleArgumentAdapter;
+import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.TestUtils;
 
@@ -46,12 +47,9 @@ public class ChannelManagerTest {
         final Holder<Boolean> newProducerTopicEventFired = new Holder<>();
         final Holder<String> topicName = new Holder<>();
 
-        channelManager.on(ChannelManager.PRODUCER_NEW_TOPIC_EVENT, new SingleArgumentAdapter<String>() {
-            @Override
-            public void onEvent(String topic) {
+        channelManager.on(Event.PRODUCER_NEW_TOPIC_EVENT, (String topic) -> {
                 newProducerTopicEventFired.value = true;
                 topicName.value = topic;
-            }
         });
 
         String topic = config.getNamespace();
@@ -68,12 +66,9 @@ public class ChannelManagerTest {
         final Holder<Boolean> newConsumerTopicFired = new Holder<>();
         final Holder<String> topicName = new Holder<>();
 
-        channelManager.on(ChannelManager.CONSUMER_NEW_TOPIC_EVENT, new SingleArgumentAdapter<String>() {
-            @Override
-            public void onEvent(String topic) {
+        channelManager.on(Event.CONSUMER_NEW_TOPIC_EVENT, (String topic) -> {
                 newConsumerTopicFired.value = true;
                 topicName.value = topic;
-            }
         });
 
         String topic = config.getNamespace();
@@ -90,12 +85,9 @@ public class ChannelManagerTest {
         final Holder<Boolean> consumerRemovedTopicEventFired = new Holder<>();
         final Holder<String> topicName = new Holder<>();
 
-        channelManager.on(ChannelManager.CONSUMER_REMOVED_TOPIC_EVENT, new SingleArgumentAdapter<String>() {
-            @Override
-            public void onEvent(String topic) {
+        channelManager.on(Event.CONSUMER_REMOVED_TOPIC_EVENT, (String topic) -> {
                 consumerRemovedTopicEventFired.value = true;
                 topicName.value = topic;
-            }
         });
 
         String topic = config.getNamespace();
@@ -111,12 +103,9 @@ public class ChannelManagerTest {
         final Holder<Boolean> producerNewMessageEventFired = new Holder<>();
         final Holder<String> topicName = new Holder<>();
 
-        channelManager.on(ChannelManager.PRODUCER_NEW_MESSAGE_EVENT, new SingleArgumentAdapter<String>() {
-            @Override
-            public void onEvent(String topic) {
+        channelManager.on(Event.PRODUCER_NEW_MESSAGE_EVENT, (String topic) -> {
                 producerNewMessageEventFired.value = true;
                 topicName.value = topic;
-            }
         });
 
         String topic = config.getNamespace();
@@ -134,19 +123,13 @@ public class ChannelManagerTest {
         final Holder<String> topicName = new Holder<>();
         final Holder<Message> messageEvent = new Holder<>();
 
-        channelManager.on(ChannelManager.CONSUMER_NEW_MESSAGE_EVENT, new SingleArgumentAdapter<String>() {
-            @Override
-            public void onEvent(String topic) {
+        channelManager.on(Event.CONSUMER_NEW_MESSAGE_EVENT, (String topic) -> {
                 consumerNewMessageEventFired.value = true;
                 topicName.value = topic;
-            }
         });
 
-        channelManager.on(ChannelManager.MESSAGE_EVENT, new SingleArgumentAdapter<Message>() {
-            @Override
-            public void onEvent(Message message) {
+        channelManager.on(Event.MESSAGE_EVENT,(Message message) -> {
                 messageEvent.value = message;
-            }
         });
 
         String topic = config.getNamespace();

@@ -2,19 +2,22 @@ package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.EventEmitter;
-import io.github.tcdl.events.EventHandler;
-import io.github.tcdl.events.SingleArgumentAdapter;
-import io.github.tcdl.events.ThreeArgumentsAdapter;
+import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
+import static io.github.tcdl.events.Event.*;
 
 /**
  * Created by rdro on 4/29/2015.
  */
 public class ResponderServer {
+
+    public static final Logger LOG = LoggerFactory.getLogger(ResponderServer.class);
 
     private MsbMessageOptions messageOptions;
     private EventEmitter eventEmitter;
@@ -35,32 +38,26 @@ public class ResponderServer {
         }
 
         eventEmitter = Responder.createEmitter(this.messageOptions);
-        eventEmitter.on(Responder.RESPONDER_EVENT, onResponder);
+        eventEmitter.on(RESPONDER_EVENT, onResponder);
 
         return this;
     }
 
-    private EventHandler onResponder = new SingleArgumentAdapter<Responder>() {
-        @Override
-        public void onEvent(Responder responder) {
+    private SingleArgEventHandler<Responder> onResponder = (Responder responder) -> {
             Payload request = responder.getOriginalMessage().getPayload();
             Response response = new Response(responder);
             CompletableFuture.supplyAsync(() ->
                     middlewareChain
-                            .withErrorHandler(new ThreeArgumentsAdapter<Payload, Response, Exception>() {
-                                @Override
-                                public void onEvent(Payload request, Response response, Exception error) {
+                            .withErrorHandler((req, resp, error) -> {
                                     if (error == null)
                                         return;
                                     errorHandler(request, response, error);
-                                }
                             })
                             .invoke(request, response));
-        }
     };
 
     private void errorHandler(Payload request, Response response, Exception err) {
-        System.out.println("Error 500: " + err.getMessage());
+        LOG.error("Error processing request {}", request);
         // TODO write error
     }
 }

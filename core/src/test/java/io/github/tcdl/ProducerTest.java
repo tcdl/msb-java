@@ -9,7 +9,7 @@ import javax.xml.ws.Holder;
 import org.junit.Test;
 
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.events.TwoArgumentsAdapter;
+import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.TestUtils;
 
@@ -24,14 +24,11 @@ public class ProducerTest {
         final Holder<Message> messageHolder = new Holder<Message>();
         final Holder<Exception> exceptionHolder = new Holder<>();
 
-        Producer producer = new Producer("consumeTopic", MsbConfigurations.msbConfiguration())
-                .withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
-                    @Override
-                    public void onEvent(Message message, Exception exception) {
+        Producer producer = new Producer("produceTopic", MsbConfigurations.msbConfiguration())
+                .withMessageHandler((Message message, Exception exception) -> {
                         messagePublishedEventFired.value = true;
                         messageHolder.value = message;
                         exceptionHolder.value = exception;
-                    }
                 });
         Message message = TestUtils.createMsbResponseMessage();
         producer.publish(message);

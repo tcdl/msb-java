@@ -9,9 +9,8 @@ import org.apache.commons.lang3.time.DateUtils;
 
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.Event;
 import io.github.tcdl.events.EventEmitter;
-import io.github.tcdl.events.TwoArgumentsAdapter;
+import static io.github.tcdl.events.Event.*;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.Utils;
 
@@ -19,13 +18,6 @@ import io.github.tcdl.support.Utils;
  * Created by rdro on 4/23/2015.
  */
 public class ChannelManager extends EventEmitter {
-
-    public final static Event PRODUCER_NEW_TOPIC_EVENT = new Event("newProducerOnTopic");
-    public final static Event PRODUCER_NEW_MESSAGE_EVENT = new Event("newProducedMessage");
-    public final static Event CONSUMER_NEW_TOPIC_EVENT = new Event("newConsumerOnTopic");
-    public final static Event CONSUMER_REMOVED_TOPIC_EVENT = new Event("removedConsumerOnTopic");
-    public final static Event CONSUMER_NEW_MESSAGE_EVENT = new Event("newConsumedMessage");
-    public final static Event MESSAGE_EVENT = new Event("message");
 
     private static ChannelManager INSTANCE = new ChannelManager();
     private MsbConfigurations msbConfig;
@@ -38,8 +30,8 @@ public class ChannelManager extends EventEmitter {
 
     private ChannelManager() {
         this.msbConfig = MsbConfigurations.msbConfiguration();
-        producersByTopic = new ConcurrentHashMap<String, Producer>();
-        consumersByTopic = new ConcurrentHashMap<String, Consumer>();
+        producersByTopic = new ConcurrentHashMap<>();
+        consumersByTopic = new ConcurrentHashMap<>();
     }
 
     public Producer findOrCreateProducer(final String topic) {
@@ -89,24 +81,19 @@ public class ChannelManager extends EventEmitter {
 
     private Producer createProducer(String topic, MsbConfigurations msbConfig) {
         Utils.validateTopic(topic);
-        return new Producer(topic, msbConfig).withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
-            public void onEvent(Message message, Exception exception) {
-                emit(PRODUCER_NEW_MESSAGE_EVENT, topic);
-            }
-        });
+        return new Producer(topic, msbConfig).withMessageHandler(
+                (message, exception) -> emit(PRODUCER_NEW_MESSAGE_EVENT, topic)
+        );
     }
 
     private Consumer createConsumer(String topic, MsbConfigurations msbConfig, MsbMessageOptions msgOptions) {
         Utils.validateTopic(topic);
         return new Consumer(topic, msbConfig, msgOptions)
-                .withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
-                    @Override
-                    public void onEvent(Message message, Exception exception) {
+                .withMessageHandler((message, exception) -> {
                         if (isMessageExpired(message))
                             return;
                         emit(CONSUMER_NEW_MESSAGE_EVENT, topic);
                         emit(MESSAGE_EVENT, message);
-                    }
                 });
     }
 

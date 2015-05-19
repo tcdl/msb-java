@@ -11,9 +11,9 @@ import java.util.TimerTask;
 import java.util.function.Predicate;
 
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.Event;
+import static io.github.tcdl.events.Event.*;
 import io.github.tcdl.events.EventEmitter;
-import io.github.tcdl.events.SingleArgumentAdapter;
+import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 
@@ -21,11 +21,6 @@ import io.github.tcdl.messages.Message;
  * Created by rdro on 4/23/2015.
  */
 public class Collector extends EventEmitter {
-
-    public final static Event ACKNOWLEDGE_EVENT = new Event("ack");
-    public final static Event PAYLOAD_EVENT = new Event("payload");
-    public final static Event RESPONSE_EVENT = new Event("response");
-    public final static Event END_EVENT = new Event("end");
 
     protected ChannelManager channelManager;
     private List<Message> ackMessages;
@@ -82,9 +77,7 @@ public class Collector extends EventEmitter {
     ;
 
     public void listenForResponses(String topic, final Predicate<Message> shouldAcceptMessagePredicate) {
-        channelManager.on(ChannelManager.MESSAGE_EVENT, new SingleArgumentAdapter<Message>() {
-            @Override
-            public void onEvent(Message message) {
+        channelManager.on(MESSAGE_EVENT, (Message message) -> {
                 if (shouldAcceptMessagePredicate != null && !shouldAcceptMessagePredicate.test(message)) {
                     return;
                 }
@@ -109,13 +102,12 @@ public class Collector extends EventEmitter {
                 }
 
                 end();
-            }
         });
         channelManager.findOrCreateConsumer(topic, null);
     }
 
     public void removeListeners() {
-        channelManager.removeListeners(ChannelManager.MESSAGE_EVENT);
+        channelManager.removeListeners(MESSAGE_EVENT);
     }
 
     protected void cancel() {
@@ -135,8 +127,6 @@ public class Collector extends EventEmitter {
         timeout = setTimeout(onTimeout, newTimeoutMs);
     }
 
-    ;
-
     private TimerTask onTimeout = new TimerTask() {
         @Override
         public void run() {
@@ -149,8 +139,6 @@ public class Collector extends EventEmitter {
             return;
         ackTimeout = setTimeout(onAckTimeout, waitForAcksUntil - System.currentTimeMillis());
     }
-
-    ;
 
     private TimerTask onAckTimeout = new TimerTask() {
         @Override
@@ -191,8 +179,6 @@ public class Collector extends EventEmitter {
         return timeoutMs;
     }
 
-    ;
-
     private Integer getResponsesRemaining() {
         if (responsesRemainingById == null || responsesRemainingById.isEmpty()) {
             return responsesRemaining;
@@ -205,8 +191,6 @@ public class Collector extends EventEmitter {
 
         return Math.max(responsesRemaining, sumOfResponsesRemaining);
     }
-
-    ;
 
     private int getMaxTimeoutMs() {
         if (timeoutMsById.isEmpty()) {
@@ -225,13 +209,9 @@ public class Collector extends EventEmitter {
         return maxTimeoutMs;
     }
 
-    ;
-
     private Integer incResponsesRemaining(Integer inc) {
         return (responsesRemaining = Math.max(responsesRemaining + inc, 0));
     }
-
-    ;
 
     private int setResponsesRemainingForResponderId(String responderId, Integer responsesRemaining) {
         boolean notChanged = (responsesRemainingById != null && responsesRemainingById.containsKey(responderId) && responsesRemainingById
@@ -253,8 +233,6 @@ public class Collector extends EventEmitter {
 
         return responsesRemainingById.get(responderId);
     }
-
-    ;
 
     private Timer setTimeout(TimerTask onTimeout, long delay) {
         Timer timer = new Timer();

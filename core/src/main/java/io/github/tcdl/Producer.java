@@ -1,11 +1,11 @@
 package io.github.tcdl;
 
+import io.github.tcdl.events.TwoArgsEventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.events.EventHandler;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.Utils;
 import io.github.tcdl.exception.ChannelException;
@@ -18,7 +18,7 @@ public class Producer {
 
     public static final Logger LOG = LoggerFactory.getLogger(Producer.class);
 
-    private EventHandler messageHandler;
+    private TwoArgsEventHandler<Message, Exception> messageHandler;
     private Adapter rawAdapter;
 
     public Producer(String topic, MsbConfigurations msbConfig) {
@@ -44,7 +44,7 @@ public class Producer {
         return this;
     }
 
-    public Producer withMessageHandler(EventHandler messageHandler) {
+    public Producer withMessageHandler(TwoArgsEventHandler<Message, Exception> messageHandler) {
         this.messageHandler = messageHandler;
         return this;
     }

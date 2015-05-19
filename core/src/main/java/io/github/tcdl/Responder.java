@@ -1,10 +1,9 @@
 package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.Event;
+import static io.github.tcdl.events.Event.*;
 import io.github.tcdl.events.EventEmitter;
-import io.github.tcdl.events.EventHandler;
-import io.github.tcdl.events.TwoArgumentsAdapter;
+import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
@@ -20,9 +19,7 @@ import org.apache.commons.lang3.Validate;
  */
 public class Responder {
 
-    public static Event RESPONDER_EVENT = new Event("responder");
-
-    MsbMessageOptions msgOptions;
+    private MsbMessageOptions msgOptions;
     private MetaMessageBuilder metaBuilder;
     private AcknowledgeBuilder ackBuilder;
     private Message originalMessage;
@@ -43,7 +40,8 @@ public class Responder {
         channelManager = ChannelManager.getInstance();
     }
 
-    public void sendAck(Integer timeoutMs, Integer responsesRemaining, EventHandler callback) {
+    public void sendAck(Integer timeoutMs, Integer responsesRemaining,
+            TwoArgsEventHandler<Message, Exception> callback) {
         this.ackBuilder.setTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
         this.ackBuilder.setResponsesRemaining(responsesRemaining == null ? 1 : responsesRemaining);
 
@@ -51,13 +49,13 @@ public class Responder {
         sendMessage(ackMessage, callback);
     }
 
-    public void send(Payload responsePayload, EventHandler callback) {
+    public void send(Payload responsePayload, TwoArgsEventHandler<Message, Exception> callback) {
         this.ackBuilder.setResponsesRemaining(-1);
         MessageBuilder message = this.messageFactory.createResponseMessage(originalMessage, ackBuilder.build(), responsePayload);
         sendMessage(message, callback);
     };
 
-    private void sendMessage(MessageBuilder message, EventHandler callback) {
+    private void sendMessage(MessageBuilder message, TwoArgsEventHandler<Message, Exception> callback) {
         this.responseMessage = this.messageFactory.completeMeta(message, metaBuilder);
 
         Producer producer = channelManager.findOrCreateProducer(responseMessage.getTopics().getTo());
@@ -72,11 +70,8 @@ public class Responder {
         String topic = msgOptions.getNamespace();
         ChannelManager channelManager = ChannelManager.getInstance();
         channelManager.findOrCreateConsumer(topic, null)
-                .withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
-                    @Override
-                    public void onEvent(Message message, Exception exception) {
+                .withMessageHandler((message, exception) -> {
                         channelManager.emit(RESPONDER_EVENT, new Responder(msgOptions, message));
-                    }
                 }).subscribe();
 
         return channelManager;

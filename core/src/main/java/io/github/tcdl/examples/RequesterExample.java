@@ -3,7 +3,7 @@ package io.github.tcdl.examples;
 import io.github.tcdl.Requester;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
-import io.github.tcdl.events.TwoArgumentsAdapter;
+import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 
@@ -29,10 +29,8 @@ public class RequesterExample {
 
         Requester requester = new Requester(options, null);
 
-        requester.on(new Event("response"), new TwoArgumentsAdapter<Payload, Message>() {
-            @Override public void onEvent(Payload payload, Message message) {
+        requester.on(Event.RESPONSE_EVENT, (Payload payload, Message message) -> {
                 System.out.println(">>> RESPONSE body: " + payload.getBody());
-            }
         });
 
         requester.publish(requestPayload);
