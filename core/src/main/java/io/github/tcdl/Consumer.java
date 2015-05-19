@@ -4,7 +4,8 @@ import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.EventHandler;
+import io.github.tcdl.events.GenericEventHandler;
+import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
@@ -21,7 +22,7 @@ public class Consumer {
 
     private Adapter rawAdapter;
     private String topic;
-    private EventHandler messageHandler;
+    private TwoArgsEventHandler<Message, Exception> messageHandler;
     private MsbConfigurations msbConfig; // not sure we need this here
     MsbMessageOptions msgOptions;
 
@@ -50,7 +51,7 @@ public class Consumer {
                     Utils.validateJsonWithSchema(jsonMessage,
                             msbConfig.getSchema());
                 }
-                message = (Message) Utils.fromJson(jsonMessage,
+                message = Utils.fromJson(jsonMessage,
                         Message.class);
             } catch (JsonConversionException | JsonSchemaValidationException e) {
                 error = e;
@@ -60,15 +61,17 @@ public class Consumer {
                 messageHandler.onEvent(message, error);
             }
         });
+
         return this;
     }
 
-    public Consumer withMessageHandler(EventHandler messageHandler) {
+    public Consumer withMessageHandler(TwoArgsEventHandler<Message, Exception> messageHandler) {
         this.messageHandler = messageHandler;
         return this;
     }
 
     public void end() {
+        //TODO shutdlown raw consumer
     }
 
     private boolean isServiceChannel(String topic) {

@@ -16,7 +16,7 @@ import org.junit.Test;
 import io.github.tcdl.adapters.MockAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.TwoArgumentsAdapter;
+import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.TestUtils;
@@ -43,14 +43,12 @@ public class ConsumerTest {
         MockAdapter.getInstance().publish(Utils.toJson(TestUtils.createMsbResponseMessage()));
 
         new Consumer(config.getNamespace(), MsbConfigurations.msbConfiguration(), new MsbMessageOptions())
-                .withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
-                    @Override
-                    public void onEvent(Message message, Exception exception) {
+                .withMessageHandler((Message message, Exception exception) -> {
                         messageConsumedEventFired.value = true;
                         messageHolder.value = message;
                         exceptionHolder.value = exception;
-                    }
-                }).subscribe();     
+                })
+                .subscribe();
 
         assertTrue(messageConsumedEventFired.value);
         assertNotNull(messageHolder.value);

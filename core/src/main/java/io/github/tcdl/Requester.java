@@ -1,7 +1,6 @@
 package io.github.tcdl;
 
 import java.util.Objects;
-import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
@@ -9,14 +8,13 @@ import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.tcdl.Requester;
 import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
 
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.Event;
-import io.github.tcdl.events.TwoArgumentsAdapter;
+import static io.github.tcdl.events.Event.*;
+import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MessageFactory;
 
@@ -26,7 +24,6 @@ import io.github.tcdl.messages.MessageFactory;
 public class Requester extends Collector {
 
     public static final Logger LOG = LoggerFactory.getLogger(Requester.class);
-    public static final Event ERROR_EVENT = new Event("err");
 
     private MessageFactory messageFactory;
     private Message message;
@@ -54,8 +51,7 @@ public class Requester extends Collector {
         }
         
         channelManager.findOrCreateProducer(this.message.getTopics().getTo())
-                .withMessageHandler(new TwoArgumentsAdapter<Message, Exception>() {
-                    public void onEvent(Message message, Exception exception) {
+                .withMessageHandler((message, exception) -> {
                         if (exception != null) {
                             emit(ERROR_EVENT, exception);
                             LOG.debug("Exception was thrown.", exception);
@@ -65,7 +61,6 @@ public class Requester extends Collector {
                         if (!isAwaitingResponses())
                             end();
                         enableTimeout();
-                    }
                 })
                 .publish(this.message);
     }

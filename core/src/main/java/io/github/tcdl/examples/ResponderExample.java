@@ -15,15 +15,14 @@ public class ResponderExample {
 
         MsbMessageOptions options = new MsbMessageOptions();
         options.setNamespace("test:simple-requester");
-      
-        Map<String, String> headers = new HashMap<>();
-        headers.put("From", "user@example.com");
-        Payload requestPayload = new Payload.PayloadBuilder().setHeaders(headers).build();
 
         Responder.createServer(options)
                 .use(((request, response) -> {
                     System.out.print(">>> REQUEST: " + request.getHeaders());
-                    
+
+                    response.getResponder().sendAck(10000, 1, null);
+                    Thread.sleep(5000);
+
                     Map<String, String> body = new HashMap<>();
                     body.put("result", "response from responder");
                     Payload responsePayload = new Payload.PayloadBuilder().setBody(body).build();

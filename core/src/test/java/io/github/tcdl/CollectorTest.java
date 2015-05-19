@@ -9,6 +9,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MessageFactory;
@@ -212,7 +213,7 @@ public class CollectorTest {
 
         Message message = TestUtils.createMsbResponseMessage();
 
-        channelManager.emit(ChannelManager.MESSAGE_EVENT, message);
+        channelManager.emit(Event.MESSAGE_EVENT, message);
         Collection<?> payloadMessages = _g(collector, "payloadMessages");
         assertTrue(payloadMessages.contains(message));
 
@@ -233,7 +234,7 @@ public class CollectorTest {
 
         message = TestUtils.createMsbAckMessage();
 
-        channelManager.emit(ChannelManager.MESSAGE_EVENT, message);
+        channelManager.emit(Event.MESSAGE_EVENT, message);
         Collection<?> acknowledgeMessages = _g(collector, "ackMessages");
         assertTrue(acknowledgeMessages.contains(message));
         assertTrue(ackTimeoutCalled.value);

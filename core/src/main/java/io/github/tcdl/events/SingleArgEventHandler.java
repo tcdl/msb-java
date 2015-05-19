@@ -3,10 +3,10 @@ package io.github.tcdl.events;
 /**
  * Created by rdro on 4/24/2015.
  */
-public class SingleArgumentAdapter<A> implements EventHandler {
+public interface SingleArgEventHandler<A> extends GenericEventHandler {
 
     @SuppressWarnings("unchecked")
-    public void onEvent(Object... args) {
+    default void onEvent(Object... args) {
         if (args.length == 1) {
             onEvent((A) args[0]);
         } else {
@@ -14,6 +14,5 @@ public class SingleArgumentAdapter<A> implements EventHandler {
         }
     }
 
-    public void onEvent(A arg) {
-    }
+    void onEvent(A arg);
 }

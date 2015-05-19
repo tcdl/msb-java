@@ -3,31 +3,30 @@ package io.github.tcdl.events;
 /**
  * Created by rdro on 4/23/2015.
  */
-public class Event {
+public enum Event {
+
+    PRODUCER_NEW_TOPIC_EVENT("newProducerOnTopic"),
+    PRODUCER_NEW_MESSAGE_EVENT("newProducedMessage"),
+    CONSUMER_NEW_TOPIC_EVENT("newConsumerOnTopic"),
+    CONSUMER_REMOVED_TOPIC_EVENT("removedConsumerOnTopic"),
+    CONSUMER_NEW_MESSAGE_EVENT("newConsumedMessage"),
+
+    MESSAGE_EVENT("message"),
+    ACKNOWLEDGE_EVENT("ack"),
+    PAYLOAD_EVENT("payload"),
+    RESPONSE_EVENT("response"),
+    RESPONDER_EVENT("responder"),
+
+    ERROR_EVENT("err"),
+    END_EVENT("end");
 
     private String name;
 
-    public Event(String name) {
+    Event(String name) {
         this.name = name;
     }
 
     public String getName() {
         return name;
-    }
-
-    @Override public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-
-        Event event = (Event) o;
-
-        return name.equals(event.name);
-
-    }
-
-    @Override public int hashCode() {
-        return name.hashCode();
     }
 }

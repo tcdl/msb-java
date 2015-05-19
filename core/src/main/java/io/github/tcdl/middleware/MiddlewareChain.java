@@ -1,7 +1,7 @@
 package io.github.tcdl.middleware;
 
 import io.github.tcdl.Response;
-import io.github.tcdl.events.EventHandler;
+import io.github.tcdl.events.ThreeArgsEventHandler;
 import io.github.tcdl.messages.payload.Payload;
 
 import java.util.Arrays;
@@ -16,7 +16,7 @@ public class MiddlewareChain {
 
     private List<Middleware> middlewareList = new LinkedList<>();
     private Iterator<Middleware> iterator;
-    private EventHandler handler;
+    private ThreeArgsEventHandler<Payload, Response, Exception> handler;
 
     public void add(Middleware... middleware) {
         middlewareList.addAll(Arrays.asList(middleware));
@@ -52,7 +52,7 @@ public class MiddlewareChain {
         }
     }
 
-    public MiddlewareChain withErrorHandler(EventHandler handler) {
+    public MiddlewareChain withErrorHandler(ThreeArgsEventHandler<Payload, Response, Exception> handler) {
         this.handler = handler;
         return this;
     }
