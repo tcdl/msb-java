@@ -30,10 +30,8 @@ public class MsbConfigurations {
     private BrokerAdapter msbBroker;
 
     public enum BrokerAdapter {
-        AMQP, REDIS, KAFKA
+        AMQP, REDIS, KAFKA, LOCAL
     }
-
-    ;
 
     private MsbConfigurations() {
         Config config = ConfigFactory.load().getConfig("msbConfig");

@@ -33,7 +33,7 @@ public class ProducerTest {
                         exceptionHolder.value = exception;
                     }
                 });
-        Message message = TestUtils.createSimpleMsbMessage();
+        Message message = TestUtils.createMsbResponseMessage();
         producer.publish(message);
 
         assertTrue(messagePublishedEventFired.value);

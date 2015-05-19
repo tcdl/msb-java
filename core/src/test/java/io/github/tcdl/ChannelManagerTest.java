@@ -121,7 +121,7 @@ public class ChannelManagerTest {
 
         String topic = config.getNamespace();
         Producer producer = channelManager.findOrCreateProducer(topic);
-        Message message = TestUtils.createSimpleMsbMessage();
+        Message message = TestUtils.createMsbRequestMessageWithPayload();
         producer.publish(message);
 
         assertTrue(producerNewMessageEventFired.value);
@@ -151,7 +151,7 @@ public class ChannelManagerTest {
 
         String topic = config.getNamespace();
 
-        Message message = TestUtils.createSimpleMsbMessage();
+        Message message = TestUtils.createMsbRequestMessageWithPayload();
         channelManager.findOrCreateProducer(config.getNamespace()).publish(message);
         channelManager.findOrCreateConsumer(topic, config);
 

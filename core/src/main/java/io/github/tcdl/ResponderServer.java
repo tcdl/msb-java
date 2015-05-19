@@ -5,7 +5,7 @@ import io.github.tcdl.events.EventEmitter;
 import io.github.tcdl.events.EventHandler;
 import io.github.tcdl.events.SingleArgumentAdapter;
 import io.github.tcdl.events.ThreeArgumentsAdapter;
-import io.github.tcdl.messages.payload.BasicPayload;
+import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
 
@@ -40,18 +40,16 @@ public class ResponderServer {
         return this;
     }
 
-    ;
-
     private EventHandler onResponder = new SingleArgumentAdapter<Responder>() {
         @Override
         public void onEvent(Responder responder) {
-            BasicPayload request = responder.getOriginalMessage().getPayload();
+            Payload request = responder.getOriginalMessage().getPayload();
             Response response = new Response(responder);
             CompletableFuture.supplyAsync(() ->
                     middlewareChain
-                            .withErrorHandler(new ThreeArgumentsAdapter<BasicPayload, Response, Exception>() {
+                            .withErrorHandler(new ThreeArgumentsAdapter<Payload, Response, Exception>() {
                                 @Override
-                                public void onEvent(BasicPayload request, Response response, Exception error) {
+                                public void onEvent(Payload request, Response response, Exception error) {
                                     if (error == null)
                                         return;
                                     errorHandler(request, response, error);
@@ -61,7 +59,7 @@ public class ResponderServer {
         }
     };
 
-    private void errorHandler(BasicPayload request, Response response, Exception err) {
+    private void errorHandler(Payload request, Response response, Exception err) {
         System.out.println("Error 500: " + err.getMessage());
         // TODO write error
     }

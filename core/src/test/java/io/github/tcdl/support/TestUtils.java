@@ -2,17 +2,20 @@ package io.github.tcdl.support;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.util.ReflectionUtils;
 
+import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.MetaMessage;
+import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.support.Utils;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Topics;
-import io.github.tcdl.messages.payload.RequestPayload;
-import io.github.tcdl.messages.payload.ResponsePayload;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -25,31 +28,75 @@ public class TestUtils {
         return conf;
     }
 
-    public static Message createSimpleMsbMessage() {
-        Topics topic = new Topics();
+    public static Message createMsbRequestMessageWithPayload() {
         MsbMessageOptions conf = createSimpleConfig();
         MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
-        topic.setTo(conf.getNamespace());
-        topic.setResponse(conf.getNamespace() + ":response:" + msbConf.getServiceDetails().getInstanceId());
-        return new Message().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic);
+
+        Topics topic = new Topics.TopicsBuilder().setTo(conf.getNamespace())
+                .setResponse(conf.getNamespace() + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
+        MetaMessage meta = createSimpleMeta(msbConf);
+        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMeta(meta)
+                .setPayload(createSimpleRequestPayload()).build();
+    }
+    
+    public static Message createMsbRequestMessageNoPayload() {
+        MsbMessageOptions conf = createSimpleConfig();
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
+
+        Topics topic = new Topics.TopicsBuilder().setTo(conf.getNamespace())
+                .setResponse(conf.getNamespace() + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
+
+        MetaMessage meta = createSimpleMeta(msbConf);
+        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMeta(meta)
+                .setPayload(null).build();
+    }
+    
+    public static Message createMsbResponseMessage() {
+        MsbMessageOptions conf = createSimpleConfig();
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
+
+        Topics topic = new Topics.TopicsBuilder().setResponse(conf.getNamespace())
+                .setTo(conf.getNamespace() + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
+        MetaMessage meta = createSimpleMeta(msbConf);
+        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic)
+                .setMeta(meta).setPayload(createSimpleResponsePayload()).build();
     }
 
-    public static RequestPayload createSimpleRequestPayload() {
+    public static Message createMsbAckMessage() {
+        MsbMessageOptions conf = createSimpleConfig();
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
+
+        Topics topic = new Topics.TopicsBuilder().setResponse(conf.getNamespace())
+                .setTo(conf.getNamespace() + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
+        MetaMessage meta = createSimpleMeta(msbConf);
+        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMeta(meta)
+                .setAck(new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).build()).build();
+    }
+
+    public static Payload createSimpleRequestPayload() {
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("url", "http://mock/request");
         headers.put("method", "Request");
 
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("query", "someTestParam");
+        Map<String, String> body = new HashMap<String, String>();
+        body.put("body", "someRequestBody");
 
-        return new RequestPayload().withHeaders(headers).withParams(params);
+        return new Payload.PayloadBuilder().setBody(body).setHeaders(headers).build();
     }
 
-    public static ResponsePayload createSimpleResponsePayload() {
+    public static Payload createSimpleResponsePayload() {
         Map<String, String> headers = new HashMap<String, String>();
-        headers.put("url", "http://mock/response");
+        headers.put("statusCode", "200");
         headers.put("method", "Response");
-        return new ResponsePayload().withHeaders(headers).withStatusCode(200);
+
+        Map<String, String> body = new HashMap<String, String>();
+        body.put("body", "someResponseBody");
+
+        return new Payload.PayloadBuilder().setBody(body).setHeaders(headers).build();
+    }
+    
+    public static MetaMessage createSimpleMeta(MsbConfigurations msbConf) {
+        return new MetaMessage.MetaMessageBuilder(0, new Date(), msbConf.getServiceDetails()).computeDurationMs().build();
     }
 
     public static <T> T _g(Object object, String fieldName) {

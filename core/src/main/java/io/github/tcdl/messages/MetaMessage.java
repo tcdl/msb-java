@@ -1,37 +1,52 @@
 package io.github.tcdl.messages;
 
 import java.util.Date;
+import org.apache.commons.lang3.Validate;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.github.tcdl.ServiceDetails;
+import io.github.tcdl.config.ServiceDetails;
 
 /**
  * Created by rdro on 4/22/2015.
  */
-public class MetaMessage {
+public final class MetaMessage {
 
-    private Integer ttl;
-    private Date createdAt;
-    private Long durationMs;
-    private ServiceDetails serviceDetails;
+    private final Integer ttl;
+    private final Date createdAt;
+    private final Long durationMs;
+    private final ServiceDetails serviceDetails;
 
-    public MetaMessage withTtl(Integer ttl) {
+    private MetaMessage(@JsonProperty("ttl") Integer ttl, @JsonProperty("createdAt") Date createdAt, @JsonProperty("durationMs") Long durationMs,
+            @JsonProperty("serviceDetails") ServiceDetails serviceDetails) {
+        Validate.notNull(createdAt, "the 'createdAt' must not be null");
+        Validate.notNull(durationMs, "the 'durationMs' must not be null");
+        Validate.notNull(serviceDetails, "the 'serviceDetails' must not be null");
         this.ttl = ttl;
-        return this;
-    }
-
-    public MetaMessage withCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
-        return this;
-    }
-
-    public MetaMessage withDurationMs(Long durationMs) {
         this.durationMs = durationMs;
-        return this;
+        this.serviceDetails = serviceDetails;
     }
 
-    public MetaMessage withServiceDetails(ServiceDetails serviceDetails) {
-        this.serviceDetails = serviceDetails;
-        return this;
+    public static class MetaMessageBuilder {
+        private Integer ttl;
+        private Date createdAt;
+        private Long durationMs;
+        private ServiceDetails serviceDetails;
+
+        public MetaMessageBuilder(Integer ttl, Date createdAt, ServiceDetails serviceDetails) {
+            this.ttl = ttl;
+            this.createdAt = createdAt;
+            this.serviceDetails = serviceDetails;
+        }
+
+        public MetaMessageBuilder computeDurationMs() {
+            this.durationMs = new Date().getTime() - this.createdAt.getTime();
+            return this;
+        }
+
+        public MetaMessage build() {
+            return new MetaMessage(ttl, createdAt, durationMs, serviceDetails);
+        }
     }
 
     public Integer getTtl() {

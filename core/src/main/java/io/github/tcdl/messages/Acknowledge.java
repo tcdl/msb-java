@@ -1,27 +1,46 @@
 package io.github.tcdl.messages;
 
+import org.apache.commons.lang3.Validate;
+
 /**
  * Created by rdro on 4/22/2015.
  */
-public class Acknowledge {
+public final class Acknowledge {
 
-    private String responderId;
-    private Integer responsesRemaining;
-    private Integer timeoutMs;
+    private final String responderId;
+    private final Integer responsesRemaining;
+    private final Integer timeoutMs;
 
-    public Acknowledge withResponderId(String responderId) {
+    private Acknowledge(String responderId, Integer responsesRemaining, Integer timeoutMs) {
+        Validate.notNull(responderId, "the 'responderId' must not be null");
         this.responderId = responderId;
-        return this;
-    }
-
-    public Acknowledge withResponsesRemaining(Integer responsesRemaining) {
         this.responsesRemaining = responsesRemaining;
-        return this;
+        this.timeoutMs = timeoutMs;
     }
 
-    public Acknowledge withTimeoutMs(Integer timeoutMs) {
-        this.timeoutMs = timeoutMs;
-        return this;
+    public static class AcknowledgeBuilder {
+        private String responderId;
+        private Integer responsesRemaining;
+        private Integer timeoutMs;
+
+        public AcknowledgeBuilder setResponderId(String responderId) {
+            this.responderId = responderId;
+            return this;
+        }
+
+        public AcknowledgeBuilder setResponsesRemaining(Integer responsesRemaining) {
+            this.responsesRemaining = responsesRemaining;
+            return this;
+        }
+
+        public AcknowledgeBuilder setTimeoutMs(Integer timeoutMs) {
+            this.timeoutMs = timeoutMs;
+            return this;
+        }
+
+        public Acknowledge build() {
+            return new Acknowledge(responderId, responsesRemaining, timeoutMs);
+        }
     }
 
     public String getResponderId() {

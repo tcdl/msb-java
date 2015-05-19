@@ -4,11 +4,19 @@ import java.util.Date;
 
 import org.apache.commons.lang3.Validate;
 
+import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.MessageFactory;
+import io.github.tcdl.messages.MetaMessage;
+import io.github.tcdl.messages.Topics;
+import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
+import io.github.tcdl.messages.Message.MessageBuilder;
+import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
+import io.github.tcdl.messages.payload.Payload;
+
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.ServiceDetails;
-import io.github.tcdl.messages.payload.RequestPayload;
-import io.github.tcdl.messages.payload.ResponsePayload;
+import io.github.tcdl.config.ServiceDetails;
 import io.github.tcdl.support.Utils;
 
 import javax.annotation.Nullable;
@@ -22,77 +30,59 @@ public class MessageFactory {
     private ServiceDetails serviceDetails;
 
     private MessageFactory() {
-        io.github.tcdl.config.ServiceDetails configServiceDetails = MsbConfigurations.msbConfiguration().getServiceDetails();
-
-        // TODO Get rid of 2 classes ServiceDetails and eliminate this explicit copy
-        this.serviceDetails = new ServiceDetails();
-        this.serviceDetails.setHostname(configServiceDetails.getHostName());
-        this.serviceDetails.setInstanceId(configServiceDetails.getInstanceId());
-        this.serviceDetails.setIp(configServiceDetails.getIp());
-        this.serviceDetails.setName(configServiceDetails.getName());
-        this.serviceDetails.setPid((int) configServiceDetails.getPid());
-        this.serviceDetails.setVersion(configServiceDetails.getVersion());
+        this.serviceDetails = MsbConfigurations.msbConfiguration().getServiceDetails();
     }
 
-    Message createBaseMessage(@Nullable IncommingMessage originalMessage, boolean isRequestMessage) {
-        Message baseMessage = new Message()
-                .withId(Utils.generateId())
-                .withCorrelationId(
-                        originalMessage != null && originalMessage.getCorrelationId() != null ? originalMessage
-                                .getCorrelationId() : Utils.generateId()).withTopics(new Topics());
+    public MessageBuilder createRequestMessage(MsbMessageOptions config, Message originalMessage) {
+        MessageBuilder messageBuilder = createBaseMessage(originalMessage);
+        Topics topic = new Topics.TopicsBuilder().setTo(config.getNamespace())
+                .setResponse(config.getNamespace() + ":response:" + this.serviceDetails.getInstanceId()).build();
+        return messageBuilder.setTopics(topic);
+    }
 
-        if (isRequestMessage) {
-            baseMessage.withPayload(new RequestPayload());
-        } else {
-            baseMessage.withPayload(new ResponsePayload());
-        }
+    public MessageBuilder createResponseMessage(Message originalMessage, Acknowledge ack, Payload payload) {
+        validateRecievedMessage(originalMessage);
+
+        MessageBuilder messageBuilder = createBaseMessage(originalMessage);
+        messageBuilder.setAck(ack).setPayload(payload);
+        return messageBuilder.setTopics(new Topics.TopicsBuilder().setTo(originalMessage.getTopics().getResponse()).build());
+    }
+
+    public MessageBuilder createAckMessage(Message originalMessage, Acknowledge ack) {
+        validateRecievedMessage(originalMessage);
+
+        MessageBuilder messageBuilder = createBaseMessage(originalMessage);
+        messageBuilder.setAck(ack).setPayload(null);
+        return messageBuilder.setTopics(new Topics.TopicsBuilder().setTo(originalMessage.getTopics().getResponse()).build());
+    }
+
+    private MessageBuilder createBaseMessage(@Nullable Message originalMessage) {
+        MessageBuilder baseMessage = new Message.MessageBuilder()
+                .setId(Utils.generateId())
+                .setCorrelationId(
+                        originalMessage != null && originalMessage.getCorrelationId() != null ? originalMessage
+                                .getCorrelationId() : Utils.generateId());
 
         return baseMessage;
     }
 
-    public Message createRequestMessage(MsbMessageOptions config, IncommingMessage originalMessage) {
-        Message message = createBroadcastMessage(config, originalMessage);
-        message.getTopics().setResponse(config.getNamespace() + ":response:" + this.serviceDetails.getInstanceId());
-        return message;
+    private void validateRecievedMessage(Message originalMessage) {
+        Validate.notNull(originalMessage, "the 'originalMessage' must not be null");
+        Validate.notNull(originalMessage.getTopics(), "the 'originalMessage.topics' must not be null");
     }
 
-    private Message createBroadcastMessage(MsbMessageOptions config, IncommingMessage originalMessage) {
-        Message message = createBaseMessage(originalMessage, true);
-        message.getTopics().setTo(config.getNamespace());
-        return message;
+    public AcknowledgeBuilder createAck() {
+        return new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId());
     }
 
-    public Message createResponseMessage(Message originalMessage, Acknowledge ack, ResponsePayload payload) {
-        Validate.notNull(originalMessage);
-        Validate.notNull(originalMessage.getTopics());
-
-        Message message = createBaseMessage(originalMessage, false);
-        message.getTopics().setTo(originalMessage.getTopics().getResponse());
-
-        return message.withAck(ack).withPayload(payload);
+    public MetaMessageBuilder createMeta(MsbMessageOptions config) {
+        Integer ttl = config == null ? null : config.getTtl();
+        return new MetaMessage.MetaMessageBuilder(ttl, new Date(), this.serviceDetails);
     }
 
-    public Message createAckMessage(Message msbMessage, Acknowledge ack) {
-        Validate.notNull(msbMessage);
-        Validate.notNull(msbMessage.getTopics());
-
-        Message message = createBaseMessage(msbMessage, false);
-        message.getTopics().setTo(msbMessage.getTopics().getResponse());
-
-        return message.withAck(ack).withPayload(null);
-    }
-
-    public Acknowledge createAck(MsbMessageOptions config) {
-        return new Acknowledge().withResponderId(Utils.generateId()).withResponsesRemaining(null).withTimeoutMs(null);
-    }
-
-    public MetaMessage createMeta(MsbMessageOptions config) {
-        return new MetaMessage().withTtl(config.getTtl()).withCreatedAt(new Date()).withDurationMs(null)
-                .withServiceDetails(this.serviceDetails);
-    }
-
-    public Message completeMeta(Message message, MetaMessage meta) {
-        return message.withMeta(meta.withDurationMs(new Date().getTime() - meta.getCreatedAt().getTime()));
+    public Message completeMeta(MessageBuilder message, MetaMessageBuilder meta) {
+        meta.computeDurationMs().build();
+        return message.setMeta(meta.build()).build();
     }
 
     public static MessageFactory getInstance() {

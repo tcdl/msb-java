@@ -1,19 +1,19 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.support.Utils.ifNull;
-
-import org.apache.commons.lang3.Validate;
-
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.events.EventEmitter;
 import io.github.tcdl.events.EventHandler;
 import io.github.tcdl.events.TwoArgumentsAdapter;
-import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
-import io.github.tcdl.messages.MetaMessage;
-import io.github.tcdl.messages.payload.ResponsePayload;
+import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
+import io.github.tcdl.messages.payload.Payload;
+
+import org.apache.commons.lang3.Validate;
+
 
 /**
  * Created by rdro on 4/29/2015.
@@ -23,51 +23,45 @@ public class Responder {
     public static Event RESPONDER_EVENT = new Event("responder");
 
     MsbMessageOptions msgOptions;
-    private MetaMessage meta;
-    private Acknowledge ack;
+    private MetaMessageBuilder metaBuilder;
+    private AcknowledgeBuilder ackBuilder;
     private Message originalMessage;
     private ChannelManager channelManager;
     private MessageFactory messageFactory;
     private Message responseMessage;
 
     public Responder(MsbMessageOptions msgOptions, Message originalMessage) {
-        Validate.notNull(msgOptions);
-        Validate.notNull(originalMessage);
+        Validate.notNull(msgOptions, "the 'msgOptions' must not be null");
+        Validate.notNull(originalMessage, "the 'originalMessage' must not be null");
 
         this.msgOptions = msgOptions;
         this.messageFactory = MessageFactory.getInstance();
-        this.meta = this.messageFactory.createMeta(this.msgOptions);
-        this.ack = this.messageFactory.createAck(this.msgOptions);
+        this.metaBuilder = this.messageFactory.createMeta(this.msgOptions);
+        this.ackBuilder = this.messageFactory.createAck();
         this.originalMessage = originalMessage;
 
         channelManager = ChannelManager.getInstance();
     }
 
-    public Message getOriginalMessage() {
-        return this.originalMessage;
-    }
-
     public void sendAck(Integer timeoutMs, Integer responsesRemaining, EventHandler callback) {
-        this.ack.withTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
-        this.ack.withResponsesRemaining(ifNull(responsesRemaining, 1));
+        this.ackBuilder.setTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
+        this.ackBuilder.setResponsesRemaining(responsesRemaining == null ? 1 : responsesRemaining);
 
-        Message ackMessage = this.messageFactory.createAckMessage(originalMessage, ack);
+        MessageBuilder ackMessage = this.messageFactory.createAckMessage(originalMessage, ackBuilder.build());
         sendMessage(ackMessage, callback);
     }
 
-    public void send(ResponsePayload payload, EventHandler callback) {
-        this.ack.withResponsesRemaining(-1);
-        Message message = this.messageFactory.createResponseMessage(originalMessage, ack, payload);
+    public void send(Payload responsePayload, EventHandler callback) {
+        this.ackBuilder.setResponsesRemaining(-1);
+        MessageBuilder message = this.messageFactory.createResponseMessage(originalMessage, ackBuilder.build(), responsePayload);
         sendMessage(message, callback);
-    }
+    };
 
-    ;
+    private void sendMessage(MessageBuilder message, EventHandler callback) {
+        this.responseMessage = this.messageFactory.completeMeta(message, metaBuilder);
 
-    private void sendMessage(Message message, EventHandler callback) {
-        this.responseMessage = this.messageFactory.completeMeta(message, meta);
-
-        Producer producer = channelManager.findOrCreateProducer(message.getTopics().getTo());
-        producer.publish(message);
+        Producer producer = channelManager.findOrCreateProducer(responseMessage.getTopics().getTo());
+        producer.publish(responseMessage);
 
         if (callback != null) {
             producer.withMessageHandler(callback);
@@ -90,6 +84,10 @@ public class Responder {
 
     public static ResponderServer createServer(MsbMessageOptions msgOptions) {
         return new ResponderServer(msgOptions);
+    }
+    
+    public Message getOriginalMessage() {
+        return this.originalMessage;
     }
 
     Message getResponseMessage() {

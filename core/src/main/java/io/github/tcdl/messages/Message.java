@@ -1,46 +1,80 @@
 package io.github.tcdl.messages;
 
-import io.github.tcdl.messages.payload.BasicPayload;
+import org.apache.commons.lang3.Validate;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.github.tcdl.messages.payload.Payload;
 
 /**
  * Created by rdro on 4/22/2015.
  */
-public class Message extends IncommingMessage {
+public final class Message {
 
-    private String id;// This identifies this message
-    private Topics topics = new Topics();
-    private MetaMessage meta; // To be filled with createMeta() ->completeMeta() sequence
-    private Acknowledge ack; // To be filled on ack or response
-    private BasicPayload<?> payload;
+    private final String id;// This identifies this message
+    private final String correlationId;
+    private final Topics topics;
+    private final MetaMessage meta; // To be filled with createMeta() ->completeMeta() sequence
+    private final Acknowledge ack; // To be filled on ack or response
+    private final Payload payload;
 
-    public Message withId(String id) {
+    @JsonCreator
+    private Message(@JsonProperty("id") String id, @JsonProperty("correlationId") String correlationId, @JsonProperty("topics") Topics topics,
+            @JsonProperty("meta") MetaMessage meta, @JsonProperty("ack") Acknowledge ack, @JsonProperty("payload") Payload payload) {
+        super();
+        Validate.notNull(id, "the 'id' must not be null");
+        Validate.notNull(correlationId, "the 'correlationId' must not be null");
+        Validate.notNull(topics, "the 'topics' must not be null");
+        Validate.notNull(meta, "the 'meta' must not be null");
         this.id = id;
-        return this;
-    }
-
-    public Message withCorrelationId(String correlationId) {
         this.correlationId = correlationId;
-        return this;
-    }
-
-    public Message withTopics(Topics topics) {
         this.topics = topics;
-        return this;
-    }
-
-    public Message withMeta(MetaMessage meta) {
         this.meta = meta;
-        return this;
-    }
-
-    public Message withAck(Acknowledge ack) {
         this.ack = ack;
-        return this;
+        this.payload = payload;
     }
 
-    public Message withPayload(BasicPayload<?> payload) {
-        this.payload = payload;
-        return this;
+    public static class MessageBuilder {
+
+        private String id;
+        private String correlationId;
+        private Topics topics;
+        private MetaMessage meta;
+        private Acknowledge ack;
+        private Payload payload;
+
+        public MessageBuilder setId(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public MessageBuilder setCorrelationId(String correlationId) {
+            this.correlationId = correlationId;
+            return this;
+        }
+
+        public MessageBuilder setTopics(Topics topics) {
+            this.topics = topics;
+            return this;
+        }
+
+        public MessageBuilder setMeta(MetaMessage meta) {
+            this.meta = meta;
+            return this;
+        }
+
+        public MessageBuilder setAck(Acknowledge ack) {
+            this.ack = ack;
+            return this;
+        }
+
+        public MessageBuilder setPayload(Payload payload) {
+            this.payload = payload;
+            return this;
+        }
+
+        public Message build() {
+            return new Message(id, correlationId, topics, meta, ack, payload);
+        }
     }
 
     public String getId() {
@@ -63,7 +97,7 @@ public class Message extends IncommingMessage {
         return ack;
     }
 
-    public BasicPayload<?> getPayload() {
+    public Payload getPayload() {
         return payload;
     }
 
@@ -72,5 +106,4 @@ public class Message extends IncommingMessage {
         return "Message [id=" + id + ", topics=" + topics + ", meta=" + meta + ", ack=" + ack + ", payload=" + payload
                 + ", correlationId=" + correlationId + "]";
     }
-
 }

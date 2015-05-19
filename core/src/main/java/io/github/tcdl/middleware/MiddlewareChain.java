@@ -2,7 +2,7 @@ package io.github.tcdl.middleware;
 
 import io.github.tcdl.Response;
 import io.github.tcdl.events.EventHandler;
-import io.github.tcdl.messages.payload.BasicPayload;
+import io.github.tcdl.messages.payload.Payload;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -22,7 +22,7 @@ public class MiddlewareChain {
         middlewareList.addAll(Arrays.asList(middleware));
     }
 
-    public MiddlewareChain invoke(BasicPayload request, Response response) {
+    public MiddlewareChain invoke(Payload request, Response response) {
         if (!middlewareList.isEmpty()) {
             iterator = middlewareList.iterator();
             Middleware middleware = iterator.next();
@@ -38,7 +38,7 @@ public class MiddlewareChain {
         return this;
     }
 
-    public void execute(BasicPayload request, Response response) {
+    public void execute(Payload request, Response response) {
         if (iterator.hasNext()) {
             Middleware middleware = iterator.next();
             try {

@@ -5,8 +5,7 @@ import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.events.TwoArgumentsAdapter;
 import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.payload.BasicPayload;
-import io.github.tcdl.messages.payload.RequestPayload;
+import io.github.tcdl.messages.payload.Payload;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,15 +23,14 @@ public class RequesterExample {
         options.setAckTimeout(5000);
         options.setResponseTimeout(10000);
 
-        RequestPayload requestPayload = new RequestPayload();
         Map<String, String> headers = new HashMap<>();
         headers.put("From", "user@example.com");
-        requestPayload.withHeaders(headers);
+        Payload requestPayload = new Payload.PayloadBuilder().setHeaders(headers).build();
 
         Requester requester = new Requester(options, null);
 
-        requester.on(new Event("response"), new TwoArgumentsAdapter<BasicPayload, Message>() {
-            @Override public void onEvent(BasicPayload payload, Message message) {
+        requester.on(new Event("response"), new TwoArgumentsAdapter<Payload, Message>() {
+            @Override public void onEvent(Payload payload, Message message) {
                 System.out.println(">>> RESPONSE body: " + payload.getBody());
             }
         });
