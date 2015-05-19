@@ -1,21 +1,18 @@
 package io.github.tcdl.support;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.MetaMessage;
+import io.github.tcdl.messages.Topics;
+import io.github.tcdl.messages.payload.Payload;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.springframework.util.ReflectionUtils;
-
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.MetaMessage;
-import io.github.tcdl.messages.payload.Payload;
-import io.github.tcdl.support.Utils;
-import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.Topics;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -100,26 +97,34 @@ public class TestUtils {
     }
 
     public static <T> T _g(Object object, String fieldName) {
-        Field field = ReflectionUtils.findField(object.getClass(), fieldName);
-        ReflectionUtils.makeAccessible(field);
-        return (T) ReflectionUtils.getField(field, object);
+        try {
+            return (T) FieldUtils.readDeclaredField(object, fieldName);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void _s(Object object, String fieldName, Object value) {
-        Field field = ReflectionUtils.findField(object.getClass(), fieldName);
-        ReflectionUtils.makeAccessible(field);
-        ReflectionUtils.setField(field, object, value);
+        try {
+            FieldUtils.writeDeclaredField(object, fieldName, value);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static <T> T _m(Object object, String methodName) {
-        Method method = ReflectionUtils.findMethod(object.getClass(), methodName);
-        ReflectionUtils.makeAccessible(method);
-        return (T) ReflectionUtils.invokeMethod(method, object, null);
+        try {
+            return (T) MethodUtils.invokeMethod(object, methodName);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static <T> T _m(Object object, String methodName, Object[] args, Class... argTypes) {
-        Method method = ReflectionUtils.findMethod(object.getClass(), methodName, argTypes);
-        ReflectionUtils.makeAccessible(method);
-        return (T) ReflectionUtils.invokeMethod(method, object, args);
+        try {
+            return (T) MethodUtils.invokeMethod(object.getClass(), methodName, args, argTypes);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
