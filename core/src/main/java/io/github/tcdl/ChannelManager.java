@@ -1,5 +1,20 @@
 package io.github.tcdl;
 
+import static io.github.tcdl.events.Event.CONSUMER_NEW_MESSAGE_EVENT;
+import static io.github.tcdl.events.Event.CONSUMER_NEW_TOPIC_EVENT;
+import static io.github.tcdl.events.Event.CONSUMER_REMOVED_TOPIC_EVENT;
+import static io.github.tcdl.events.Event.MESSAGE_EVENT;
+import static io.github.tcdl.events.Event.PRODUCER_NEW_MESSAGE_EVENT;
+import static io.github.tcdl.events.Event.PRODUCER_NEW_TOPIC_EVENT;
+import io.github.tcdl.adapters.Adapter;
+import io.github.tcdl.adapters.AdapterFactory;
+import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.events.EventEmitter;
+import io.github.tcdl.events.TwoArgsEventHandler;
+import io.github.tcdl.messages.Message;
+import io.github.tcdl.support.Utils;
+
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -7,19 +22,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
 
-import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.EventEmitter;
-import static io.github.tcdl.events.Event.*;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.support.Utils;
-
 /**
  * Created by rdro on 4/23/2015.
  */
 public class ChannelManager extends EventEmitter {
 
     private static ChannelManager INSTANCE = new ChannelManager();
+    private AdapterFactory adapterFactory;
     private MsbConfigurations msbConfig;
     private Map<String, Producer> producersByTopic;
     private Map<String, Consumer> consumersByTopic;
@@ -30,8 +39,9 @@ public class ChannelManager extends EventEmitter {
 
     private ChannelManager() {
         this.msbConfig = MsbConfigurations.msbConfiguration();
-        producersByTopic = new ConcurrentHashMap<>();
-        consumersByTopic = new ConcurrentHashMap<>();
+        this.adapterFactory = AdapterFactory.getInstance();
+        this.producersByTopic = new ConcurrentHashMap<>();
+        this.consumersByTopic = new ConcurrentHashMap<>();
     }
 
     public Producer findOrCreateProducer(final String topic) {
@@ -47,7 +57,7 @@ public class ChannelManager extends EventEmitter {
         return producer;
     }
 
-    public Consumer findOrCreateConsumer(final String topic, final MsbMessageOptions msgOptions) {
+    public Consumer findOrCreateConsumer(final String topic, MsbMessageOptions msgOptions) {
         Validate.notNull(topic, "field 'topic' is null");
         Consumer consumer = consumersByTopic.get(topic);
         if (consumer == null) {
@@ -80,26 +90,31 @@ public class ChannelManager extends EventEmitter {
 
     private Producer createProducer(String topic, MsbConfigurations msbConfig) {
         Utils.validateTopic(topic);
-        return new Producer(topic, msbConfig).withMessageHandler(
-                (message, exception) -> emit(PRODUCER_NEW_MESSAGE_EVENT, topic)
-        );
+
+        Adapter adapter = this.adapterFactory.createAdapter(msbConfig.getBrokerType(), topic, msbConfig);
+        TwoArgsEventHandler<Message, Exception> handler = (message, exception) -> emit(PRODUCER_NEW_MESSAGE_EVENT, topic);
+        return new Producer(adapter, topic, handler);
     }
 
     private Consumer createConsumer(String topic, MsbConfigurations msbConfig, MsbMessageOptions msgOptions) {
         Utils.validateTopic(topic);
-        return new Consumer(topic, msbConfig, msgOptions)
-                .withMessageHandler((message, exception) -> {
-                        if (isMessageExpired(message))
-                            return;
-                        emit(CONSUMER_NEW_MESSAGE_EVENT, topic);
-                        emit(MESSAGE_EVENT, message);
-                });
+
+        Adapter adapter = this.adapterFactory.createAdapter(msbConfig.getBrokerType(), topic, msbConfig);
+
+        TwoArgsEventHandler<Message, Exception> handler = (message, exception) -> {
+            if (isMessageExpired(message))
+                return;
+            emit(CONSUMER_NEW_MESSAGE_EVENT, topic);
+            emit(MESSAGE_EVENT, message);
+        };
+
+        return new Consumer(adapter, topic, handler, msbConfig);
     }
 
     private boolean isMessageExpired(Message message) {
         return message.getMeta() != null
                 && message.getMeta().getTtl() != null
                 && DateUtils.addMilliseconds(message.getMeta().getCreatedAt(), message.getMeta().getTtl()).after(
-                new Date());
+                        new Date());
     }
 }

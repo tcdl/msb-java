@@ -24,6 +24,17 @@ public class TestUtils {
         conf.setNamespace("test:general");
         return conf;
     }
+    public static Message createMsbRequestMessageWithPayloadAndTopicTo(String topicTo) {
+        MsbMessageOptions conf = createSimpleConfig();
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
+
+        Topics topic = new Topics.TopicsBuilder().setTo(topicTo)
+                .setResponse(topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
+        MetaMessage meta = createSimpleMeta(msbConf);
+        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMeta(meta)
+                .setPayload(createSimpleRequestPayload()).build();
+    }
+    
 
     public static Message createMsbRequestMessageWithPayload() {
         MsbMessageOptions conf = createSimpleConfig();

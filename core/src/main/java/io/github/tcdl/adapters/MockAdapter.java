@@ -1,5 +1,7 @@
 package io.github.tcdl.adapters;
 
+import io.github.tcdl.exception.ChannelException;
+
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -25,13 +27,16 @@ public class MockAdapter implements Adapter {
         return instance;
     }
 
-    public void publish(String jsonMessage) {
+    @Override
+    public void publish(String jsonMessage) throws ChannelException {
         log.info("Sending request {}", jsonMessage);
         requests.offer(jsonMessage);
+        log.info("Requests to process {}", requests);
     }
 
     @Override
     public void subscribe(RawMessageHandler messageHandler) {
+        log.info("Subscribed. Process first message from list {}", requests);
         this.messageHandler = messageHandler;
         if (messageHandler != null && !requests.isEmpty()) {
             String jsonMessage = requests.peek();

@@ -1,15 +1,14 @@
 package io.github.tcdl;
 
 import io.github.tcdl.adapters.Adapter;
-import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.GenericEventHandler;
 import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.Utils;
+
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,23 +17,24 @@ import org.slf4j.LoggerFactory;
  */
 public class Consumer {
 
-    public static Logger LOG = LoggerFactory.getLogger(Consumer.class);
+    public static final Logger LOG = LoggerFactory.getLogger(Consumer.class);
 
-    private Adapter rawAdapter;
-    private String topic;
-    private TwoArgsEventHandler<Message, Exception> messageHandler;
-    private MsbConfigurations msbConfig; // not sure we need this here
-    private MsbMessageOptions msgOptions;
+    private final Adapter rawAdapter;
+    private final String topic;
+    private final TwoArgsEventHandler<Message, Exception> messageHandler;
+    private final MsbConfigurations msbConfig; // not sure we need this here    
 
-    public Consumer(String topic, MsbConfigurations msbConfig,
-            MsbMessageOptions msgOptions) {
+    public Consumer(Adapter rawAdapter, String topic, TwoArgsEventHandler<Message, Exception> messageHandler, MsbConfigurations msbConfig) {
+        LOG.debug("Creating consumer for topic: {}", topic);
+        Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
+        Validate.notNull(topic, "the 'topic' must not be null");
+        Validate.notNull(messageHandler, "the 'messageHandler' must not be null");
+        Validate.notNull(msbConfig, "the 'msbConfig' must not be null");
 
+        this.rawAdapter = rawAdapter;
         this.topic = topic;
+        this.messageHandler = messageHandler;
         this.msbConfig = msbConfig;
-        this.msgOptions = msgOptions;
-
-        // just stub,will be provided by init and provided
-        this.rawAdapter = AdapterFactory.getInstance().createAdapter(msbConfig.getBrokerType(), topic);
     }
 
     public Consumer subscribe() {
@@ -57,22 +57,15 @@ public class Consumer {
                 error = e;
             }
 
-            if (messageHandler != null) {
-                messageHandler.onEvent(message, error);
-            }
+            this.messageHandler.onEvent(message, error);
+
         });
 
         return this;
     }
 
-    public Consumer withMessageHandler(TwoArgsEventHandler<Message, Exception> messageHandler) {
-        this.messageHandler = messageHandler;
-        return this;
-    }
-
     public void end() {
-        LOG.debug("Shutting down consumer for topic {}", topic);
-        rawAdapter.unsubscribe();
+        //TODO shutdlown raw consumer
     }
 
     private boolean isServiceChannel(String topic) {
