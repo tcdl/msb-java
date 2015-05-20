@@ -1,6 +1,5 @@
 package io.github.tcdl;
 
-import io.github.tcdl.adapters.MockAdapter;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.support.TestUtils;
 
@@ -27,10 +26,7 @@ public class RequesterTest {
     @Test
     public void testPublishWaitForResponses() throws Exception {
         config.setWaitForResponses(2);
-        
-        MockAdapter mockAdapter = MockAdapter.getInstance();      
-        mockAdapter.clearAllMessages();
-
+             
         Requester requester = new Requester(config, TestUtils.createMsbRequestMessageNoPayload());
         requester.publish(TestUtils.createSimpleRequestPayload());
     }

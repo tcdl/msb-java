@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import io.github.tcdl.adapters.Adapter.RawMessageHandler;
 import io.github.tcdl.adapters.MockAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
@@ -37,51 +36,44 @@ public class RequesterIT {
 
     @Before
     public void setUp() throws Exception {
-        this.messageOptions = TestUtils.createSimpleConfig();
+        this.messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester");
         this.msbConf = MsbConfigurations.msbConfiguration();
-        MockAdapter.getInstance().clearAllMessages();
     }
 
     @Test
     public void testRequestMessage() throws Exception {
-        Requester requester = new Requester(messageOptions, null);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-
+        Requester requester = new Requester(messageOptions, null);
         requester.publish(requestPayload);
         Message message = requester.getMessage();
 
         assertEquals("Message payload not match sended", requestPayload, message.getPayload());
 
-        MockAdapter.getInstance().subscribe(new RawMessageHandler() {
-
-            @Override
-            public void onMessage(String jsonMessage) {
-                assertRequestMessage(jsonMessage, requestPayload);
-
-            }
-        });
+        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(messageOptions.getNamespace());
+        assertRequestMessage(adapterJsonMessage, message);
     }
 
-    private void assertRequestMessage(String json, Payload requestPayload) {
-        
-        try {           
+    private void assertRequestMessage(String json, Message message) {
+
+        try {
             Utils.validateJsonWithSchema(json, this.msbConf.getSchema());
             JSONObject jsonObject = new JSONObject(json);
 
-            // payload
-            assertTrue("Message not contain 'body' field", jsonObject.getJSONObject("payload").has("body"));
-            assertEquals("Message 'body' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(requestPayload.getBody()),
+            // payload fields set 
+            assertTrue("Message not contain 'body' field", jsonObject.getJSONObject("payload").has("body")); 
+            assertTrue("Message not contain 'headers' field", jsonObject.getJSONObject("payload").has("headers"));            
+            
+            // payload fields match sended 
+            assertEquals("Message 'body' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(message.getPayload().getBody()),
                     jsonObject.getJSONObject("payload").get("body").toString());
-
-            assertTrue("Message not contain 'headers' field", jsonObject.getJSONObject("payload").has("headers"));
-            assertEquals("Message 'headers' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(requestPayload.getHeaders()), jsonObject
+            assertEquals("Message 'headers' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(message.getPayload().getHeaders()), jsonObject
                     .getJSONObject("payload").get("headers").toString());
 
             //topics
             assertJsonContains(jsonObject.getJSONObject("topics"), "to", messageOptions.getNamespace());
             assertJsonContains(jsonObject.getJSONObject("topics"), "response", messageOptions.getNamespace() + ":response:"
                     + msbConf.getServiceDetails().getInstanceId());
-        
+
         } catch (JsonSchemaValidationException | JsonProcessingException | JSONException e) {
             LOG.error("Exception while parse message payload", e);
             fail("Message validation failed");
