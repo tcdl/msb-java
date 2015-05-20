@@ -11,6 +11,8 @@ public interface Adapter {
 
     void subscribe(RawMessageHandler onMessageHandler);
 
+    void unsubscribe();
+
     interface RawMessageHandler {
         void onMessage(String jsonMessage);
     }

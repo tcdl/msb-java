@@ -11,6 +11,7 @@ public class AmqpAdapter implements Adapter {
 
     private Channel channel;
     private String exchangeName;
+    private String consumerTag;
 
     public AmqpAdapter(String topic) {
         this.topic = topic;
@@ -46,7 +47,7 @@ public class AmqpAdapter implements Adapter {
             channel.queueDeclare(queueName, durable /* durable */, false /* exclusive */, true /*auto-delete */, null);
             channel.queueBind(queueName, exchangeName, "");
 
-            channel.basicConsume(queueName, new DefaultConsumer(channel) {
+            consumerTag = channel.basicConsume(queueName, new DefaultConsumer(channel) {
                 @Override
                 public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                     String bodyStr = new String(body);
@@ -55,6 +56,15 @@ public class AmqpAdapter implements Adapter {
             });
         } catch (IOException e) {
             throw new RuntimeException(String.format("Failed to subscribe to topic %s", topic), e);
+        }
+    }
+
+    @Override
+    public void unsubscribe() {
+        try {
+            channel.basicCancel(consumerTag);
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("Failed to unsubscribe from topic %s", topic), e);
         }
     }
 
