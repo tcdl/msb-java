@@ -37,7 +37,12 @@ public class MockAdapter implements Adapter {
             String jsonMessage = requests.peek();
             handleMessage(jsonMessage);
         }
-    } 
+    }
+
+    @Override
+    public void unsubscribe() {
+        messageHandler = null;
+    }
 
     private void handleMessage(String jsonMessage) {
         log.debug("Retrieved response {}", jsonMessage);
