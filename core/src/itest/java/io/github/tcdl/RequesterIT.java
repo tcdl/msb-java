@@ -63,9 +63,9 @@ public class RequesterIT {
     }
 
     private void assertRequestMessage(String json, Payload requestPayload) {
-        try {
-            assertTrue("Message didn't correspondent to expected schema",
-                    Utils.validateJsonWithSchema(json, this.msbConf.getSchema()));
+        
+        try {           
+            Utils.validateJsonWithSchema(json, this.msbConf.getSchema());
             JSONObject jsonObject = new JSONObject(json);
 
             // payload

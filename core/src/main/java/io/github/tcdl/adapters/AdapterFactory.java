@@ -1,5 +1,6 @@
 package io.github.tcdl.adapters;
 
+import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbConfigurations.BrokerAdapter;
 
 /**
@@ -16,9 +17,9 @@ public class AdapterFactory {
         return instance;
     }
 
-    public Adapter createAdapter(BrokerAdapter brokerName, String topic) {
+    public Adapter createAdapter(BrokerAdapter brokerName, String topic, MsbConfigurations msbConfig) {
         if (brokerName == BrokerAdapter.AMQP) {
-            return new AmqpAdapter(topic);
+            return new AmqpAdapter(topic, msbConfig);
         } else {
             return MockAdapter.getInstance();
         }
