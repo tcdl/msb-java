@@ -24,9 +24,9 @@ public final class Payload {
 
     public static class PayloadBuilder {
 
-        private Map<String, String> headers = new HashMap<>();
-        private Map<?, ?> body = new HashMap<>();
-        private Map<?, ?> bodyBuffer = new HashMap<>();
+        private Map<String, String> headers; 
+        private Map<?, ?> body;
+        private Map<?, ?> bodyBuffer;
 
         public PayloadBuilder setHeaders(Map<String, String> headers) {
             this.headers = headers;

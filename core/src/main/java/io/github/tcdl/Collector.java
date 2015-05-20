@@ -1,6 +1,15 @@
 package io.github.tcdl;
 
+import static io.github.tcdl.events.Event.ACKNOWLEDGE_EVENT;
+import static io.github.tcdl.events.Event.END_EVENT;
+import static io.github.tcdl.events.Event.MESSAGE_EVENT;
+import static io.github.tcdl.events.Event.PAYLOAD_EVENT;
+import static io.github.tcdl.events.Event.RESPONSE_EVENT;
 import static io.github.tcdl.support.Utils.ifNull;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.events.EventEmitter;
+import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.Message;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -9,12 +18,6 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Predicate;
-
-import io.github.tcdl.config.MsbMessageOptions;
-import static io.github.tcdl.events.Event.*;
-import io.github.tcdl.events.EventEmitter;
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.Message;
 
 /**
  * Created by rdro on 4/23/2015.

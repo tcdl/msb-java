@@ -2,7 +2,6 @@ package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
 import static io.github.tcdl.events.Event.*;
-
 import io.github.tcdl.events.Event;
 import io.github.tcdl.events.EventEmitter;
 import io.github.tcdl.events.TwoArgsEventHandler;
@@ -61,11 +60,7 @@ public class Responder {
         this.responseMessage = this.messageFactory.completeMeta(message, metaBuilder);
 
         Producer producer = channelManager.findOrCreateProducer(responseMessage.getTopics().getTo());
-        producer.publish(responseMessage);
-
-        if (callback != null) {
-            producer.withMessageHandler(callback);
-        }
+        producer.publish(responseMessage, callback);       
     }
 
     public static EventEmitter createEmitter(final MsbMessageOptions msgOptions) {
