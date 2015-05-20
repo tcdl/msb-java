@@ -13,7 +13,6 @@ import java.util.function.Predicate;
 import io.github.tcdl.config.MsbMessageOptions;
 import static io.github.tcdl.events.Event.*;
 import io.github.tcdl.events.EventEmitter;
-import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 
@@ -68,13 +67,9 @@ public class Collector extends EventEmitter {
         return waitForAcksUntil > System.currentTimeMillis();
     }
 
-    ;
-
     public boolean isAwaitingResponses() {
         return getResponsesRemaining() > 0;
     }
-
-    ;
 
     public void listenForResponses(String topic, final Predicate<Message> shouldAcceptMessagePredicate) {
         channelManager.on(MESSAGE_EVENT, (Message message) -> {
@@ -84,12 +79,12 @@ public class Collector extends EventEmitter {
 
                 if (message.getPayload() != null) {
                     payloadMessages.add(message);
-                    emit(PAYLOAD_EVENT, message.getPayload(), message);
-                    emit(RESPONSE_EVENT, message.getPayload(), message);
+                    emit(PAYLOAD_EVENT, message.getPayload());
+                    emit(RESPONSE_EVENT, message.getPayload());
                     incResponsesRemaining(-1);
                 } else {
                     ackMessages.add(message);
-                    emit(ACKNOWLEDGE_EVENT, message.getAck(), message);
+                    emit(ACKNOWLEDGE_EVENT, message.getAck());
                 }
 
                 processAck(message.getAck());

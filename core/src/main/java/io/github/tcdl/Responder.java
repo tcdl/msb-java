@@ -2,6 +2,8 @@ package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
 import static io.github.tcdl.events.Event.*;
+
+import io.github.tcdl.events.Event;
 import io.github.tcdl.events.EventEmitter;
 import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
@@ -53,7 +55,7 @@ public class Responder {
         this.ackBuilder.setResponsesRemaining(-1);
         MessageBuilder message = this.messageFactory.createResponseMessage(originalMessage, ackBuilder.build(), responsePayload);
         sendMessage(message, callback);
-    };
+    }
 
     private void sendMessage(MessageBuilder message, TwoArgsEventHandler<Message, Exception> callback) {
         this.responseMessage = this.messageFactory.completeMeta(message, metaBuilder);
@@ -69,10 +71,11 @@ public class Responder {
     public static EventEmitter createEmitter(final MsbMessageOptions msgOptions) {
         String topic = msgOptions.getNamespace();
         ChannelManager channelManager = ChannelManager.getInstance();
-        channelManager.findOrCreateConsumer(topic, null)
-                .withMessageHandler((message, exception) -> {
-                        channelManager.emit(RESPONDER_EVENT, new Responder(msgOptions, message));
-                }).subscribe();
+        channelManager.findOrCreateConsumer(topic, null);
+
+        channelManager.on(Event.MESSAGE_EVENT, (Message message) -> {
+            channelManager.emit(RESPONDER_EVENT, new Responder(msgOptions, message));
+        });
 
         return channelManager;
     }
