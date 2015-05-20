@@ -21,7 +21,7 @@ public class AdapterFactory {
         if (brokerName == BrokerAdapter.AMQP) {
             return new AmqpAdapter(topic, msbConfig);
         } else {
-            return MockAdapter.getInstance();
+            return new MockAdapter(topic, null);
         }
     }
 }

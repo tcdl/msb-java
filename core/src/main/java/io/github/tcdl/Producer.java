@@ -41,9 +41,12 @@ public class Producer {
             error = e;
         }
         
-        if(error != null && callback != null) {
-            callback.onEvent(null, error);
+        if(error != null) {
+        	if (callback != null){
+        		callback.onEvent(message, error);
+        	}
             return this;
+            
         }
 
         this.messageHandler.onEvent(message, error);       

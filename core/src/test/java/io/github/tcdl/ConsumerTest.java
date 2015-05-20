@@ -3,117 +3,98 @@ package io.github.tcdl;
 /**
  * Created by rdro on 4/28/2015.
  */
-import static junit.framework.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import io.github.tcdl.adapters.Adapter;
-import io.github.tcdl.adapters.MockAdapter;
+import io.github.tcdl.adapters.Adapter.RawMessageHandler;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.events.TwoArgsEventHandler;
-import io.github.tcdl.exception.ChannelException;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
 
-import java.util.Random;
-
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  * Created by rdro on 4/28/2015.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ConsumerTest {
+
+    private static final String TOPIC = "test:consumer";
+
+    @Mock
+    private Adapter adapterMock;
+
+    @Mock
+    private TwoArgsEventHandler<Message, Exception> handlerMock;
+
+    @Mock
+    private MsbConfigurations msbConfMock;
+
+    @Captor
+    ArgumentCaptor<RawMessageHandler> messageHandlerCaptur;
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullAdapter() {
-        TwoArgsEventHandler<Message, Exception> adapterMock = mock(TwoArgsEventHandler.class);
-        MsbConfigurations msbConf = mock(MsbConfigurations.class);
-        new Consumer(null, "testTopic", adapterMock, msbConf);
+        new Consumer(null, TOPIC, handlerMock, msbConfMock);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullTopic() {
-        Adapter adapterMock = mock(Adapter.class);
-        TwoArgsEventHandler<Message, Exception> handlerMock = mock(TwoArgsEventHandler.class);
-        MsbConfigurations msbConf = mock(MsbConfigurations.class);
-        new Consumer(adapterMock, null, handlerMock, msbConf);
+        new Consumer(adapterMock, null, handlerMock, msbConfMock);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullHandler() {
-        Adapter adapterMock = mock(Adapter.class);
-        MsbConfigurations msbConf = mock(MsbConfigurations.class);
-        new Consumer(adapterMock, "testTopic", null, msbConf);
+        new Consumer(adapterMock, TOPIC, null, msbConfMock);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullMsbConf() {
-        Adapter adapterMock = mock(Adapter.class);
-        TwoArgsEventHandler<Message, Exception> handlerMock = mock(TwoArgsEventHandler.class);
-        new Consumer(adapterMock, "testTopic", handlerMock, null);
+        new Consumer(adapterMock, TOPIC, handlerMock, null);
     }
 
     @Test
-    public void testConsumeFromTopicSchemaValidationFailed() {
-        String cosumerTopic = "consumerTopic:" + new Random().nextInt(1000);
-        TwoArgsEventHandler<Message, Exception> handlerMock = mock(TwoArgsEventHandler.class);
+    public void testConsumeFromTopicValidateThrowException() {
         MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
+        new Consumer(adapterMock, TOPIC, handlerMock, msbConf).subscribe();
 
-        MockAdapter mockAdapter = MockAdapter.getInstance();
-        mockAdapter.clearAllMessages();
-        try {
-            mockAdapter.publish("{\"body\":\"fake message\"}");
-        } catch (ChannelException e) {
-            fail("fail to run test");
-        }
-
-        new Consumer(mockAdapter, cosumerTopic, handlerMock, msbConf).subscribe();
+        verify(adapterMock).subscribe(messageHandlerCaptur.capture());
+        messageHandlerCaptur.getValue().onMessage("{\"body\":\"fake message\"}");
         verify(handlerMock).onEvent(eq(null), isA(JsonSchemaValidationException.class));
     }
 
     @Test
-    public void testConsumeFromSeviceTopicNoSchemaValidationFailed() {
-        String cosumerTopic = "_consumerTopic:" + new Random().nextInt(1000);
-
-        TwoArgsEventHandler<Message, Exception> handlerMock = mock(TwoArgsEventHandler.class);
+    public void testConsumeFromSeviceTopicValidateThrowException() {
+        String service_topic = "_service:topic";
         MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
 
-        MockAdapter mockAdapter = MockAdapter.getInstance();
-        mockAdapter.clearAllMessages();
-        try {
-            mockAdapter.publish("{\"body\":\"fake message\"}");
-        } catch (ChannelException e) {
-            fail("fail to run test");
-        }
+        new Consumer(adapterMock, service_topic, handlerMock, msbConf).subscribe();
 
-        new Consumer(mockAdapter, cosumerTopic, handlerMock, msbConf).subscribe();
+        verify(adapterMock).subscribe(messageHandlerCaptur.capture());
+        messageHandlerCaptur.getValue().onMessage("{\"body\":\"fake message\"}");
         verify(handlerMock).onEvent(eq(null), isA(JsonConversionException.class));
     }
 
     @Test
-    public void testConsumeFromTopic() {
-        String cosumerTopic = "consumerTopic:" + new Random().nextInt(1000);
+    public void testConsumeFromTopic() throws JsonConversionException {
+        Message originaMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
 
-        MsbConfigurations msbConf = mock(MsbConfigurations.class);
-        TwoArgsEventHandler<Message, Exception> handlerMock = mock(TwoArgsEventHandler.class);
+        new Consumer(adapterMock, TOPIC, handlerMock, msbConfMock).subscribe();
 
-        Message originaMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(cosumerTopic);
-        MockAdapter mockAdapter = MockAdapter.getInstance();
-        mockAdapter.clearAllMessages();
-        try {
-            mockAdapter.publish(Utils.toJson(originaMessage));
-        } catch (ChannelException | JsonConversionException e) {
-            fail("fail to run test");
-        }
-
-        new Consumer(mockAdapter, cosumerTopic, handlerMock, msbConf).subscribe();
-
-        verify(handlerMock).onEvent(any(Message.class), eq(null));       
+        verify(adapterMock).subscribe(messageHandlerCaptur.capture());
+        messageHandlerCaptur.getValue().onMessage(Utils.toJson(originaMessage));
+        verify(handlerMock).onEvent(any(Message.class), eq(null));
     }
 
 }

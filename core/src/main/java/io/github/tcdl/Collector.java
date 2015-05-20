@@ -1,6 +1,15 @@
 package io.github.tcdl;
 
+import static io.github.tcdl.events.Event.ACKNOWLEDGE_EVENT;
+import static io.github.tcdl.events.Event.END_EVENT;
+import static io.github.tcdl.events.Event.MESSAGE_EVENT;
+import static io.github.tcdl.events.Event.PAYLOAD_EVENT;
+import static io.github.tcdl.events.Event.RESPONSE_EVENT;
 import static io.github.tcdl.support.Utils.ifNull;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.events.EventEmitter;
+import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.Message;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -10,11 +19,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Predicate;
 
-import io.github.tcdl.config.MsbMessageOptions;
-import static io.github.tcdl.events.Event.*;
-import io.github.tcdl.events.EventEmitter;
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,32 +80,32 @@ public class Collector extends EventEmitter {
 
     public void listenForResponses(String topic, final Predicate<Message> shouldAcceptMessagePredicate) {
         channelManager.on(MESSAGE_EVENT, (Message message) -> {
-                if (shouldAcceptMessagePredicate != null && !shouldAcceptMessagePredicate.test(message)) {
-                    return;
-                }
+            if (shouldAcceptMessagePredicate != null && !shouldAcceptMessagePredicate.test(message)) {
+                return;
+            }
 
-                if (message.getPayload() != null) {
-                    LOG.debug("Payload received {}", message.getPayload());
-                    payloadMessages.add(message);
-                    emit(PAYLOAD_EVENT, message.getPayload());
-                    emit(RESPONSE_EVENT, message.getPayload());
-                } else {
-                    LOG.debug("Acknowledge received {}", message.getAck());
-                    ackMessages.add(message);
-                    emit(ACKNOWLEDGE_EVENT, message.getAck());
-                    incResponsesRemaining(-1);
-                }
+            if (message.getPayload() != null) {
+                LOG.debug("Payload received {}", message.getPayload());
+                payloadMessages.add(message);
+                emit(PAYLOAD_EVENT, message.getPayload());
+                emit(RESPONSE_EVENT, message.getPayload());
+                incResponsesRemaining(-1);
+            } else {
+                LOG.debug("Acknowledge received {}", message.getAck());
+                ackMessages.add(message);
+                emit(ACKNOWLEDGE_EVENT, message.getAck());
+            }
 
-                processAck(message.getAck());
+            processAck(message.getAck());
 
-                if (isAwaitingResponses())
-                    return;
-                if (isAwaitingAcks()) {
-                    enableAckTimeout();
-                    return;
-                }
+            if (isAwaitingResponses())
+                return;
+            if (isAwaitingAcks()) {
+                enableAckTimeout();
+                return;
+            }
 
-                end();
+            end();
         });
 
         channelManager.findOrCreateConsumer(topic, null);
@@ -138,7 +142,7 @@ public class Collector extends EventEmitter {
         if (ackTimeout != null)
             return;
 
-        ackTimeout =  new TimerTask() {
+        ackTimeout = new TimerTask() {
             @Override
             public void run() {
                 if (isAwaitingResponses())
@@ -220,11 +224,13 @@ public class Collector extends EventEmitter {
     private int setResponsesRemainingForResponderId(String responderId, Integer responsesRemaining) {
         boolean notChanged = (responsesRemainingById != null && responsesRemainingById.containsKey(responderId) && responsesRemainingById
                 .get(responderId).equals(responsesRemaining));
-        if (notChanged) return 0;
+        if (notChanged)
+            return 0;
 
         boolean atMin = (responsesRemaining < 0 && (responsesRemainingById.isEmpty() || !responsesRemainingById
                 .containsKey(responderId)));
-        if (atMin) return 0;
+        if (atMin)
+            return 0;
 
         if (responsesRemaining == 0) {
             responsesRemainingById.put(responderId, 0);
