@@ -7,7 +7,9 @@ import io.github.tcdl.config.MsbConfigurations;
 import java.io.IOException;
 
 public class AmqpConnectionManager {
-    private static AmqpConnectionManager instance = new AmqpConnectionManager();
+    private static class LazyHolder {
+        private static final AmqpConnectionManager INSTANCE = new AmqpConnectionManager();
+    }
 
     private Connection connection;
 
@@ -29,7 +31,7 @@ public class AmqpConnectionManager {
     }
 
     private static AmqpConnectionManager getInstance() {
-        return instance;
+        return LazyHolder.INSTANCE;
     }
 
     public static Connection obtainConnection() {
