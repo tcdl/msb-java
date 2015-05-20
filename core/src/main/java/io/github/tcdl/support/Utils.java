@@ -80,7 +80,7 @@ public class Utils {
         }
     }
 
-    public static boolean validateJsonWithSchema(String json, String schema) throws JsonSchemaValidationException {
+    public static void validateJsonWithSchema(String json, String schema) throws JsonSchemaValidationException {
         Validate.notNull(json, "field 'json' is null");
         Validate.notNull(schema, "field 'schema' is null");
         try {
@@ -92,11 +92,8 @@ public class Utils {
 
             ProcessingReport validationReport = jsonSchema.validate(jsonNode);
 
-            if (validationReport.isSuccess()) {
-                return true;
-            } else {
-                LOG.warn("Message failed to pass schema validation. Result: {}", validationReport);
-                return false;
+            if (!validationReport.isSuccess()) {
+                throw new JsonSchemaValidationException(validationReport.toString());
             }
 
         } catch (IOException | ProcessingException e) {

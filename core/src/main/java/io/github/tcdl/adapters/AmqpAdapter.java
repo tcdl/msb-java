@@ -1,20 +1,27 @@
 package io.github.tcdl.adapters;
 
 import com.rabbitmq.client.*;
+
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.exception.ChannelException;
 
 import java.io.IOException;
+
+import org.apache.commons.lang3.Validate;
 
 public class AmqpAdapter implements Adapter {
     private String topic;
 
     private Channel channel;
     private String exchangeName;
+    MsbConfigurations configuration;
 
-    public AmqpAdapter(String topic) {
+    public AmqpAdapter(String topic, MsbConfigurations msbConfig) {
+        Validate.notNull(topic, "the 'topic' must not be null");
+        Validate.notNull(msbConfig, "the 'msbConfig' must not be null");
         this.topic = topic;
         this.exchangeName = topic;
+        this.configuration = msbConfig;
 
         Connection connection = AmqpConnectionManager.obtainConnection();
         try {
@@ -35,8 +42,7 @@ public class AmqpAdapter implements Adapter {
     }
 
     @Override
-    public void subscribe(RawMessageHandler msgHandler) {
-        MsbConfigurations configuration = MsbConfigurations.msbConfiguration();
+    public void subscribe(RawMessageHandler msgHandler) {       
         String groupId = configuration.getAmqpBrokerConf().getGroupId();
         boolean durable = configuration.getAmqpBrokerConf().isDurable();
 

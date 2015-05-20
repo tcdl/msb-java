@@ -3,19 +3,17 @@ package io.github.tcdl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.events.Event;
+import io.github.tcdl.messages.Message;
+import io.github.tcdl.support.TestUtils;
 
 import javax.xml.ws.Holder;
 
-import io.github.tcdl.events.Event;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.SingleArgEventHandler;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.support.TestUtils;
 
 /**
  * Created by rdro on 4/24/2015.
@@ -111,7 +109,7 @@ public class ChannelManagerTest {
         String topic = config.getNamespace();
         Producer producer = channelManager.findOrCreateProducer(topic);
         Message message = TestUtils.createMsbRequestMessageWithPayload();
-        producer.publish(message);
+        producer.publish(message, null);
 
         assertTrue(producerNewMessageEventFired.value);
         assertEquals(topic, topicName.value);
@@ -135,7 +133,7 @@ public class ChannelManagerTest {
         String topic = config.getNamespace();
 
         Message message = TestUtils.createMsbRequestMessageWithPayload();
-        channelManager.findOrCreateProducer(config.getNamespace()).publish(message);
+        channelManager.findOrCreateProducer(config.getNamespace()).publish(message, null);
         channelManager.findOrCreateConsumer(topic, config);
 
         assertTrue(consumerNewMessageEventFired.value);
