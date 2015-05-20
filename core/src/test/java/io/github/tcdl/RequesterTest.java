@@ -10,6 +10,7 @@ import org.junit.Test;
  * Created by rdro on 4/27/2015.
  */
 public class RequesterTest {
+
     private MsbMessageOptions config;
 
     @Before

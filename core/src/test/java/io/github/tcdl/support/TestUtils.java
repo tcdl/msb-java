@@ -8,8 +8,8 @@ import io.github.tcdl.messages.MetaMessage;
 import io.github.tcdl.messages.Topics;
 import io.github.tcdl.messages.payload.Payload;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.apache.commons.lang3.reflect.MethodUtils;
 
+import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -98,7 +98,7 @@ public class TestUtils {
 
     public static <T> T _g(Object object, String fieldName) {
         try {
-            return (T) FieldUtils.readDeclaredField(object, fieldName);
+            return (T) FieldUtils.readField(object, fieldName, true);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -106,7 +106,7 @@ public class TestUtils {
 
     public static void _s(Object object, String fieldName, Object value) {
         try {
-            FieldUtils.writeDeclaredField(object, fieldName, value);
+            FieldUtils.writeField(object, fieldName, value, true);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -114,7 +114,9 @@ public class TestUtils {
 
     public static <T> T _m(Object object, String methodName) {
         try {
-            return (T) MethodUtils.invokeMethod(object, methodName);
+            Method method = object.getClass().getDeclaredMethod(methodName);
+            method.setAccessible(true);
+            return (T) method.invoke(object);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -122,7 +124,9 @@ public class TestUtils {
 
     public static <T> T _m(Object object, String methodName, Object[] args, Class... argTypes) {
         try {
-            return (T) MethodUtils.invokeMethod(object.getClass(), methodName, args, argTypes);
+            Method method = object.getClass().getDeclaredMethod(methodName, argTypes);
+            method.setAccessible(true);
+            return (T) method.invoke(object, args);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

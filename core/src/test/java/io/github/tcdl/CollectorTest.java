@@ -29,14 +29,6 @@ import org.junit.Test;
 /**
  * Created by rdro on 4/27/2015.
  */
-@Ignore("This test fails from time to time")
-/*
-java.lang.AssertionError: null
-	at org.junit.Assert.fail(Assert.java:86)
-	at org.junit.Assert.assertTrue(Assert.java:41)
-	at org.junit.Assert.assertTrue(Assert.java:52)
-	at CollectorTest.test_listenForResponses(CollectorTest.java:210)
- */
 public class CollectorTest {
 
     private MsbMessageOptions config;
@@ -164,37 +156,24 @@ public class CollectorTest {
 
     @Test
     public void test_processAck() {
-        final Holder<Boolean> timeoutCalled = new Holder<Boolean>();
-        timeoutCalled.value = false;
-
-        Collector collector = new Collector(config) {
-            @Override
-            protected void enableTimeout() {
-                timeoutCalled.value = true;
-            }
-        };
+        Collector collector = new Collector(config);
         _s(collector, "responsesRemaining", 0);
 
         // for null do nothing
         _m(collector, "processAck", new Object[] { null }, Acknowledge.class);
-        assertFalse(timeoutCalled.value);
 
         // take max timeout if there no responses by id
-        timeoutCalled.value = false;
         Acknowledge acknowledge = new Acknowledge.AcknowledgeBuilder().setResponderId("a").setTimeoutMs(1500).build();
 
         _m(collector, "processAck", new Object[] { acknowledge }, Acknowledge.class);
         assertEquals(Integer.valueOf(3000), _g(collector, "currentTimeoutMs"));
-        assertFalse(timeoutCalled.value);
 
         // take timeout by responder id
-        timeoutCalled.value = false;
         acknowledge = new Acknowledge.AcknowledgeBuilder().setResponderId("a").setTimeoutMs(5000).build();
 
         _m(collector, "setResponsesRemainingForResponderId", new Object[] { "a", 1 }, String.class, Integer.class);
         _m(collector, "processAck", new Object[] { acknowledge }, Acknowledge.class);
         assertEquals(Integer.valueOf(5000), _g(collector, "currentTimeoutMs"));
-        assertTrue(timeoutCalled.value);
     }
 
     @Test

@@ -59,4 +59,11 @@ public final class Acknowledge {
     public Integer getTimeoutMs() {
         return timeoutMs;
     }
+
+    @Override
+    public String toString() {
+        return "Acknowledge [responderId=" + responderId +
+                ", responsesRemaining=" + responsesRemaining +
+                ", timeoutMs=" + timeoutMs + "]";
+    }
 }

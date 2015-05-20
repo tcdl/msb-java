@@ -18,13 +18,13 @@ import org.slf4j.LoggerFactory;
  */
 public class Consumer {
 
-    public static Logger log = LoggerFactory.getLogger(Consumer.class);
+    public static Logger LOG = LoggerFactory.getLogger(Consumer.class);
 
     private Adapter rawAdapter;
     private String topic;
     private TwoArgsEventHandler<Message, Exception> messageHandler;
     private MsbConfigurations msbConfig; // not sure we need this here
-    MsbMessageOptions msgOptions;
+    private MsbMessageOptions msgOptions;
 
     public Consumer(String topic, MsbConfigurations msbConfig,
             MsbMessageOptions msgOptions) {
@@ -41,7 +41,7 @@ public class Consumer {
         // merge msgOptions with msbConfig
         // do other stuff
         rawAdapter.subscribe((jsonMessage) -> {
-            log.debug("Message received {}", jsonMessage);
+            LOG.debug("Message received {}", jsonMessage);
             Exception error = null;
             Message message = null;
 
@@ -71,7 +71,8 @@ public class Consumer {
     }
 
     public void end() {
-        //TODO shutdlown raw consumer
+        LOG.debug("Shutting down consumer for topic {}", topic);
+        rawAdapter.unsubscribe();
     }
 
     private boolean isServiceChannel(String topic) {

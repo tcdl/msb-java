@@ -20,15 +20,19 @@ public class ResponderExample {
                 .use(((request, response) -> {
                     System.out.print(">>> REQUEST: " + request.getHeaders());
 
-                    response.getResponder().sendAck(10000, 1, null);
+                    response.getResponder().sendAck(10000, 3, null);
                     Thread.sleep(5000);
 
-                    Map<String, String> body = new HashMap<>();
-                    body.put("result", "response from responder");
-                    Payload responsePayload = new Payload.PayloadBuilder().setBody(body).build();
-
-                    response.getResponder().send(responsePayload, null);
+                    response.getResponder().send(createResponse(1), null);
+                    response.getResponder().send(createResponse(2), null);
+                    response.getResponder().send(createResponse(3), null);
                 }))
                 .listen();
+    }
+
+    private static Payload createResponse(int seq) {
+        Map<String, String> body = new HashMap<>();
+        body.put("result", "response " + seq + " from responder");
+        return  new Payload.PayloadBuilder().setBody(body).build();
     }
 }

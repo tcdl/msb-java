@@ -44,6 +44,9 @@ public class Producer {
         return this;
     }
 
+    public void end() {
+    }
+
     public Producer withMessageHandler(TwoArgsEventHandler<Message, Exception> messageHandler) {
         this.messageHandler = messageHandler;
         return this;
