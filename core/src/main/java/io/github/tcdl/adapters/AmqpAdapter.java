@@ -43,14 +43,14 @@ public class AmqpAdapter implements Adapter {
     }
 
     @Override
-    public void subscribe(RawMessageHandler msgHandler) {       
+    public void subscribe(RawMessageHandler msgHandler) {
         String groupId = configuration.getAmqpBrokerConf().getGroupId();
         boolean durable = configuration.getAmqpBrokerConf().isDurable();
 
         String queueName = generateQueueName(topic, groupId, durable);
 
         try {
-            channel.queueDeclare(queueName, durable /* durable */, false /* exclusive */, true /*auto-delete */, null);
+            channel.queueDeclare(queueName, durable /* durable */, false /* exclusive */, !durable /*auto-delete */, null);
             channel.queueBind(queueName, exchangeName, "");
 
             consumerTag = channel.basicConsume(queueName, new DefaultConsumer(channel) {
