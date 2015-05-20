@@ -65,7 +65,8 @@ public class Consumer {
     }
 
     public void end() {
-        //TODO shutdlown raw consumer
+        LOG.debug("Shutting down consumer for topic {}", topic);
+        rawAdapter.unsubscribe();
     }
 
     private boolean isServiceChannel(String topic) {
