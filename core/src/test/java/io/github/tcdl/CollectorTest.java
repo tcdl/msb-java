@@ -176,7 +176,7 @@ public class CollectorTest {
         assertEquals(Integer.valueOf(5000), _g(collector, "currentTimeoutMs"));
     }
 
-    @Test
+    @Test @Ignore("to be replaced with integration test")
     public void test_listenForResponses() {
         String topic = config.getNamespace();
         Predicate<Message> shouldAcceptMessage = new Predicate<Message>() {
