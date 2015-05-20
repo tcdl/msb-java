@@ -72,16 +72,15 @@ public class ChannelManager extends EventEmitter {
     }
 
     public void removeProducer(String topic) {
-        Producer producer = producersByTopic.get(topic);
-        if (producer == null)
+        if (topic == null || !producersByTopic.containsKey(topic))
             return;
         producersByTopic.remove(topic);
     }
 
     public void removeConsumer(String topic) {
-        Consumer consumer = consumersByTopic.get(topic);
-        if (consumer == null)
+        if (topic == null || !consumersByTopic.containsKey(topic))
             return;
+        Consumer consumer = consumersByTopic.get(topic);
 
         consumer.end();
         consumersByTopic.remove(topic);

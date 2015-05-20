@@ -1,15 +1,6 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.events.Event.ACKNOWLEDGE_EVENT;
-import static io.github.tcdl.events.Event.END_EVENT;
-import static io.github.tcdl.events.Event.MESSAGE_EVENT;
-import static io.github.tcdl.events.Event.PAYLOAD_EVENT;
-import static io.github.tcdl.events.Event.RESPONSE_EVENT;
 import static io.github.tcdl.support.Utils.ifNull;
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.EventEmitter;
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.Message;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -19,15 +10,24 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Predicate;
 
+import io.github.tcdl.config.MsbMessageOptions;
+import static io.github.tcdl.events.Event.*;
+import io.github.tcdl.events.EventEmitter;
+import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Created by rdro on 4/23/2015.
  */
 public class Collector extends EventEmitter {
 
-    protected ChannelManager channelManager;
+    public static final Logger LOG = LoggerFactory.getLogger(Collector.class);
+
+    protected ChannelManager channelManager = ChannelManager.getInstance();
     private List<Message> ackMessages;
     private List<Message> payloadMessages;
-    private List<Message> responseMessages;
 
     private Map<String, Integer> timeoutMsById;
     private Map<String, Integer> responsesRemainingById;
@@ -39,16 +39,16 @@ public class Collector extends EventEmitter {
     private int responsesRemaining;
 
     private Long startedAt;
-    private Timer timeout;
-    private Timer ackTimeout;
+    private TimerTask timeout;
+    private TimerTask ackTimeout;
+
+    private String topic;
 
     public Collector(MsbMessageOptions config) {
-        this.channelManager = ChannelManager.getInstance();
         this.startedAt = System.currentTimeMillis();
 
         this.ackMessages = new LinkedList<>();
         this.payloadMessages = new LinkedList<>();
-        this.responseMessages = this.payloadMessages;
         this.timeoutMsById = new HashMap<>();
         this.responsesRemainingById = new HashMap<>();
 
@@ -81,13 +81,15 @@ public class Collector extends EventEmitter {
                 }
 
                 if (message.getPayload() != null) {
+                    LOG.debug("Payload received {}", message.getPayload());
                     payloadMessages.add(message);
                     emit(PAYLOAD_EVENT, message.getPayload());
                     emit(RESPONSE_EVENT, message.getPayload());
-                    incResponsesRemaining(-1);
                 } else {
+                    LOG.debug("Acknowledge received {}", message.getAck());
                     ackMessages.add(message);
                     emit(ACKNOWLEDGE_EVENT, message.getAck());
+                    incResponsesRemaining(-1);
                 }
 
                 processAck(message.getAck());
@@ -101,51 +103,54 @@ public class Collector extends EventEmitter {
 
                 end();
         });
-        channelManager.findOrCreateConsumer(topic, null);
-    }
 
-    public void removeListeners() {
-        channelManager.removeListeners(MESSAGE_EVENT);
+        channelManager.findOrCreateConsumer(topic, null);
+        this.topic = topic;
     }
 
     protected void cancel() {
         clearTimeout(timeout);
         clearTimeout(ackTimeout);
-        removeListeners();
+        channelManager.removeConsumer(topic);
     }
 
     protected void end() {
+        LOG.debug("End");
         cancel();
         emit(END_EVENT);
     }
 
     protected void enableTimeout() {
         clearTimeout(timeout);
-        Long newTimeoutMs = currentTimeoutMs - (System.currentTimeMillis() - startedAt);
-        timeout = setTimeout(onTimeout, newTimeoutMs);
-    }
 
-    private TimerTask onTimeout = new TimerTask() {
-        @Override
-        public void run() {
-            end();
-        }
-    };
+        timeout = new TimerTask() {
+            @Override
+            public void run() {
+                end();
+            }
+        };
+
+        LOG.debug("Enabling response timeout for {} ms", currentTimeoutMs);
+        setTimeout(timeout, currentTimeoutMs);
+    }
 
     protected void enableAckTimeout() {
         if (ackTimeout != null)
             return;
-        ackTimeout = setTimeout(onAckTimeout, waitForAcksUntil - System.currentTimeMillis());
-    }
 
-    private TimerTask onAckTimeout = new TimerTask() {
-        @Override
-        public void run() {
-            if (isAwaitingResponses())
-                return;
-            end();
-        }
-    };
+        ackTimeout =  new TimerTask() {
+            @Override
+            public void run() {
+                if (isAwaitingResponses())
+                    return;
+                end();
+            }
+        };
+
+        long ackTimeoutMs = waitForAcksUntil - System.currentTimeMillis();
+        LOG.debug("Enabling acknowledge timeout for {}", ackTimeoutMs);
+        setTimeout(ackTimeout, ackTimeoutMs);
+    }
 
     private void processAck(Acknowledge acknowledge) {
         if (acknowledge == null)
@@ -164,7 +169,8 @@ public class Collector extends EventEmitter {
         }
 
         if (acknowledge.getResponsesRemaining() != null) {
-            setResponsesRemainingForResponderId(acknowledge.getResponderId(), acknowledge.getResponsesRemaining());
+            LOG.debug("Remaining responses {}",
+                    setResponsesRemainingForResponderId(acknowledge.getResponderId(), acknowledge.getResponsesRemaining()));
         }
     }
 
@@ -214,13 +220,11 @@ public class Collector extends EventEmitter {
     private int setResponsesRemainingForResponderId(String responderId, Integer responsesRemaining) {
         boolean notChanged = (responsesRemainingById != null && responsesRemainingById.containsKey(responderId) && responsesRemainingById
                 .get(responderId).equals(responsesRemaining));
-        if (notChanged)
-            return 0;
+        if (notChanged) return 0;
 
         boolean atMin = (responsesRemaining < 0 && (responsesRemainingById.isEmpty() || !responsesRemainingById
                 .containsKey(responderId)));
-        if (atMin)
-            return 0;
+        if (atMin) return 0;
 
         if (responsesRemaining == 0) {
             responsesRemainingById.put(responderId, 0);
@@ -232,15 +236,14 @@ public class Collector extends EventEmitter {
         return responsesRemainingById.get(responderId);
     }
 
-    private Timer setTimeout(TimerTask onTimeout, long delay) {
-        Timer timer = new Timer();
-        timer.schedule(onTimeout, delay);
-        return timer;
+    private void setTimeout(TimerTask onTimeout, long delay) {
+        new Timer().schedule(onTimeout, delay);
     }
 
-    private void clearTimeout(Timer timer) {
-        if (timer != null)
-            timer.cancel();
+    private void clearTimeout(TimerTask onTimeout) {
+        if (onTimeout != null) {
+            onTimeout.cancel();
+        }
     }
 
     private int getResponseTimeout(MsbMessageOptions messageConfigs) {
