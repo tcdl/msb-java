@@ -73,7 +73,7 @@ public class CliTool {
     private static void subscribe(String topicName, CliMessageHandler handler) {
         synchronized (registeredTopics) {
             if (!registeredTopics.contains(topicName)) {
-                Adapter adapter = adapterFactory.createAdapter(brokerType, topicName);
+                Adapter adapter = adapterFactory.createAdapter(brokerType, topicName, MsbConfigurations.msbConfiguration());
                 adapter.subscribe(handler);
                 registeredTopics.add(topicName);
             }

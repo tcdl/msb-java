@@ -20,7 +20,6 @@ public final class Message {
     @JsonCreator
     private Message(@JsonProperty("id") String id, @JsonProperty("correlationId") String correlationId, @JsonProperty("topics") Topics topics,
             @JsonProperty("meta") MetaMessage meta, @JsonProperty("ack") Acknowledge ack, @JsonProperty("payload") Payload payload) {
-        super();
         Validate.notNull(id, "the 'id' must not be null");
         Validate.notNull(correlationId, "the 'correlationId' must not be null");
         Validate.notNull(topics, "the 'topics' must not be null");

@@ -39,7 +39,7 @@ public class ResponderIT {
         MockAdapter.getInstance().clearAllMessages();
     }
 
-    @Test    
+    @Test
     public void testCreateAckMessage() throws Exception {
         Responder responder = new Responder(messageOptions, TestUtils.createMsbRequestMessageNoPayload());
         responder.sendAck(1000, 2, null);
@@ -59,8 +59,7 @@ public class ResponderIT {
 
     private void assertAckMessage(String json) {
         try {
-            assertTrue("Message didn't correspondent to expected schema",
-                    Utils.validateJsonWithSchema(json, this.msbConf.getSchema()));
+            Utils.validateJsonWithSchema(json, this.msbConf.getSchema());
         } catch (JsonSchemaValidationException e) {
             fail("Message schema validation failed");
         }
@@ -97,9 +96,8 @@ public class ResponderIT {
     }
 
     private void assertResponseMessage(String json, Payload responsePayload) {
-        try {
-            assertTrue("Message didn't correspondent to expected schema",
-                    Utils.validateJsonWithSchema(json, this.msbConf.getSchema()));
+        try {           
+            Utils.validateJsonWithSchema(json, this.msbConf.getSchema());
             JSONObject jsonObject = new JSONObject(json);
 
             // payload
@@ -115,7 +113,7 @@ public class ResponderIT {
             assertJsonContains(jsonObject.getJSONObject("topics"), "to", messageOptions.getNamespace() + ":response:"
                     + msbConf.getServiceDetails().getInstanceId());
             assertTrue(jsonObject.getJSONObject("topics").isNull("response"));
-            
+
         } catch (JsonSchemaValidationException | JSONException | JsonProcessingException e) {
             LOG.error("Exception while parse message payload", e);
             fail("Message validation failed");
