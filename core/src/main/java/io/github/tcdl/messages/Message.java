@@ -1,6 +1,7 @@
 package io.github.tcdl.messages;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.*;
 import org.apache.commons.lang3.Validate;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,17 +12,17 @@ import io.github.tcdl.messages.payload.Payload;
  */
 public final class Message {
 
-    @JsonInclude(JsonInclude.Include.ALWAYS)
+    @JsonInclude(ALWAYS)
     private final String id;// This identifies this message
-    @JsonInclude(JsonInclude.Include.ALWAYS)
+    @JsonInclude(ALWAYS)
     private final String correlationId;
-    @JsonInclude(JsonInclude.Include.ALWAYS)
+    @JsonInclude(ALWAYS)
     private final Topics topics;
-    @JsonInclude(JsonInclude.Include.ALWAYS)
+    @JsonInclude(ALWAYS)
     private final MetaMessage meta; // To be filled with createMeta() ->completeMeta() sequence
-    @JsonInclude(JsonInclude.Include.ALWAYS)
+    @JsonInclude(ALWAYS)
     private final Acknowledge ack; // To be filled on ack or response
-    @JsonInclude(JsonInclude.Include.ALWAYS)
+    @JsonInclude(ALWAYS)
     private final Payload payload;
 
     @JsonCreator

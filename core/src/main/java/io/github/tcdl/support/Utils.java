@@ -75,6 +75,7 @@ public class Utils {
     }
 
     public static <T> T fromJson(String json, Class<T> clazz) throws JsonConversionException {
+        if (json == null) return null;
         ObjectMapper mapper = getMsbJsonObjectMapper();
         try {
             return mapper.readValue(json, clazz);
