@@ -1,5 +1,7 @@
 package io.github.tcdl.support;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 
@@ -33,7 +35,7 @@ public class Utils {
     public static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
     private final static Pattern VALID_TOPIC_REGEXP = Pattern.compile("^_?([a-z0-9\\-]+\\:)+([a-z0-9\\-]+)$");
-    private final static SimpleDateFormat JSON_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    private final static SimpleDateFormat JSON_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     public static String generateId() {
         return UUID.randomUUID().toString();// TODO
@@ -57,6 +59,8 @@ public class Utils {
     public static ObjectMapper getMsbJsonObjectMapper() {
         ObjectMapper objectMapper =  new ObjectMapper().setDateFormat(JSON_DATE_FORMAT);
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
         return objectMapper;
     }
 
@@ -71,7 +75,7 @@ public class Utils {
     }
 
     public static <T> T fromJson(String json, Class<T> clazz) throws JsonConversionException {
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = getMsbJsonObjectMapper();
         try {
             return mapper.readValue(json, clazz);
         } catch (IOException e) {
