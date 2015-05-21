@@ -53,9 +53,10 @@ public class AmqpAdapter implements Adapter {
             channel.queueDeclare(queueName, durable /* durable */, false /* exclusive */, !durable /*auto-delete */, null);
             channel.queueBind(queueName, exchangeName, "");
 
-            consumerTag = channel.basicConsume(queueName, new DefaultConsumer(channel) {
+            consumerTag = channel.basicConsume(queueName, false /* autoAck */, new DefaultConsumer(channel) {
                 @Override
                 public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                    getChannel().basicAck(envelope.getDeliveryTag(), false);
                     String bodyStr = new String(body);
                     msgHandler.onMessage(bodyStr);
                 }
