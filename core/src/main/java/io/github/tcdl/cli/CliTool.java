@@ -36,7 +36,7 @@ public class CliTool implements CliMessageHandlerSubscriber {
         // Parse command-line arguments
         List<String> topics = getOptionAsList(args, "--topic", "-t");
         if (topics == null || topics.isEmpty()) {
-            System.out.println("Please specify topic via --topic <topic name>");
+            printUsage();
             return;
         }
 
@@ -48,6 +48,13 @@ public class CliTool implements CliMessageHandlerSubscriber {
         boolean pretty = getOptionAsBoolean(args, "--pretty", "-p");
 
         new CliTool(MsbConfigurations.msbConfiguration(), AdapterFactory.getInstance(), topics, pretty, follow);
+    }
+
+    private static void printUsage() {
+        System.out.println("Usage: CliTool <--topic|-t topic1,topic2> [--pretty true|false] [--follow response]\n"
+                + "--topic (required) specifies topic(s) to listen to\n"
+                + "--pretty (defaults to 'true') display formatted or not formatted messages\n"
+                + "--follow (defaults to 'response') allows to inspect incoming messages and subscribe to response topics automatically");
     }
 
     private static boolean getOptionAsBoolean(String[] args, String optionName, String alias) {
