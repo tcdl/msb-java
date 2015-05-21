@@ -7,12 +7,13 @@ import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MetaMessage;
 import io.github.tcdl.messages.Topics;
 import io.github.tcdl.messages.payload.Payload;
-import org.apache.commons.lang3.reflect.FieldUtils;
 
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -24,8 +25,14 @@ public class TestUtils {
         conf.setNamespace("test:general");
         return conf;
     }
+
+    public static MsbMessageOptions createSimpleConfigSetNamespace(String namespace) {
+        MsbMessageOptions conf = new MsbMessageOptions();
+        conf.setNamespace(namespace);
+        return conf;
+    }
+
     public static Message createMsbRequestMessageWithPayloadAndTopicTo(String topicTo) {
-        MsbMessageOptions conf = createSimpleConfig();
         MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
 
         Topics topic = new Topics.TopicsBuilder().setTo(topicTo)
@@ -34,8 +41,8 @@ public class TestUtils {
         return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMeta(meta)
                 .setPayload(createSimpleRequestPayload()).build();
     }
-    
 
+    //todo:remove
     public static Message createMsbRequestMessageWithPayload() {
         MsbMessageOptions conf = createSimpleConfig();
         MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
@@ -46,7 +53,8 @@ public class TestUtils {
         return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMeta(meta)
                 .setPayload(createSimpleRequestPayload()).build();
     }
-    
+
+    //todo:remove
     public static Message createMsbRequestMessageNoPayload() {
         MsbMessageOptions conf = createSimpleConfig();
         MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
@@ -58,7 +66,7 @@ public class TestUtils {
         return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMeta(meta)
                 .setPayload(null).build();
     }
-    
+
     public static Message createMsbResponseMessage() {
         MsbMessageOptions conf = createSimpleConfig();
         MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
@@ -102,7 +110,18 @@ public class TestUtils {
 
         return new Payload.PayloadBuilder().setBody(body).setHeaders(headers).build();
     }
-    
+
+    public static Payload createSimpleResponsePayloadWithBodyAndStatusCode(String respBody, int respStatusCode) {
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put("statusCode", String.valueOf(respStatusCode));
+        headers.put("method", "Response");
+
+        Map<String, String> body = new HashMap<String, String>();
+        body.put("body", respBody);
+
+        return new Payload.PayloadBuilder().setBody(body).setHeaders(headers).build();
+    }
+
     public static MetaMessage createSimpleMeta(MsbConfigurations msbConf) {
         return new MetaMessage.MetaMessageBuilder(0, new Date(), msbConf.getServiceDetails()).computeDurationMs().build();
     }
