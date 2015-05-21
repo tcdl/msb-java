@@ -6,7 +6,15 @@ import io.github.tcdl.config.MsbConfigurations;
 
 import java.io.IOException;
 
+/**
+ * To work with AMQP broker (for example RabbitMQ) we use single connection.
+ * The responsibility of this singleton class is to manage the lifecycle of that connection.
+ */
 public class AmqpConnectionManager {
+    /**
+     * Usage of "Initialization-on-demand holder" idiom to have thread-safe lazy loading of this singleton.
+     * We cannot fall back to eager initialization because otherwise
+     */
     private static class LazyHolder {
         private static final AmqpConnectionManager INSTANCE = new AmqpConnectionManager();
     }
@@ -28,6 +36,17 @@ public class AmqpConnectionManager {
         } catch (IOException e) {
             throw new RuntimeException("Failed to obtain connection to AMQP broker", e);
         }
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    connection.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private static AmqpConnectionManager getInstance() {
