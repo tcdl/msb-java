@@ -1,13 +1,18 @@
-package io.github.tcdl.adapters;
+package io.github.tcdl.adapters.amqp;
 
 import com.rabbitmq.client.*;
 
+import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.exception.ChannelException;
 
 import java.io.IOException;
 
 import org.apache.commons.lang3.Validate;
+
+/*
+ *  The AmqpAdapter class impements {@link Adapter} and encapsulates logic of interaction with RabbitMQ.
+ */
 
 public class AmqpAdapter implements Adapter {
     private String topic;
@@ -17,6 +22,11 @@ public class AmqpAdapter implements Adapter {
     private String consumerTag;
     private MsbConfigurations configuration;
 
+    /**
+     * The constructor.
+     * @param topic - a topic name associated with the adapter
+     * @param msbConfig - MSB configuration object
+     */
     public AmqpAdapter(String topic, MsbConfigurations msbConfig) {
         Validate.notNull(topic, "the 'topic' must not be null");
         Validate.notNull(msbConfig, "the 'msbConfig' must not be null");
@@ -33,6 +43,9 @@ public class AmqpAdapter implements Adapter {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void publish(String jsonMessage) throws ChannelException {
         try {
@@ -42,6 +55,9 @@ public class AmqpAdapter implements Adapter {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void subscribe(RawMessageHandler msgHandler) {
         String groupId = configuration.getAmqpBrokerConf().getGroupId();
@@ -66,6 +82,10 @@ public class AmqpAdapter implements Adapter {
         }
     }
 
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unsubscribe() {
         try {
@@ -75,7 +95,15 @@ public class AmqpAdapter implements Adapter {
         }
     }
 
+    /**
+     * Represents the topic name for logging purpose
+     * @param topic - topic name associated with the adapter
+     * @param groupId - group service Id
+     * @param durable - queue durability
+     * @return
+     */
     private String generateQueueName(String topic, String groupId, boolean durable) {
         return topic + "." + groupId + "." + (durable ? "d" : "t");
     }
+    
 }

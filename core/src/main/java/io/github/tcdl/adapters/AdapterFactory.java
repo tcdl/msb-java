@@ -1,10 +1,13 @@
 package io.github.tcdl.adapters;
 
+import java.lang.reflect.Constructor;
+
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbConfigurations.BrokerAdapter;
 
 /**
- * Created by rdro on 4/24/2015.
+ * AdapterFactory creates an instance of Broker Adapter accordingly to MSB Configuration.
+ * Represented as a Singleton.
  */
 public class AdapterFactory {
 
@@ -19,7 +22,17 @@ public class AdapterFactory {
 
     public Adapter createAdapter(BrokerAdapter brokerName, String topic, MsbConfigurations msbConfig) {
         if (brokerName == BrokerAdapter.AMQP) {
-            return new AmqpAdapter(topic, msbConfig);
+            try {
+                Class<?> clazz = Class.forName("io.github.tcdl.adapters.amqp.AmqpAdapter");
+                Constructor<?> constructor = clazz.getConstructor(String.class, MsbConfigurations.class);
+                Object amqpAdapter = constructor.newInstance(topic, msbConfig);
+                if (!(amqpAdapter instanceof Adapter)) {
+                    throw new RuntimeException("Inconsistent AMQP Adapter class");
+                }
+                return (Adapter) amqpAdapter;
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create AMQP broker", e);
+            }
         } else {
             return new MockAdapter(topic, null);
         }
