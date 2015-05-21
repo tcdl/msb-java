@@ -6,11 +6,11 @@ import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
-import static io.github.tcdl.events.Event.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by rdro on 4/29/2015.
@@ -37,14 +37,13 @@ public class ResponderServer {
             throw new IllegalStateException("Already listening");
         }
 
-        eventEmitter = Responder.createEmitter(this.messageOptions);
-        eventEmitter.on(RESPONDER_EVENT, onResponder);
+        eventEmitter = Responder.createEmitter(this.messageOptions, onResponder);       
 
         return this;
     }
 
     private SingleArgEventHandler<Responder> onResponder = (Responder responder) -> {
-            Payload request = responder.getOriginalMessage().getPayload();
+            Payload request = responder.getOriginalMessage().getPayload();      
             Response response = new Response(responder);
             CompletableFuture.supplyAsync(() ->
                     middlewareChain
