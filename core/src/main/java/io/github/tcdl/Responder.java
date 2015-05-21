@@ -1,9 +1,10 @@
 package io.github.tcdl;
 
+import static io.github.tcdl.events.Event.RESPONDER_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
-import static io.github.tcdl.events.Event.*;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.events.EventEmitter;
+import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
 import io.github.tcdl.messages.Message;
@@ -13,7 +14,6 @@ import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
 
 import org.apache.commons.lang3.Validate;
-
 
 /**
  * Created by rdro on 4/29/2015.
@@ -63,14 +63,17 @@ public class Responder {
         producer.publish(responseMessage, callback);       
     }
 
-    public static EventEmitter createEmitter(final MsbMessageOptions msgOptions) {
+    public static EventEmitter createEmitter(final MsbMessageOptions msgOptions, SingleArgEventHandler<Responder> messageEventHandler) {
         String topic = msgOptions.getNamespace();
         ChannelManager channelManager = ChannelManager.getInstance();
-        channelManager.findOrCreateConsumer(topic, null);
 
         channelManager.on(Event.MESSAGE_EVENT, (Message message) -> {
-            channelManager.emit(RESPONDER_EVENT, new Responder(msgOptions, message));
+            Responder responder = new Responder(msgOptions, message);
+            channelManager.emit(RESPONDER_EVENT, responder);
+            messageEventHandler.onEvent(responder);
         });
+
+        channelManager.findOrCreateConsumer(topic, null);
 
         return channelManager;
     }
