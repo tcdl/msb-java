@@ -1,4 +1,4 @@
-package io.github.tcdl.adapters;
+package io.github.tcdl.adapters.amqp;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
