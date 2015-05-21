@@ -2,6 +2,9 @@ package io.github.tcdl.messages.payload;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.github.tcdl.exception.JsonConversionException;
+import io.github.tcdl.exception.MessageBuilderException;
+import io.github.tcdl.support.Utils;
 
 import java.util.Map;
 
@@ -10,6 +13,7 @@ import java.util.Map;
  */
 public final class Payload {
 
+    private Integer statusCode;
     private final Map<String, String> headers;
     private final Map<?, ?> query;
     private final Map<?, ?> params;
@@ -17,10 +21,14 @@ public final class Payload {
     private final Map<?, ?> bodyBuffer;
 
     @JsonCreator
-    private Payload(@JsonProperty("headers") Map<String, String> headers,
+    private Payload(
+            @JsonProperty("statusCode") Integer statusCode,
+            @JsonProperty("headers") Map<String, String> headers,
             @JsonProperty("query") Map<?, ?> query,
             @JsonProperty("params") Map<?, ?> params,
-            @JsonProperty("body") Map<?, ?> body, @JsonProperty("bodyBuffer") Map<?, ?> bodyBuffer) {
+            @JsonProperty("body") Map<?, ?> body,
+            @JsonProperty("bodyBuffer") Map<?, ?> bodyBuffer) {
+        this.statusCode = statusCode;
         this.headers = headers;
         this.query = query;
         this.params = params;
@@ -30,40 +38,58 @@ public final class Payload {
 
     public static class PayloadBuilder {
 
+        private Integer statusCode;
         private Map<String, String> headers;
-        private Map<?, ?> query;
-        private Map<?, ?> params;
-        private Map<?, ?> body;
-        private Map<?, ?> bodyBuffer;
+        private Object query;
+        private Object params;
+        private Object body;
+        private Object bodyBuffer;
+
+        public PayloadBuilder setStatusCode(Integer statusCode) {
+            this.statusCode = statusCode;
+            return this;
+        }
 
         public PayloadBuilder setHeaders(Map<String, String> headers) {
             this.headers = headers;
             return this;
         }
 
-        public PayloadBuilder setQuery(Map<?, ?> query) {
+        public PayloadBuilder setQuery(Object query) {
             this.query = query;
             return this;
         }
 
-        public PayloadBuilder setParams(Map<?, ?> params) {
+        public PayloadBuilder setParams(Object params) {
             this.params = params;
             return this;
         }
 
-        public PayloadBuilder setBody(Map<?, ?> body) {
+        public PayloadBuilder setBody(Object body) {
             this.body = body;
             return this;
         }
 
-        public PayloadBuilder setBodyBuffer(Map<?, ?> bodyBuffer) {
+        public PayloadBuilder setBodyBuffer(Object bodyBuffer) {
             this.bodyBuffer = bodyBuffer;
             return this;
         }
 
         public Payload build() {
-            return new Payload(headers, query, params, body, bodyBuffer);
+            try {
+                Map queryMap = Utils.fromJson(Utils.toJson(query), Map.class);
+                Map paramsMap = Utils.fromJson(Utils.toJson(params), Map.class);
+                Map bodyMap = Utils.fromJson(Utils.toJson(body), Map.class);
+                Map bodyBufferMap = Utils.fromJson(Utils.toJson(bodyBuffer), Map.class);
+                return new Payload(statusCode, headers, queryMap, paramsMap, bodyMap, bodyBufferMap);
+            } catch(JsonConversionException e) {
+                throw new MessageBuilderException(e.getMessage());
+            }
         }
+    }
+
+    public Integer getStatusCode() {
+        return statusCode;
     }
 
     public Map<?, ?> getHeaders() {
@@ -74,16 +100,52 @@ public final class Payload {
         return query;
     }
 
+    public <T> T getQueryAs(Class<T> clazz) {
+        try {
+            return Utils.fromJson(Utils.toJson(query), clazz);
+        } catch(JsonConversionException e) {
+            throw new MessageBuilderException(e.getMessage());
+        }
+    }
+
     public Map<?, ?> getParams() {
         return params;
+    }
+
+    public <T> T getParamsAs(Class<T> clazz) {
+        try {
+            return Utils.fromJson(Utils.toJson(params), clazz);
+        } catch(JsonConversionException e) {
+            throw new MessageBuilderException(e.getMessage());
+        }
     }
 
     public Map<?, ?> getBody() {
         return body;
     }
 
+    public <T> T getBodyAs(Class<T> clazz) {
+        try {
+            return Utils.fromJson(Utils.toJson(body), clazz);
+        } catch(JsonConversionException e) {
+            throw new MessageBuilderException(e.getMessage());
+        }
+    }
+
+    public Map<?, ?> getBodyBuffer() {
+        return bodyBuffer;
+    }
+
+    public <T> T getBodyBufferAs(Class<T> clazz) {
+        try {
+            return Utils.fromJson(Utils.toJson(bodyBuffer), clazz);
+        } catch(JsonConversionException e) {
+            throw new MessageBuilderException(e.getMessage());
+        }
+    }
+
     @Override
     public String toString() {
-        return String.format("Payload [headers=%s, query=%s, params=%s, body=%s, bodyBuffer=%s]", headers, query, params, body, bodyBuffer);
+        return String.format("Payload [statusCode=%s, headers=%s, query=%s, params=%s, body=%s, bodyBuffer=%s]", statusCode, headers, query, params, body, bodyBuffer);
     }
 }
