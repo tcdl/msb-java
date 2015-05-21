@@ -3,6 +3,7 @@ package io.github.tcdl.adapters;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Consumer;
+import com.rabbitmq.client.Envelope;
 import io.github.tcdl.config.AmqpBrokerConfig;
 import io.github.tcdl.config.MsbConfigurations;
 import org.junit.Before;
@@ -15,9 +16,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.IOException;
 
 import static io.github.tcdl.adapters.Adapter.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.*;
 
@@ -93,18 +92,25 @@ public class AmqpAdapterTest {
 
         // verify that AMQP handler has been registered
         ArgumentCaptor<Consumer> amqpConsumerCaptor = ArgumentCaptor.forClass(Consumer.class);
-        verify(mockChannel).basicConsume(eq("myTopic.myGroupId.t"), amqpConsumerCaptor.capture());
+        verify(mockChannel).basicConsume(eq("myTopic.myGroupId.t"), eq(false) /* autoAck */, amqpConsumerCaptor.capture());
 
         // verify that when message arrives, AMQP handler invokes ours
-        amqpConsumerCaptor.getValue().handleDelivery("consumer tag", null, null, "some message".getBytes());
-        verify(mockHandler).onMessage("some message");
+        long deliveryTag = 1234L;
+        String messageStr = "some message";
+        Envelope envelope = mock(Envelope.class);
+        when(envelope.getDeliveryTag()).thenReturn(deliveryTag);
+        amqpConsumerCaptor.getValue().handleDelivery("consumer tag", envelope, null, messageStr.getBytes());
+        verify(mockHandler).onMessage(messageStr);
+
+        // Check that acknowledgement for this message has been sent
+        verify(mockChannel).basicAck(deliveryTag, false);
     }
 
     @Test
     public void testUnsubscribe() throws IOException {
         AmqpAdapter adapter = createAdapterForSubscribe("myTopic", "myGroupId", false);
         String consumerTag = "my consumer tag";
-        when(mockChannel.basicConsume(anyString(), any(Consumer.class))).thenReturn(consumerTag);
+        when(mockChannel.basicConsume(anyString(), anyBoolean(), any(Consumer.class))).thenReturn(consumerTag);
 
         adapter.subscribe(jsonMessage -> {
         });
