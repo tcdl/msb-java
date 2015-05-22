@@ -1,6 +1,6 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.Responder;
+import io.github.tcdl.ResponderServer;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.payload.Payload;
 
@@ -26,8 +26,8 @@ public class DateExtractor {
 
         final Pattern YEAR_PATTERN = Pattern.compile("^.*(20(\\d{2})).*$");
 
-        Responder.createServer(options)
-                .use(((request, response) -> {
+        ResponderServer.create(options)
+                .use(((request, responder) -> {
 
                     RequestQuery query = request.getQueryAs(RequestQuery.class);
                     String queryString = query.getQ();
@@ -35,7 +35,7 @@ public class DateExtractor {
 
                     if (matcher.matches()) {
                         // send acknowledge
-                        response.getResponder().sendAck(500, null, null);
+                        responder.sendAck(500, null, null);
 
                         // parse year
                         String str = matcher.group(1);
@@ -45,7 +45,7 @@ public class DateExtractor {
                         Result result = new Result();
                         result.setStr(str);
                         result.setStartIndex(queryString.indexOf(str));
-                        result.setEndIndex(queryString.indexOf(str) + str.length()-1);
+                        result.setEndIndex(queryString.indexOf(str) + str.length() - 1);
                         result.setInferredDate(new HashMap<>());
                         result.setProbability(0.9f);
 
@@ -59,7 +59,7 @@ public class DateExtractor {
                                 .setStatusCode(200)
                                 .setBody(responseBody).build();
 
-                        response.getResponder().send(responsePayload, null);
+                        responder.send(responsePayload, null);
                     }
                 }))
                 .listen();
