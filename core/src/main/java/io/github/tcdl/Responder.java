@@ -1,10 +1,6 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.events.Event.RESPONDER_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.Event;
-import io.github.tcdl.events.EventEmitter;
-import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
 import io.github.tcdl.messages.Message;
@@ -60,7 +56,7 @@ public class Responder {
         this.responseMessage = this.messageFactory.completeMeta(message, metaBuilder);
 
         Producer producer = channelManager.findOrCreateProducer(responseMessage.getTopics().getTo());
-        producer.publish(responseMessage, callback);       
+        producer.publish(responseMessage, callback);
     }
 
     public Message getOriginalMessage() {

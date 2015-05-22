@@ -11,6 +11,7 @@ import io.github.tcdl.events.EventEmitter;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Predicate;
 
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,9 +50,9 @@ public class Collector extends EventEmitter {
 
     private String topic;
 
-    public Collector(MsbMessageOptions config) {
+    public Collector(MsbMessageOptions config) {  
+        Validate.notNull(config, "the 'config' must not be null");
         this.startedAt = System.currentTimeMillis();
-
         this.ackMessages = new LinkedList<>();
         this.payloadMessages = new LinkedList<>();
         this.timeoutMsById = new HashMap<>();
@@ -59,7 +61,7 @@ public class Collector extends EventEmitter {
         this.timeoutMs = getResponseTimeout(config);
         this.currentTimeoutMs = timeoutMs;
 
-        this.waitForAcksUntil = config != null && config.getAckTimeout() != null
+        this.waitForAcksUntil = config.getAckTimeout() != null
                 ? startedAt + config.getAckTimeout() : 0;
 
         this.waitForResponses = getWaitForResponses(config);
@@ -83,15 +85,16 @@ public class Collector extends EventEmitter {
             if (shouldAcceptMessagePredicate != null && !shouldAcceptMessagePredicate.test(message)) {
                 return;
             }
+            LOG.debug("Received message {}", message);
 
             if (message.getPayload() != null) {
-                LOG.debug("Payload received {}", message.getPayload());
+                LOG.debug("Received {}", message.getPayload());
                 payloadMessages.add(message);
                 emit(PAYLOAD_EVENT, message.getPayload());
                 emit(RESPONSE_EVENT, message.getPayload());
                 incResponsesRemaining(-1);
             } else {
-                LOG.debug("Acknowledge received {}", message.getAck());
+                LOG.debug("Received {}", message.getAck());
                 ackMessages.add(message);
                 emit(ACKNOWLEDGE_EVENT, message.getAck());
             }
@@ -152,7 +155,7 @@ public class Collector extends EventEmitter {
         };
 
         long ackTimeoutMs = waitForAcksUntil - System.currentTimeMillis();
-        LOG.debug("Enabling acknowledge timeout for {}", ackTimeoutMs);
+        LOG.debug("Waiting for ack until {}. Enabling ack timeout for {} ms", new Date(waitForAcksUntil), ackTimeoutMs);
         setTimeout(ackTimeout, ackTimeoutMs);
     }
 
@@ -253,17 +256,25 @@ public class Collector extends EventEmitter {
     }
 
     private int getResponseTimeout(MsbMessageOptions messageConfigs) {
-        if (messageConfigs == null || messageConfigs.getResponseTimeout() == null) {
+        if (messageConfigs.getResponseTimeout() == null) {
             return 3000;
         }
         return messageConfigs.getResponseTimeout();
     }
 
     private int getWaitForResponses(MsbMessageOptions messageConfigs) {
-        if (messageConfigs == null || messageConfigs.getWaitForResponses() == null
+        if (messageConfigs.getWaitForResponses() == null
                 || messageConfigs.getWaitForResponses() == null || messageConfigs.getWaitForResponses() == -1) {
             return 0;
         }
         return messageConfigs.getWaitForResponses();
+    }
+
+    List<Message> getAckMessages() {
+        return ackMessages;
+    }
+
+    List<Message> getPayloadMessages() {
+        return payloadMessages;
     }
 }
