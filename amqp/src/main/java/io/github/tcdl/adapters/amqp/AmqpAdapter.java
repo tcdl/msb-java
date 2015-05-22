@@ -13,30 +13,28 @@ import org.apache.commons.lang3.Validate;
 /*
  *  The AmqpAdapter class impements {@link Adapter} and encapsulates logic of interaction with RabbitMQ.
  */
-
 public class AmqpAdapter implements Adapter {
     private String topic;
-
     private Channel channel;
+
     private String exchangeName;
     private String consumerTag;
-    private MsbConfigurations configuration;
+    private final AmqpBrokerConfig adapterConfig;
 
     /**
      * The constructor.
      * @param topic - a topic name associated with the adapter
-     * @param msbConfig - MSB configuration object
+     * @param adapterConfig
      */
-    public AmqpAdapter(String topic, MsbConfigurations msbConfig) {
+    public AmqpAdapter(String topic, AmqpBrokerConfig adapterConfig, AmqpConnectionManager connectionManager) {
         Validate.notNull(topic, "the 'topic' must not be null");
-        Validate.notNull(msbConfig, "the 'msbConfig' must not be null");
+
         this.topic = topic;
         this.exchangeName = topic;
-        this.configuration = msbConfig;
+        this.adapterConfig = adapterConfig;
 
-        Connection connection = AmqpConnectionManager.obtainConnection();
         try {
-            channel = connection.createChannel();
+            channel = connectionManager.obtainConnection().createChannel();
             channel.exchangeDeclare(exchangeName, "fanout", false /* durable */, true /* auto-delete */, null);
         } catch (IOException e) {
             throw new RuntimeException("Failed to setup channel from ActiveMQ connection", e);
@@ -60,8 +58,8 @@ public class AmqpAdapter implements Adapter {
      */
     @Override
     public void subscribe(RawMessageHandler msgHandler) {
-        String groupId = configuration.getAmqpBrokerConf().getGroupId();
-        boolean durable = configuration.getAmqpBrokerConf().isDurable();
+        String groupId = adapterConfig.getGroupId();
+        boolean durable = adapterConfig.isDurable();
 
         String queueName = generateQueueName(topic, groupId, durable);
 

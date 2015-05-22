@@ -4,11 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.adapters.MockAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
@@ -33,17 +36,21 @@ public class RequesterIT {
 
     private MsbMessageOptions messageOptions;
     private MsbConfigurations msbConf;
+    private MessageFactory messageFactory;
+    private ChannelManager channelManager;
 
     @Before
     public void setUp() throws Exception {
         this.messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester");
-        this.msbConf = MsbConfigurations.msbConfiguration();
+        this.msbConf = TestUtils.createMsbConfigurations();
+        this.messageFactory = new MessageFactory(msbConf.getServiceDetails());
+        this.channelManager = new ChannelManager(ConfigFactory.load());
     }
 
     @Test
     public void testRequestMessage() throws Exception {
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = new Requester(messageOptions, null);
+        Requester requester = new Requester(messageOptions, null, messageFactory, channelManager, msbConf);
         requester.publish(requestPayload);
         Message message = requester.getMessage();
 

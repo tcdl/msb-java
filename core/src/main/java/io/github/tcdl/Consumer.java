@@ -7,7 +7,6 @@ import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.Utils;
-
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,13 +45,10 @@ public class Consumer {
             Message message = null;
 
             try {
-                if (msbConfig.getSchema() != null
-                        && !isServiceChannel(topic)) {
-                    Utils.validateJsonWithSchema(jsonMessage,
-                            msbConfig.getSchema());
+                if (msbConfig.getSchema() != null && !isServiceChannel(topic)) {
+                    Utils.validateJsonWithSchema(jsonMessage, msbConfig.getSchema());
                 }
-                message = Utils.fromJson(jsonMessage,
-                        Message.class);
+                message = Utils.fromJson(jsonMessage, Message.class);
             } catch (JsonConversionException | JsonSchemaValidationException e) {
                 error = e;
             }

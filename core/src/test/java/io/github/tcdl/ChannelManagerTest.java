@@ -3,6 +3,10 @@ package io.github.tcdl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
+import com.typesafe.config.ConfigFactory;
+import io.github.tcdl.adapters.MockAdapterFactory;
+import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Message;
@@ -28,11 +32,13 @@ public class ChannelManagerTest {
 
     private MsbMessageOptions config;
     private ChannelManager channelManager;
+    private MsbConfigurations msbConfig;
 
     @Before
     public void setUp() {
         this.config = TestUtils.createSimpleConfig();
-        channelManager = ChannelManager.getInstance();
+        this.msbConfig = TestUtils.createMsbConfigurations();
+        this.channelManager = new ChannelManager(new MockAdapterFactory(ConfigFactory.load()));
     }
 
     @After
@@ -71,7 +77,7 @@ public class ChannelManagerTest {
 
         String topic = config.getNamespace();
         channelManager.removeConsumer(topic);
-        Consumer consumer = channelManager.findOrCreateConsumer(topic, config);
+        Consumer consumer = channelManager.findOrCreateConsumer(topic, msbConfig);
 
         assertNotNull(consumer);
         assertTrue(newConsumerTopicFired.value);
@@ -89,7 +95,7 @@ public class ChannelManagerTest {
         });
 
         String topic = config.getNamespace();
-        channelManager.findOrCreateConsumer(topic, config);
+        channelManager.findOrCreateConsumer(topic, msbConfig);
         channelManager.removeConsumer(topic);
 
         assertTrue(consumerRemovedTopicEventFired.value);
@@ -134,7 +140,7 @@ public class ChannelManagerTest {
 
         Message message = TestUtils.createMsbRequestMessageWithPayload();
         channelManager.findOrCreateProducer(config.getNamespace()).publish(message, null);
-        channelManager.findOrCreateConsumer(topic, config);
+        channelManager.findOrCreateConsumer(topic, msbConfig);
 
         assertTrue(consumerNewMessageEventFired.value);
         assertEquals(topic, topicName.value);

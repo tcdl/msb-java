@@ -1,18 +1,16 @@
 package io.github.tcdl.adapters;
 
-import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.exception.ChannelException;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by rdro on 4/24/2015.
@@ -25,7 +23,7 @@ public class MockAdapter implements Adapter {
 
     private String topic;
 
-    public MockAdapter(String topic, MsbConfigurations msbConfig) {
+    public MockAdapter(String topic) {
         this.topic = topic;
     }
 

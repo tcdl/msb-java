@@ -5,11 +5,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.adapters.MockAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
@@ -29,10 +32,14 @@ public class ResponderIT {
     public static final Logger LOG = LoggerFactory.getLogger(ResponderIT.class);
 
     private MsbConfigurations msbConf;
+    private MessageFactory messageFactory;
+    private ChannelManager channelManager;
 
     @Before
     public void setUp() throws Exception {
-        this.msbConf = MsbConfigurations.msbConfiguration();
+        this.msbConf = TestUtils.createMsbConfigurations();
+        this.messageFactory = new MessageFactory(msbConf.getServiceDetails());
+        this.channelManager = new ChannelManager(ConfigFactory.load());
     }
 
     @Test
@@ -40,7 +47,7 @@ public class ResponderIT {
         MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:responder-ack");
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(messageOptions.getNamespace());
 
-        Responder responder = new Responder(messageOptions, originalMessage);
+        Responder responder = new Responder(messageOptions, originalMessage, channelManager, messageFactory);
         responder.sendAck(1000, 2, null);
         Message ackMessage = responder.getResponseMessage();
 
@@ -84,7 +91,7 @@ public class ResponderIT {
         MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:responder-response");
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(messageOptions.getNamespace());
 
-        Responder responder = new Responder(messageOptions, originalMessage);
+        Responder responder = new Responder(messageOptions, originalMessage, channelManager, messageFactory);
         Payload responsePayload = TestUtils.createSimpleResponsePayload();
         responder.send(responsePayload, null);
         Message responseMessage = responder.getResponseMessage();
