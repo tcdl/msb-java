@@ -1,6 +1,7 @@
 package io.github.tcdl.examples;
 
 import io.github.tcdl.Responder;
+import io.github.tcdl.ResponderServer;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.payload.Payload;
 import java.util.HashMap;
@@ -16,16 +17,16 @@ public class ResponderExample {
         MsbMessageOptions options = new MsbMessageOptions();
         options.setNamespace("test:simple-requester");
 
-        Responder.createServer(options)
-                .use(((request, response) -> {
+        ResponderServer.create(options)
+                .use(((request, responder) -> {
                     System.out.print(">>> REQUEST: " + request.getHeaders());
 
-                    response.getResponder().sendAck(10000, 3, null);
+                    responder.sendAck(10000, 3, null);
                     Thread.sleep(5000);
 
-                    response.getResponder().send(createResponse(1), null);
-                    response.getResponder().send(createResponse(2), null);
-                    response.getResponder().send(createResponse(3), null);
+                    responder.send(createResponse(1), null);
+                    responder.send(createResponse(2), null);
+                    responder.send(createResponse(3), null);
                 }))
                 .listen();
     }

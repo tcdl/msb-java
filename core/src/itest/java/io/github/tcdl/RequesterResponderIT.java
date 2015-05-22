@@ -36,7 +36,7 @@ public class RequesterResponderIT {
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
         requester.publish(requestPayload);
         
-        Responder.createServer(messageOptions)
+        ResponderServer.create(messageOptions)
         .use(((request, response) -> {
             requestRecieved.countDown();
         }))

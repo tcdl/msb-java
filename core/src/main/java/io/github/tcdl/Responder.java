@@ -63,25 +63,6 @@ public class Responder {
         producer.publish(responseMessage, callback);       
     }
 
-    public static EventEmitter createEmitter(final MsbMessageOptions msgOptions, SingleArgEventHandler<Responder> messageEventHandler) {
-        String topic = msgOptions.getNamespace();
-        ChannelManager channelManager = ChannelManager.getInstance();
-
-        channelManager.on(Event.MESSAGE_EVENT, (Message message) -> {
-            Responder responder = new Responder(msgOptions, message);
-            channelManager.emit(RESPONDER_EVENT, responder);
-            messageEventHandler.onEvent(responder);
-        });
-
-        channelManager.findOrCreateConsumer(topic, null);
-
-        return channelManager;
-    }
-
-    public static ResponderServer createServer(MsbMessageOptions msgOptions) {
-        return new ResponderServer(msgOptions);
-    }
-    
     public Message getOriginalMessage() {
         return this.originalMessage;
     }
