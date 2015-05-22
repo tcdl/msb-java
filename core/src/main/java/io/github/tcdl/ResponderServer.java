@@ -57,6 +57,9 @@ public class ResponderServer {
 
     private void errorHandler(Payload request, Response response, Exception err) {
         LOG.error("Error processing request {}", request);
-        // TODO write error
+        Payload responsePayload = new Payload.PayloadBuilder()
+                .setStatusCode(500)
+                .setStatusMessage(err.getMessage()).build();
+        response.getResponder().send(responsePayload, null);
     }
 }
