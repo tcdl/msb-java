@@ -1,13 +1,12 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.support.TestUtils._g;
-import static io.github.tcdl.support.TestUtils._m;
-import static io.github.tcdl.support.TestUtils._s;
-import static io.github.tcdl.support.TestUtils.createSimpleConfig;
+import static io.github.tcdl.support.TestUtils.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
+import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Acknowledge;
@@ -32,17 +31,21 @@ import org.junit.Test;
 public class CollectorTest {
 
     private MsbMessageOptions config;
+    private MsbConfigurations msbConfigurations;
     private MessageFactory messageFactory;
+    private ChannelManager channelManager;
 
     @Before
     public void setUp() {
         this.config = createSimpleConfig();
-        this.messageFactory = MessageFactory.getInstance();
+        this.msbConfigurations = createMsbConfigurations();
+        this.channelManager = null;
+        this.messageFactory = null;
     }
 
     @Test
     public void test_init_without_config() {
-        Collector collector = new Collector(null);
+        Collector collector = new Collector(null, channelManager, msbConfigurations);
         Long startedAt = _g(collector, "startedAt");
 
         assertNotNull(startedAt);
@@ -55,7 +58,7 @@ public class CollectorTest {
         config.setResponseTimeout(555);
         config.setAckTimeout(50);
         config.setWaitForResponses(1);
-        Collector collector = new Collector(config);
+        Collector collector = new Collector(config, channelManager, msbConfigurations);
 
         Long startedAt = _g(collector, "startedAt");
 
@@ -67,7 +70,7 @@ public class CollectorTest {
 
     @Test
     public void test_isAwaitingAcks() {
-        Collector collector = new Collector(config);
+        Collector collector = new Collector(config, channelManager, msbConfigurations);
         assertFalse(collector.isAwaitingAcks());
 
         _s(collector, "waitForAcksUntil", System.currentTimeMillis());
@@ -79,7 +82,7 @@ public class CollectorTest {
 
     @Test
     public void test_getMaxTimeoutMs() {
-        Collector collector = new Collector(config);
+        Collector collector = new Collector(config, channelManager, msbConfigurations);
         // should return base timeout
         // assertEquals(_g(collector, "timeoutMs"), _m(collector,
         // "getMaxTimeoutMs"));
@@ -105,7 +108,7 @@ public class CollectorTest {
     @Test
     public void test_getResponsesRemaining() {
 
-        Collector collector = new Collector(config);
+        Collector collector = new Collector(config, channelManager, msbConfigurations);
         assertEquals(Integer.valueOf(0), _m(collector, "getResponsesRemaining"));
 
         // should return sum of all responses remaining
@@ -120,7 +123,7 @@ public class CollectorTest {
 
     @Test
     public void test_setTimeoutMsForResponderId() {
-        Collector collector = new Collector(config);
+        Collector collector = new Collector(config, channelManager, msbConfigurations);
 
         Map<String, Integer> responsesRemainingById = new HashMap<String, Integer>();
         responsesRemainingById.put("a", 1);
@@ -132,7 +135,7 @@ public class CollectorTest {
 
     @Test
     public void test_setResponsesRemainingForResponderId() {
-        Collector collector = new Collector(config);
+        Collector collector = new Collector(config, channelManager, msbConfigurations);
 
         _s(collector, "responsesRemaining", 0);
         _m(collector, "setResponsesRemainingForResponderId", new Object[] { "a", 1 }, String.class, Integer.class);
@@ -146,7 +149,7 @@ public class CollectorTest {
 
     @Test
     public void test_incResponsesRemaining() {
-        Collector collector = new Collector(config);
+        Collector collector = new Collector(config, channelManager, msbConfigurations);
 
         // should add to responses remaining
         _s(collector, "responsesRemaining", 0);
@@ -156,7 +159,7 @@ public class CollectorTest {
 
     @Test
     public void test_processAck() {
-        Collector collector = new Collector(config);
+        Collector collector = new Collector(config, channelManager, msbConfigurations);
         _s(collector, "responsesRemaining", 0);
 
         // for null do nothing
@@ -186,7 +189,7 @@ public class CollectorTest {
         };
 
         // should collect payload message
-        Collector collector = new Collector(config);
+        Collector collector = new Collector(config, channelManager, msbConfigurations);
         collector.listenForResponses(topic, shouldAcceptMessage);
         ChannelManager channelManager = _g(collector, "channelManager");
 
@@ -202,7 +205,7 @@ public class CollectorTest {
 
         config.setWaitForResponses(0);
         config.setAckTimeout(10000);
-        collector = new Collector(config) {
+        collector = new Collector(config, channelManager, msbConfigurations) {
             @Override
             protected void enableAckTimeout() {
                 ackTimeoutCalled.value = true;

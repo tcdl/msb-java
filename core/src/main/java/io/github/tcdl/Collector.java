@@ -1,26 +1,18 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.events.Event.ACKNOWLEDGE_EVENT;
-import static io.github.tcdl.events.Event.END_EVENT;
-import static io.github.tcdl.events.Event.MESSAGE_EVENT;
-import static io.github.tcdl.events.Event.PAYLOAD_EVENT;
-import static io.github.tcdl.events.Event.RESPONSE_EVENT;
-import static io.github.tcdl.support.Utils.ifNull;
+import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.EventEmitter;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.function.Predicate;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.function.Predicate;
+
+import static io.github.tcdl.events.Event.*;
+import static io.github.tcdl.support.Utils.ifNull;
 
 /**
  * Created by rdro on 4/23/2015.
@@ -29,7 +21,7 @@ public class Collector extends EventEmitter {
 
     public static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
-    protected ChannelManager channelManager = ChannelManager.getInstance();
+    private final ChannelManager channelManager;
     private List<Message> ackMessages;
     private List<Message> payloadMessages;
 
@@ -47,8 +39,11 @@ public class Collector extends EventEmitter {
     private TimerTask ackTimeout;
 
     private String topic;
+    private MsbConfigurations msbConfigurations;
 
-    public Collector(MsbMessageOptions config) {
+    public Collector(MsbMessageOptions config, ChannelManager channelManager, MsbConfigurations msbConfigurations) {
+        this.channelManager = channelManager;
+        this.msbConfigurations = msbConfigurations;
         this.startedAt = System.currentTimeMillis();
 
         this.ackMessages = new LinkedList<>();
@@ -108,7 +103,7 @@ public class Collector extends EventEmitter {
             end();
         });
 
-        channelManager.findOrCreateConsumer(topic, null);
+        channelManager.findOrCreateConsumer(topic, msbConfigurations);
         this.topic = topic;
     }
 

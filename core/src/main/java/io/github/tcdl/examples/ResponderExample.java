@@ -1,9 +1,14 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.Responder;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import io.github.tcdl.ChannelManager;
 import io.github.tcdl.ResponderServer;
+import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,11 +18,15 @@ import java.util.Map;
 public class ResponderExample {
 
     public static void main(String... args) {
+        Config config = ConfigFactory.load();
+        MsbConfigurations msbConfig = new MsbConfigurations(config);
+        ChannelManager channelManager = new ChannelManager(config);
+        MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails());
 
         MsbMessageOptions options = new MsbMessageOptions();
         options.setNamespace("test:simple-requester");
 
-        ResponderServer.create(options)
+        ResponderServer.create(options, channelManager, messageFactory)
                 .use(((request, responder) -> {
                     System.out.print(">>> REQUEST: " + request.getHeaders());
 

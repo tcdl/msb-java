@@ -1,11 +1,10 @@
-package io.github.tcdl.config;
+package io.github.tcdl.adapters.amqp;
 
-import static io.github.tcdl.config.ConfigurationUtil.getString;
-
+import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.typesafe.config.Config;
+import static io.github.tcdl.config.ConfigurationUtil.getString;
 
 public class AmqpBrokerConfig {
 
@@ -29,7 +28,8 @@ public class AmqpBrokerConfig {
         private String groupId;
         private boolean durable;
 
-        public AmqpBrokerConfigBuilder(Config config) {
+        public AmqpBrokerConfigBuilder(Config allconfig) {
+            Config config = allconfig.getConfig("config.amqp");
             this.host = config.getString("host");
             this.port = config.getInt("port");
             this.groupId = getString(config, "groupId", null);

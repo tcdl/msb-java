@@ -1,19 +1,19 @@
 package io.github.tcdl.cli;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.adapters.AdapterFactory;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.adapters.AdapterFactoryLoader;
 
 import java.util.*;
 
 public class CliTool implements CliMessageHandlerSubscriber {
     private AdapterFactory adapterFactory;
-    private MsbConfigurations configuration;
     private final Set<String> registeredTopics = new HashSet<>();
 
-    public CliTool(MsbConfigurations configuration, AdapterFactory adapterFactory, List<String> topics, boolean pretty, List<String> follow) {
+    public CliTool(AdapterFactory adapterFactory, List<String> topics, boolean pretty, List<String> follow) {
         this.adapterFactory = adapterFactory;
-        this.configuration = configuration;
 
         // Subscribe to the configured topics
         for (String topicName : topics) {
@@ -25,7 +25,7 @@ public class CliTool implements CliMessageHandlerSubscriber {
     public void subscribe(String topicName, CliMessageHandler handler) {
         synchronized (registeredTopics) {
             if (!registeredTopics.contains(topicName)) {
-                Adapter adapter = adapterFactory.createAdapter(configuration.getBrokerType(), topicName, configuration);
+                Adapter adapter = adapterFactory.createAdapter(topicName);
                 adapter.subscribe(handler);
                 registeredTopics.add(topicName);
             }
@@ -47,7 +47,9 @@ public class CliTool implements CliMessageHandlerSubscriber {
 
         boolean pretty = getOptionAsBoolean(args, "--pretty", "-p");
 
-        new CliTool(MsbConfigurations.msbConfiguration(), AdapterFactory.getInstance(), topics, pretty, follow);
+        Config config = ConfigFactory.load();
+
+        new CliTool(new AdapterFactoryLoader(config).getAdapterFactory(), topics, pretty, follow);
     }
 
     private static void printUsage() {
@@ -85,8 +87,7 @@ public class CliTool implements CliMessageHandlerSubscriber {
                 }
             }
         }
-
-        return null;
+        return Collections.emptyList();
     }
 
 }
