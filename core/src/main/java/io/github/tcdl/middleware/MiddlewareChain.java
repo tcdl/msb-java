@@ -26,6 +26,10 @@ public class MiddlewareChain {
         middlewareList.addAll(Arrays.asList(middleware));
     }
 
+    public List<Middleware> getMiddleware() {
+        return middlewareList;
+    }
+
     public MiddlewareChain invoke(Payload request, Responder responder) {
         if (!middlewareList.isEmpty()) {
             iterator = middlewareList.iterator();
