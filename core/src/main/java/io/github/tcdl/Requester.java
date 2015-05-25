@@ -2,7 +2,7 @@ package io.github.tcdl;
 
 import static io.github.tcdl.events.Event.ERROR_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.TwoArgsEventHandler;
+import io.github.tcdl.events.*;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by rdro on 4/27/2015.
  */
-public class Requester extends Collector {
+public class Requester extends Collector implements ExtendedEventEmitter {
 
     public static final Logger LOG = LoggerFactory.getLogger(Requester.class);
 
@@ -51,7 +51,7 @@ public class Requester extends Collector {
         
         TwoArgsEventHandler<Message, Exception> callback = (message, exception) -> {
             if (exception != null) {
-                emit(ERROR_EVENT, exception);
+                channelManager.emit(ERROR_EVENT, exception);
                 LOG.debug("Exception was thrown.", exception);
                 return;
             }
@@ -63,6 +63,24 @@ public class Requester extends Collector {
         
         channelManager.findOrCreateProducer(this.message.getTopics().getTo())
                 .publish(this.message, callback);
+    }
+
+    @Override
+    public <A1> Requester on(Event event, SingleArgEventHandler<A1> eventHandler) {
+        channelManager.emit(event, eventHandler);
+        return this;
+    }
+
+    @Override
+    public <A1, A2> Requester on(Event event, TwoArgsEventHandler<A1, A2> eventHandler) {
+        channelManager.emit(event, eventHandler);
+        return this;
+    }
+
+    @Override
+    public <A1, A2, A3> Requester on(Event event, ThreeArgsEventHandler<A1, A2, A3> eventHandler) {
+        channelManager.emit(event, eventHandler);
+        return this;
     }
 
     Message getMessage() {
