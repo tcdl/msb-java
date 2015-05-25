@@ -28,7 +28,6 @@ import org.apache.commons.lang3.time.DateUtils;
 public class ChannelManager extends EventEmitter {
 
     private static ChannelManager INSTANCE = new ChannelManager();
-    private AdapterFactory adapterFactory;
     private MsbConfigurations msbConfig;
     private Map<String, Producer> producersByTopic;
     private Map<String, Consumer> consumersByTopic;
@@ -39,7 +38,6 @@ public class ChannelManager extends EventEmitter {
 
     private ChannelManager() {
         this.msbConfig = MsbConfigurations.msbConfiguration();
-        this.adapterFactory = AdapterFactory.getInstance();
         this.producersByTopic = new ConcurrentHashMap<>();
         this.consumersByTopic = new ConcurrentHashMap<>();
     }
@@ -91,7 +89,7 @@ public class ChannelManager extends EventEmitter {
     private Producer createProducer(String topic, MsbConfigurations msbConfig) {
         Utils.validateTopic(topic);
 
-        Adapter adapter = this.adapterFactory.createAdapter(msbConfig.getBrokerType(), topic, msbConfig);
+        Adapter adapter = getAdapterFactory().createAdapter(msbConfig.getBrokerType(), topic, msbConfig);
         TwoArgsEventHandler<Message, Exception> handler = (message, exception) -> emit(PRODUCER_NEW_MESSAGE_EVENT, topic);
         return new Producer(adapter, topic, handler);
     }
@@ -99,7 +97,7 @@ public class ChannelManager extends EventEmitter {
     private Consumer createConsumer(String topic, MsbConfigurations msbConfig, MsbMessageOptions msgOptions) {
         Utils.validateTopic(topic);
 
-        Adapter adapter = this.adapterFactory.createAdapter(msbConfig.getBrokerType(), topic, msbConfig);
+        Adapter adapter = getAdapterFactory().createAdapter(msbConfig.getBrokerType(), topic, msbConfig);
 
         TwoArgsEventHandler<Message, Exception> handler = (message, exception) -> {
             if (isMessageExpired(message))
@@ -116,5 +114,9 @@ public class ChannelManager extends EventEmitter {
                 && message.getMeta().getTtl() != null
                 && DateUtils.addMilliseconds(message.getMeta().getCreatedAt(), message.getMeta().getTtl()).after(
                         new Date());
+    }
+    
+    private AdapterFactory getAdapterFactory() {
+        return new AdapterFactory();
     }
 }

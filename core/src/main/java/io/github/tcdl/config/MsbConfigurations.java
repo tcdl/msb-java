@@ -17,11 +17,8 @@ public class MsbConfigurations {
 
     private static MsbConfigurations INSTANCE = new MsbConfigurations();
 
-    //AMQP specific properties
-    private AmqpBrokerConfig amqpBrokerConf;
-
-    //Kafka specific properties
-    private KafkaBrokerConfig kafkaBrokerConf;
+    //Broker specific configuration
+    private Config brokerConfig;
 
     private final ServiceDetails serviceDetails;
 
@@ -37,42 +34,24 @@ public class MsbConfigurations {
         Config config = ConfigFactory.load().getConfig("msbConfig");
 
         this.serviceDetails = new ServiceDetails.ServiceDetailsBuilder(config.getConfig("serviceDetails")).build();
+        this.schema = readJsonSchema();
+        this.msbBroker = getBrokerType(config);
+        this.brokerConfig = getBrokerConfig(config);
 
-        initBrokerConfigurations(config);
-        initJsonSchema();
-        setBrokerType(config);
-
-        afterInit();
         log.info("MSB configuration {}", this);
     }
 
     public static MsbConfigurations msbConfiguration() {
         return INSTANCE;
     }
-
-    private void initBrokerConfigurations(Config config) {
-        if (config.hasPath("config.amqp")) {
-            this.amqpBrokerConf = new AmqpBrokerConfig.AmqpBrokerConfigBuilder(config.getConfig("config.amqp")).build();
-        }
-        // not in use
-        if (config.hasPath("config.kafka")) {
-            this.kafkaBrokerConf = new KafkaBrokerConfig.KafkaBrokerConfigBuilder(config.getConfig("config.kafka")).build();
-        }
-    }
-
-    private void initJsonSchema() {
+    
+    private String readJsonSchema() {
         try {
-            this.schema = IOUtils.toString(getClass().getResourceAsStream("/schema.js"));
+            return IOUtils.toString(getClass().getResourceAsStream("/schema.js"));
         } catch (IOException e) {
             log.error("MSB configuration failed to load Json validation schema", this);
+            return null;
         }
-    }
-
-    private void afterInit() {
-        if (this.amqpBrokerConf != null && this.amqpBrokerConf.getGroupId() == null) {
-            this.amqpBrokerConf.setGroupId(this.serviceDetails.getName());
-        }
-        // do the same for other broker configurations
     }
 
     public ServiceDetails getServiceDetails() {
@@ -87,19 +66,29 @@ public class MsbConfigurations {
         return this.msbBroker;
     }
 
-    private void setBrokerType(Config config) {
-        String brokerName = getString(config, "brokerAdapter ", "kafka").toUpperCase();
-        this.msbBroker = BrokerAdapter.valueOf(brokerName);
+    public Config getBrokerConfig() {
+        return brokerConfig;
     }
 
-    public AmqpBrokerConfig getAmqpBrokerConf() {
-        return amqpBrokerConf;
+    private BrokerAdapter getBrokerType(Config config) {
+        String brokerName = getBrokerName(config).toUpperCase();
+        return BrokerAdapter.valueOf(brokerName);
     }
 
+    private Config getBrokerConfig(Config config) {
+        String brokerName = getBrokerName(config).toLowerCase();
+        String brokerConfigPath  = "config." + brokerName;
+        return  config.hasPath(brokerConfigPath) ? config.getConfig(brokerConfigPath) : null;
+    }
+    
+    private String getBrokerName(Config config) {
+        return getString(config, "brokerAdapter", "amqp");
+    }
+    
     @Override
     public String toString() {
-        return "MsbConfigurations [serviceDetails=" + serviceDetails + ", amqpBrokerConf=" + amqpBrokerConf
-                + ", kafkaBrokerConf=" + kafkaBrokerConf + ", schema=" + schema + ", msbBroker=" + msbBroker + "]";
+        return "MsbConfigurations [serviceDetails=" + serviceDetails + ", schema=" + schema 
+                + ", msbBroker=" + msbBroker + ", brokerConfig=" + brokerConfig + "]";
     }
 
 }

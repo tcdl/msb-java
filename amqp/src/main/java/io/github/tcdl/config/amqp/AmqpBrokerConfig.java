@@ -1,7 +1,8 @@
-package io.github.tcdl.config;
+package io.github.tcdl.config.amqp;
 
 import static io.github.tcdl.config.ConfigurationUtil.getString;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +35,7 @@ public class AmqpBrokerConfig {
             this.port = config.getInt("port");
             this.groupId = getString(config, "groupId", null);
             this.durable = config.getBoolean("durable");
-        }
+       }
 
         public AmqpBrokerConfig build() {
             return new AmqpBrokerConfig(host, port, groupId, durable);
@@ -61,6 +62,23 @@ public class AmqpBrokerConfig {
         this.groupId = groupId;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) {
+          return false;
+        }
+        AmqpBrokerConfig config = (AmqpBrokerConfig) obj;
+        return new EqualsBuilder()
+                .appendSuper(super.equals(obj))
+                .append(host, config.host)
+                .append(port, config.port)
+                .append(groupId, config.groupId)
+                .append(durable, config.durable)
+                .isEquals();
+    }
+    
     @Override
     public String toString() {
         return "AmqpBrokerConfig [host=" + host + ", port=" + port + ", groupId=" + groupId + ", durable=" + durable
