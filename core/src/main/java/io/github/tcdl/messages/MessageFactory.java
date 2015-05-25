@@ -1,26 +1,36 @@
 package io.github.tcdl.messages;
 
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.config.ServiceDetails;
+import java.util.Date;
+
+import org.apache.commons.lang3.Validate;
+
+import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.MessageFactory;
+import io.github.tcdl.messages.MetaMessage;
+import io.github.tcdl.messages.Topics;
 import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
 import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
+
+import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.ServiceDetails;
 import io.github.tcdl.support.Utils;
-import org.apache.commons.lang3.Validate;
 
 import javax.annotation.Nullable;
-import java.util.Date;
 
 /**
  * Created by rdro on 4/22/2015.
  */
 public class MessageFactory {
 
+    private static MessageFactory INSTANCE = new MessageFactory();
     private ServiceDetails serviceDetails;
 
-    public MessageFactory(ServiceDetails serviceDetails) {
-        this.serviceDetails = serviceDetails;
+    private MessageFactory() {
+        this.serviceDetails = MsbConfigurations.msbConfiguration().getServiceDetails();
     }
 
     public MessageBuilder createRequestMessage(MsbMessageOptions config, Message originalMessage) {
@@ -73,5 +83,9 @@ public class MessageFactory {
     public Message completeMeta(MessageBuilder message, MetaMessageBuilder meta) {
         meta.computeDurationMs().build();
         return message.setMeta(meta.build()).build();
+    }
+
+    public static MessageFactory getInstance() {
+        return INSTANCE;
     }
 }

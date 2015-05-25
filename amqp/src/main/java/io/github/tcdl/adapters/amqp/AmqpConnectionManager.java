@@ -15,11 +15,21 @@ import java.io.IOException;
 public class AmqpConnectionManager {
     private static Logger log = LoggerFactory.getLogger(AmqpConnectionManager.class);
 
+    /**
+     * Usage of "Initialization-on-demand holder" idiom to have thread-safe lazy loading of this singleton.
+     * We cannot fall back to eager initialization because otherwise
+     */
+    private static class LazyHolder {
+        private static final AmqpConnectionManager INSTANCE = new AmqpConnectionManager();
+    }
+
     private Connection connection;
 
-    public AmqpConnectionManager(AmqpBrokerConfig adapterConfig) {
-        String host = adapterConfig.getHost();
-        int port = adapterConfig.getPort();
+    private AmqpConnectionManager() {
+        MsbConfigurations configuration = MsbConfigurations.msbConfiguration();
+
+        String host = configuration.getAmqpBrokerConf().getHost();
+        int port = configuration.getAmqpBrokerConf().getPort();
 
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(host);
@@ -33,7 +43,6 @@ public class AmqpConnectionManager {
             throw new RuntimeException("Failed to obtain connection to AMQP broker", e);
         }
 
-        //TODO: close on client demand
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -48,7 +57,11 @@ public class AmqpConnectionManager {
         });
     }
 
-    public Connection obtainConnection() {
-        return connection;
+    private static AmqpConnectionManager getInstance() {
+        return LazyHolder.INSTANCE;
+    }
+
+    public static Connection obtainConnection() {
+        return getInstance().connection;
     }
 }

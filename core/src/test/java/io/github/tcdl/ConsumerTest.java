@@ -66,7 +66,7 @@ public class ConsumerTest {
 
     @Test
     public void testConsumeFromTopicValidateThrowException() {
-        MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
         new Consumer(adapterMock, TOPIC, handlerMock, msbConf).subscribe();
 
         verify(adapterMock).subscribe(messageHandlerCaptur.capture());
@@ -77,7 +77,7 @@ public class ConsumerTest {
     @Test
     public void testConsumeFromSeviceTopicValidateThrowException() {
         String service_topic = "_service:topic";
-        MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
 
         new Consumer(adapterMock, service_topic, handlerMock, msbConf).subscribe();
 

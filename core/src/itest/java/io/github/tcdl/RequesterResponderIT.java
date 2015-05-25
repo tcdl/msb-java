@@ -1,11 +1,8 @@
 package io.github.tcdl;
 
 import static org.junit.Assert.assertTrue;
-
-import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 
@@ -23,15 +20,11 @@ public class RequesterResponderIT {
 
     private MsbMessageOptions messageOptions;
     private MsbConfigurations msbConf;
-    private MessageFactory messageFactory;
-    private ChannelManager channelManager;
 
     @Before
     public void setUp() throws Exception {
         this.messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder");
-        this.msbConf = TestUtils.createMsbConfigurations();
-        this.messageFactory = new MessageFactory(msbConf.getServiceDetails());
-        this.channelManager = new ChannelManager(ConfigFactory.load());
+        this.msbConf = MsbConfigurations.msbConfiguration();
     }
 
     @Test
@@ -39,11 +32,11 @@ public class RequesterResponderIT {
         CountDownLatch requestRecieved = new CountDownLatch(1);
         
         //Create and send request message
-        Requester requester = new Requester(messageOptions, null, messageFactory, channelManager, msbConf);
+        Requester requester = new Requester(messageOptions, null);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
         requester.publish(requestPayload);
         
-        ResponderServer.create(messageOptions, channelManager, messageFactory)
+        ResponderServer.create(messageOptions)
         .use(((request, response) -> {
             requestRecieved.countDown();
         }))
