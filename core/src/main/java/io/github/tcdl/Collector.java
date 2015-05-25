@@ -7,7 +7,6 @@ import static io.github.tcdl.events.Event.PAYLOAD_EVENT;
 import static io.github.tcdl.events.Event.RESPONSE_EVENT;
 import static io.github.tcdl.support.Utils.ifNull;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.EventEmitterImpl;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 
@@ -85,7 +84,7 @@ public class Collector {
             if (shouldAcceptMessagePredicate != null && !shouldAcceptMessagePredicate.test(message)) {
                 return;
             }
-            LOG.debug("Received message {}", message);
+            LOG.debug("Received {}", message);
 
             if (message.getPayload() != null) {
                 LOG.debug("Received {}", message.getPayload());
@@ -133,6 +132,7 @@ public class Collector {
         timeout = new TimerTask() {
             @Override
             public void run() {
+                LOG.debug("Running enableTimeout() TimerTask");
                 end();
             }
         };
@@ -148,8 +148,11 @@ public class Collector {
         ackTimeout = new TimerTask() {
             @Override
             public void run() {
-                if (isAwaitingResponses())
+                if (isAwaitingResponses()) {
+                    LOG.debug("Ack timer task run, but waiting for responses. No END event fired");
                     return;
+                }
+                LOG.debug("Running enableAckTimeout() TimerTask");
                 end();
             }
         };
@@ -263,8 +266,7 @@ public class Collector {
     }
 
     private int getWaitForResponses(MsbMessageOptions messageConfigs) {
-        if (messageConfigs.getWaitForResponses() == null
-                || messageConfigs.getWaitForResponses() == null || messageConfigs.getWaitForResponses() == -1) {
+        if (messageConfigs.getWaitForResponses() == null || messageConfigs.getWaitForResponses() == -1) {
             return 0;
         }
         return messageConfigs.getWaitForResponses();
