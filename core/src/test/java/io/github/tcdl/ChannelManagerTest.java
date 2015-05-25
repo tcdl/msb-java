@@ -18,12 +18,6 @@ import org.junit.Test;
 /**
  * Created by rdro on 4/24/2015.
  */
-@Ignore("These tests fail from time to time")
-/*
-  ChannelManagerTest.test_receiveMessage:156 » NullPointer
-  ChannelManagerTest.test_createOrFindConsumer:81 » NullPointer
-  ChannelManagerTest.test_publishMessage:125 » IllegalState Task already schedul
- */
 public class ChannelManagerTest {
 
     private MsbMessageOptions config;
