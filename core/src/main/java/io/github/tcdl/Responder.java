@@ -1,6 +1,10 @@
 package io.github.tcdl;
 
+import static io.github.tcdl.events.Event.RESPONDER_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.events.Event;
+import io.github.tcdl.events.EventEmitter;
+import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
 import io.github.tcdl.messages.Message;
@@ -8,6 +12,7 @@ import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
+
 import org.apache.commons.lang3.Validate;
 
 /**
@@ -19,20 +24,21 @@ public class Responder {
     private MetaMessageBuilder metaBuilder;
     private AcknowledgeBuilder ackBuilder;
     private Message originalMessage;
-    private final ChannelManager channelManager;
+    private ChannelManager channelManager;
     private MessageFactory messageFactory;
     private Message responseMessage;
 
-    public Responder(MsbMessageOptions msgOptions, Message originalMessage, ChannelManager channelManager, MessageFactory messageFactory) {
+    public Responder(MsbMessageOptions msgOptions, Message originalMessage) {
         Validate.notNull(msgOptions, "the 'msgOptions' must not be null");
         Validate.notNull(originalMessage, "the 'originalMessage' must not be null");
 
-        this.channelManager = channelManager;
         this.msgOptions = msgOptions;
-        this.messageFactory = messageFactory;
-        this.metaBuilder = messageFactory.createMeta(this.msgOptions);
-        this.ackBuilder = messageFactory.createAck();
+        this.messageFactory = MessageFactory.getInstance();
+        this.metaBuilder = this.messageFactory.createMeta(this.msgOptions);
+        this.ackBuilder = this.messageFactory.createAck();
         this.originalMessage = originalMessage;
+
+        channelManager = ChannelManager.getInstance();
     }
 
     public void sendAck(Integer timeoutMs, Integer responsesRemaining,

@@ -1,6 +1,6 @@
 package io.github.tcdl;
 
-import io.github.tcdl.config.MsbConfigurations;
+import static io.github.tcdl.events.Event.ERROR_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Message;
@@ -8,14 +8,14 @@ import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
+
+import java.util.Objects;
+
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-import java.util.Objects;
-
-import static io.github.tcdl.events.Event.ERROR_EVENT;
 
 /**
  * Created by rdro on 4/27/2015.
@@ -28,13 +28,11 @@ public class Requester extends Collector {
     private Message message;
     private MetaMessageBuilder metaBuilder;
     private MessageBuilder messageBuilder;
-    private ChannelManager channelManager;
 
-    public Requester(MsbMessageOptions config, Message originalMessage, MessageFactory messageFactory, ChannelManager channelManager, MsbConfigurations msbConfigurations) {
-        super(config, channelManager, msbConfigurations);
-        this.channelManager = channelManager;
+    public Requester(MsbMessageOptions config, Message originalMessage) {
+        super(config);
         Validate.notNull(config, "the 'config' must not be null");
-        this.messageFactory = messageFactory;
+        this.messageFactory = MessageFactory.getInstance();
         this.metaBuilder = messageFactory.createMeta(config);
         this.messageBuilder = messageFactory.createRequestMessage(config, originalMessage);
     }
