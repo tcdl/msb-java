@@ -13,28 +13,30 @@ import org.apache.commons.lang3.Validate;
 /*
  *  The AmqpAdapter class impements {@link Adapter} and encapsulates logic of interaction with RabbitMQ.
  */
+
 public class AmqpAdapter implements Adapter {
     private String topic;
-    private Channel channel;
 
+    private Channel channel;
     private String exchangeName;
     private String consumerTag;
-    private final AmqpBrokerConfig adapterConfig;
+    private MsbConfigurations configuration;
 
     /**
      * The constructor.
      * @param topic - a topic name associated with the adapter
-     * @param adapterConfig
+     * @param msbConfig - MSB configuration object
      */
-    public AmqpAdapter(String topic, AmqpBrokerConfig adapterConfig, AmqpConnectionManager connectionManager) {
+    public AmqpAdapter(String topic, MsbConfigurations msbConfig) {
         Validate.notNull(topic, "the 'topic' must not be null");
-
+        Validate.notNull(msbConfig, "the 'msbConfig' must not be null");
         this.topic = topic;
         this.exchangeName = topic;
-        this.adapterConfig = adapterConfig;
+        this.configuration = msbConfig;
 
+        Connection connection = AmqpConnectionManager.obtainConnection();
         try {
-            channel = connectionManager.obtainConnection().createChannel();
+            channel = connection.createChannel();
             channel.exchangeDeclare(exchangeName, "fanout", false /* durable */, true /* auto-delete */, null);
         } catch (IOException e) {
             throw new RuntimeException("Failed to setup channel from ActiveMQ connection", e);
@@ -58,8 +60,8 @@ public class AmqpAdapter implements Adapter {
      */
     @Override
     public void subscribe(RawMessageHandler msgHandler) {
-        String groupId = adapterConfig.getGroupId();
-        boolean durable = adapterConfig.isDurable();
+        String groupId = configuration.getAmqpBrokerConf().getGroupId();
+        boolean durable = configuration.getAmqpBrokerConf().isDurable();
 
         String queueName = generateQueueName(topic, groupId, durable);
 

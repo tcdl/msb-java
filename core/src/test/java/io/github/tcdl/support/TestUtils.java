@@ -1,6 +1,5 @@
 package io.github.tcdl.support;
 
-import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Acknowledge;
@@ -34,7 +33,7 @@ public class TestUtils {
     }
 
     public static Message createMsbRequestMessageWithPayloadAndTopicTo(String topicTo) {
-        MsbConfigurations msbConf = createMsbConfigurations();
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
 
         Topics topic = new Topics.TopicsBuilder().setTo(topicTo)
                 .setResponse(topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
@@ -46,7 +45,7 @@ public class TestUtils {
     //todo:remove
     public static Message createMsbRequestMessageWithPayload() {
         MsbMessageOptions conf = createSimpleConfig();
-        MsbConfigurations msbConf = createMsbConfigurations();
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
 
         Topics topic = new Topics.TopicsBuilder().setTo(conf.getNamespace())
                 .setResponse(conf.getNamespace() + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
@@ -58,7 +57,7 @@ public class TestUtils {
     //todo:remove
     public static Message createMsbRequestMessageNoPayload() {
         MsbMessageOptions conf = createSimpleConfig();
-        MsbConfigurations msbConf = createMsbConfigurations();
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
 
         Topics topic = new Topics.TopicsBuilder().setTo(conf.getNamespace())
                 .setResponse(conf.getNamespace() + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
@@ -70,7 +69,7 @@ public class TestUtils {
 
     public static Message createMsbResponseMessage() {
         MsbMessageOptions conf = createSimpleConfig();
-        MsbConfigurations msbConf = createMsbConfigurations();
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
 
         Topics topic = new Topics.TopicsBuilder().setResponse(conf.getNamespace())
                 .setTo(conf.getNamespace() + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
@@ -81,17 +80,13 @@ public class TestUtils {
 
     public static Message createMsbAckMessage() {
         MsbMessageOptions conf = createSimpleConfig();
-        MsbConfigurations msbConf = createMsbConfigurations();
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
 
         Topics topic = new Topics.TopicsBuilder().setResponse(conf.getNamespace())
                 .setTo(conf.getNamespace() + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
         MetaMessage meta = createSimpleMeta(msbConf);
         return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMeta(meta)
                 .setAck(new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).build()).build();
-    }
-
-    public static MsbConfigurations createMsbConfigurations() {
-        return new MsbConfigurations(ConfigFactory.load());
     }
 
     public static Payload createSimpleRequestPayload() {

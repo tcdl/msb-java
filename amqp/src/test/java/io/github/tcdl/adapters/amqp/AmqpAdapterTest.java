@@ -4,6 +4,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.Envelope;
+import io.github.tcdl.config.AmqpBrokerConfig;
 import io.github.tcdl.config.MsbConfigurations;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,24 +25,26 @@ import static org.powermock.api.mockito.PowerMockito.*;
 public class AmqpAdapterTest {
 
     private Channel mockChannel;
-    private AmqpBrokerConfig adapterConfig = new AmqpBrokerConfig("127.0.0.1", 10, "blah", true);
-    private AmqpConnectionManager connectionManager = mock(AmqpConnectionManager.class);
+    private MsbConfigurations mockConfiguration;
 
     @Before
     public void setUp() throws IOException {
         // Setup channel mock
+        mockStatic(AmqpConnectionManager.class);
         Connection mockConnection = mock(Connection.class);
         mockChannel = mock(Channel.class);
-
-        when(connectionManager.obtainConnection()).thenReturn(mockConnection);
+        when(AmqpConnectionManager.obtainConnection()).thenReturn(mockConnection);
         when(mockConnection.createChannel()).thenReturn(mockChannel);
+
+        // Setup configuration mock
+        mockConfiguration = mock(MsbConfigurations.class);
     }
 
     @Test
     public void testTopicExchangeCreated() throws IOException {
         String topicName = "myTopic";
 
-        new AmqpAdapter(topicName, adapterConfig, connectionManager);
+        new AmqpAdapter(topicName, mockConfiguration);
 
         verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
     }
@@ -118,6 +121,8 @@ public class AmqpAdapterTest {
 
     private AmqpAdapter createAdapterForSubscribe(String topic, String groupId, boolean durable) {
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("127.0.0.1", 10, groupId, durable);
-        return new AmqpAdapter(topic, nondurableAmqpConfig, connectionManager);
+        when(mockConfiguration.getAmqpBrokerConf()).thenReturn(nondurableAmqpConfig);
+
+        return new AmqpAdapter(topic, mockConfiguration);
     }
 }
