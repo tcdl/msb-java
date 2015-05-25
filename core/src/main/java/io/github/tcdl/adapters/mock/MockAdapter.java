@@ -1,5 +1,6 @@
-package io.github.tcdl.adapters;
+package io.github.tcdl.adapters.mock;
 
+import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.exception.ChannelException;
 import io.github.tcdl.exception.JsonConversionException;

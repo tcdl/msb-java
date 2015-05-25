@@ -7,12 +7,10 @@ import io.github.tcdl.config.MsbConfigurations;
 import java.util.*;
 
 public class CliTool implements CliMessageHandlerSubscriber {
-    private AdapterFactory adapterFactory;
     private MsbConfigurations configuration;
     private final Set<String> registeredTopics = new HashSet<>();
 
-    public CliTool(MsbConfigurations configuration, AdapterFactory adapterFactory, List<String> topics, boolean pretty, List<String> follow) {
-        this.adapterFactory = adapterFactory;
+    public CliTool(MsbConfigurations configuration, List<String> topics, boolean pretty, List<String> follow) {
         this.configuration = configuration;
 
         // Subscribe to the configured topics
@@ -25,7 +23,7 @@ public class CliTool implements CliMessageHandlerSubscriber {
     public void subscribe(String topicName, CliMessageHandler handler) {
         synchronized (registeredTopics) {
             if (!registeredTopics.contains(topicName)) {
-                Adapter adapter = adapterFactory.createAdapter(configuration.getBrokerType(), topicName, configuration);
+                Adapter adapter = getAdapterFactory().createAdapter(configuration.getBrokerType(), topicName, configuration);
                 adapter.subscribe(handler);
                 registeredTopics.add(topicName);
             }
@@ -47,7 +45,7 @@ public class CliTool implements CliMessageHandlerSubscriber {
 
         boolean pretty = getOptionAsBoolean(args, "--pretty", "-p");
 
-        new CliTool(MsbConfigurations.msbConfiguration(), AdapterFactory.getInstance(), topics, pretty, follow);
+        new CliTool(MsbConfigurations.msbConfiguration(), topics, pretty, follow);
     }
 
     private static void printUsage() {
@@ -87,6 +85,10 @@ public class CliTool implements CliMessageHandlerSubscriber {
         }
 
         return null;
+    }
+    
+    private AdapterFactory getAdapterFactory() {
+        return new AdapterFactory();
     }
 
 }

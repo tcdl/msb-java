@@ -1,50 +1,58 @@
 package io.github.tcdl.adapters.amqp;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.Consumer;
-import com.rabbitmq.client.Envelope;
-import io.github.tcdl.config.AmqpBrokerConfig;
-import io.github.tcdl.config.MsbConfigurations;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
+import io.github.tcdl.adapters.Adapter.RawMessageHandler;
+import io.github.tcdl.config.amqp.AmqpBrokerConfig;
+
+import java.io.IOException;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
-
-import static io.github.tcdl.adapters.Adapter.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.Consumer;
+import com.rabbitmq.client.Envelope;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ AmqpConnectionManager.class, MsbConfigurations.class })
+@PrepareForTest({ AmqpConnectionManager.class, AmqpBrokerConfig.class })
 public class AmqpAdapterTest {
 
     private Channel mockChannel;
-    private MsbConfigurations mockConfiguration;
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws Exception {
         // Setup channel mock
-        mockStatic(AmqpConnectionManager.class);
         Connection mockConnection = mock(Connection.class);
         mockChannel = mock(Channel.class);
-        when(AmqpConnectionManager.obtainConnection()).thenReturn(mockConnection);
-        when(mockConnection.createChannel()).thenReturn(mockChannel);
 
-        // Setup configuration mock
-        mockConfiguration = mock(MsbConfigurations.class);
+        AmqpConnectionManager mockAmqpConnectionManager = mock(AmqpConnectionManager.class);
+        
+        PowerMockito.mockStatic(AmqpConnectionManager.class);
+        when(AmqpConnectionManager.getInstance()).thenReturn(mockAmqpConnectionManager);
+        when(mockAmqpConnectionManager.obtainConnection(any(AmqpBrokerConfig.class))).thenReturn(mockConnection);
+
+        when(mockConnection.createChannel()).thenReturn(mockChannel);
     }
 
     @Test
-    public void testTopicExchangeCreated() throws IOException {
+    public void testTopicExchangeCreated() throws Exception {
         String topicName = "myTopic";
+        AmqpAdapter adapter = createAdapterForSubscribe(topicName, "myGroupId", false);
 
-        new AmqpAdapter(topicName, mockConfiguration);
+        adapter.subscribe(jsonMessage -> {
+        });
 
         verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
     }
@@ -52,7 +60,7 @@ public class AmqpAdapterTest {
     @Test
     public void testSubscribeTransientQueueCreated() throws IOException {
         AmqpAdapter adapter = createAdapterForSubscribe("myTopic", "myGroupId", false);
-
+        
         adapter.subscribe(jsonMessage -> {
         });
 
@@ -121,8 +129,6 @@ public class AmqpAdapterTest {
 
     private AmqpAdapter createAdapterForSubscribe(String topic, String groupId, boolean durable) {
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("127.0.0.1", 10, groupId, durable);
-        when(mockConfiguration.getAmqpBrokerConf()).thenReturn(nondurableAmqpConfig);
-
-        return new AmqpAdapter(topic, mockConfiguration);
+        return new AmqpAdapter(topic, nondurableAmqpConfig);
     }
 }
