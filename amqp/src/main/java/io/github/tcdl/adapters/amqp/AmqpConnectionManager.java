@@ -12,9 +12,8 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
 /**
- * AmqpConnectionManager class managed connections to AMQP Broker.
- * Represented as a Singleton.
- *  
+ * AmqpConnectionManager class managed connections to AMQP Broker. Represented as a Singleton.
+ * 
  * @author ysavchuk
  *
  */
@@ -22,8 +21,8 @@ public class AmqpConnectionManager {
     private static Logger log = LoggerFactory.getLogger(AmqpConnectionManager.class);
 
     /**
-     * Usage of "Initialization-on-demand holder" idiom to have thread-safe lazy loading of this singleton.
-     * We cannot fall back to eager initialization because otherwise
+     * Usage of "Initialization-on-demand holder" idiom to have thread-safe lazy loading of this singleton. We cannot fall back to eager initialization because
+     * otherwise
      */
     private static class LazyHolder {
         private static final AmqpConnectionManager INSTANCE = new AmqpConnectionManager();
@@ -36,7 +35,7 @@ public class AmqpConnectionManager {
      * The constructor
      */
     private AmqpConnectionManager() {
-       
+
     }
 
     public static AmqpConnectionManager getInstance() {
@@ -44,8 +43,8 @@ public class AmqpConnectionManager {
     }
 
     /**
-     * Create new Connection to AMQP Broker and put it to Map 
-     * with config as a key.
+     * Create new Connection to AMQP Broker and put it to Map with config as a key.
+     * 
      * @param config - AmqpBrokerConfig
      * @return - Connection
      */
@@ -70,25 +69,26 @@ public class AmqpConnectionManager {
                         String.format("Failed to obtain connection to AMQP broker. host:%s, port:%d", host, port), e);
             }
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    log.info("Closing AMQP connection...");
-                    connection.close();
-                    log.info("AMQP connection closed.");
-                } catch (IOException e) {
-                    log.error("Error while closing AMQP connection", e);
+            final Connection terminatedConnection = connection;
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        log.info("Closing AMQP connection...");
+                        terminatedConnection.close();
+                        log.info("AMQP connection closed.");
+                    } catch (IOException e) {
+                        log.error("Error while closing AMQP connection", e);
+                    }
                 }
-            }
-        });
+            });
         }
         return connection;
     }
-    
+
     private ConnectionFactory getConnectionFactory() {
         return new ConnectionFactory();
 
     }
-    
+
 }
