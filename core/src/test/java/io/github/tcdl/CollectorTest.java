@@ -5,13 +5,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
+import io.github.tcdl.events.GenericEventHandler;
 import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
@@ -108,7 +107,7 @@ public class CollectorTest {
     public void testListenForResponsesFilterNull() throws InterruptedException {
         Collector collector = new Collector(messageOptionsMock);
         collector.listenForResponses(TOPIC, null);
-        CountDownLatch eventsFired = awaitRecievePayloadEvents(collector);
+        CountDownLatch eventsFired = awaitRecievePayloadEvents();
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
         verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
@@ -124,7 +123,7 @@ public class CollectorTest {
         Collector collector = new Collector(messageOptionsMock);
         Predicate<Message> filterMock = mockFilterResult(true);
         collector.listenForResponses(TOPIC, filterMock);
-        CountDownLatch eventsFired = awaitRecievePayloadEvents(collector);
+        CountDownLatch eventsFired = awaitRecievePayloadEvents();
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
         verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
@@ -141,7 +140,7 @@ public class CollectorTest {
         Collector collector = new Collector(messageOptionsMock);
         Predicate<Message> filterMock = mockFilterResult(false);
         collector.listenForResponses(TOPIC, filterMock);
-        CountDownLatch eventsFired = awaitRecievePayloadEvents(collector);
+        CountDownLatch eventsFired = awaitRecievePayloadEvents();
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
         verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
@@ -159,7 +158,7 @@ public class CollectorTest {
         when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
         Collector collector = new Collector(messageOptionsMock);
         collector.listenForResponses(TOPIC, null);
-        CountDownLatch endEventFired = awaitRecieveEndEvent(collector);
+        CountDownLatch endEventFired = awaitRecieveEndEvent();
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
         verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
@@ -176,7 +175,7 @@ public class CollectorTest {
         Collector collector = new Collector(messageOptionsMock);
         Predicate<Message> filterMock = mockFilterResult(true);
         collector.listenForResponses(TOPIC, filterMock);
-        CountDownLatch eventsFired = awaitRecieveAckEvents(collector);
+        CountDownLatch eventsFired = awaitRecieveAckEvents();
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
         verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
@@ -195,7 +194,7 @@ public class CollectorTest {
         when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
         Collector collector = new Collector(messageOptionsMock);
         collector.listenForResponses(TOPIC, null);
-        CountDownLatch endEventFired = awaitRecieveEndEvent(collector);
+        CountDownLatch endEventFired = awaitRecieveEndEvent();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
                 new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setTimeoutMs(timeoutMs).build(), TOPIC);
 
@@ -216,7 +215,7 @@ public class CollectorTest {
         when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
         Collector collector = new Collector(messageOptionsMock);
         collector.listenForResponses(TOPIC, null);
-        CountDownLatch endEventFired = awaitRecieveEndEvent(collector);
+        CountDownLatch endEventFired = awaitRecieveEndEvent();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
                 new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setTimeoutMs(timeoutMs).build(), TOPIC);
 
@@ -237,7 +236,7 @@ public class CollectorTest {
         when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
         Collector collector = new Collector(messageOptionsMock);
         collector.listenForResponses(TOPIC, null);
-        CountDownLatch endEventFired = awaitRecieveEndEvent(collector);
+        CountDownLatch endEventFired = awaitRecieveEndEvent();
         Message messageSetResponsesRemaining = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
                 new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(1).setTimeoutMs(timeoutMs).build(), TOPIC);
 
@@ -250,22 +249,34 @@ public class CollectorTest {
         verify(channelManagerMock).removeConsumer(TOPIC);
     }
 
-    private CountDownLatch awaitRecievePayloadEvents(Collector collector) {
+    private CountDownLatch awaitRecievePayloadEvents() {
         CountDownLatch eventsExpectedOnPayload = new CountDownLatch(2);
-        collector.on(Event.PAYLOAD_EVENT, (Payload p) -> eventsExpectedOnPayload.countDown());
-        collector.on(Event.RESPONSE_EVENT, (Payload p) -> eventsExpectedOnPayload.countDown());
+        when(channelManagerMock.emit(eq(Event.RESPONSE_EVENT), any(Payload.class))).thenAnswer(invocation -> {
+            eventsExpectedOnPayload.countDown();
+            return channelManagerMock;
+        });
+        when(channelManagerMock.emit(eq(Event.PAYLOAD_EVENT), any(Payload.class))).thenAnswer(invocation -> {
+            eventsExpectedOnPayload.countDown();
+            return channelManagerMock;
+        });
         return eventsExpectedOnPayload;
     }
 
-    private CountDownLatch awaitRecieveAckEvents(Collector collector) {
+    private CountDownLatch awaitRecieveAckEvents() {
         CountDownLatch eventExpectedOnAck = new CountDownLatch(1);
-        collector.on(Event.ACKNOWLEDGE_EVENT, (Acknowledge a) -> eventExpectedOnAck.countDown());
+        when(channelManagerMock.emit(eq(Event.ACKNOWLEDGE_EVENT), any(Payload.class))).thenAnswer(invocation -> {
+            eventExpectedOnAck.countDown();
+            return channelManagerMock;
+        });
         return eventExpectedOnAck;
     }
 
-    private CountDownLatch awaitRecieveEndEvent(Collector collector) {
+    private CountDownLatch awaitRecieveEndEvent() {
         CountDownLatch eventEndOnAck = new CountDownLatch(1);
-        collector.on(Event.END_EVENT, (Object[] a) -> eventEndOnAck.countDown());
+        when(channelManagerMock.emit(eq(Event.END_EVENT))).thenAnswer(invocation -> {
+            eventEndOnAck.countDown();
+            return channelManagerMock;
+        });
         return eventEndOnAck;
     }
 

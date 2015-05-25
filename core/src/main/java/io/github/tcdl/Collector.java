@@ -7,7 +7,7 @@ import static io.github.tcdl.events.Event.PAYLOAD_EVENT;
 import static io.github.tcdl.events.Event.RESPONSE_EVENT;
 import static io.github.tcdl.support.Utils.ifNull;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.EventEmitter;
+import io.github.tcdl.events.EventEmitterImpl;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by rdro on 4/23/2015.
  */
-public class Collector extends EventEmitter {
+public class Collector {
 
     public static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
@@ -90,13 +90,13 @@ public class Collector extends EventEmitter {
             if (message.getPayload() != null) {
                 LOG.debug("Received {}", message.getPayload());
                 payloadMessages.add(message);
-                emit(PAYLOAD_EVENT, message.getPayload());
-                emit(RESPONSE_EVENT, message.getPayload());
+                channelManager.emit(PAYLOAD_EVENT, message.getPayload());
+                channelManager.emit(RESPONSE_EVENT, message.getPayload());
                 incResponsesRemaining(-1);
             } else {
                 LOG.debug("Received {}", message.getAck());
                 ackMessages.add(message);
-                emit(ACKNOWLEDGE_EVENT, message.getAck());
+                channelManager.emit(ACKNOWLEDGE_EVENT, message.getAck());
             }
 
             processAck(message.getAck());
@@ -124,7 +124,7 @@ public class Collector extends EventEmitter {
     protected void end() {
         LOG.debug("End");
         cancel();
-        emit(END_EVENT);
+        channelManager.emit(END_EVENT);
     }
 
     protected void enableTimeout() {
