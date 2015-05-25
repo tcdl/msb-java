@@ -72,7 +72,7 @@ public class MockAdapter implements Adapter {
         String jsonMessage = null;
         if (messageMap.get(topic) != null) {
             jsonMessage = messageMap.get(topic).poll();
-            LOG.info("Poling message for topic {}: [{}]", topic, jsonMessage);
+            LOG.info("Polling message for topic {}: [{}]", topic, jsonMessage);
         }
 
         if (jsonMessage == null) {

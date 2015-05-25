@@ -17,11 +17,11 @@ import org.slf4j.LoggerFactory;
 public class Producer {
 
     public static final Logger LOG = LoggerFactory.getLogger(Producer.class);
-  
+
     private final Adapter rawAdapter;
     private final TwoArgsEventHandler<Message, Exception> messageHandler;
 
-    public Producer(Adapter rawAdapter, String topic, TwoArgsEventHandler<Message,Exception> messageHandler) {
+    public Producer(Adapter rawAdapter, String topic, TwoArgsEventHandler<Message, Exception> messageHandler) {
         LOG.debug("Creating producer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
         Validate.notNull(topic, "the 'topic' must not be null");
@@ -40,22 +40,22 @@ public class Producer {
             LOG.error("Exception while message publish to adapter", e);
             error = e;
         }
-        
-        if(error != null) {
-        	if (callback != null){
-        		callback.onEvent(message, error);
-        	}
+
+        if (error != null) {
+            if (callback != null) {
+                callback.onEvent(message, error);
+            }
             return this;
-            
+
         }
 
-        this.messageHandler.onEvent(message, error);       
-        
+        this.messageHandler.onEvent(message, error);
+
         if (callback != null) {
             callback.onEvent(message, error);
         }
 
         return this;
     }
-    
+
 }

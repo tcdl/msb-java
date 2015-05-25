@@ -14,6 +14,7 @@ import java.util.Map;
 public final class Payload {
 
     private Integer statusCode;
+    private String statusMessage;
     private final Map<String, String> headers;
     private final Map<?, ?> query;
     private final Map<?, ?> params;
@@ -23,11 +24,13 @@ public final class Payload {
     @JsonCreator
     private Payload(
             @JsonProperty("statusCode") Integer statusCode,
+            @JsonProperty("statusMessage") String statusMessage,
             @JsonProperty("headers") Map<String, String> headers,
             @JsonProperty("query") Map<?, ?> query,
             @JsonProperty("params") Map<?, ?> params,
             @JsonProperty("body") Map<?, ?> body,
             @JsonProperty("bodyBuffer") Map<?, ?> bodyBuffer) {
+        this.statusMessage = statusMessage;
         this.statusCode = statusCode;
         this.headers = headers;
         this.query = query;
@@ -39,6 +42,7 @@ public final class Payload {
     public static class PayloadBuilder {
 
         private Integer statusCode;
+        private String statusMessage;
         private Map<String, String> headers;
         private Object query;
         private Object params;
@@ -47,6 +51,11 @@ public final class Payload {
 
         public PayloadBuilder setStatusCode(Integer statusCode) {
             this.statusCode = statusCode;
+            return this;
+        }
+
+        public PayloadBuilder setStatusMessage(String statusMessage) {
+            this.statusMessage = statusMessage;
             return this;
         }
 
@@ -81,7 +90,7 @@ public final class Payload {
                 Map paramsMap = Utils.fromJson(Utils.toJson(params), Map.class);
                 Map bodyMap = Utils.fromJson(Utils.toJson(body), Map.class);
                 Map bodyBufferMap = Utils.fromJson(Utils.toJson(bodyBuffer), Map.class);
-                return new Payload(statusCode, headers, queryMap, paramsMap, bodyMap, bodyBufferMap);
+                return new Payload(statusCode, statusMessage, headers, queryMap, paramsMap, bodyMap, bodyBufferMap);
             } catch(JsonConversionException e) {
                 throw new MessageBuilderException(e.getMessage());
             }
@@ -90,6 +99,10 @@ public final class Payload {
 
     public Integer getStatusCode() {
         return statusCode;
+    }
+
+    public String getStatusMessage() {
+        return statusMessage;
     }
 
     public Map<?, ?> getHeaders() {
@@ -146,6 +159,7 @@ public final class Payload {
 
     @Override
     public String toString() {
-        return String.format("Payload [statusCode=%s, headers=%s, query=%s, params=%s, body=%s, bodyBuffer=%s]", statusCode, headers, query, params, body, bodyBuffer);
+        return String.format("Payload [statusCode=%s, statusMessage=%s, headers=%s, query=%s, params=%s, body=%s, bodyBuffer=%s]",
+                statusCode, statusMessage, headers, query, params, body, bodyBuffer);
     }
 }

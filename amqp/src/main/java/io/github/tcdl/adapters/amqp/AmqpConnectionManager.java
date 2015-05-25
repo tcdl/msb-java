@@ -1,6 +1,8 @@
 package io.github.tcdl.adapters.amqp;
 
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -17,6 +19,12 @@ import com.rabbitmq.client.ConnectionFactory;
  *
  */
 public class AmqpConnectionManager {
+    private static Logger log = LoggerFactory.getLogger(AmqpConnectionManager.class);
+
+    /**
+     * Usage of "Initialization-on-demand holder" idiom to have thread-safe lazy loading of this singleton.
+     * We cannot fall back to eager initialization because otherwise
+     */
     private static class LazyHolder {
         private static final AmqpConnectionManager INSTANCE = new AmqpConnectionManager();
     }
@@ -52,13 +60,28 @@ public class AmqpConnectionManager {
             connectionFactory.setPort(port);
 
             try {
+                log.info(String.format("Opening AMQP connection to host = %s, port = %s...", host, port));
                 connection = connectionFactory.newConnection();
                 connections.put(config, connection);
+                log.info("AMQP connection opened.");
 
             } catch (IOException e) {
                 throw new RuntimeException(
                         String.format("Failed to obtain connection to AMQP broker. host:%s, port:%d", host, port), e);
             }
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    log.info("Closing AMQP connection...");
+                    connection.close();
+                    log.info("AMQP connection closed.");
+                } catch (IOException e) {
+                    log.error("Error while closing AMQP connection", e);
+                }
+            }
+        });
         }
         return connection;
     }
