@@ -2,17 +2,16 @@ package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
-import io.github.tcdl.events.EventEmitter;
 import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
-
-import java.util.concurrent.CompletableFuture;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.CompletableFuture;
 
 import static io.github.tcdl.events.Event.RESPONDER_EVENT;
 
@@ -24,15 +23,18 @@ public class ResponderServer {
     public static final Logger LOG = LoggerFactory.getLogger(ResponderServer.class);
 
     private MsbMessageOptions messageOptions;
-    private ChannelManager channelManager;
+    private final ChannelManager channelManager;
+    private final MessageFactory messageFactory;
     private MiddlewareChain middlewareChain = new MiddlewareChain();
 
-    private ResponderServer(MsbMessageOptions messageOptions) {
+    private ResponderServer(MsbMessageOptions messageOptions, ChannelManager channelManager, MessageFactory messageFactory) {
         this.messageOptions = messageOptions;
+        this.channelManager = channelManager;
+        this.messageFactory = messageFactory;
     }
 
-    public static ResponderServer create(MsbMessageOptions msgOptions) {
-        return new ResponderServer(msgOptions);
+    public static ResponderServer create(MsbMessageOptions msgOptions, ChannelManager channelManager, MessageFactory messageFactory) {
+        return new ResponderServer(msgOptions, channelManager, messageFactory);
     }
 
     public ResponderServer use(Middleware... middleware) {
@@ -46,10 +48,9 @@ public class ResponderServer {
         }
 
         String topic = messageOptions.getNamespace();
-        channelManager = ChannelManager.getInstance();
 
         channelManager.on(Event.MESSAGE_EVENT, (Message message) -> {
-            Responder responder = new Responder(messageOptions, message);
+            Responder responder = new Responder(messageOptions, message, channelManager, messageFactory);
             channelManager.emit(RESPONDER_EVENT, responder);
             onResponder.onEvent(responder);
         });
