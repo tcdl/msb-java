@@ -20,18 +20,19 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by rdro on 4/27/2015.
  */
-public class Requester extends Collector implements ExtendedEventEmitter {
+public class Requester implements ExtendedEventEmitter {
 
     public static final Logger LOG = LoggerFactory.getLogger(Requester.class);
 
+    private Collector collector;
     private MessageFactory messageFactory;
     private Message message;
     private MetaMessageBuilder metaBuilder;
     private MessageBuilder messageBuilder;
 
     public Requester(MsbMessageOptions config, Message originalMessage) {
-        super(config);
         Validate.notNull(config, "the 'config' must not be null");
+        this.collector = new Collector(config);
         this.messageFactory = getMessageFactory();
         this.metaBuilder = messageFactory.createMeta(config);
         this.messageBuilder = messageFactory.createRequestMessage(config, originalMessage);
@@ -43,43 +44,43 @@ public class Requester extends Collector implements ExtendedEventEmitter {
         }        
         this.message = messageFactory.completeMeta(messageBuilder, metaBuilder);
 
-        if (isWaitForResponses()) {
-            listenForResponses(message.getTopics().getResponse(), (responseMessage) ->
+        if (collector.isWaitForResponses()) {
+            collector.listenForResponses(message.getTopics().getResponse(), (responseMessage) ->
                             Objects.equals(responseMessage.getCorrelationId(), message.getCorrelationId())
             );
         }
         
         TwoArgsEventHandler<Message, Exception> callback = (message, exception) -> {
             if (exception != null) {
-                channelManager.emit(ERROR_EVENT, exception);
+                collector.getChannelManager().emit(ERROR_EVENT, exception);
                 LOG.debug("Exception was thrown.", exception);
                 return;
             }
 
-            if (!isAwaitingResponses())
-                end();
-            enableTimeout();
+            if (!collector.isAwaitingResponses())
+                collector.end();
+            collector.enableTimeout();
         };
-        
-        channelManager.findOrCreateProducer(this.message.getTopics().getTo())
+
+        collector.getChannelManager().findOrCreateProducer(this.message.getTopics().getTo())
                 .publish(this.message, callback);
     }
 
     @Override
     public <A1> Requester on(Event event, SingleArgEventHandler<A1> eventHandler) {
-        channelManager.emit(event, eventHandler);
+        collector.getChannelManager().emit(event, eventHandler);
         return this;
     }
 
     @Override
     public <A1, A2> Requester on(Event event, TwoArgsEventHandler<A1, A2> eventHandler) {
-        channelManager.emit(event, eventHandler);
+        collector.getChannelManager().emit(event, eventHandler);
         return this;
     }
 
     @Override
     public <A1, A2, A3> Requester on(Event event, ThreeArgsEventHandler<A1, A2, A3> eventHandler) {
-        channelManager.emit(event, eventHandler);
+        collector.getChannelManager().emit(event, eventHandler);
         return this;
     }
 
@@ -89,5 +90,9 @@ public class Requester extends Collector implements ExtendedEventEmitter {
     
     MessageFactory getMessageFactory() {
         return new MessageFactory();
+    }
+
+    boolean isMessageAcknowledged() {
+        return !collector.getAckMessages().isEmpty();
     }
 }
