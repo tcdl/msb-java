@@ -272,6 +272,10 @@ public class Collector {
         return messageConfigs.getWaitForResponses();
     }
 
+    ChannelManager getChannelManager() {
+        return channelManager;
+    }
+
     List<Message> getAckMessages() {
         return ackMessages;
     }
