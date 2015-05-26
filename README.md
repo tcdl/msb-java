@@ -20,3 +20,16 @@ For this you'll need to add a `server` to the `servers` section of your settings
   <password>[YOUR_API_TOKEN]</password>
 </server>
 ```
+
+Bintray / jcenter SNAPSHOT publishing configuration:
+----------------------------------------
+If you're part of the tcdl bintray organization (https://bintray.com/tcdl) and have sufficient rights you can publish snapshots to jfrog / jcenter (http://oss.jfrog.org/artifactory/simple/oss-snapshot-local/io/github/tcdl/).
+
+For this you'll need to add a `server` to the `servers` section of your settings.xml:
+```
+<server>
+  <id>oss-jfrog-msb-java</id>
+  <username>[YOUR_BINTRAY_USERNAME]</username>
+  <password>[YOUR_BINTRAY_API_TOKEN]</password>
+</server>
+```
