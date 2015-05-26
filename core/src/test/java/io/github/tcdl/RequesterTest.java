@@ -24,22 +24,7 @@ public class RequesterTest {
     }
 
     @Test
-    public void testPublishWaitForResponses() throws Exception {
-        config.setWaitForResponses(2);
-             
-        Requester requester = new Requester(config, TestUtils.createMsbRequestMessageNoPayload());
-        requester.publish(TestUtils.createSimpleRequestPayload());
-    }
-
-    @Test
-    public void testPublishNoWaitForResponses() {
-        Requester requester = new Requester(config, TestUtils.createMsbRequestMessageNoPayload());
-        requester.publish(TestUtils.createSimpleRequestPayload());
-    }
-
-    @Test
-    public void testPublishWithoutPayload() {
-        Requester requester = new Requester(config, TestUtils.createMsbRequestMessageNoPayload());
-        requester.publish(null);
+    public void testRequesterNotNullConfigsOk() {
+        new Requester(config, TestUtils.createMsbRequestMessageNoPayload());
     }
 }
