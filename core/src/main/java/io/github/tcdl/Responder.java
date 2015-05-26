@@ -56,7 +56,7 @@ public class Responder {
         this.responseMessage = this.messageFactory.completeMeta(message, metaBuilder);
 
         Producer producer = channelManager.findOrCreateProducer(responseMessage.getTopics().getTo());
-        producer.publish(responseMessage, callback);       
+        producer.publish(responseMessage, callback);
     }
 
     public Message getOriginalMessage() {

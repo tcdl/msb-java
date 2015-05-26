@@ -41,7 +41,7 @@ public class Consumer {
         // merge msgOptions with msbConfig
         // do other stuff
         rawAdapter.subscribe((jsonMessage) -> {
-            LOG.debug("Message received {}", jsonMessage);
+            LOG.debug("Topic [{}] message received [{}]", this.topic, jsonMessage);
             Exception error = null;
             Message message = null;
 

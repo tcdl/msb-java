@@ -25,7 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 /**
  * @author ruk
  * 
- *         Component test for requester message generation validation
+ * Component test for requester message generation validation
  */
 public class RequesterIT {
 

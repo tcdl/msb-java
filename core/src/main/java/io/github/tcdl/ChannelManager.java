@@ -10,7 +10,7 @@ import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.EventEmitter;
+import io.github.tcdl.events.EventEmitterImpl;
 import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.Utils;
@@ -25,7 +25,7 @@ import org.apache.commons.lang3.time.DateUtils;
 /**
  * Created by rdro on 4/23/2015.
  */
-public class ChannelManager extends EventEmitter {
+public class ChannelManager extends EventEmitterImpl {
 
     private static ChannelManager INSTANCE = new ChannelManager();
     private MsbConfigurations msbConfig;

@@ -42,19 +42,21 @@ public class TestUtils {
                 .setPayload(createSimpleRequestPayload()).build();
     }
 
-    //todo:remove
-    public static Message createMsbRequestMessageWithPayload() {
-        MsbMessageOptions conf = createSimpleConfig();
-        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
-
-        Topics topic = new Topics.TopicsBuilder().setTo(conf.getNamespace())
-                .setResponse(conf.getNamespace() + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
-        MetaMessage meta = createSimpleMeta(msbConf);
-        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMeta(meta)
-                .setPayload(createSimpleRequestPayload()).build();
+    public static Message createMsbRequestMessageWithAckNoPayloadAndTopicTo(String topicTo) {
+        Acknowledge simpleAck = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).build();
+        return createMsbRequestMessageWithAckNoPayloadAndTopicTo(simpleAck, topicTo);
     }
 
-    //todo:remove
+    public static Message createMsbRequestMessageWithAckNoPayloadAndTopicTo(Acknowledge ack, String topicTo) {
+        MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();
+
+        Topics topic = new Topics.TopicsBuilder().setTo(topicTo)
+                .setResponse(topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
+        MetaMessage meta = createSimpleMeta(msbConf);
+        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMeta(meta)
+                .setPayload(null).setAck(ack).build();
+    }
+
     public static Message createMsbRequestMessageNoPayload() {
         MsbMessageOptions conf = createSimpleConfig();
         MsbConfigurations msbConf = MsbConfigurations.msbConfiguration();

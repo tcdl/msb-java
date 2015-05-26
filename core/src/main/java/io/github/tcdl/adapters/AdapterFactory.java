@@ -1,6 +1,5 @@
 package io.github.tcdl.adapters;
 
-import io.github.tcdl.adapters.mock.AdapterBuilder;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbConfigurations.BrokerAdapter;
 

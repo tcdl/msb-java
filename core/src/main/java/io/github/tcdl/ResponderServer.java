@@ -2,7 +2,6 @@ package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
-import io.github.tcdl.events.EventEmitter;
 import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;

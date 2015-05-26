@@ -1,219 +1,349 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.support.TestUtils._g;
-import static io.github.tcdl.support.TestUtils._m;
-import static io.github.tcdl.support.TestUtils._s;
-import static io.github.tcdl.support.TestUtils.createSimpleConfig;
-import static org.junit.Assert.assertEquals;
+import static io.github.tcdl.events.Event.MESSAGE_EVENT;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
+import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
+import io.github.tcdl.support.Utils;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-import javax.xml.ws.Holder;
-
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Created by rdro on 4/27/2015.
  */
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ ChannelManager.class })
 public class CollectorTest {
 
-    private MsbMessageOptions config;
+    private static final String TOPIC = "test:collector";
+    private static Message originaMessageWithPayload = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
+    private static Message originaMessageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(TOPIC);
+
+    @Mock
+    private MsbMessageOptions messageOptionsMock;
+
+    @Mock
+    private ChannelManager channelManagerMock;
+
+    @Mock
+    private MsbConfigurations msbConfigurationMock;
 
     @Before
-    public void setUp() {
-        this.config = createSimpleConfig();
+    public void setUp() throws IOException {
+        // Setup channel mock
+        mockStatic(ChannelManager.class);
+
+        PowerMockito.when(ChannelManager.getInstance()).thenReturn(channelManagerMock);
+
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testCreateCollectorNullMsgOptions() {
+        new Collector(null);
     }
 
     @Test
-    public void test_init_without_config() {
-        Collector collector = new Collector(null);
-        Long startedAt = _g(collector, "startedAt");
-
-        assertNotNull(startedAt);
-        assertTrue(System.currentTimeMillis() - startedAt < 10);
-        assertEquals(Integer.valueOf(3000), _g(collector, "timeoutMs"));
+    public void testGetWaitForResponsesConfigsNoWaitForResponsesReturnFalse() {
+        when(messageOptionsMock.getWaitForResponses()).thenReturn(null);
+        Collector collector = new Collector(messageOptionsMock);
+        assertFalse("expect false if MessageOptions.waitForResponses null", collector.isWaitForResponses());
     }
 
     @Test
-    public void test_init_with_config() {
-        config.setResponseTimeout(555);
-        config.setAckTimeout(50);
-        config.setWaitForResponses(1);
-        Collector collector = new Collector(config);
-
-        Long startedAt = _g(collector, "startedAt");
-
-        assertNotNull(startedAt);
-        assertTrue(System.currentTimeMillis() - startedAt < 20);
-        assertTrue((Long) _g(collector, "waitForAcksUntil") - config.getAckTimeout() - System.currentTimeMillis() < 10);
-        assertEquals(Integer.valueOf(555), _g(collector, "timeoutMs"));
+    public void testGetWaitForResponsesConfigsReturnFalse() {
+        when(messageOptionsMock.getWaitForResponses()).thenReturn(-1);
+        Collector collector = new Collector(messageOptionsMock);
+        assertFalse("expect false if MessageOptions.waitForResponses equals -1", collector.isWaitForResponses());
     }
 
     @Test
-    public void test_isAwaitingAcks() {
-        Collector collector = new Collector(config);
-        assertFalse(collector.isAwaitingAcks());
-
-        _s(collector, "waitForAcksUntil", System.currentTimeMillis());
-        assertFalse(collector.isAwaitingAcks());
-
-        _s(collector, "waitForAcksUntil", System.currentTimeMillis() + 1000);
-        assertTrue(collector.isAwaitingAcks());
+    public void testGetWaitForResponsesConfigsReturnTrue() {
+        when(messageOptionsMock.getWaitForResponses()).thenReturn(100);
+        Collector collector = new Collector(messageOptionsMock);
+        assertTrue("expect true if MessageOptions.waitForResponses equals 100", collector.isWaitForResponses());
     }
 
     @Test
-    public void test_getMaxTimeoutMs() {
-        Collector collector = new Collector(config);
-        // should return base timeout
-        // assertEquals(_g(collector, "timeoutMs"), _m(collector,
-        // "getMaxTimeoutMs"));
-
-        // should return max timeout
-        _s(collector, "timeoutMs", 0);
-        Map<String, Integer> timeoutMsById = new HashMap<String, Integer>();
-        timeoutMsById.put("a", 100);
-        timeoutMsById.put("b", 500);
-        timeoutMsById.put("c", 1000);
-        _s(collector, "timeoutMsById", timeoutMsById);
-
-        // should return max with remaining > 0
-        Map<String, Integer> responsesRemainingById = new HashMap<String, Integer>();
-        responsesRemainingById.put("a", 0);
-        responsesRemainingById.put("b", 1);
-        responsesRemainingById.put("c", 0);
-        _s(collector, "responsesRemainingById", responsesRemainingById);
-
-        assertEquals(Integer.valueOf(500), _m(collector, "getMaxTimeoutMs"));
+    public void testIsAwaitingAcksConfigsNotSetAckTimeoutReturnFalse() {
+        when(messageOptionsMock.getAckTimeout()).thenReturn(null);
+        Collector collector = new Collector(messageOptionsMock);
+        assertFalse("expect false if MessageOptions.ackTimeout null", collector.isAwaitingAcks());
     }
 
     @Test
-    public void test_getResponsesRemaining() {
-
-        Collector collector = new Collector(config);
-        assertEquals(Integer.valueOf(0), _m(collector, "getResponsesRemaining"));
-
-        // should return sum of all responses remaining
-        _s(collector, "responsesRemaining", 0);
-        Map<String, Integer> responsesRemainingById = new HashMap<String, Integer>();
-        responsesRemainingById.put("a", 1);
-        responsesRemainingById.put("b", 2);
-        responsesRemainingById.put("c", 3);
-        _s(collector, "responsesRemainingById", responsesRemainingById);
-        assertEquals(Integer.valueOf(6), _m(collector, "getResponsesRemaining"));
+    public void testIsAwaitingAcksReturnTrue() {
+        when(messageOptionsMock.getAckTimeout()).thenReturn(200);
+        Collector collector = new Collector(messageOptionsMock);
+        assertTrue("expect true if MessageOptions.ackTimeout equals 200", collector.isAwaitingAcks());
     }
 
     @Test
-    public void test_setTimeoutMsForResponderId() {
-        Collector collector = new Collector(config);
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesFilterNull() throws InterruptedException {
+        Collector collector = new Collector(messageOptionsMock);
+        collector.listenForResponses(TOPIC, null);
+        CountDownLatch eventsFired = awaitRecievePayloadEvents();
 
-        Map<String, Integer> responsesRemainingById = new HashMap<String, Integer>();
-        responsesRemainingById.put("a", 1);
-        _s(collector, "responsesRemainingById", responsesRemainingById);
-        _m(collector, "setTimeoutMsForResponderId", new Object[] { "a", 10000 }, String.class, Integer.class);
+        ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
+        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        onMessageCaptur.getValue().onEvent(originaMessageWithPayload);
 
-        assertEquals(Integer.valueOf(10000), _m(collector, "getMaxTimeoutMs"));
+        assertTrue(collector.getPayloadMessages().contains(originaMessageWithPayload));
+        assertTrue(eventsFired.await(100, TimeUnit.MILLISECONDS));
     }
 
     @Test
-    public void test_setResponsesRemainingForResponderId() {
-        Collector collector = new Collector(config);
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesFilterReturnTrue() throws InterruptedException {
+        Collector collector = new Collector(messageOptionsMock);
+        Predicate<Message> filterMock = mockFilterResult(true);
+        collector.listenForResponses(TOPIC, filterMock);
+        CountDownLatch eventsFired = awaitRecievePayloadEvents();
 
-        _s(collector, "responsesRemaining", 0);
-        _m(collector, "setResponsesRemainingForResponderId", new Object[] { "a", 1 }, String.class, Integer.class);
+        ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
+        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        onMessageCaptur.getValue().onEvent(originaMessageWithPayload);
 
-        assertEquals(Integer.valueOf(1), _m(collector, "getResponsesRemaining"));
-
-        // should return sum of all remaining responses
-        _m(collector, "setResponsesRemainingForResponderId", new Object[] { "a", 2 }, String.class, Integer.class);
-        assertEquals(Integer.valueOf(3), _m(collector, "getResponsesRemaining"));
+        verify(filterMock).test(eq(originaMessageWithPayload));
+        assertTrue(collector.getPayloadMessages().contains(originaMessageWithPayload));
+        assertTrue(eventsFired.await(100, TimeUnit.MILLISECONDS));
     }
 
     @Test
-    public void test_incResponsesRemaining() {
-        Collector collector = new Collector(config);
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesFilterReturnFalse() throws InterruptedException {
+        Collector collector = new Collector(messageOptionsMock);
+        Predicate<Message> filterMock = mockFilterResult(false);
+        collector.listenForResponses(TOPIC, filterMock);
+        CountDownLatch eventsFired = awaitRecievePayloadEvents();
 
-        // should add to responses remaining
-        _s(collector, "responsesRemaining", 0);
-        assertEquals(Integer.valueOf(1), _m(collector, "incResponsesRemaining", new Object[] { 1 }, Integer.class));
-        assertEquals(Integer.valueOf(3), _m(collector, "incResponsesRemaining", new Object[] { 2 }, Integer.class));
+        ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
+        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        onMessageCaptur.getValue().onEvent(originaMessageWithPayload);
+
+        verify(filterMock).test(eq(originaMessageWithPayload));
+        assertFalse(collector.getPayloadMessages().contains(originaMessageWithPayload));
+        assertFalse(eventsFired.await(100, TimeUnit.MILLISECONDS));
     }
 
     @Test
-    public void test_processAck() {
-        Collector collector = new Collector(config);
-        _s(collector, "responsesRemaining", 0);
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesWaitForOneMoreResponseNoTimeout() throws InterruptedException {
+        /*ackTimeout = 200, responseTimeout=200; waitForResponses = 2
+        */
+        int ackAndTimeoutMs = 200;
+        when(messageOptionsMock.getAckTimeout()).thenReturn(ackAndTimeoutMs);
+        when(messageOptionsMock.getResponseTimeout()).thenReturn(ackAndTimeoutMs);
+        when(messageOptionsMock.getWaitForResponses()).thenReturn(2);        
+      
+        Collector collector = new Collector(messageOptionsMock);
+        collector.listenForResponses(TOPIC, null);
+        CountDownLatch endEventFired = awaitRecieveEndEvent();
 
-        // for null do nothing
-        _m(collector, "processAck", new Object[] { null }, Acknowledge.class);
+        ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
+        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        onMessageCaptur.getValue().onEvent(originaMessageWithPayload);
 
-        // take max timeout if there no responses by id
-        Acknowledge acknowledge = new Acknowledge.AcknowledgeBuilder().setResponderId("a").setTimeoutMs(1500).build();
-
-        _m(collector, "processAck", new Object[] { acknowledge }, Acknowledge.class);
-        assertEquals(Integer.valueOf(3000), _g(collector, "currentTimeoutMs"));
-
-        // take timeout by responder id
-        acknowledge = new Acknowledge.AcknowledgeBuilder().setResponderId("a").setTimeoutMs(5000).build();
-
-        _m(collector, "setResponsesRemainingForResponderId", new Object[] { "a", 1 }, String.class, Integer.class);
-        _m(collector, "processAck", new Object[] { acknowledge }, Acknowledge.class);
-        assertEquals(Integer.valueOf(5000), _g(collector, "currentTimeoutMs"));
-    }
-
-    @Test @Ignore("to be replaced with integration test")
-    public void test_listenForResponses() {
-        String topic = config.getNamespace();
-        Predicate<Message> shouldAcceptMessage = new Predicate<Message>() {
-            public boolean test(Message message) {
-                return true;
-            }
-        };
-
-        // should collect payload message
-        Collector collector = new Collector(config);
-        collector.listenForResponses(topic, shouldAcceptMessage);
-        ChannelManager channelManager = _g(collector, "channelManager");
-
-        Message message = TestUtils.createMsbResponseMessage();
-
-        channelManager.emit(Event.MESSAGE_EVENT, message);
-        Collection<?> payloadMessages = _g(collector, "payloadMessages");
-        assertTrue(payloadMessages.contains(message));
-
-        // should collect acknowledge message and enable acknowledge timeout
-        final Holder<Boolean> ackTimeoutCalled = new Holder<Boolean>();
-        ackTimeoutCalled.value = false;
-
-        config.setWaitForResponses(0);
-        config.setAckTimeout(10000);
-        collector = new Collector(config) {
-            @Override
-            protected void enableAckTimeout() {
-                ackTimeoutCalled.value = true;
-            }
-        };
-        collector.listenForResponses(topic, shouldAcceptMessage);
-        channelManager = _g(collector, "channelManager");
-
-        message = TestUtils.createMsbAckMessage();
-
-        channelManager.emit(Event.MESSAGE_EVENT, message);
-        Collection<?> acknowledgeMessages = _g(collector, "ackMessages");
-        assertTrue(acknowledgeMessages.contains(message));
-        assertTrue(ackTimeoutCalled.value);
+        //give extra time for processing scheduled end() task after ack timeout
+        assertFalse(endEventFired.await(ackAndTimeoutMs + 100, TimeUnit.MILLISECONDS));        
     }
     
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesRecievePayloadAwaitAck() throws InterruptedException {
+        /*ackTimeout = 200, responseTimeout=200; waitForResponses = 1
+        */
+        int ackimeoutMs = 200;
+        when(messageOptionsMock.getAckTimeout()).thenReturn(ackimeoutMs);       
+        when(messageOptionsMock.getWaitForResponses()).thenReturn(1);        
+      
+        Collector collector = new Collector(messageOptionsMock);
+        collector.listenForResponses(TOPIC, null);
+        CountDownLatch endEventFired = awaitRecieveEndEvent();
+
+        ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
+        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        onMessageCaptur.getValue().onEvent(originaMessageWithPayload);
+
+        //give extra time for processing scheduled end() task after ack timeout
+        assertTrue(endEventFired.await(ackimeoutMs + 100, TimeUnit.MILLISECONDS));        
+    }
+    
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponseTimeoutAckTaskMoreReponsesNoTimeout() throws InterruptedException {
+        /*ackTimeout = 200, responseTimeout=200; waitForResponses = 1
+        */
+        int ackimeoutMs = 200;      
+        when(messageOptionsMock.getAckTimeout()).thenReturn(ackimeoutMs);       
+        when(messageOptionsMock.getWaitForResponses()).thenReturn(1);     
+        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(1).build();
+        Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
+                ack, TOPIC);
+      
+        Collector collector = new Collector(messageOptionsMock);
+        collector.listenForResponses(TOPIC, null);
+        CountDownLatch endEventFired = awaitRecieveEndEvent();
+
+        ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
+        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        onMessageCaptur.getValue().onEvent(originaMessageWithPayload);
+        
+        //send ack message with responsesRemaining between ackTimeout task scheduled and run 
+        onMessageCaptur.getValue().onEvent(messageWithAck);
+       
+        //give extra time for processing scheduled end() task after ack timeout
+        assertFalse(endEventFired.await(ackimeoutMs + 100, TimeUnit.MILLISECONDS));        
+    }
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesRecievedAck() throws InterruptedException {
+        Collector collector = new Collector(messageOptionsMock);
+        Predicate<Message> filterMock = mockFilterResult(true);
+        collector.listenForResponses(TOPIC, filterMock);
+        CountDownLatch eventsFired = awaitRecieveAckEvents();
+
+        ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
+        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        onMessageCaptur.getValue().onEvent(originaMessageWithAck);
+
+        verify(filterMock).test(eq(originaMessageWithAck));
+        assertTrue(collector.getAckMessages().contains(originaMessageWithAck));
+        assertTrue(eventsFired.await(100, TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesRecievedAckWithTimeoutRunAckTimeoutTask() throws InterruptedException {
+        //verify that ackTimeout will fire END event if no more responses remaining 
+        int timeoutMs = 3000;
+        int ackTimeoutMs = 250;
+        when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
+        when(messageOptionsMock.getResponseTimeout()).thenReturn(3000);
+        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(0).setTimeoutMs(timeoutMs).build();
+        Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
+                ack, TOPIC);
+        Collector collector = new Collector(messageOptionsMock);
+        collector.listenForResponses(TOPIC, null);
+        CountDownLatch endEventFired = awaitRecieveEndEvent();
+      
+
+        ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
+        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        onMessageCaptur.getValue().onEvent(messageWithAck);      
+
+        //give extra time for processing scheduled end() task
+        assertTrue(endEventFired.await(ackTimeoutMs + 100, TimeUnit.MILLISECONDS));
+        verify(channelManagerMock).removeConsumer(TOPIC);
+    }
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesRecievedAckWithTimeoutRunTimeoutTask() throws InterruptedException {
+        //verify that timeout will fire END event if  more responses remaining 
+        int timeoutMs = 250;
+        int ackTimeoutMs = 3000;
+        when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
+        when(messageOptionsMock.getResponseTimeout()).thenReturn(0);
+        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(1).setTimeoutMs(timeoutMs).build();
+        Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
+                ack, TOPIC);
+        Collector collector = new Collector(messageOptionsMock);
+        collector.listenForResponses(TOPIC, null);
+        CountDownLatch endEventFired = awaitRecieveEndEvent();
+      
+        ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
+        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        onMessageCaptur.getValue().onEvent(messageWithAck);
+
+        //give extra time for processing scheduled end() task
+        assertTrue(endEventFired.await(timeoutMs + 100, TimeUnit.MILLISECONDS));
+        verify(channelManagerMock).removeConsumer(TOPIC);
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Test
+    public void testListenForResponsesRecievedAckWithTimeoutResponsesRemaining() throws InterruptedException {
+        int timeoutMs = 300;
+        int ackTimeoutMs = 5000;
+        when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
+        Collector collector = new Collector(messageOptionsMock);
+        collector.listenForResponses(TOPIC, null);
+        CountDownLatch endEventFired = awaitRecieveEndEvent();
+        Message messageSetResponsesRemaining = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
+                new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(1).setTimeoutMs(timeoutMs).build(), TOPIC);
+
+        ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
+        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        onMessageCaptur.getValue().onEvent(messageSetResponsesRemaining);
+
+        //give extra time for processing scheduled end() task
+        assertTrue(endEventFired.await(timeoutMs + 100, TimeUnit.MILLISECONDS));
+        verify(channelManagerMock).removeConsumer(TOPIC);
+    }
+
+    private CountDownLatch awaitRecievePayloadEvents() {
+        CountDownLatch eventsExpectedOnPayload = new CountDownLatch(2);
+        when(channelManagerMock.emit(eq(Event.RESPONSE_EVENT), any(Payload.class))).thenAnswer(invocation -> {
+            eventsExpectedOnPayload.countDown();
+            return channelManagerMock;
+        });
+        when(channelManagerMock.emit(eq(Event.PAYLOAD_EVENT), any(Payload.class))).thenAnswer(invocation -> {
+            eventsExpectedOnPayload.countDown();
+            return channelManagerMock;
+        });
+        return eventsExpectedOnPayload;
+    }
+
+    private CountDownLatch awaitRecieveAckEvents() {
+        CountDownLatch eventExpectedOnAck = new CountDownLatch(1);
+        when(channelManagerMock.emit(eq(Event.ACKNOWLEDGE_EVENT), any(Payload.class))).thenAnswer(invocation -> {
+            eventExpectedOnAck.countDown();
+            return channelManagerMock;
+        });
+        return eventExpectedOnAck;
+    }
+
+    private CountDownLatch awaitRecieveEndEvent() {
+        CountDownLatch eventEndOnAck = new CountDownLatch(1);
+        when(channelManagerMock.emit(eq(Event.END_EVENT))).thenAnswer(invocation -> {
+            eventEndOnAck.countDown();
+            return channelManagerMock;
+        });
+        return eventEndOnAck;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Predicate<Message> mockFilterResult(boolean result) {
+        Predicate<Message> filterMock = mock(Predicate.class);
+        when(filterMock.test(any(Message.class))).thenReturn(result);
+        return filterMock;
+    }
 }
