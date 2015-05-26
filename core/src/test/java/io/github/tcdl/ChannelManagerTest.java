@@ -3,6 +3,8 @@ package io.github.tcdl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import io.github.tcdl.adapters.mock.AdapterFactory;
+import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Message;
@@ -12,7 +14,6 @@ import javax.xml.ws.Holder;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -22,11 +23,13 @@ public class ChannelManagerTest {
 
     private MsbMessageOptions config;
     private ChannelManager channelManager;
+    private MsbConfigurations msbConfig;
 
     @Before
     public void setUp() {
         this.config = TestUtils.createSimpleConfig();
-        channelManager = ChannelManager.getInstance();
+        this.msbConfig = TestUtils.createMsbConfigurations();
+        this.channelManager = new ChannelManager(new AdapterFactory(msbConfig));
     }
 
     @After
@@ -65,7 +68,7 @@ public class ChannelManagerTest {
 
         String topic = config.getNamespace();
         channelManager.removeConsumer(topic);
-        Consumer consumer = channelManager.findOrCreateConsumer(topic, config);
+        Consumer consumer = channelManager.findOrCreateConsumer(topic, msbConfig);
 
         assertNotNull(consumer);
         assertTrue(newConsumerTopicFired.value);
@@ -83,7 +86,7 @@ public class ChannelManagerTest {
         });
 
         String topic = config.getNamespace();
-        channelManager.findOrCreateConsumer(topic, config);
+        channelManager.findOrCreateConsumer(topic, msbConfig);
         channelManager.removeConsumer(topic);
 
         assertTrue(consumerRemovedTopicEventFired.value);
@@ -128,7 +131,7 @@ public class ChannelManagerTest {
 
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
         channelManager.findOrCreateProducer(config.getNamespace()).publish(message, null);
-        channelManager.findOrCreateConsumer(topic, config);
+        channelManager.findOrCreateConsumer(topic, msbConfig);
 
         assertTrue(consumerNewMessageEventFired.value);
         assertEquals(topic, topicName.value);

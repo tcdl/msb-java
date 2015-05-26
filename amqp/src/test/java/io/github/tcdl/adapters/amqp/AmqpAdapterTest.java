@@ -30,19 +30,16 @@ import com.rabbitmq.client.Envelope;
 public class AmqpAdapterTest {
 
     private Channel mockChannel;
+    private AmqpConnectionManager mockAmqpConnectionManager;
 
     @Before
     public void setUp() throws Exception {
         // Setup channel mock
         Connection mockConnection = mock(Connection.class);
         mockChannel = mock(Channel.class);
-
-        AmqpConnectionManager mockAmqpConnectionManager = mock(AmqpConnectionManager.class);
+        mockAmqpConnectionManager = mock(AmqpConnectionManager.class);
         
-        PowerMockito.mockStatic(AmqpConnectionManager.class);
-        when(AmqpConnectionManager.getInstance()).thenReturn(mockAmqpConnectionManager);
         when(mockAmqpConnectionManager.obtainConnection()).thenReturn(mockConnection);
-
         when(mockConnection.createChannel()).thenReturn(mockChannel);
     }
 
@@ -129,6 +126,6 @@ public class AmqpAdapterTest {
 
     private AmqpAdapter createAdapterForSubscribe(String topic, String groupId, boolean durable) {
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("127.0.0.1", 10, groupId, durable);
-        return new AmqpAdapter(topic, nondurableAmqpConfig);
+        return new AmqpAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager);
     }
 }

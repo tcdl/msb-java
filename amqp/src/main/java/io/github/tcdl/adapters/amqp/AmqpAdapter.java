@@ -21,41 +21,35 @@ public class AmqpAdapter implements Adapter {
     private Channel channel;
     private String exchangeName;
     private String consumerTag;
-    private AmqpBrokerConfig amqpBrokerConfig;
+    private AmqpBrokerConfig adapterConfig;
 
     /**
      * The constructor.
      * @param topic - a topic name associated with the adapter
-     * @param msbConfig - MSB configuration object
+     * @param adapterConfig
      */
-    public AmqpAdapter(String topic, AmqpBrokerConfig amqpBrokerConfig) {
+    public AmqpAdapter(String topic, AmqpBrokerConfig amqpBrokerConfig, AmqpConnectionManager connectionManager) {
         Validate.notNull(topic, "the 'topic' must not be null");
-        Validate.notNull(amqpBrokerConfig, "the 'amqpBrokerConfig' must not be null");
+
         this.topic = topic;
         this.exchangeName = topic;
-        this.amqpBrokerConfig = amqpBrokerConfig;
+        this.adapterConfig = amqpBrokerConfig;
+
+        try {
+            channel = connectionManager.obtainConnection().createChannel();
+            channel.exchangeDeclare(exchangeName, "fanout", false /* durable */, true /* auto-delete */, null);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to setup channel from ActiveMQ connection", e);
+        }
     }
 
-    private Channel getChannel() {
-        if (channel == null) {
-            try {
-                Connection connection = AmqpConnectionManager.getInstance().obtainConnection();
-                channel = connection.createChannel();
-                channel.exchangeDeclare(exchangeName, "fanout", false /* durable */, true /* auto-delete */, null);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to setup channel from ActiveMQ connection", e);
-            }
-        }
-        return channel;
-    }    
-    
     /**
      * {@inheritDoc}
      */
     @Override
     public void publish(String jsonMessage) throws ChannelException {
         try {
-            getChannel().basicPublish(exchangeName, "" /* routing key */, MessageProperties.PERSISTENT_BASIC, jsonMessage.getBytes());
+            channel.basicPublish(exchangeName, "" /* routing key */, MessageProperties.PERSISTENT_BASIC, jsonMessage.getBytes());
         } catch (IOException e) {
             throw new RuntimeException(String.format("Failed to publish message '%s' into exchange '%s'", jsonMessage, exchangeName), e);
         }
@@ -66,16 +60,16 @@ public class AmqpAdapter implements Adapter {
      */
     @Override
     public void subscribe(RawMessageHandler msgHandler) {
-        String groupId = amqpBrokerConfig.getGroupId();
-        boolean durable = amqpBrokerConfig.isDurable();
+        String groupId = adapterConfig.getGroupId();
+        boolean durable = adapterConfig.isDurable();
 
         String queueName = generateQueueName(topic, groupId, durable);
 
         try {
-            getChannel().queueDeclare(queueName, durable /* durable */, false /* exclusive */, !durable /*auto-delete */, null);
-            getChannel().queueBind(queueName, exchangeName, "");
+            channel.queueDeclare(queueName, durable /* durable */, false /* exclusive */, !durable /*auto-delete */, null);
+            channel.queueBind(queueName, exchangeName, "");
 
-            consumerTag = getChannel().basicConsume(queueName, false /* autoAck */, new DefaultConsumer(getChannel()) {
+            consumerTag = channel.basicConsume(queueName, false /* autoAck */, new DefaultConsumer(channel) {
                 @Override
                 public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                     getChannel().basicAck(envelope.getDeliveryTag(), false);
@@ -95,7 +89,7 @@ public class AmqpAdapter implements Adapter {
     @Override
     public void unsubscribe() {
         try {
-            getChannel().basicCancel(consumerTag);
+            channel.basicCancel(consumerTag);
         } catch (IOException e) {
             throw new RuntimeException(String.format("Failed to unsubscribe from topic %s", topic), e);
         }

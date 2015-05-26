@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 
@@ -22,49 +23,54 @@ import org.slf4j.LoggerFactory;
 public class RequesterResponderIT {
 
     public static final Logger LOG = LoggerFactory.getLogger(RequesterResponderIT.class);
-  
+
     private MsbConfigurations msbConf;
+    private ChannelManager channelManager;
+    private MessageFactory messageFactory;
 
     @Before
-    public void setUp() throws Exception {       
-        this.msbConf = MsbConfigurations.msbConfiguration();
+    public void setUp() throws Exception {
+        this.msbConf = TestUtils.createMsbConfigurations();
+        this.channelManager = new ChannelManager(this.msbConf);
+        this.messageFactory = new MessageFactory(this.msbConf.getServiceDetails());
+
     }
 
     @Test
-    public void testResponderServerRecievedMessage() throws Exception {        
+    public void testResponderServerRecievedMessage() throws Exception {
         MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-testrecieved");
         CountDownLatch requestRecieved = new CountDownLatch(1);
-        
+
         //Create and send request message
-        Requester requester = new Requester(messageOptions, null);
+        Requester requester = new Requester(messageOptions, null, messageFactory, channelManager, msbConf);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
         requester.publish(requestPayload);
-        
-        ResponderServer.create(messageOptions)
-        .use(((request, response) -> {
-            requestRecieved.countDown();
-        }))
-        .listen();
+
+        ResponderServer.create(messageOptions, channelManager, messageFactory, msbConf)
+                .use(((request, response) -> {
+                    requestRecieved.countDown();
+                }))
+                .listen();
 
         assertTrue("Message was not recieved", requestRecieved.await(500, TimeUnit.MILLISECONDS));
     }
-    
+
     @Test
     @Ignore("need fix of the code")
     public void testRequestGetResponseMessage() throws Exception {
         MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-testgetack");
         messageOptions.setAckTimeout(10000);
         messageOptions.setWaitForResponses(1);
-        CountDownLatch ackSend = new CountDownLatch(1);        
-        
+        CountDownLatch ackSend = new CountDownLatch(1);
+
         //Create and send request message, wait for ack       
-        Requester requester = new Requester(messageOptions, null);
+        Requester requester = new Requester(messageOptions, null, messageFactory, channelManager, msbConf);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
         requester.publish(requestPayload);
 
         //listen for message and send response
         List<Message> sendedAcks = new LinkedList<Message>();
-        ResponderServer.create(messageOptions)
+        ResponderServer.create(messageOptions, channelManager, messageFactory, msbConf)
                 .use(((request, response) -> {
                     System.out.println("YES i DOOOO");
                     response.sendAck(100, 2, null);
@@ -72,7 +78,7 @@ public class RequesterResponderIT {
                     ackSend.countDown();
                 }))
                 .listen();
-      
+
         assertTrue("Message was not ack", ackSend.await(1000, TimeUnit.MILLISECONDS));
         Thread.sleep(4000);
         assertFalse(requester.isMessageAcknowledged());

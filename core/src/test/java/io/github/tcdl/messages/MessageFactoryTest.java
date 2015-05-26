@@ -31,9 +31,9 @@ public class MessageFactoryTest {
 
     @Before
     public void setUp() throws Exception {
+        this.msbConf = TestUtils.createMsbConfigurations();
         this.messageOptions = TestUtils.createSimpleConfig();
-        this.msbConf = MsbConfigurations.msbConfiguration();
-        this.messageFactory = new MessageFactory();
+        this.messageFactory = new MessageFactory(msbConf.getServiceDetails());
     }
 
     @Test

@@ -28,8 +28,8 @@ public class MessageFactory {
 
     private ServiceDetails serviceDetails;
 
-    public MessageFactory() {
-        this.serviceDetails = MsbConfigurations.msbConfiguration().getServiceDetails();
+    public MessageFactory(ServiceDetails serviceDetails) {
+        this.serviceDetails = serviceDetails;
     }
 
     public MessageBuilder createRequestMessage(MsbMessageOptions config, Message originalMessage) {

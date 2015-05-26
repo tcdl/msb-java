@@ -15,8 +15,6 @@ public class MsbConfigurations {
 
     public final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static MsbConfigurations INSTANCE = new MsbConfigurations();
-
     //Broker specific configuration
     private Config brokerConfig;
 
@@ -43,12 +41,12 @@ public class MsbConfigurations {
            return name;
         }
     }
-    
 
-    private MsbConfigurations() {
-        Config config = ConfigFactory.load().getConfig("msbConfig");
+    public MsbConfigurations(Config loadedConfig) {
+        Config config = loadedConfig.getConfig("msbConfig");
 
-        this.serviceDetails = new ServiceDetails.ServiceDetailsBuilder(config.getConfig("serviceDetails")).build();
+        Config serviceDetailsConfig = config.hasPath("serviceDetails") ? config.getConfig("serviceDetails") : ConfigFactory.empty();
+        this.serviceDetails = new ServiceDetails.ServiceDetailsBuilder(serviceDetailsConfig).build();
         this.schema = readJsonSchema();
         this.msbBroker = getBrokerType(config);
         this.brokerConfig = getBrokerConfig(config);
@@ -56,10 +54,6 @@ public class MsbConfigurations {
         log.info("MSB configuration {}", this);
     }
 
-    public static MsbConfigurations msbConfiguration() {
-        return INSTANCE;
-    }
-    
     private String readJsonSchema() {
         try {
             return IOUtils.toString(getClass().getResourceAsStream("/schema.js"));

@@ -15,6 +15,7 @@ import io.github.tcdl.events.Event;
 import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
@@ -46,67 +47,66 @@ public class CollectorTest {
     private static Message originaMessageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(TOPIC);
 
     @Mock
+    private MessageFactory messageFactoryMock;
+
+    @Mock
     private MsbMessageOptions messageOptionsMock;
 
     @Mock
     private ChannelManager channelManagerMock;
 
     @Mock
-    private MsbConfigurations msbConfigurationMock;
+    private MsbConfigurations msbConfigurationsMock;
 
     @Before
     public void setUp() throws IOException {
-        // Setup channel mock
-        mockStatic(ChannelManager.class);
-
-        PowerMockito.when(ChannelManager.getInstance()).thenReturn(channelManagerMock);
 
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateCollectorNullMsgOptions() {
-        new Collector(null);
+       new Collector(null, channelManagerMock, msbConfigurationsMock);
     }
 
     @Test
     public void testGetWaitForResponsesConfigsNoWaitForResponsesReturnFalse() {
         when(messageOptionsMock.getWaitForResponses()).thenReturn(null);
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         assertFalse("expect false if MessageOptions.waitForResponses null", collector.isWaitForResponses());
     }
 
     @Test
     public void testGetWaitForResponsesConfigsReturnFalse() {
         when(messageOptionsMock.getWaitForResponses()).thenReturn(-1);
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         assertFalse("expect false if MessageOptions.waitForResponses equals -1", collector.isWaitForResponses());
     }
 
     @Test
     public void testGetWaitForResponsesConfigsReturnTrue() {
         when(messageOptionsMock.getWaitForResponses()).thenReturn(100);
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         assertTrue("expect true if MessageOptions.waitForResponses equals 100", collector.isWaitForResponses());
     }
 
     @Test
     public void testIsAwaitingAcksConfigsNotSetAckTimeoutReturnFalse() {
         when(messageOptionsMock.getAckTimeout()).thenReturn(null);
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         assertFalse("expect false if MessageOptions.ackTimeout null", collector.isAwaitingAcks());
     }
 
     @Test
     public void testIsAwaitingAcksReturnTrue() {
         when(messageOptionsMock.getAckTimeout()).thenReturn(200);
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         assertTrue("expect true if MessageOptions.ackTimeout equals 200", collector.isAwaitingAcks());
     }
 
     @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void testListenForResponsesFilterNull() throws InterruptedException {
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         collector.listenForResponses(TOPIC, null);
         CountDownLatch eventsFired = awaitRecievePayloadEvents();
 
@@ -121,7 +121,7 @@ public class CollectorTest {
     @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void testListenForResponsesFilterReturnTrue() throws InterruptedException {
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         Predicate<Message> filterMock = mockFilterResult(true);
         collector.listenForResponses(TOPIC, filterMock);
         CountDownLatch eventsFired = awaitRecievePayloadEvents();
@@ -138,7 +138,7 @@ public class CollectorTest {
     @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void testListenForResponsesFilterReturnFalse() throws InterruptedException {
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         Predicate<Message> filterMock = mockFilterResult(false);
         collector.listenForResponses(TOPIC, filterMock);
         CountDownLatch eventsFired = awaitRecievePayloadEvents();
@@ -162,7 +162,7 @@ public class CollectorTest {
         when(messageOptionsMock.getResponseTimeout()).thenReturn(ackAndTimeoutMs);
         when(messageOptionsMock.getWaitForResponses()).thenReturn(2);        
       
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         collector.listenForResponses(TOPIC, null);
         CountDownLatch endEventFired = awaitRecieveEndEvent();
 
@@ -183,7 +183,7 @@ public class CollectorTest {
         when(messageOptionsMock.getAckTimeout()).thenReturn(ackimeoutMs);       
         when(messageOptionsMock.getWaitForResponses()).thenReturn(1);        
       
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         collector.listenForResponses(TOPIC, null);
         CountDownLatch endEventFired = awaitRecieveEndEvent();
 
@@ -207,7 +207,7 @@ public class CollectorTest {
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
                 ack, TOPIC);
       
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         collector.listenForResponses(TOPIC, null);
         CountDownLatch endEventFired = awaitRecieveEndEvent();
 
@@ -225,7 +225,7 @@ public class CollectorTest {
     @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void testListenForResponsesRecievedAck() throws InterruptedException {
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         Predicate<Message> filterMock = mockFilterResult(true);
         collector.listenForResponses(TOPIC, filterMock);
         CountDownLatch eventsFired = awaitRecieveAckEvents();
@@ -250,7 +250,7 @@ public class CollectorTest {
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(0).setTimeoutMs(timeoutMs).build();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
                 ack, TOPIC);
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         collector.listenForResponses(TOPIC, null);
         CountDownLatch endEventFired = awaitRecieveEndEvent();
       
@@ -275,7 +275,7 @@ public class CollectorTest {
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(1).setTimeoutMs(timeoutMs).build();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
                 ack, TOPIC);
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         collector.listenForResponses(TOPIC, null);
         CountDownLatch endEventFired = awaitRecieveEndEvent();
       
@@ -294,7 +294,7 @@ public class CollectorTest {
         int timeoutMs = 300;
         int ackTimeoutMs = 5000;
         when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
-        Collector collector = new Collector(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, channelManagerMock, msbConfigurationsMock);
         collector.listenForResponses(TOPIC, null);
         CountDownLatch endEventFired = awaitRecieveEndEvent();
         Message messageSetResponsesRemaining = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(

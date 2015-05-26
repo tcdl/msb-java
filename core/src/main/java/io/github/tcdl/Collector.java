@@ -6,6 +6,7 @@ import static io.github.tcdl.events.Event.MESSAGE_EVENT;
 import static io.github.tcdl.events.Event.PAYLOAD_EVENT;
 import static io.github.tcdl.events.Event.RESPONSE_EVENT;
 import static io.github.tcdl.support.Utils.ifNull;
+import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
@@ -19,7 +20,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Predicate;
 
-import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ public class Collector {
 
     public static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
-    protected ChannelManager channelManager = ChannelManager.getInstance();
+    protected ChannelManager channelManager;
     private List<Message> ackMessages;
     private List<Message> payloadMessages;
 
@@ -48,9 +48,11 @@ public class Collector {
     private TimerTask ackTimeout;
 
     private String topic;
-
-    public Collector(MsbMessageOptions config) {  
-        Validate.notNull(config, "the 'config' must not be null");
+    private MsbConfigurations msbConfigurations;
+    
+    public Collector(MsbMessageOptions config, ChannelManager channelManager, MsbConfigurations msbConfigurations) {  
+        this.channelManager = channelManager;
+        this.msbConfigurations = msbConfigurations;
         this.startedAt = System.currentTimeMillis();
         this.ackMessages = new LinkedList<>();
         this.payloadMessages = new LinkedList<>();
@@ -110,7 +112,7 @@ public class Collector {
             end();
         });
 
-        channelManager.findOrCreateConsumer(topic, null);
+        channelManager.findOrCreateConsumer(topic, msbConfigurations);
         this.topic = topic;
     }
 
