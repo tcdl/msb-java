@@ -1,15 +1,15 @@
 package io.github.tcdl.adapters.mock;
 
 import io.github.tcdl.adapters.Adapter;
-import io.github.tcdl.adapters.AdapterBuilder;
+import io.github.tcdl.adapters.MsbAdapterBuilder;
 import io.github.tcdl.config.MsbConfigurations;
 
 /**
- * Implementation of {@link AdapterBuilder} for MockAdapter
+ * Implementation of {@link MsbAdapterBuilder} for MockAdapter
  * @author ysavchuk
  *
  */
-public class MockAdapterBuilder implements AdapterBuilder {
+public class AdapterBuilder implements MsbAdapterBuilder {
     private String topic; 
     
     @Override

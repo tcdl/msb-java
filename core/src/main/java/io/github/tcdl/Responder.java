@@ -29,7 +29,7 @@ public class Responder {
         Validate.notNull(originalMessage, "the 'originalMessage' must not be null");
 
         this.msgOptions = msgOptions;
-        this.messageFactory = MessageFactory.getInstance();
+        this.messageFactory = getMessageFactory();
         this.metaBuilder = this.messageFactory.createMeta(this.msgOptions);
         this.ackBuilder = this.messageFactory.createAck();
         this.originalMessage = originalMessage;
@@ -66,4 +66,9 @@ public class Responder {
     Message getResponseMessage() {
         return responseMessage;
     }
+    
+    MessageFactory getMessageFactory() {
+        return new MessageFactory();
+    }
+
 }

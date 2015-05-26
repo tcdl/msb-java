@@ -26,10 +26,9 @@ import javax.annotation.Nullable;
  */
 public class MessageFactory {
 
-    private static MessageFactory INSTANCE = new MessageFactory();
     private ServiceDetails serviceDetails;
 
-    private MessageFactory() {
+    public MessageFactory() {
         this.serviceDetails = MsbConfigurations.msbConfiguration().getServiceDetails();
     }
 
@@ -85,7 +84,4 @@ public class MessageFactory {
         return message.setMeta(meta.build()).build();
     }
 
-    public static MessageFactory getInstance() {
-        return INSTANCE;
-    }
 }

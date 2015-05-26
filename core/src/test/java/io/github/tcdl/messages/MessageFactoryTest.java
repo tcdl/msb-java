@@ -33,7 +33,7 @@ public class MessageFactoryTest {
     public void setUp() throws Exception {
         this.messageOptions = TestUtils.createSimpleConfig();
         this.msbConf = MsbConfigurations.msbConfiguration();
-        this.messageFactory = MessageFactory.getInstance();
+        this.messageFactory = new MessageFactory();
     }
 
     @Test

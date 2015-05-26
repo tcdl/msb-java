@@ -34,13 +34,12 @@ public class AmqpAdapter implements Adapter {
         this.topic = topic;
         this.exchangeName = topic;
         this.amqpBrokerConfig = amqpBrokerConfig;
-
     }
 
     private Channel getChannel() {
-        Connection connection = AmqpConnectionManager.getInstance().obtainConnection(amqpBrokerConfig);
         if (channel == null) {
             try {
+                Connection connection = AmqpConnectionManager.getInstance().obtainConnection();
                 channel = connection.createChannel();
                 channel.exchangeDeclare(exchangeName, "fanout", false /* durable */, true /* auto-delete */, null);
             } catch (IOException e) {

@@ -1,6 +1,5 @@
 package io.github.tcdl.adapters;
 
-import io.github.tcdl.adapters.mock.MockAdapterBuilder;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbConfigurations.BrokerAdapter;
 
@@ -18,34 +17,27 @@ public class AdapterFactory {
      * @param brokerAdapterType
      * @return
      */
-    private AdapterBuilder createAdapterBuilder(BrokerAdapter brokerAdapterType) {
+    private MsbAdapterBuilder createAdapterBuilder(BrokerAdapter brokerAdapterType) {
         Object adapterBuilder;
-        switch (brokerAdapterType)
-        {
-            case AMQP:
-                try {
-                    Class<?> clazz = Class.forName("io.github.tcdl.adapters.amqp.AmqpAdapterBuilder");
-                    adapterBuilder = clazz.newInstance();
-                } catch (Exception e) {
-                    throw new RuntimeException("Failed to create AMQP Adapter Builder", e);
-                }
-                break;
-            case LOCAL:
-                adapterBuilder = new MockAdapterBuilder();
-                break;
-            default:
-                throw new RuntimeException("The required MSB Adapter is not supported");
+        String className = "io.github.tcdl.adapters." + brokerAdapterType.toString() + ".AdapterBuilder";
+        try {
+            Class<?> clazz = Class.forName(className);
+            adapterBuilder = clazz.newInstance();
+        } catch(ClassNotFoundException e) {
+            throw new RuntimeException("The required MSB Adapter '" + brokerAdapterType.toString() + "' is not supported.", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create Adapter Builder: " + className, e);
         }
-
-        if (!(adapterBuilder instanceof AdapterBuilder)) {
-            throw new RuntimeException("Inconsistent Adapter Builder class");
+ 
+        if (!(adapterBuilder instanceof MsbAdapterBuilder)) {
+            throw new RuntimeException("Inconsistent Adapter Builder class: "  + className);
         }
-        return (AdapterBuilder) adapterBuilder;
+        return (MsbAdapterBuilder) adapterBuilder;
 
     }
 
     public Adapter createAdapter(BrokerAdapter brokerAdapterType, String topic, MsbConfigurations msbConfig) {
-        AdapterBuilder adapterBuilder = createAdapterBuilder(brokerAdapterType);
+        MsbAdapterBuilder adapterBuilder = createAdapterBuilder(brokerAdapterType);
         adapterBuilder.setTopic(topic);
         adapterBuilder.setMsbConfigurations(msbConfig);
         return adapterBuilder.createAdapter();
