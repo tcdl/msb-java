@@ -20,6 +20,8 @@ import com.rabbitmq.client.ConnectionFactory;
 public class AmqpConnectionManager {
     private static Logger log = LoggerFactory.getLogger(AmqpConnectionManager.class);
 
+    private static AmqpBrokerConfig amqpConfig;
+
     /**
      * Usage of "Initialization-on-demand holder" idiom to have thread-safe lazy loading of this singleton. We cannot fall back to eager initialization because
      * otherwise
@@ -28,18 +30,53 @@ public class AmqpConnectionManager {
         private static final AmqpConnectionManager INSTANCE = new AmqpConnectionManager();
     }
 
-    //Connections Map
-    private Map<AmqpBrokerConfig, Connection> connections = new HashMap<AmqpBrokerConfig, Connection>();
+    private final Connection connection;
 
     /**
      * The constructor
      */
     private AmqpConnectionManager() {
+        String host = amqpConfig.getHost();
+        int port = amqpConfig.getPort();
 
+        ConnectionFactory connectionFactory = getConnectionFactory();
+        connectionFactory.setHost(host);
+        connectionFactory.setPort(port);
+
+        try {
+            log.info(String.format("Opening AMQP connection to host = %s, port = %s...", host, port));
+            connection = connectionFactory.newConnection();
+            log.info("AMQP connection opened.");
+
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    String.format("Failed to obtain connection to AMQP broker. host:%s, port:%d", host, port), e);
+        }
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    log.info("Closing AMQP connection...");
+                    connection.close();
+                    log.info("AMQP connection closed.");
+                } catch (IOException e) {
+                    log.error("Error while closing AMQP connection", e);
+                }
+            }
+        });
     }
 
     public static AmqpConnectionManager getInstance() {
         return LazyHolder.INSTANCE;
+    }
+
+    public static void setAmqpBrokerConfig(AmqpBrokerConfig config) {
+        amqpConfig = config;
+    }
+
+    public static AmqpBrokerConfig getAmqpBrokerConfig() {
+        return amqpConfig;
     }
 
     /**
@@ -48,41 +85,7 @@ public class AmqpConnectionManager {
      * @param config - AmqpBrokerConfig
      * @return - Connection
      */
-    public Connection obtainConnection(AmqpBrokerConfig config) {
-        Connection connection = connections.get(config);
-        if (connection == null) {
-            String host = config.getHost();
-            int port = config.getPort();
-
-            ConnectionFactory connectionFactory = getConnectionFactory();
-            connectionFactory.setHost(host);
-            connectionFactory.setPort(port);
-
-            try {
-                log.info(String.format("Opening AMQP connection to host = %s, port = %s...", host, port));
-                connection = connectionFactory.newConnection();
-                connections.put(config, connection);
-                log.info("AMQP connection opened.");
-
-            } catch (IOException e) {
-                throw new RuntimeException(
-                        String.format("Failed to obtain connection to AMQP broker. host:%s, port:%d", host, port), e);
-            }
-
-            final Connection terminatedConnection = connection;
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        log.info("Closing AMQP connection...");
-                        terminatedConnection.close();
-                        log.info("AMQP connection closed.");
-                    } catch (IOException e) {
-                        log.error("Error while closing AMQP connection", e);
-                    }
-                }
-            });
-        }
+    public Connection obtainConnection() {
         return connection;
     }
 

@@ -32,7 +32,7 @@ public class Requester extends Collector {
     public Requester(MsbMessageOptions config, Message originalMessage) {
         super(config);
         Validate.notNull(config, "the 'config' must not be null");
-        this.messageFactory = MessageFactory.getInstance();
+        this.messageFactory = getMessageFactory();
         this.metaBuilder = messageFactory.createMeta(config);
         this.messageBuilder = messageFactory.createRequestMessage(config, originalMessage);
     }
@@ -67,5 +67,9 @@ public class Requester extends Collector {
 
     Message getMessage() {
         return message;
+    }
+    
+    MessageFactory getMessageFactory() {
+        return new MessageFactory();
     }
 }

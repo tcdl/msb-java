@@ -41,7 +41,7 @@ public class AmqpAdapterTest {
         
         PowerMockito.mockStatic(AmqpConnectionManager.class);
         when(AmqpConnectionManager.getInstance()).thenReturn(mockAmqpConnectionManager);
-        when(mockAmqpConnectionManager.obtainConnection(any(AmqpBrokerConfig.class))).thenReturn(mockConnection);
+        when(mockAmqpConnectionManager.obtainConnection()).thenReturn(mockConnection);
 
         when(mockConnection.createChannel()).thenReturn(mockChannel);
     }

@@ -1,10 +1,6 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.events.Event.RESPONDER_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.Event;
-import io.github.tcdl.events.EventEmitter;
-import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
 import io.github.tcdl.messages.Message;
@@ -33,7 +29,7 @@ public class Responder {
         Validate.notNull(originalMessage, "the 'originalMessage' must not be null");
 
         this.msgOptions = msgOptions;
-        this.messageFactory = MessageFactory.getInstance();
+        this.messageFactory = getMessageFactory();
         this.metaBuilder = this.messageFactory.createMeta(this.msgOptions);
         this.ackBuilder = this.messageFactory.createAck();
         this.originalMessage = originalMessage;
@@ -70,4 +66,9 @@ public class Responder {
     Message getResponseMessage() {
         return responseMessage;
     }
+    
+    MessageFactory getMessageFactory() {
+        return new MessageFactory();
+    }
+
 }

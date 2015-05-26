@@ -12,7 +12,6 @@ import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.support.TestUtils;
 
 import java.util.Collection;
@@ -32,12 +31,10 @@ import org.junit.Test;
 public class CollectorTest {
 
     private MsbMessageOptions config;
-    private MessageFactory messageFactory;
 
     @Before
     public void setUp() {
         this.config = createSimpleConfig();
-        this.messageFactory = MessageFactory.getInstance();
     }
 
     @Test
@@ -218,4 +215,5 @@ public class CollectorTest {
         assertTrue(acknowledgeMessages.contains(message));
         assertTrue(ackTimeoutCalled.value);
     }
+    
 }
