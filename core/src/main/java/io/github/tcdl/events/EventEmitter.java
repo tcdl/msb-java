@@ -5,10 +5,16 @@ package io.github.tcdl.events;
  */
 public interface EventEmitter {
 
-    EventEmitterImpl on(Event event, GenericEventHandler eventHandler);
+    EventEmitter on(Event event, GenericEventHandler eventHandler);
 
-    EventEmitterImpl emit(Event event, Object... args);
+    EventEmitter emit(Event event, Object... args);
 
-    EventEmitterImpl once(Event event, Object... args);
+    EventEmitter once(Event event, Object... args);
+
+    <A1> EventEmitter on(Event event, SingleArgEventHandler<A1> eventHandler);
+
+    <A1, A2> EventEmitter on(Event event, TwoArgsEventHandler<A1, A2> eventHandler);
+
+    <A1, A2, A3> EventEmitter on(Event event, ThreeArgsEventHandler<A1, A2, A3> eventHandler);
 
 }

@@ -3,6 +3,7 @@ package io.github.tcdl;
 import static io.github.tcdl.events.Event.ERROR_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.*;
+import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
@@ -20,7 +21,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by rdro on 4/27/2015.
  */
-public class Requester implements ExtendedEventEmitter {
+public class Requester {
 
     public static final Logger LOG = LoggerFactory.getLogger(Requester.class);
 
@@ -66,21 +67,28 @@ public class Requester implements ExtendedEventEmitter {
                 .publish(this.message, callback);
     }
 
-    @Override
-    public <A1> Requester on(Event event, SingleArgEventHandler<A1> eventHandler) {
-        collector.getChannelManager().emit(event, eventHandler);
+    public Requester onAcknowledge(SingleArgEventHandler<Acknowledge> acknowledgeHandler) {
+        collector.getChannelManager().on(Event.ACKNOWLEDGE_EVENT, acknowledgeHandler);
         return this;
     }
 
-    @Override
-    public <A1, A2> Requester on(Event event, TwoArgsEventHandler<A1, A2> eventHandler) {
-        collector.getChannelManager().emit(event, eventHandler);
+    public Requester onPayload(SingleArgEventHandler<Payload> payloadHandler) {
+        collector.getChannelManager().on(Event.PAYLOAD_EVENT, payloadHandler);
         return this;
     }
 
-    @Override
-    public <A1, A2, A3> Requester on(Event event, ThreeArgsEventHandler<A1, A2, A3> eventHandler) {
-        collector.getChannelManager().emit(event, eventHandler);
+    public Requester onResponse(SingleArgEventHandler<Payload> responseHandler) {
+        collector.getChannelManager().on(Event.RESPONDER_EVENT, responseHandler);
+        return this;
+    }
+
+    public Requester onEnd(GenericEventHandler endHandler) {
+        collector.getChannelManager().on(Event.END_EVENT, endHandler);
+        return this;
+    }
+
+    public Requester onError(SingleArgEventHandler<Exception> errorHandler) {
+        collector.getChannelManager().on(Event.ERROR_EVENT, errorHandler);
         return this;
     }
 

@@ -5,7 +5,7 @@ import java.util.*;
 /**
  * Created by rdro on 4/23/2015.
  */
-public class EventEmitterImpl implements EventEmitter, ExtendedEventEmitter {
+public class EventEmitterImpl implements EventEmitter {
 
     private Map<Event, List<GenericEventHandler>> handlersByEvent =
             Collections.synchronizedMap(new HashMap<>());
