@@ -7,7 +7,7 @@ import io.github.tcdl.config.MsbConfigurations;
  * As usual is implemented in separate jars.  
  *
  */
-public interface AdapterBuilder {
+public interface MsbAdapterBuilder {
     
     void setTopic(String topic);
     

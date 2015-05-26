@@ -27,8 +27,23 @@ public class MsbConfigurations {
     private BrokerAdapter msbBroker;
 
     public enum BrokerAdapter {
-        AMQP, REDIS, KAFKA, LOCAL
+        AMQP("amqp"), REDIS("redis"), KAFKA("kafka"), MOCK("mock");
+
+        private final String name;       
+
+        private BrokerAdapter(String s) {
+            name = s;
+        }
+
+        public boolean equalsName(String otherName){
+            return (otherName == null)? false:name.equals(otherName);
+        }
+
+        public String toString(){
+           return name;
+        }
     }
+    
 
     private MsbConfigurations() {
         Config config = ConfigFactory.load().getConfig("msbConfig");

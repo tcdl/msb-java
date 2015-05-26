@@ -18,6 +18,11 @@
             <id>bintray-msb-java</id>
             <url>https://api.bintray.com/maven/tcdl/releases/msb-java</url>
         </repository>
+        <snapshotRepository>
+            <id>oss-jfrog-msb-java</id>
+            <name>oss-jfrog-artifactory-snapshots</name>
+            <url>http://oss.jfrog.org/artifactory/oss-snapshot-local</url>
+        </snapshotRepository>
     </distributionManagement>
     <organization>
         <name>tcdl</name>
