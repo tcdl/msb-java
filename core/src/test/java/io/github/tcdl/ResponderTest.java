@@ -7,7 +7,6 @@ import io.github.tcdl.support.TestUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.exceptions.verification.TooLittleActualInvocations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -50,7 +49,6 @@ public class ResponderTest {
 
     @Test
     public void testResponderNotNullOk() {
-        String topic = config.getNamespace();
         new Responder(config, message);
     }
 
@@ -70,25 +68,6 @@ public class ResponderTest {
         Payload payload = new Payload.PayloadBuilder().build();
         spy.send(payload, null);
 
-        PowerMockito.verifyPrivate(spy, times(1)).invoke("send", anyObject(), anyObject());
-    }
-
-    @Test(expected = TooLittleActualInvocations.class)
-    public void testResponderSendAckFailNotCorrectNumberOfInvokes() throws Exception {
-        Responder spy = PowerMockito.spy(responder);
-
-        spy.sendAck(200, 2, null);
-
-        PowerMockito.verifyPrivate(spy, times(2)).invoke("sendMessage", anyObject(), anyObject());
-    }
-
-    @Test(expected = TooLittleActualInvocations.class)
-    public void testResponderSendFailFailNotCorrectNumberOfInvokes() throws Exception {
-        Responder spy = PowerMockito.spy(responder);
-
-        Payload payload = new Payload.PayloadBuilder().build();
-        spy.send(payload, null);
-
-        PowerMockito.verifyPrivate(spy, times(2)).invoke("send", anyObject(), anyObject());
+        PowerMockito.verifyPrivate(spy, times(1)).invoke("sendMessage", anyObject(), anyObject());
     }
 }
