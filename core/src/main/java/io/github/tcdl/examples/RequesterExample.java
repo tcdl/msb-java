@@ -29,12 +29,12 @@ public class RequesterExample {
         Requester requester = new Requester(options, null);
 
         requester
-                .on(Event.ACKNOWLEDGE_EVENT, (Acknowledge acknowledge) -> {
-                    System.out.println(">>> ACK timeout: " + acknowledge.getTimeoutMs());
-                })
-                .on(Event.RESPONSE_EVENT, (Payload payload) -> {
-                    System.out.println(">>> RESPONSE body: " + payload.getBody());
-                });
+                .onAcknowledge(acknowledge ->
+                    System.out.println(">>> ACK timeout: " + acknowledge.getTimeoutMs())
+                )
+                .onResponse(payload ->
+                    System.out.println(">>> RESPONSE body: " + payload.getBody())
+                );
 
         requester.publish(requestPayload);
     }
