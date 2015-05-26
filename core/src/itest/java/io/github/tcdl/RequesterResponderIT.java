@@ -1,7 +1,7 @@
 package io.github.tcdl;
 
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Message;
@@ -75,7 +75,7 @@ public class RequesterResponderIT {
       
         assertTrue("Message was not ack", ackSend.await(1000, TimeUnit.MILLISECONDS));
         Thread.sleep(4000);
-        assertEquals(sendedAcks.get(0),requester.getAckMessages().get(0));
+        assertFalse(requester.isMessageAcknowledged());
     }
 
 }
