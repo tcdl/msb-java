@@ -9,8 +9,6 @@ import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
 
-import org.apache.commons.lang3.Validate;
-
 /**
  * Created by rdro on 4/29/2015.
  */
@@ -24,13 +22,13 @@ public class Responder {
     private MessageFactory messageFactory;
     private Message responseMessage;
 
-    public Responder(MsbMessageOptions msgOptions, Message originalMessage, ChannelManager channelManager, MessageFactory messageFactory) {
+    public Responder(MsbMessageOptions msgOptions, Message originalMessage, MsbContext msbContext) {
         this.msgOptions = msgOptions;
-        this.messageFactory = messageFactory;
+        this.messageFactory = msbContext.getMessageFactory();
         this.metaBuilder = this.messageFactory.createMeta(this.msgOptions);
         this.ackBuilder = this.messageFactory.createAck();
         this.originalMessage = originalMessage;
-        this.channelManager = channelManager;
+        this.channelManager = msbContext.getChannelManager();
     }
 
     public void sendAck(Integer timeoutMs, Integer responsesRemaining,

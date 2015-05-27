@@ -24,16 +24,11 @@ public class RequesterResponderIT {
 
     public static final Logger LOG = LoggerFactory.getLogger(RequesterResponderIT.class);
 
-    private MsbConfigurations msbConf;
-    private ChannelManager channelManager;
-    private MessageFactory messageFactory;
+    private MsbContext msbContext;
 
     @Before
     public void setUp() throws Exception {
-        this.msbConf = TestUtils.createMsbConfigurations();
-        this.channelManager = new ChannelManager(this.msbConf);
-        this.messageFactory = new MessageFactory(this.msbConf.getServiceDetails());
-
+        this.msbContext = TestUtils.createSimpleMsbContext();
     }
 
     @Test
@@ -42,11 +37,11 @@ public class RequesterResponderIT {
         CountDownLatch requestRecieved = new CountDownLatch(1);
 
         //Create and send request message
-        Requester requester = new Requester(messageOptions, null, messageFactory, channelManager, msbConf);
+        Requester requester = new Requester(messageOptions, null, msbContext);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
         requester.publish(requestPayload);
 
-        ResponderServer.create(messageOptions, channelManager, messageFactory, msbConf)
+        ResponderServer.create(messageOptions, msbContext)
                 .use(((request, response) -> {
                     requestRecieved.countDown();
                 }))
@@ -64,13 +59,13 @@ public class RequesterResponderIT {
         CountDownLatch ackSend = new CountDownLatch(1);
 
         //Create and send request message, wait for ack       
-        Requester requester = new Requester(messageOptions, null, messageFactory, channelManager, msbConf);
+        Requester requester = new Requester(messageOptions, null, msbContext);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
         requester.publish(requestPayload);
 
         //listen for message and send response
         List<Message> sendedAcks = new LinkedList<Message>();
-        ResponderServer.create(messageOptions, channelManager, messageFactory, msbConf)
+        ResponderServer.create(messageOptions, msbContext)
                 .use(((request, response) -> {
                     System.out.println("YES i DOOOO");
                     response.sendAck(100, 2, null);
@@ -83,5 +78,4 @@ public class RequesterResponderIT {
         Thread.sleep(4000);
         assertFalse(requester.isMessageAcknowledged());
     }
-
 }

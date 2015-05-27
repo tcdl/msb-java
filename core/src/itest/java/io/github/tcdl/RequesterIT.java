@@ -33,24 +33,18 @@ public class RequesterIT {
     public static final Logger LOG = LoggerFactory.getLogger(RequesterIT.class);
 
     private MsbMessageOptions messageOptions;
-    private MsbConfigurations msbConf;
-    private ChannelManager channelManager;
-    private MessageFactory messageFactory;
-
+    private MsbContext msbContext;
 
     @Before
     public void setUp() throws Exception {
         this.messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester");
-        this.msbConf = TestUtils.createMsbConfigurations();
-        this.channelManager = new ChannelManager(this.msbConf);
-        this.messageFactory = new MessageFactory(this.msbConf.getServiceDetails());
-
+        this.msbContext = TestUtils.createSimpleMsbContext();
     }
 
     @Test
     public void testRequestMessage() throws Exception {
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = new Requester(messageOptions, null, messageFactory, channelManager, msbConf);
+        Requester requester = new Requester(messageOptions, null, msbContext);
         requester.publish(requestPayload);
         Message message = requester.getMessage();
 
@@ -63,7 +57,7 @@ public class RequesterIT {
     private void assertRequestMessage(String json, Message message) {
 
         try {
-            Utils.validateJsonWithSchema(json, this.msbConf.getSchema());
+            Utils.validateJsonWithSchema(json, this.msbContext.getMsbConfig().getSchema());
             JSONObject jsonObject = new JSONObject(json);
 
             // payload fields set 
@@ -79,7 +73,7 @@ public class RequesterIT {
             //topics
             assertJsonContains(jsonObject.getJSONObject("topics"), "to", messageOptions.getNamespace());
             assertJsonContains(jsonObject.getJSONObject("topics"), "response", messageOptions.getNamespace() + ":response:"
-                    + msbConf.getServiceDetails().getInstanceId());
+                    + this.msbContext.getMsbConfig().getServiceDetails().getInstanceId());
 
         } catch (JsonSchemaValidationException | JsonProcessingException | JSONException e) {
             LOG.error("Exception while parse message payload", e);

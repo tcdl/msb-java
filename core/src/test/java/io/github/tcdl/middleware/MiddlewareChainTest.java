@@ -1,12 +1,10 @@
 package io.github.tcdl.middleware;
 
-import io.github.tcdl.ChannelManager;
+import io.github.tcdl.MsbContext;
 import io.github.tcdl.Responder;
-import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.ThreeArgsEventHandler;
 import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
@@ -28,18 +26,14 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class MiddlewareChainTest {
 
-    private MessageFactory messageFactory;
-    private MsbConfigurations msbConfig;
-    ChannelManager channelManager;
+    private MsbContext msbContext;
     
     @Mock
     private Middleware middlewareMock;
     
     @Before
     public void setUp() {
-        this.msbConfig = TestUtils.createMsbConfigurations();
-        this.channelManager = new ChannelManager(this.msbConfig);
-        this.messageFactory = new MessageFactory(msbConfig.getServiceDetails());
+        this.msbContext = TestUtils.createSimpleMsbContext();
     }
 
     @Test
@@ -51,7 +45,7 @@ public class MiddlewareChainTest {
         MsbMessageOptions msgOptions = TestUtils.createSimpleConfig();
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo("middleware:testexecute-sucess");
         Payload request = message.getPayload();
-        Responder responder = new Responder(msgOptions, message, channelManager, messageFactory);
+        Responder responder = new Responder(msgOptions, message, msbContext);
 
         middlewareChain.invoke(request, responder);
 
@@ -70,7 +64,7 @@ public class MiddlewareChainTest {
         MsbMessageOptions msgOptions = TestUtils.createSimpleConfig();
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo("middleware:testexecute-witherror");
         Payload request = message.getPayload();
-        Responder responder = new Responder(msgOptions, message, channelManager, messageFactory);
+        Responder responder = new Responder(msgOptions, message, msbContext);
 
         doThrow(Exception.class).when(middlewareMock)
                 .execute(any(), any(), any());
