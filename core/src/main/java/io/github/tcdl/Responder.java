@@ -9,10 +9,15 @@ import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Created by rdro on 4/29/2015.
  */
 public class Responder {
+    
+    public static final Logger LOG = LoggerFactory.getLogger(Responder.class);
 
     private MsbMessageOptions msgOptions;
     private MetaMessageBuilder metaBuilder;
@@ -50,6 +55,7 @@ public class Responder {
         this.responseMessage = this.messageFactory.completeMeta(message, metaBuilder);
 
         Producer producer = channelManager.findOrCreateProducer(responseMessage.getTopics().getTo());
+        LOG.debug("Publishing message to topic : {}", responseMessage.getTopics().getTo());
         producer.publish(responseMessage, callback);
     }
 

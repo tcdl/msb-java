@@ -55,14 +55,26 @@ public class MockAdapter implements Adapter {
 
     @Override
     public void subscribe(RawMessageHandler messageHandler) {
-
-        LOG.info("Queue for topic {} contains messages: {}", topic, messageMap.get(topic));
-        if (messageMap.get(topic) != null) {
-            String jsonMessage = messageMap.get(topic).poll();
-            if (messageHandler != null && jsonMessage != null) {
-                messageHandler.onMessage(jsonMessage);
+        Thread subscriberThread = new Thread(() -> {
+            while (true) {
+                if (messageMap.get(topic) != null) {
+                    String jsonMessage = messageMap.get(topic).poll();
+                    if (messageHandler != null && jsonMessage != null) {
+                        LOG.debug("Process message for topic {} [{}]", topic, jsonMessage);
+                        messageHandler.onMessage(jsonMessage);
+                    }
+                } else {
+                    try {
+                        Thread.sleep(20);
+                    } catch (Exception e) {
+                        LOG.debug("Finish listen for subscribed topic");
+                    }
+                }
             }
-        }
+        });
+
+        subscriberThread.setDaemon(true);
+        subscriberThread.start();
     }
 
     @Override
@@ -81,6 +93,25 @@ public class MockAdapter implements Adapter {
             LOG.warn("No message found for topic {}", topic);
         }
         return jsonMessage;
+    }
+
+    public static void pushRequestMessage(Message message) {
+        String topicTo = message.getTopics().getTo();
+        Queue<String> messagesQueue = messageMap.get(topicTo);
+        if (messagesQueue == null) {
+            messagesQueue = new ConcurrentLinkedQueue<String>();
+            Queue<String> curQ = messageMap.putIfAbsent(topicTo, messagesQueue);
+            if (curQ != null) {
+                messagesQueue = curQ;
+            }
+        }
+        try {
+            String jsonMessage = Utils.toJson(message);
+            messagesQueue.add(jsonMessage);
+            LOG.info("Message for topic {} published: [{}]", topicTo, jsonMessage);
+        } catch (JsonConversionException e) {
+            LOG.error("Pushed message can not be parsed");
+        }
     }
 
 }
