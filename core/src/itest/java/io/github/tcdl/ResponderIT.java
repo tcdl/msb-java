@@ -5,11 +5,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import io.github.tcdl.ChannelManager;
+import io.github.tcdl.Responder;
 import io.github.tcdl.adapters.mock.MockAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
@@ -22,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 
 public class ResponderIT {
@@ -29,10 +34,15 @@ public class ResponderIT {
     public static final Logger LOG = LoggerFactory.getLogger(ResponderIT.class);
 
     private MsbConfigurations msbConf;
+    private ChannelManager channelManager;
+    private MessageFactory messageFactory;
 
     @Before
     public void setUp() throws Exception {
-        this.msbConf = MsbConfigurations.msbConfiguration();
+        Config config = ConfigFactory.load();
+        msbConf = new MsbConfigurations(config);
+        this.channelManager = new ChannelManager(this.msbConf);
+        this.messageFactory = new MessageFactory(this.msbConf.getServiceDetails());
     }
 
     @Test
@@ -40,7 +50,8 @@ public class ResponderIT {
         MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:responder-ack");
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(messageOptions.getNamespace());
 
-        Responder responder = new Responder(messageOptions, originalMessage);
+        Responder responder = new Responder(messageOptions, originalMessage, channelManager, messageFactory);
+
         responder.sendAck(1000, 2, null);
         Message ackMessage = responder.getResponseMessage();
 
@@ -84,7 +95,7 @@ public class ResponderIT {
         MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:responder-response");
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(messageOptions.getNamespace());
 
-        Responder responder = new Responder(messageOptions, originalMessage);
+        Responder responder = new Responder(messageOptions, originalMessage, channelManager, messageFactory);
         Payload responsePayload = TestUtils.createSimpleResponsePayload();
         responder.send(responsePayload, null);
         Message responseMessage = responder.getResponseMessage();

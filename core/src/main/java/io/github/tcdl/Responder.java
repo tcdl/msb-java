@@ -24,17 +24,13 @@ public class Responder {
     private MessageFactory messageFactory;
     private Message responseMessage;
 
-    public Responder(MsbMessageOptions msgOptions, Message originalMessage) {
-        Validate.notNull(msgOptions, "the 'msgOptions' must not be null");
-        Validate.notNull(originalMessage, "the 'originalMessage' must not be null");
-
+    public Responder(MsbMessageOptions msgOptions, Message originalMessage, ChannelManager channelManager, MessageFactory messageFactory) {
         this.msgOptions = msgOptions;
-        this.messageFactory = getMessageFactory();
+        this.messageFactory = messageFactory;
         this.metaBuilder = this.messageFactory.createMeta(this.msgOptions);
         this.ackBuilder = this.messageFactory.createAck();
         this.originalMessage = originalMessage;
-
-        channelManager = ChannelManager.getInstance();
+        this.channelManager = channelManager;
     }
 
     public void sendAck(Integer timeoutMs, Integer responsesRemaining,
@@ -67,8 +63,4 @@ public class Responder {
         return responseMessage;
     }
     
-    MessageFactory getMessageFactory() {
-        return new MessageFactory();
-    }
-
 }

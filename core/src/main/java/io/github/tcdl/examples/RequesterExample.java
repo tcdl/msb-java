@@ -1,13 +1,19 @@
 package io.github.tcdl.examples;
 
+import io.github.tcdl.ChannelManager;
 import io.github.tcdl.Requester;
+import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 /**
  * Created by rdro on 5/18/2015.
@@ -15,6 +21,11 @@ import java.util.Map;
 public class RequesterExample {
 
     public static void main(String... args) {
+
+        Config config = ConfigFactory.load();
+        MsbConfigurations msbConfig = new MsbConfigurations(config);
+        ChannelManager channelManager = new ChannelManager(msbConfig);
+        MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails());
 
         MsbMessageOptions options = new MsbMessageOptions();
         options.setNamespace("test:simple-requester");
@@ -26,7 +37,7 @@ public class RequesterExample {
         headers.put("From", "user@example.com");
         Payload requestPayload = new Payload.PayloadBuilder().setHeaders(headers).build();
 
-        Requester requester = new Requester(options, null);
+        Requester requester = new Requester(options, null, messageFactory, channelManager, msbConfig);
 
         requester
                 .onAcknowledge(acknowledge ->

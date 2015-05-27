@@ -1,17 +1,20 @@
 package io.github.tcdl.cli;
 
 import io.github.tcdl.adapters.Adapter;
-import io.github.tcdl.adapters.AdapterFactory;
+import io.github.tcdl.adapters.AdapterFactoryLoader;
+import io.github.tcdl.adapters.MsbAdapterFactory;
 import io.github.tcdl.config.MsbConfigurations;
 
 import java.util.*;
 
+import com.typesafe.config.ConfigFactory;
+
 public class CliTool implements CliMessageHandlerSubscriber {
-    private MsbConfigurations configuration;
+    private MsbAdapterFactory adapterFactory;
     private final Set<String> registeredTopics = new HashSet<>();
 
-    public CliTool(MsbConfigurations configuration, List<String> topics, boolean pretty, List<String> follow) {
-        this.configuration = configuration;
+    public CliTool(MsbAdapterFactory adapterFactory, List<String> topics, boolean pretty, List<String> follow) {
+        this.adapterFactory = adapterFactory;
 
         // Subscribe to the configured topics
         for (String topicName : topics) {
@@ -23,7 +26,7 @@ public class CliTool implements CliMessageHandlerSubscriber {
     public void subscribe(String topicName, CliMessageHandler handler) {
         synchronized (registeredTopics) {
             if (!registeredTopics.contains(topicName)) {
-                Adapter adapter = getAdapterFactory().createAdapter(configuration.getBrokerType(), topicName, configuration);
+                Adapter adapter = adapterFactory.createAdapter(topicName);
                 adapter.subscribe(handler);
                 registeredTopics.add(topicName);
             }
@@ -44,8 +47,8 @@ public class CliTool implements CliMessageHandlerSubscriber {
         }
 
         boolean pretty = getOptionAsBoolean(args, "--pretty", "-p");
-
-        new CliTool(MsbConfigurations.msbConfiguration(), topics, pretty, follow);
+        
+        new CliTool(new AdapterFactoryLoader(new MsbConfigurations(ConfigFactory.load())).getAdapterFactory(), topics, pretty, follow);
     }
 
     private static void printUsage() {
@@ -87,8 +90,4 @@ public class CliTool implements CliMessageHandlerSubscriber {
         return null;
     }
     
-    private AdapterFactory getAdapterFactory() {
-        return new AdapterFactory();
-    }
-
-}
+ }
