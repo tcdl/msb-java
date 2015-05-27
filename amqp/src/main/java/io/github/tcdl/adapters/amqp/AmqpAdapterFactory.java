@@ -1,7 +1,8 @@
 package io.github.tcdl.adapters.amqp;
 
 import io.github.tcdl.adapters.Adapter;
-import io.github.tcdl.adapters.MsbAdapterFactory;
+import io.github.tcdl.adapters.AdapterFactory;
+import io.github.tcdl.adapters.mock.MockAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
 
@@ -9,16 +10,15 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 /**
- * AmqpAdapterBuilder implement Builder pattern and creates new instance of {@link AmqpAdapter}.
- * @author ysavchuk
+ * AmqpAdapterFactory is an implementation of {@link AdapterFactory}
+ * for {@link AmqpAdapter}
  *
  */
-public class AdapterFactory extends MsbAdapterFactory {
+public class AmqpAdapterFactory implements AdapterFactory {
     private AmqpBrokerConfig amqpBrokerConfig;
-    private final AmqpConnectionManager connectionManager;
+    private AmqpConnectionManager connectionManager;
 
-    public AdapterFactory(MsbConfigurations msbConfig) {
-        super(msbConfig);
+    public void init(MsbConfigurations msbConfig) {
         Config amqpApplicationConfig = msbConfig.getBrokerConfig();
         Config amqpLibConfig = ConfigFactory.load("amqp").getConfig("config.amqp");
 

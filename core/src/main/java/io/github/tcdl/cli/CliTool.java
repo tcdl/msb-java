@@ -2,7 +2,7 @@ package io.github.tcdl.cli;
 
 import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.adapters.AdapterFactoryLoader;
-import io.github.tcdl.adapters.MsbAdapterFactory;
+import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.config.MsbConfigurations;
 
 import java.util.*;
@@ -10,10 +10,10 @@ import java.util.*;
 import com.typesafe.config.ConfigFactory;
 
 public class CliTool implements CliMessageHandlerSubscriber {
-    private MsbAdapterFactory adapterFactory;
+    private AdapterFactory adapterFactory;
     private final Set<String> registeredTopics = new HashSet<>();
 
-    public CliTool(MsbAdapterFactory adapterFactory, List<String> topics, boolean pretty, List<String> follow) {
+    public CliTool(AdapterFactory adapterFactory, List<String> topics, boolean pretty, List<String> follow) {
         this.adapterFactory = adapterFactory;
 
         // Subscribe to the configured topics

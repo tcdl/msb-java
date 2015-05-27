@@ -1,12 +1,13 @@
 package io.github.tcdl.adapters;
 
-import java.lang.reflect.Constructor;
+import org.apache.commons.lang3.StringUtils;
 
+import io.github.tcdl.adapters.mock.MockAdapterFactory;
 import io.github.tcdl.config.MsbConfigurations;
 
 /**
- * AdapterFactory creates an instance of Broker Adapter by means of Broker Adapter Builder.
- * Broker Adapter and Broker Adapter Builder are located in the separate proper JAR.
+ * AdapterFactory creates an instance of Broker Adapter by means of Broker AdapterFactory.
+ * Broker AdapterFactory and Broker Adapter are located in the separate proper JAR.
  */
 public class AdapterFactoryLoader {
     
@@ -16,29 +17,27 @@ public class AdapterFactoryLoader {
         this.msbConfig = msbConfig;
     }
 
-    /**
-     * 
-     * @param brokerAdapterType
-     * @return
-     */
-    public MsbAdapterFactory getAdapterFactory() {
+    public AdapterFactory getAdapterFactory() {
         Object adapterFactory;
-        String className = "io.github.tcdl.adapters." + msbConfig.getBrokerType().toString() + ".AdapterFactory";
-        try {
-            Class<?> clazz = Class.forName(className);
-            Constructor<?> constructor = clazz.getConstructor(MsbConfigurations.class);
-            adapterFactory = constructor.newInstance(msbConfig);
-        } catch(ClassNotFoundException e) {
-            throw new RuntimeException("The required MSB Adapter '" + msbConfig.getBrokerType().toString() + "' is not supported.", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create Adapter Builder: " + className, e);
-        }
- 
-        if (!(adapterFactory instanceof MsbAdapterFactory)) {
-            throw new RuntimeException("Inconsistent Adapter Builder class: "  + className);
-        }
-        return (MsbAdapterFactory) adapterFactory;
+        String adapterFactoryClassName = msbConfig.getBrokerAdapterFactory();
+        if (!StringUtils.isEmpty(adapterFactoryClassName)) {
+            try {
+                Class clazz = Class.forName(adapterFactoryClassName);
+                adapterFactory = clazz.newInstance();
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("The required MSB Adapter Factory '" + adapterFactoryClassName + "' is not supported.", e);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create Adapter Factory: " + adapterFactoryClassName, e);
+            }
 
+            if (!(adapterFactory instanceof AdapterFactory)) {
+                throw new RuntimeException("Inconsistent Adapter Factory class: " + adapterFactoryClassName);
+            }
+        } else {
+            adapterFactory = new MockAdapterFactory();
+        }
+        ((AdapterFactory) adapterFactory).init(msbConfig);
+        return (AdapterFactory) adapterFactory;
     }
 
 }
