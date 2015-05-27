@@ -1,12 +1,9 @@
 package io.github.tcdl;
 
-import io.github.tcdl.adapters.mock.AdapterFactory;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.support.TestUtils;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -29,7 +26,7 @@ public class RequesterTest {
     public void setUp() {
         this.config = TestUtils.createSimpleConfig();
         this.msbConfig = TestUtils.createMsbConfigurations();
-        this.channelManager = new ChannelManager(new AdapterFactory(this.msbConfig));
+        this.channelManager = new ChannelManager(this.msbConfig);
         this.messageFactory = new MessageFactory(this.msbConfig.getServiceDetails());
     }
 

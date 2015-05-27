@@ -31,12 +31,11 @@ public class ChannelManager extends EventEmitterImpl {
     private Map<String, Producer> producersByTopic;
     private Map<String, Consumer> consumersByTopic;
 
-    public ChannelManager(MsbConfigurations msbConfig) {
-        this(new AdapterFactoryLoader(msbConfig).getAdapterFactory());
-    }
+    private MsbConfigurations msbConfig;
 
-    public ChannelManager(MsbAdapterFactory adapterFactory) {
-        this.adapterFactory = adapterFactory;
+    public ChannelManager(MsbConfigurations msbConfig) {
+        this.msbConfig = msbConfig;
+        this.adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
         this.producersByTopic = new ConcurrentHashMap<>();
         this.consumersByTopic = new ConcurrentHashMap<>();
     }
@@ -54,11 +53,11 @@ public class ChannelManager extends EventEmitterImpl {
         return producer;
     }
 
-    public Consumer findOrCreateConsumer(final String topic, MsbConfigurations msbConfig) {
+    public Consumer findOrCreateConsumer(final String topic) {
         Validate.notNull(topic, "field 'topic' is null");
         Consumer consumer = consumersByTopic.get(topic);
         if (consumer == null) {
-            consumer = createConsumer(topic, msbConfig);
+            consumer = createConsumer(topic);
             consumersByTopic.put(topic, consumer);
             consumer.subscribe();
 
@@ -93,7 +92,7 @@ public class ChannelManager extends EventEmitterImpl {
         return new Producer(adapter, topic, handler);
     }
 
-    private Consumer createConsumer(String topic, MsbConfigurations msbConfig) {
+    private Consumer createConsumer(String topic) {
         Utils.validateTopic(topic);
 
         Adapter adapter = getAdapterFactory().createAdapter(topic);
