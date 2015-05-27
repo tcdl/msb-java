@@ -8,7 +8,7 @@ import static io.github.tcdl.events.Event.PRODUCER_NEW_MESSAGE_EVENT;
 import static io.github.tcdl.events.Event.PRODUCER_NEW_TOPIC_EVENT;
 import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.adapters.AdapterFactoryLoader;
-import io.github.tcdl.adapters.MsbAdapterFactory;
+import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.events.EventEmitterImpl;
 import io.github.tcdl.events.TwoArgsEventHandler;
@@ -27,7 +27,7 @@ import org.apache.commons.lang3.time.DateUtils;
  */
 public class ChannelManager extends EventEmitterImpl {
 
-    private MsbAdapterFactory adapterFactory;
+    private AdapterFactory adapterFactory;
     private Map<String, Producer> producersByTopic;
     private Map<String, Consumer> consumersByTopic;
 
@@ -114,7 +114,7 @@ public class ChannelManager extends EventEmitterImpl {
                         new Date());
     }
     
-    private MsbAdapterFactory getAdapterFactory() {
+    private AdapterFactory getAdapterFactory() {
         return this.adapterFactory;
     }
 }

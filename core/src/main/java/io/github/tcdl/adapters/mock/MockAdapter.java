@@ -16,7 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Created by rdro on 4/24/2015.
+ * MockAdapter class represents implementation of {@link Adapter}
+ * for test purposes.
+ * 
  */
 public class MockAdapter implements Adapter {
 
