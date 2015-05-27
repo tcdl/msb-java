@@ -31,7 +31,7 @@ public class ResponderTest {
     }
 
     @Test
-    public void testResponderNotNullOk() {
+    public void testResponderConstructorOk() {
         MsbContext context = new MsbContext.MsbContextBuilder().build();
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
         new Responder(config, originalMessage, context);
