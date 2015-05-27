@@ -1,11 +1,9 @@
 package io.github.tcdl;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
-import io.github.tcdl.config.MsbConfigurations;
+import static org.junit.Assert.assertTrue;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 
