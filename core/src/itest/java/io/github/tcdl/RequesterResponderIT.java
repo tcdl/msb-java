@@ -1,6 +1,7 @@
 package io.github.tcdl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import io.github.tcdl.adapters.mock.MockAdapter;
 import io.github.tcdl.config.MsbMessageOptions;
@@ -16,10 +17,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.Assert;
-
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,8 +75,8 @@ public class RequesterResponderIT {
         requester.publish(requestPayload);
 
         //listen for message and send response
-
-        ResponderServer.create(messageOptions, msbContext)
+        MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
+        ResponderServer.create(messageOptions, serverMsbContext)
                 .use(((request, response) -> {
                     response.sendAck(100, 2, null);
                     sendedAcks.add(response.getResponseMessage());
@@ -93,9 +91,8 @@ public class RequesterResponderIT {
     }
 
     @Test
-    @Ignore("wait for code changes to ChannelManager")
-    public void testResponderAnswerWithResponseRequesterRecieveResponse() throws Exception {
-        MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-testgetack");
+    public void testResponderAnswerWithResponseRecieveResponse() throws Exception {
+        MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-testgetresp");
         messageOptions.setAckTimeout(2000);
         messageOptions.setResponseTimeout(3000);
         messageOptions.setWaitForResponses(1);
@@ -117,8 +114,9 @@ public class RequesterResponderIT {
         requester.publish(requestPayload);
 
         //listen for message and send response
+        MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
         ResponderServer
-                .create(messageOptions, msbContext)
+                .create(messageOptions, serverMsbContext)
                 .use(((request, response) -> {
                     Payload payload = new Payload.PayloadBuilder().setBody(
                             new HashMap<String, String>().put("body", "payload from test : testResponderAnswerWithResponseRequesterRecieveResponse"))
@@ -128,23 +126,20 @@ public class RequesterResponderIT {
                         sendedResponses.add(m);
 
                         //verify no exception was thrown
-                            Assert.assertNull(ex);
+                            assertNull(ex);
                             respSend.countDown();
                         });
 
                 }))
                 .listen();
 
-        assertTrue("Message response was not send", respSend.await(3000, TimeUnit.MILLISECONDS));
-        assertTrue("Message response not recieved", respRecieved.await(3000, TimeUnit.MILLISECONDS));
+        assertTrue("Message response was not send", respSend.await(2000, TimeUnit.MILLISECONDS));
+        assertTrue("Message response not recieved", respRecieved.await(2000, TimeUnit.MILLISECONDS));
         assertTrue("Expected one response", recievedResponses.size() == 1);
-        System.out.println("XXX" + sendedResponses);
-        System.out.println("YYY" + recievedResponses);
         assertEquals(sendedResponses.poll().getPayload().getStatusCode(), recievedResponses.poll().getStatusCode());
     }
 
     @Test
-    @Ignore("wait for code changes to ChannelManager")
     public void testRequesterAwaitAck() throws Exception {
         MsbMessageOptions responderServerOneMessageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-server-one");
         MsbMessageOptions responderServerTwoMessageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-server-two");
@@ -157,10 +152,11 @@ public class RequesterResponderIT {
         CountDownLatch ackSent = new CountDownLatch(1);
         CountDownLatch ackRecieved = new CountDownLatch(1);
 
-        ResponderServer.create(responderServerOneMessageOptions, msbContext)
+        MsbContext serverOneMsbContext = TestUtils.createSimpleMsbContext();
+        ResponderServer.create(responderServerOneMessageOptions, serverOneMsbContext)
                 .use(((request, response) -> {
 
-                    //Create and send request message, wait for ack   
+                    //Create and send request message, wait for ack 
                     Requester requester = new Requester(requestAwaitAckMessageOptions, null, msbContext);
                     Payload requestPayload = TestUtils.createSimpleRequestPayload();
                     requester.publish(requestPayload);
@@ -168,7 +164,8 @@ public class RequesterResponderIT {
                 }))
                 .listen();
 
-        ResponderServer.create(responderServerTwoMessageOptions, msbContext)
+        MsbContext serverTwoMsbContext = TestUtils.createSimpleMsbContext();
+        ResponderServer.create(responderServerTwoMessageOptions, serverTwoMsbContext)
                 .use(((request, response) -> {
                     response.sendAck(100, 2, null);
                     ackSent.countDown();
@@ -177,8 +174,7 @@ public class RequesterResponderIT {
 
         MockAdapter.pushRequestMessage(TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(responderServerOneMessageOptions.getNamespace()));
 
-        assertTrue("Message ack was not send", ackSent.await(1000, TimeUnit.MILLISECONDS));
-        assertTrue("Message ack was not recieved", ackRecieved.await(1000, TimeUnit.MILLISECONDS));
-
+        assertTrue("Message ack was not send", ackSent.await(2000, TimeUnit.MILLISECONDS));
+        assertTrue("Message ack was not recieved", ackRecieved.await(2000, TimeUnit.MILLISECONDS));
     }
 }

@@ -1,5 +1,6 @@
 package io.github.tcdl;
 
+import static io.github.tcdl.events.Event.RESPONDER_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.events.SingleArgEventHandler;
@@ -8,12 +9,10 @@ import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.CompletableFuture;
 
-import static io.github.tcdl.events.Event.RESPONDER_EVENT;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by rdro on 4/29/2015.
