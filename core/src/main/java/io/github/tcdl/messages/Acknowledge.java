@@ -24,6 +24,14 @@ public final class Acknowledge {
     }
 
     public static class AcknowledgeBuilder {
+        public Integer getResponsesRemaining() {
+            return responsesRemaining;
+        }
+
+        public Integer getTimeoutMs() {
+            return timeoutMs;
+        }
+
         private String responderId;
         private Integer responsesRemaining;
         private Integer timeoutMs;

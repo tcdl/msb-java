@@ -1,9 +1,13 @@
 package io.github.tcdl;
 
+import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
+import io.github.tcdl.support.Utils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -18,10 +22,12 @@ import static org.mockito.Mockito.*;
  */
 public class ResponderTest {
     private MsbMessageOptions config;
+    MsbConfigurations msbConf;
     private static final String TOPIC = "test:responder";
 
     private ChannelManager mockChannelManager;
     private Producer mockProducer;
+    private Acknowledge.AcknowledgeBuilder acknowledgeBuilder;
 
     private Payload payload;
     private Message originalMessage;
@@ -31,15 +37,23 @@ public class ResponderTest {
     public void setUp() {
         config = TestUtils.createSimpleConfig();
 
+        msbConf = TestUtils.createMsbConfigurations();
+
+        MessageFactory messageFactory = new MessageFactory(msbConf.getServiceDetails());
+        MessageFactory spyMessageFactory = spy(messageFactory);
+
         MsbContext msbContext = TestUtils.createSimpleMsbContext();
         MsbContext msbContextSpy = spy(msbContext);
         mockChannelManager = mock(ChannelManager.class);
         mockProducer = mock(Producer.class);
+        acknowledgeBuilder = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId());
 
         payload = new Payload.PayloadBuilder().build();
         originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
 
         when(msbContextSpy.getChannelManager()).thenReturn(mockChannelManager);
+        when(msbContextSpy.getMessageFactory()).thenReturn(spyMessageFactory);
+        when(spyMessageFactory.createAck()).thenReturn(acknowledgeBuilder);
         when(mockChannelManager.findOrCreateProducer(anyString())).thenReturn(mockProducer);
 
         responder = new Responder(config, originalMessage, msbContextSpy);
@@ -77,5 +91,13 @@ public class ResponderTest {
         verify(mockProducer).publish(argument.capture(), anyObject());
 
         assertEquals(payload, argument.getValue().getPayload());
+    }
+
+    @Test
+    public void testAckBuilderContainsCorrectProperties() {
+        responder.sendAck(200, 2, null);
+
+        assertEquals(acknowledgeBuilder.getResponsesRemaining().intValue(), 2);
+        assertEquals(acknowledgeBuilder.getTimeoutMs().intValue(), 200);
     }
 }
