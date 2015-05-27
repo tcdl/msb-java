@@ -1,11 +1,9 @@
 package io.github.tcdl;
 
-import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
@@ -24,24 +22,18 @@ public class ResponderServer {
 
     public static final Logger LOG = LoggerFactory.getLogger(ResponderServer.class);
 
+    private MsbContext msbContext;
     private MsbMessageOptions messageOptions;
-    private final ChannelManager channelManager;
-    private final MessageFactory messageFactory;
-    private final MsbConfigurations msbConfig;
     
     private MiddlewareChain middlewareChain = new MiddlewareChain();
 
-    private ResponderServer(MsbMessageOptions messageOptions, ChannelManager channelManager, 
-            MessageFactory messageFactory, MsbConfigurations msbConfig) {
+    private ResponderServer(MsbMessageOptions messageOptions, MsbContext msbContext) {
         this.messageOptions = messageOptions;
-        this.channelManager = channelManager;
-        this.messageFactory = messageFactory;
-        this.msbConfig = msbConfig;
+        this.msbContext = msbContext;
     }
 
-    public static ResponderServer create(MsbMessageOptions msgOptions, ChannelManager channelManager, 
-            MessageFactory messageFactory, MsbConfigurations msbConfig) {
-        return new ResponderServer(msgOptions, channelManager, messageFactory, msbConfig);
+    public static ResponderServer create(MsbMessageOptions msgOptions, MsbContext msbContext) {
+        return new ResponderServer(msgOptions, msbContext);
     }
 
     public ResponderServer use(Middleware... middleware) {
@@ -55,9 +47,10 @@ public class ResponderServer {
 //        }
 
         String topic = messageOptions.getNamespace();
+        ChannelManager channelManager = msbContext.getChannelManager();
 
         channelManager.on(Event.MESSAGE_EVENT, (Message message) -> {
-            Responder responder = new Responder(messageOptions, message, channelManager, messageFactory);
+            Responder responder = new Responder(messageOptions, message, msbContext);
             channelManager.emit(RESPONDER_EVENT, responder);
             onResponder.onEvent(responder);
         });

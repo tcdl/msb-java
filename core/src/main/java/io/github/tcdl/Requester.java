@@ -1,7 +1,7 @@
 package io.github.tcdl;
 
 import static io.github.tcdl.events.Event.ERROR_EVENT;
-import io.github.tcdl.config.MsbConfigurations;
+
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.*;
 import io.github.tcdl.messages.Acknowledge;
@@ -32,10 +32,10 @@ public class Requester {
     private MetaMessageBuilder metaBuilder;
     private MessageBuilder messageBuilder;
 
-    public Requester(MsbMessageOptions config, Message originalMessage, MessageFactory messageFactory, ChannelManager channelManager, MsbConfigurations msbConfigurations) {
+    public Requester(MsbMessageOptions config, Message originalMessage, MsbContext context) {
         Validate.notNull(config, "the 'config' must not be null");
-        this.collector = new Collector(config, channelManager, msbConfigurations);
-        this.messageFactory = messageFactory;
+        this.collector = new Collector(config, context.getChannelManager(), context.getMsbConfig());
+        this.messageFactory = context.getMessageFactory();
         this.metaBuilder = messageFactory.createMeta(config);
         this.messageBuilder = messageFactory.createRequestMessage(config, originalMessage);
     }

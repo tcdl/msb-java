@@ -1,10 +1,8 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.ChannelManager;
+import io.github.tcdl.MsbContext;
 import io.github.tcdl.ResponderServer;
-import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 
 import java.util.Arrays;
@@ -13,9 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 
 /**
  * Simple example of date parser micro-service
@@ -27,18 +22,13 @@ public class DateExtractor {
 
     public static void main(String... args) {
 
-        Config config = ConfigFactory.load();
-        MsbConfigurations msbConfig = new MsbConfigurations(config);
-        ChannelManager channelManager = new ChannelManager(msbConfig);
-        MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails());
-
-
+        MsbContext msbContext = new MsbContext.MsbContextBuilder().build();
         MsbMessageOptions options = new MsbMessageOptions();
         options.setNamespace("search:parsers:facets:v1");
 
         final Pattern YEAR_PATTERN = Pattern.compile("^.*(20(\\d{2})).*$");
 
-        ResponderServer.create(options, channelManager, messageFactory, msbConfig)
+        ResponderServer.create(options, msbContext)
                 .use(((request, responder) -> {
 
                     RequestQuery query = request.getQueryAs(RequestQuery.class);

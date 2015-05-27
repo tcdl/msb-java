@@ -33,21 +33,19 @@ public class ResponderServerTest {
 
     @Test
     public void testResponderServerProcessSuccess() throws Exception {
-        Config config = ConfigFactory.load();
-        MsbConfigurations msbConfig = new MsbConfigurations(config);
-        ChannelManager channelManager = new ChannelManager(msbConfig);
-        MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails());
 
+        MsbContext msbContext = TestUtils.createSimpleMsbContext();
         Middleware middleware = (request, responder) -> {};
 
         ResponderServer
-                .create(TestUtils.createSimpleConfig(), channelManager, messageFactory, msbConfig)
+                .create(TestUtils.createSimpleConfig(), msbContext)
                 .use(middleware)
                 .listen();
 
         mockStatic(CompletableFuture.class);
         ArgumentCaptor<Supplier> middlewareCaptor = ArgumentCaptor.forClass(Supplier.class);
 
+        ChannelManager channelManager = msbContext.getChannelManager();
         channelManager.emit(Event.MESSAGE_EVENT, TestUtils.createMsbRequestMessageWithPayloadAndTopicTo("test:responser-server"));
 
         verifyStatic();

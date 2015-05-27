@@ -1,11 +1,10 @@
 package io.github.tcdl.support;
 
+import io.github.tcdl.ChannelManager;
+import io.github.tcdl.MsbContext;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.MetaMessage;
-import io.github.tcdl.messages.Topics;
+import io.github.tcdl.messages.*;
 import io.github.tcdl.messages.payload.Payload;
 
 import java.lang.reflect.Method;
@@ -21,6 +20,15 @@ import com.typesafe.config.ConfigFactory;
  * Created by rdro on 4/28/2015.
  */
 public class TestUtils {
+
+    public static MsbContext createSimpleMsbContext() {
+        MsbConfigurations msbConfig = TestUtils.createMsbConfigurations();
+        ChannelManager channelManager = new ChannelManager(msbConfig);
+        MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails());
+        MsbContext msbContext = new MsbContext(msbConfig, messageFactory, channelManager);
+
+        return msbContext;
+    }
 
     public static MsbMessageOptions createSimpleConfig() {
         MsbMessageOptions conf = new MsbMessageOptions();
