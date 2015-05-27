@@ -1,9 +1,11 @@
 package io.github.tcdl;
 
 import static io.github.tcdl.events.Event.ERROR_EVENT;
-
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.*;
+import io.github.tcdl.events.Event;
+import io.github.tcdl.events.GenericEventHandler;
+import io.github.tcdl.events.SingleArgEventHandler;
+import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
@@ -73,13 +75,8 @@ public class Requester {
         return this;
     }
 
-    public Requester onPayload(SingleArgEventHandler<Payload> payloadHandler) {
-        collector.getChannelManager().on(Event.PAYLOAD_EVENT, payloadHandler);
-        return this;
-    }
-
     public Requester onResponse(SingleArgEventHandler<Payload> responseHandler) {
-        collector.getChannelManager().on(Event.RESPONDER_EVENT, responseHandler);
+        collector.getChannelManager().on(Event.RESPONSE_EVENT, responseHandler);
         return this;
     }
 
