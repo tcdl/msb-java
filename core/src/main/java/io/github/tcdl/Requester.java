@@ -53,21 +53,9 @@ public class Requester {
                             Objects.equals(responseMessage.getCorrelationId(), message.getCorrelationId())
             );
         }
-        
-        TwoArgsEventHandler<Message, Exception> callback = (message, exception) -> {
-            if (exception != null) {
-                collector.getChannelManager().emit(ERROR_EVENT, exception);
-                LOG.debug("Exception was thrown.", exception);
-                return;
-            }
-
-            if (!collector.isAwaitingResponses())
-                collector.end();
-            collector.enableTimeout();
-        };
 
         collector.getChannelManager().findOrCreateProducer(this.message.getTopics().getTo())
-                .publish(this.message, callback);
+                .publish(this.message, this::handleMessage);
     }
 
     public Requester onAcknowledge(SingleArgEventHandler<Acknowledge> acknowledgeHandler) {
@@ -88,6 +76,18 @@ public class Requester {
     public Requester onError(SingleArgEventHandler<Exception> errorHandler) {
         collector.getChannelManager().on(Event.ERROR_EVENT, errorHandler);
         return this;
+    }
+
+    protected void handleMessage(Message message, Exception exception) {
+        if (exception != null) {
+            collector.getChannelManager().emit(ERROR_EVENT, exception);
+            LOG.debug("Exception was thrown.", exception);
+            return;
+        }
+
+        if (!collector.isAwaitingResponses())
+            collector.end();
+        collector.enableTimeout();
     }
 
     Message getMessage() {
