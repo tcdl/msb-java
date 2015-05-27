@@ -1,14 +1,7 @@
 package io.github.tcdl.middleware;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.only;
-import static org.mockito.Mockito.verify;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.Responder;
-import io.github.tcdl.adapters.mock.AdapterFactory;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.ThreeArgsEventHandler;
@@ -16,12 +9,18 @@ import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.verify;
 
 /**
  * Created by rdro on 5/22/2015.
@@ -39,7 +38,7 @@ public class MiddlewareChainTest {
     @Before
     public void setUp() {
         this.msbConfig = TestUtils.createMsbConfigurations();
-        this.channelManager = new ChannelManager(new AdapterFactory(this.msbConfig));
+        this.channelManager = new ChannelManager(this.msbConfig);
         this.messageFactory = new MessageFactory(msbConfig.getServiceDetails());
     }
 

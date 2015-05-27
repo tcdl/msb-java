@@ -62,7 +62,7 @@ public class ResponderServer {
             onResponder.onEvent(responder);
         });
 
-        channelManager.findOrCreateConsumer(topic, msbConfig);
+        channelManager.findOrCreateConsumer(topic);
 
         return this;
     }

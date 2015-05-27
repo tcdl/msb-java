@@ -112,7 +112,7 @@ public class Collector {
             end();
         });
 
-        channelManager.findOrCreateConsumer(topic, msbConfigurations);
+        channelManager.findOrCreateConsumer(topic);
         this.topic = topic;
     }
 
