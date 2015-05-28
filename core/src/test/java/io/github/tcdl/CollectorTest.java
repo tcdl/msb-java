@@ -328,7 +328,7 @@ public class CollectorTest {
 
     private CountDownLatch awaitRecieveEndEvent() {
         CountDownLatch eventEndOnAck = new CountDownLatch(1);
-        when(channelManagerMock.emit(eq(Event.END_EVENT))).thenAnswer(invocation -> {
+        when(channelManagerMock.emit(eq(Event.END_EVENT), any())).thenAnswer(invocation -> {
             eventEndOnAck.countDown();
             return channelManagerMock;
         });
