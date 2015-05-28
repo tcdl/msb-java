@@ -1,5 +1,8 @@
 package io.github.tcdl.monitor;
 
+import static io.github.tcdl.support.Utils.TOPIC_ANNOUNCE;
+import static io.github.tcdl.support.Utils.TOPIC_HEARTBEAT;
+import static io.github.tcdl.support.Utils.isServiceTopic;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.Producer;
@@ -7,6 +10,7 @@ import io.github.tcdl.Responder;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 
@@ -15,19 +19,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static io.github.tcdl.messages.Message.MessageBuilder;
-import static io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
-import static io.github.tcdl.support.Utils.TOPIC_ANNOUNCE;
-import static io.github.tcdl.support.Utils.TOPIC_HEARTBEAT;
-import static io.github.tcdl.support.Utils.isServiceTopic;
-
 /**
- * This implementation maintains statistics over all topics. It broadcasts that statistics over the bus
- * for special monitoring microservices. The overall process consists of the following steps:
+ * This implementation maintains statistics over all topics. It broadcasts that statistics over the bus for special monitoring microservices. The overall
+ * process consists of the following steps:
  *
- * 1. The agent sends an announcement message each time when a new consumer or producer is created for some topic
- * 2. The agent listens on special heartbeat topic for periodic heartbeat messages
- * 3. The agent sends the current statistics in response to the heartbeat.
+ * 1. The agent sends an announcement message each time when a new consumer or producer is created for some topic 2. The agent listens on special heartbeat
+ * topic for periodic heartbeat messages 3. The agent sends the current statistics in response to the heartbeat.
  */
 public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
     private MsbContext msbContext;
@@ -57,6 +54,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
 
     /**
      * Start listening on the heartbeat topic and injects itself in the channel manager instance.
+     * 
      * @return this channel manages instance. Might be useful for chaining calls.
      */
     public DefaultChannelMonitorAgent start() {
@@ -160,9 +158,8 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
 
         Producer producer = channelManager.findOrCreateProducer(TOPIC_ANNOUNCE);
 
-        MessageBuilder messageBuilder = messageFactory.createBroadcastMessage(TOPIC_ANNOUNCE, payload);
-        MetaMessageBuilder metaBuilder = messageFactory.createMeta(new MsbMessageOptions());
-        Message announcementMessage = messageFactory.completeMeta(messageBuilder, metaBuilder);
+        MessageBuilder messageBuilder = messageFactory.createBroadcastMessage(new MsbMessageOptions(), TOPIC_ANNOUNCE, payload);
+        Message announcementMessage = messageBuilder.build();
 
         producer.publish(announcementMessage, null);
     }

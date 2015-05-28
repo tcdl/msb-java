@@ -1,14 +1,18 @@
 package io.github.tcdl.messages;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.ServiceDetails;
 import io.github.tcdl.messages.Message.MessageBuilder;
-import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
@@ -17,172 +21,131 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
-/**
- * Created by rdro on 4/23/2015.
- */
+@RunWith(MockitoJUnitRunner.class)
 public class MessageFactoryTest {
 
+    @Mock
     private MsbMessageOptions messageOptions;
-    private MsbConfigurations msbConf;
-    private MessageFactory messageFactory;
 
-    @Before
-    public void setUp() throws Exception {
-        this.msbConf = TestUtils.createMsbConfigurations();
-        this.messageOptions = TestUtils.createSimpleConfig();
-        this.messageFactory = new MessageFactory(msbConf.getServiceDetails());
-    }
+    @Mock
+    private MsbConfigurations msbConf;
+
+    private ServiceDetails serviceDetails = TestUtils.createMsbConfigurations().getServiceDetails();
+
+    private MessageFactory messageFactory = new MessageFactory(serviceDetails);
 
     @Test
     public void testCreateRequestMessageHasBasicFieldsSet() {
+        when(messageOptions.getNamespace()).thenReturn("test:request-basic-fields");
         Message originalMessage = TestUtils.createMsbResponseMessage();
-        MessageBuilder requestMesageBuilder = messageFactory.createRequestMessage(messageOptions, originalMessage);
-        Message message = requestMesageBuilder.setMeta(TestUtils.createSimpleMeta(msbConf)).build();
+        MessageBuilder requestMesageBuilder = messageFactory.createRequestMessageBuilder(messageOptions, originalMessage);
 
-        assertEquals("Message correlationId must match originalMessage", originalMessage.getCorrelationId(), message.getCorrelationId());
-        assertNotNull("Message topic response is not set", message.getTopics().getResponse());
-        assertEquals("Message topic to is not correct", messageOptions.getNamespace(), message.getTopics().getTo());
+        Message message = requestMesageBuilder.build();
+
+        assertThat(message.getCorrelationId(), is(originalMessage.getCorrelationId()));
+        assertThat(message.getTopics().getTo(), is(messageOptions.getNamespace()));
+        assertThat(message.getTopics().getResponse(), notNullValue());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testCreateResponseMessageNullOriginalMessage() {
+        messageFactory.createResponseMessage(null, null, null);
     }
 
     @Test
     public void testCreateResponseMessageHasBasicFieldsSet() {
         Message originalMessage = TestUtils.createMsbRequestMessageNoPayload();
-        MessageBuilder responseMesageBuilder = messageFactory.createResponseMessage(originalMessage, null, null);
-        Message message = responseMesageBuilder.setMeta(TestUtils.createSimpleMeta(msbConf)).build();
+        MessageBuilder responseMesageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
 
-        assertEquals("Message correlationId must match originalMessage", originalMessage.getCorrelationId(), message.getCorrelationId());
-        assertNull("Message topic response shouldn't be set", message.getTopics().getResponse());
-        assertNotEquals("Message topic to equals to original message topic to", originalMessage.getTopics().getTo(), message.getTopics().getTo());
-        assertEquals("Message topic to is not correct", originalMessage.getTopics().getResponse(), message.getTopics().getTo());
-    }
+        Message message = responseMesageBuilder.build();
 
-    @Test(expected = NullPointerException.class)
-    public void testCreateResponseMessageNullOriginalThrowsException() {
-        messageFactory.createResponseMessage(null, null, null);
+        assertThat(message.getCorrelationId(), is(originalMessage.getCorrelationId()));
+        assertThat(message.getTopics().getTo(), not(messageOptions.getNamespace()));
+        assertThat(message.getTopics().getTo(), not(originalMessage.getTopics().getTo()));
+        assertThat(message.getTopics().getTo(), is(originalMessage.getTopics().getResponse()));
     }
 
     @Test
-    public void testCreateResponseMessageWithAck() {
-        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload();
-        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(3).setTimeoutMs(100).build();
-        MessageBuilder responseMesageBuilder = messageFactory.createResponseMessage(originalMessage, ack, null);
-        Message message = responseMesageBuilder.setMeta(TestUtils.createSimpleMeta(msbConf)).build();
+    public void testCreateRequestMessageWithPayload() {
+        when(messageOptions.getNamespace()).thenReturn("test:request-with-payload");
+        Payload requestPayload = TestUtils.createSimpleResponsePayload();
+        MessageBuilder requestMesageBuilder = TestUtils.createMesageBuilder();
 
-        assertEquals("Message ack is not set correctly", ack, message.getAck());
+        Message message = messageFactory.createRequestMessage(requestMesageBuilder, requestPayload);
+
+        assertEquals("Message payload is not set correctly", requestPayload, message.getPayload());
+        assertNull(message.getAck());
     }
 
     @Test
-    public void testCreateResponseMessageWithoutAck() {
-        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload();
-        MessageBuilder responseMesageBuilder = messageFactory.createResponseMessage(originalMessage, null, null);
-        Message message = responseMesageBuilder.setMeta(TestUtils.createSimpleMeta(msbConf)).build();
-        assertNull("Message ack shouldn't be set", message.getAck());
+    public void testCreateRequestMessageWithoutPayload() {
+        when(messageOptions.getNamespace()).thenReturn("test:request-without-payload");
+        MessageBuilder requestMesageBuilder = TestUtils.createMesageBuilder();
+
+        Message message = messageFactory.createRequestMessage(requestMesageBuilder, null);
+
+        assertNull(message.getPayload());
+        assertNull(message.getAck());
     }
 
     @Test
-    public void testCreateResponseMessageWithPayload() {
-        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload();
+    public void testCreateResponseMessageWithPayloadAndAck() {
+        MessageBuilder responseMesageBuilder = TestUtils.createMesageBuilder();
         Payload responsePayload = TestUtils.createSimpleResponsePayload();
-        MessageBuilder responseMesageBuilder = messageFactory.createResponseMessage(originalMessage, null, responsePayload);
-        Message message = responseMesageBuilder.setMeta(TestUtils.createSimpleMeta(msbConf)).build();
+        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(3).setTimeoutMs(100).build();
+
+        Message message = messageFactory.createResponseMessage(responseMesageBuilder, ack, responsePayload);
+
         assertEquals("Message payload is not set correctly", responsePayload, message.getPayload());
-    }
-
-    @Test
-    public void testCreateResponseMessageWithoutPayload() {
-        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload();
-        MessageBuilder responseMesageBuilder = messageFactory.createResponseMessage(originalMessage, null, null);
-        Message message = responseMesageBuilder.setMeta(TestUtils.createSimpleMeta(msbConf)).build();
-        assertNull("Message payload shouldn't be set", message.getPayload());
-    }
-
-    @Test
-    public void testCreateAckMessageHasBasicFieldsSet() {
-        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload();
-        MessageBuilder ackMesageBuilder = messageFactory.createAckMessage(originalMessage, null);
-        Message message = ackMesageBuilder.setMeta(TestUtils.createSimpleMeta(msbConf)).build();
-
-        assertEquals("Message correlationId must match originalMessage", originalMessage.getCorrelationId(), message.getCorrelationId());
-        assertNull("Message topic response shouldn't be set", message.getTopics().getResponse());
-        assertNotEquals("Message topic to equals to original message topic to", originalMessage.getTopics().getTo(), message.getTopics().getTo());
-        assertEquals("Message topic to is not correct", originalMessage.getTopics().getResponse(), message.getTopics().getTo());
-    }
-    
-    @Test(expected = NullPointerException.class)
-    public void testCreateAckMessageNullOriginalThrowsException() {
-        messageFactory.createAckMessage(null, null);
-    }
-
-
-    @Test
-    public void testCreateAckMessageWithAck() {
-        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload();
-        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(2).setTimeoutMs(200).build();
-        MessageBuilder ackMesageBuilder = messageFactory.createAckMessage(originalMessage, ack);
-        Message message = ackMesageBuilder.setMeta(TestUtils.createSimpleMeta(msbConf)).build();
-
         assertEquals("Message ack is not set correctly", ack, message.getAck());
-        assertNull("Message payload shouldn't be set", message.getPayload());
     }
 
     @Test
-    public void testCreateAckMessageWithoutAck() {
+    public void testCreateResponseMessageWithoutPayloadAndAck() {
+        MessageBuilder responseMesageBuilder = TestUtils.createMesageBuilder();
+
+        Message message = messageFactory.createResponseMessage(responseMesageBuilder, null, null);
+
+        assertNull("Message payload is not expected", message.getPayload());
+        assertNull("Message ack is not expected", message.getAck());
+    }
+
+    @Test
+    public void testCreateAckBuilder() throws Exception {
+        Acknowledge ack = messageFactory.createAckBuilder().build();
+        assertNotNull("ack responderId not set", ack.getResponderId());
+    }
+
+    @Test
+    public void testCreateMessageBuilderMetaFromMsgOptions() throws Exception {
+        Integer ttl = Integer.valueOf(123);
+        when(messageOptions.getNamespace()).thenReturn("test:meta-set");
+        when(messageOptions.getTtl()).thenReturn(ttl);
         Message originalMessage = TestUtils.createMsbRequestMessageNoPayload();
-        MessageBuilder ackMesageBuilder = messageFactory.createAckMessage(originalMessage, null);
-        Message message = ackMesageBuilder.setMeta(TestUtils.createSimpleMeta(msbConf)).build();
+        MessageBuilder mesageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
 
-        assertNull("Message ack shouldn't be set", message.getAck());
-        assertNull("Message payload shouldn't be set", message.getPayload());
-    }
-
-    @Test
-    public void testCreateAck() throws Exception {
-        Acknowledge message = messageFactory.createAck().build();
-        assertNotNull("ack responderId not set", message.getResponderId());
-    }
-
-    @Test
-    public void testCreateMeta() throws Exception {
-        MessageBuilder messageBuilder = new MessageBuilder().setId(Utils.generateId()).setCorrelationId(Utils.generateId())
-                .setTopics(new Topics.TopicsBuilder().setTo("to").build());
-        MetaMessageBuilder metaBuilder = messageFactory.createMeta(messageOptions);
-        Message message = messageFactory.completeMeta(
-                messageBuilder, metaBuilder);
-
-        assertEquals("Message ttl is not set correctly", messageOptions.getTtl(), message.getMeta().getTtl());
+        Message message = mesageBuilder.build();
+        assertEquals("Message ttl is not set correctly", ttl, message.getMeta().getTtl());
         assertEquals("Message create_at is not equals now", DateUtils.truncate(new Date(), Calendar.SECOND),
                 DateUtils.truncate(message.getMeta().getCreatedAt(), Calendar.SECOND));
 
-        assertNotNull("Message ack is not set", message.getMeta().getServiceDetails());
-        assertEquals("Message ack is not set correctly", message.getMeta().getServiceDetails(), msbConf.getServiceDetails());
-    }
-    @Test
-    public void testCreateMetaNullConf() throws Exception {
-        MessageBuilder messageBuilder = new MessageBuilder().setId(Utils.generateId()).setCorrelationId(Utils.generateId())
-                .setTopics(new Topics.TopicsBuilder().setTo("to").build());
-        MetaMessageBuilder metaBuilder = messageFactory.createMeta(null);
-        Message message = messageFactory.completeMeta(
-                messageBuilder, metaBuilder);
-
-        assertNull("Message should be null", message.getMeta().getTtl());
-        assertEquals("Message create_at is not equals now", DateUtils.truncate(new Date(), Calendar.SECOND),
-                DateUtils.truncate(message.getMeta().getCreatedAt(), Calendar.SECOND));
-
-        assertNotNull("Message ack is not set", message.getMeta().getServiceDetails());
-        assertEquals("Message ack is not set correctly", message.getMeta().getServiceDetails(), msbConf.getServiceDetails());
+        assertThat(message.getMeta().getDurationMs().intValue(), equalTo(0));
     }
 
     @Test
-    public void testCompleteMeta() throws Exception {
-        int delay = 10000;
-        MetaMessageBuilder metaBuilder = messageFactory.createMeta(messageOptions);
-        MessageBuilder messageBuilder = messageFactory.createRequestMessage(messageOptions, null);
-        Message message = messageFactory.completeMeta(messageBuilder, metaBuilder);
+    public void testDurationMsIsSet() throws Exception {
+        when(messageOptions.getNamespace()).thenReturn("test:durationMs");
+        MessageBuilder requestMesageBuilder = TestUtils.createMesageBuilder();
+        Payload requestPayload = TestUtils.createSimpleResponsePayload();
 
-        assertTrue(message.getMeta().getDurationMs().intValue() - delay < 10);
+        Message message = messageFactory.createRequestMessage(requestMesageBuilder, requestPayload);
+
+        assertThat(message.getMeta().getDurationMs().intValue(), not(0));
     }
 
     @Test
@@ -190,10 +153,9 @@ public class MessageFactoryTest {
         String topic = "topic:target";
 
         Payload broadcastPayload = TestUtils.createSimpleBroadcastPayload();
-        MetaMessageBuilder metaBuilder = messageFactory.createMeta(messageOptions);
-        MessageBuilder messageBuilder = messageFactory.createBroadcastMessage(topic, broadcastPayload);
+        MessageBuilder messageBuilder = messageFactory.createBroadcastMessage(messageOptions, topic, broadcastPayload);
 
-        Message message = messageFactory.completeMeta(messageBuilder, metaBuilder);
+        Message message = messageBuilder.build();
 
         assertEquals(topic, message.getTopics().getTo());
         assertNull(message.getTopics().getResponse());

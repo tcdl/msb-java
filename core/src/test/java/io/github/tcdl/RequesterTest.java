@@ -1,5 +1,16 @@
 package io.github.tcdl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.events.GenericEventHandler;
@@ -7,6 +18,9 @@ import io.github.tcdl.events.SingleArgEventHandler;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
+
+import java.util.Arrays;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,11 +30,6 @@ import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.Arrays;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  * Created by rdro on 4/27/2015.
@@ -34,6 +43,7 @@ public class RequesterTest {
 
     @Mock
     private MsbMessageOptions messageOptionsMock;
+    
     @Mock
     private ChannelManager channelManagerMock;
 
@@ -42,7 +52,7 @@ public class RequesterTest {
 
     private Collector collectorMock;
 
-    public void initMocks(MsbMessageOptions config) throws Exception{
+    public void initMocks(MsbMessageOptions config) throws Exception {
         msbContext = TestUtils.createSimpleMsbContext();
         msbContext.setChannelManager(channelManagerMock);
 
@@ -210,7 +220,7 @@ public class RequesterTest {
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
         verify(producer).publish(messageCaptor.capture(), any());
 
-        Message message =  messageCaptor.getValue();
+        Message message = messageCaptor.getValue();
         assertNotNull(message.getPayload());
 
         return message;

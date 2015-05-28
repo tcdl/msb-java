@@ -6,9 +6,9 @@ import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
-import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
 
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,47 +16,51 @@ import org.slf4j.LoggerFactory;
  * Created by rdro on 4/29/2015.
  */
 public class Responder {
-    
+
     public static final Logger LOG = LoggerFactory.getLogger(Responder.class);
 
-    private MsbMessageOptions msgOptions;
-    private MetaMessageBuilder metaBuilder;
-    private AcknowledgeBuilder ackBuilder;
     private Message originalMessage;
     private ChannelManager channelManager;
     private MessageFactory messageFactory;
+    private MessageBuilder messageBuilder;
     private Message responseMessage;
 
-    public Responder(MsbMessageOptions msgOptions, Message originalMessage, MsbContext msbContext) {
-        this.msgOptions = msgOptions;
-        this.messageFactory = msbContext.getMessageFactory();
-        this.metaBuilder = this.messageFactory.createMeta(this.msgOptions);
-        this.ackBuilder = this.messageFactory.createAck();
+    public Responder(MsbMessageOptions config, Message originalMessage, MsbContext msbContext) {
+        validateRecievedMessage(originalMessage);
         this.originalMessage = originalMessage;
         this.channelManager = msbContext.getChannelManager();
+        this.messageFactory = msbContext.getMessageFactory();
+        this.messageBuilder = messageFactory.createResponseMessageBuilder(config, originalMessage);
     }
 
     public void sendAck(Integer timeoutMs, Integer responsesRemaining,
             TwoArgsEventHandler<Message, Exception> callback) {
-        this.ackBuilder.setTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
-        this.ackBuilder.setResponsesRemaining(responsesRemaining == null ? 1 : responsesRemaining);
+        AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
+        ackBuilder.setTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
+        ackBuilder.setResponsesRemaining(responsesRemaining == null ? 1 : responsesRemaining);
 
-        MessageBuilder ackMessage = this.messageFactory.createAckMessage(originalMessage, ackBuilder.build());
-        sendMessage(ackMessage, callback);
-    }
-
-    public void send(Payload responsePayload, TwoArgsEventHandler<Message, Exception> callback) {
-        this.ackBuilder.setResponsesRemaining(-1);
-        MessageBuilder message = this.messageFactory.createResponseMessage(originalMessage, ackBuilder.build(), responsePayload);
+        Message message = this.messageFactory.createResponseMessage(this.messageBuilder, ackBuilder.build(), null);
         sendMessage(message, callback);
     }
 
-    private void sendMessage(MessageBuilder message, TwoArgsEventHandler<Message, Exception> callback) {
-        this.responseMessage = this.messageFactory.completeMeta(message, metaBuilder);
+    public void send(Payload responsePayload, TwoArgsEventHandler<Message, Exception> callback) {
+        AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
+        ackBuilder.setResponsesRemaining(-1);
 
-        Producer producer = channelManager.findOrCreateProducer(responseMessage.getTopics().getTo());
-        LOG.debug("Publishing message to topic : {}", responseMessage.getTopics().getTo());
-        producer.publish(responseMessage, callback);
+        Message message = this.messageFactory.createResponseMessage(this.messageBuilder, ackBuilder.build(), responsePayload);
+        sendMessage(message, callback);
+    }
+
+    private void sendMessage(Message message, TwoArgsEventHandler<Message, Exception> callback) {
+        this.responseMessage = message;
+        Producer producer = channelManager.findOrCreateProducer(message.getTopics().getTo());
+        LOG.debug("Publishing message to topic : {}", message.getTopics().getTo());
+        producer.publish(message, callback);
+    }
+
+    private void validateRecievedMessage(Message originalMessage) {
+        Validate.notNull(originalMessage, "the 'originalMessage' must not be null");
+        Validate.notNull(originalMessage.getTopics(), "the 'originalMessage.topics' must not be null");
     }
 
     public Message getOriginalMessage() {
@@ -66,5 +70,5 @@ public class Responder {
     Message getResponseMessage() {
         return responseMessage;
     }
-    
+
 }

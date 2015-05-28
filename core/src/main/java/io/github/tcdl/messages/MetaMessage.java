@@ -31,22 +31,17 @@ public final class MetaMessage {
 
     public static class MetaMessageBuilder {
         private Integer ttl;
-        private Date createdAt;
-        private Long durationMs;
+        private Date createdAt;      
         private ServiceDetails serviceDetails;
 
         public MetaMessageBuilder(Integer ttl, Date createdAt, ServiceDetails serviceDetails) {
             this.ttl = ttl;
             this.createdAt = createdAt;
             this.serviceDetails = serviceDetails;
-        }
-
-        public MetaMessageBuilder computeDurationMs() {
-            this.durationMs = new Date().getTime() - this.createdAt.getTime();
-            return this;
-        }
+        }     
 
         public MetaMessage build() {
+            Long durationMs = new Date().getTime() - this.createdAt.getTime();
             return new MetaMessage(ttl, createdAt, durationMs, serviceDetails);
         }
     }

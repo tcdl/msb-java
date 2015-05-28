@@ -4,10 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
-import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
-import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
 import io.github.tcdl.support.TestUtils;
@@ -20,9 +17,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 
 /**
  * Created by rdro on 4/30/2015.

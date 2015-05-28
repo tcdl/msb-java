@@ -1,11 +1,14 @@
 package io.github.tcdl.messages;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.*;
-import org.apache.commons.lang3.Validate;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS;
+import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
+
+import org.apache.commons.lang3.Validate;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Created by rdro on 4/22/2015.
@@ -45,7 +48,7 @@ public final class Message {
         private String id;
         private String correlationId;
         private Topics topics;
-        private MetaMessage meta;
+        private MetaMessageBuilder metaBuilder;
         private Acknowledge ack;
         private Payload payload;
 
@@ -64,8 +67,8 @@ public final class Message {
             return this;
         }
 
-        public MessageBuilder setMeta(MetaMessage meta) {
-            this.meta = meta;
+        public MessageBuilder setMetaBuilder(MetaMessageBuilder metaBuilder) {
+            this.metaBuilder = metaBuilder;
             return this;
         }
 
@@ -80,7 +83,7 @@ public final class Message {
         }
 
         public Message build() {
-            return new Message(id, correlationId, topics, meta, ack, payload);
+            return new Message(id, correlationId, topics, metaBuilder.build(), ack, payload);
         }
     }
 
