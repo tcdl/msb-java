@@ -4,6 +4,7 @@ import io.github.tcdl.MsbContext;
 import io.github.tcdl.ResponderServer;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.monitor.DefaultChannelMonitorAgent;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,6 +24,8 @@ public class DateExtractor {
     public static void main(String... args) {
 
         MsbContext msbContext = new MsbContext.MsbContextBuilder().build();
+        DefaultChannelMonitorAgent.start(msbContext);
+
         MsbMessageOptions options = new MsbMessageOptions();
         options.setNamespace("search:parsers:facets:v1");
 

@@ -5,6 +5,8 @@ import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.messages.MessageFactory;
 
+import java.time.Clock;
+
 /**
  * Contains all singletone beans required for MSB
  *
@@ -15,11 +17,13 @@ public class MsbContext {
     private MsbConfigurations msbConfig;
     private MessageFactory messageFactory;
     private ChannelManager channelManager;
+    private Clock clock;
 
-    public MsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory, ChannelManager channelManager) {
+    public MsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory, ChannelManager channelManager, Clock clock) {
         this.msbConfig = msbConfig;
         this.messageFactory = messageFactory;
         this.channelManager = channelManager;
+        this.clock = clock;
     }
 
     public MsbConfigurations getMsbConfig() {
@@ -46,14 +50,23 @@ public class MsbContext {
         this.channelManager = channelManager;
     }
 
+    public Clock getClock() {
+        return clock;
+    }
+
+    public void setClock(Clock clock) {
+        this.clock = clock;
+    }
+
     public static class MsbContextBuilder {
         public MsbContext build() {
             Config config = ConfigFactory.load();
             MsbConfigurations msbConfig = new MsbConfigurations(config);
             ChannelManager channelManager = new ChannelManager(msbConfig);
             MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails());
+            Clock clock = Clock.systemDefaultZone();
 
-            return new MsbContext(msbConfig, messageFactory, channelManager);
+            return new MsbContext(msbConfig, messageFactory, channelManager, clock);
         }
     }
 }

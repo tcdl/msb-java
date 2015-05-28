@@ -55,6 +55,16 @@ public class MessageFactory {
         return messageBuilder.setTopics(new Topics.TopicsBuilder().setTo(originalMessage.getTopics().getResponse()).build());
     }
 
+    public MessageBuilder createBroadcastMessage(String topicTo, Payload payload) {
+        MessageBuilder messageBuilder = createBaseMessage(null);
+        Topics topics = new Topics.TopicsBuilder().setTo(topicTo).build();
+
+        messageBuilder.setTopics(topics);
+        messageBuilder.setPayload(payload);
+
+        return messageBuilder;
+    }
+
     private MessageBuilder createBaseMessage(@Nullable Message originalMessage) {
         MessageBuilder baseMessage = new Message.MessageBuilder()
                 .setId(Utils.generateId())

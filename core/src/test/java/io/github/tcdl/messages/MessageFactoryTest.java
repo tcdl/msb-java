@@ -184,4 +184,19 @@ public class MessageFactoryTest {
 
         assertTrue(message.getMeta().getDurationMs().intValue() - delay < 10);
     }
+
+    @Test
+    public void testBroadcastMessage() {
+        String topic = "topic:target";
+
+        Payload broadcastPayload = TestUtils.createSimpleBroadcastPayload();
+        MetaMessageBuilder metaBuilder = messageFactory.createMeta(messageOptions);
+        MessageBuilder messageBuilder = messageFactory.createBroadcastMessage(topic, broadcastPayload);
+
+        Message message = messageFactory.completeMeta(messageBuilder, metaBuilder);
+
+        assertEquals(topic, message.getTopics().getTo());
+        assertNull(message.getTopics().getResponse());
+        assertEquals(broadcastPayload, message.getPayload());
+    }
 }

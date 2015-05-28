@@ -1,22 +1,6 @@
 package io.github.tcdl.support;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import io.github.tcdl.exception.JsonConversionException;
-import io.github.tcdl.exception.JsonSchemaValidationException;
-
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.text.SimpleDateFormat;
-import java.util.UUID;
-import java.util.regex.Pattern;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,6 +10,19 @@ import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import io.github.tcdl.exception.JsonConversionException;
+import io.github.tcdl.exception.JsonSchemaValidationException;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.text.SimpleDateFormat;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * Created by rdro on 4/22/2015.
@@ -33,6 +30,9 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory;
 public class Utils {
 
     public static final Logger LOG = LoggerFactory.getLogger(Utils.class);
+
+    public static final String TOPIC_ANNOUNCE = "_channels:announce";
+    public static final String TOPIC_HEARTBEAT = "_channels:heartbeat";
 
     private final static Pattern VALID_TOPIC_REGEXP = Pattern.compile("^_?([a-z0-9\\-]+\\:)+([a-z0-9\\-]+)$");
     private final static SimpleDateFormat JSON_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -104,5 +104,9 @@ public class Utils {
         } catch (IOException | ProcessingException e) {
             throw new JsonSchemaValidationException(e.getMessage());
         }
+    }
+
+    public static boolean isServiceTopic(String topic) {
+        return topic.charAt(0) == '_';
     }
 }

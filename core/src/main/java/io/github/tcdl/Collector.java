@@ -1,15 +1,11 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.events.Event.ACKNOWLEDGE_EVENT;
-import static io.github.tcdl.events.Event.END_EVENT;
-import static io.github.tcdl.events.Event.MESSAGE_EVENT;
-import static io.github.tcdl.events.Event.PAYLOAD_EVENT;
-import static io.github.tcdl.events.Event.RESPONSE_EVENT;
-import static io.github.tcdl.support.Utils.ifNull;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -20,8 +16,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Predicate;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static io.github.tcdl.events.Event.ACKNOWLEDGE_EVENT;
+import static io.github.tcdl.events.Event.END_EVENT;
+import static io.github.tcdl.events.Event.MESSAGE_EVENT;
+import static io.github.tcdl.events.Event.PAYLOAD_EVENT;
+import static io.github.tcdl.events.Event.RESPONSE_EVENT;
+import static io.github.tcdl.support.Utils.ifNull;
 
 /**
  * Created by rdro on 4/23/2015.

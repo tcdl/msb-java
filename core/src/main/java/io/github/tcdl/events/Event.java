@@ -1,15 +1,10 @@
 package io.github.tcdl.events;
 
 /**
- * Created by rdro on 4/23/2015.
+ * @author rdro
+ * @since 4/23/2015
  */
 public enum Event {
-
-    PRODUCER_NEW_TOPIC_EVENT("newProducerOnTopic"),
-    PRODUCER_NEW_MESSAGE_EVENT("newProducedMessage"),
-    CONSUMER_NEW_TOPIC_EVENT("newConsumerOnTopic"),
-    CONSUMER_REMOVED_TOPIC_EVENT("removedConsumerOnTopic"),
-    CONSUMER_NEW_MESSAGE_EVENT("newConsumedMessage"),
 
     MESSAGE_EVENT("message"),
     ACKNOWLEDGE_EVENT("ack"),
