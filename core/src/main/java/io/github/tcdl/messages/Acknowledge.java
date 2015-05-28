@@ -43,6 +43,14 @@ public final class Acknowledge {
             return this;
         }
 
+        public Integer getResponsesRemaining() {
+            return responsesRemaining;
+        }
+
+        public Integer getTimeoutMs() {
+            return timeoutMs;
+        }
+
         public Acknowledge build() {
             return new Acknowledge(responderId, responsesRemaining, timeoutMs);
         }
