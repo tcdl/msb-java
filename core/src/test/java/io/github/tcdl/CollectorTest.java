@@ -300,7 +300,7 @@ public class CollectorTest {
         onMessageCaptur.getValue().onEvent(messageSetResponsesRemaining);
 
         //give extra time for processing scheduled end() task
-        assertTrue(endEventFired.await(timeoutMs + 100, TimeUnit.MILLISECONDS));
+        assertTrue(endEventFired.await(timeoutMs + 200, TimeUnit.MILLISECONDS));
         verify(channelManagerMock).removeConsumer(TOPIC);
     }
 
