@@ -10,7 +10,7 @@ import static org.mockito.Mockito.*;
 public class CliMessageHandlerTest {
     @Test
     public void testSubscriptionToResponseQueue() {
-        CliMessageHandlerSubscriber subscriber = mock(CliMessageHandlerSubscriber.class);
+        CliMessageHandlerSubscriber subscriber = Mockito.mock(CliMessageHandlerSubscriber.class);
 
         CliMessageHandler handler = new CliMessageHandler(subscriber, true, Collections.singletonList("response"));
         handler.onMessage(
@@ -20,12 +20,12 @@ public class CliMessageHandlerTest {
                         + "  }}"
         );
 
-        verify(subscriber).subscribe("search:parsers:facets:v1:response:3c3dec275b326c6500010843", handler);
+        Mockito.verify(subscriber).subscribe("search:parsers:facets:v1:response:3c3dec275b326c6500010843", handler);
     }
 
     @Test
     public void testNoSubscriptionIfMissingResponseQueue() {
-        CliMessageHandlerSubscriber subscriber = mock(CliMessageHandlerSubscriber.class);
+        CliMessageHandlerSubscriber subscriber = Mockito.mock(CliMessageHandlerSubscriber.class);
 
         CliMessageHandler handler = new CliMessageHandler(subscriber, true, Collections.singletonList("response"));
         handler.onMessage(
@@ -39,7 +39,7 @@ public class CliMessageHandlerTest {
 
     @Test
     public void testNoSubscriptionIfNullResponseQueue() {
-        CliMessageHandlerSubscriber subscriber = mock(CliMessageHandlerSubscriber.class);
+        CliMessageHandlerSubscriber subscriber = Mockito.mock(CliMessageHandlerSubscriber.class);
 
         CliMessageHandler handler = new CliMessageHandler(subscriber, true, Collections.singletonList("response"));
         handler.onMessage(
@@ -54,7 +54,7 @@ public class CliMessageHandlerTest {
 
     @Test
     public void testSubscriptionNonExistingQueue() {
-        CliMessageHandlerSubscriber subscriber = mock(CliMessageHandlerSubscriber.class);
+        CliMessageHandlerSubscriber subscriber = Mockito.mock(CliMessageHandlerSubscriber.class);
         CliMessageHandler handler = new CliMessageHandler(subscriber, true, Collections.singletonList("response"));
 
         Mockito.doThrow(new RuntimeException()).when(subscriber).subscribe("non-existent-queue", handler);
