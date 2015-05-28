@@ -47,7 +47,7 @@ public class Consumer {
 
             try {
                 if (msbConfig.getSchema() != null
-                        && !isServiceChannel(topic)) {
+                        && !Utils.isServiceTopic(topic)) {
                     Utils.validateJsonWithSchema(jsonMessage,
                             msbConfig.getSchema());
                 }
@@ -67,9 +67,5 @@ public class Consumer {
     public void end() {
         LOG.debug("Shutting down consumer for topic {}", topic);
         rawAdapter.unsubscribe();
-    }
-
-    private boolean isServiceChannel(String topic) {
-        return topic.charAt(0) == '_';
     }
 }

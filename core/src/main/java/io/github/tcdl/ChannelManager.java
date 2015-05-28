@@ -1,39 +1,44 @@
 package io.github.tcdl;
 
 import io.github.tcdl.adapters.Adapter;
-import io.github.tcdl.adapters.AdapterFactoryLoader;
 import io.github.tcdl.adapters.AdapterFactory;
+import io.github.tcdl.adapters.AdapterFactoryLoader;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.events.EventEmitterImpl;
 import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.monitor.ChannelMonitorAgent;
+import io.github.tcdl.monitor.NoopChannelMonitorAgent;
 import io.github.tcdl.support.Utils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.time.DateUtils;
 
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.time.DateUtils;
-
-import static io.github.tcdl.events.Event.*;
+import static io.github.tcdl.events.Event.ERROR_EVENT;
+import static io.github.tcdl.events.Event.MESSAGE_EVENT;
 
 /**
  * ChannelManager creates consumers or producers on demand
  */
 public class ChannelManager extends EventEmitterImpl {
-
+    
+    private MsbConfigurations msbConfig;
     private AdapterFactory adapterFactory;
+    private ChannelMonitorAgent channelMonitorAgent;
+
     private Map<String, Producer> producersByTopic;
     private Map<String, Consumer> consumersByTopic;
-
-    private MsbConfigurations msbConfig;
 
     public ChannelManager(MsbConfigurations msbConfig) {
         this.msbConfig = msbConfig;
         this.adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
         this.producersByTopic = new ConcurrentHashMap<>();
         this.consumersByTopic = new ConcurrentHashMap<>();
+
+        channelMonitorAgent = new NoopChannelMonitorAgent();
     }
 
     public Producer findOrCreateProducer(final String topic) {
@@ -43,7 +48,7 @@ public class ChannelManager extends EventEmitterImpl {
             producer = createProducer(topic);
             producersByTopic.put(topic, producer);
 
-            emit(PRODUCER_NEW_TOPIC_EVENT, topic);
+            channelMonitorAgent.producerTopicCreated(topic);
         }
 
         return producer;
@@ -57,16 +62,10 @@ public class ChannelManager extends EventEmitterImpl {
             consumersByTopic.put(topic, consumer);
             consumer.subscribe();
 
-            emit(CONSUMER_NEW_TOPIC_EVENT, topic);
+            channelMonitorAgent.consumerTopicCreated(topic);
         }
 
         return consumer;
-    }
-
-    public void removeProducer(String topic) {
-        if (topic == null || !producersByTopic.containsKey(topic))
-            return;
-        producersByTopic.remove(topic);
     }
 
     public void removeConsumer(String topic) {
@@ -77,14 +76,14 @@ public class ChannelManager extends EventEmitterImpl {
         consumer.end();
         consumersByTopic.remove(topic);
 
-        emit(CONSUMER_REMOVED_TOPIC_EVENT, topic);
+        channelMonitorAgent.consumerTopicRemoved(topic);
     }
 
     private Producer createProducer(String topic) {
         Utils.validateTopic(topic);
 
         Adapter adapter = getAdapterFactory().createAdapter(topic);
-        TwoArgsEventHandler<Message, Exception> handler = (message, exception) -> emit(PRODUCER_NEW_MESSAGE_EVENT, topic);
+        TwoArgsEventHandler<Message, Exception> handler = (message, exception) -> channelMonitorAgent.producerMessageSent(topic);
         return new Producer(adapter, topic, handler);
     }
 
@@ -100,7 +99,7 @@ public class ChannelManager extends EventEmitterImpl {
 
             if (isMessageExpired(message))
                 return;
-            emit(CONSUMER_NEW_MESSAGE_EVENT, topic);
+            channelMonitorAgent.consumerMessageReceived(topic);
             emit(MESSAGE_EVENT, message);
         };
 
@@ -116,5 +115,9 @@ public class ChannelManager extends EventEmitterImpl {
     
     private AdapterFactory getAdapterFactory() {
         return this.adapterFactory;
+    }
+
+    public void setChannelMonitorAgent(ChannelMonitorAgent channelMonitorAgent) {
+        this.channelMonitorAgent = channelMonitorAgent;
     }
 }

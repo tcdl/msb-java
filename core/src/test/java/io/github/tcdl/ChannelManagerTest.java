@@ -1,147 +1,113 @@
 package io.github.tcdl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.support.TestUtils;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import javax.xml.ws.Holder;
-
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.xml.ws.Holder;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
 /**
- * Created by rdro on 4/24/2015.
+ * @author rdro
+ * @since 4/24/2015
  */
 public class ChannelManagerTest {
 
-    private MsbMessageOptions config;
     private ChannelManager channelManager;
-    private MsbConfigurations msbConfig;
+    private ChannelMonitorAgent mockChannelMonitorAgent;
 
     @Before
     public void setUp() {
-        this.config = TestUtils.createSimpleConfig();
-        this.msbConfig = TestUtils.createMsbConfigurations();
+        MsbConfigurations msbConfig = TestUtils.createMsbConfigurations();
         this.channelManager = new ChannelManager(msbConfig);
-    }
 
-    @After
-    public void cleanUp() {
-        channelManager.removeProducer(config.getNamespace());
-    }
-
-    @Test
-    public void testFindOrCreateProducer() throws InterruptedException {
-        CountDownLatch producerNewTopicEventFired = new CountDownLatch(1);
-        final Holder<String> topicName = new Holder<>();
-
-        channelManager.on(Event.PRODUCER_NEW_TOPIC_EVENT, (String topic) -> {
-            producerNewTopicEventFired.countDown();
-            topicName.value = topic;
-        });
-
-        String topic = config.getNamespace();
-        channelManager.removeProducer(topic);
-        Producer producer = channelManager.findOrCreateProducer(topic);
-
-        assertNotNull(producer);
-        assertTrue(producerNewTopicEventFired.await(100, TimeUnit.MILLISECONDS));
-        assertEquals(topic, topicName.value);
+        mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
+        channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);
     }
 
     @Test
-    public void testFindOrCreateConsumer() throws Exception {
-        CountDownLatch consumerNewTopicEventFired = new CountDownLatch(1);
-        final Holder<String> topicName = new Holder<>();
+    public void testProducerCached() {
+        String topic = "topic:test";
 
-        channelManager.on(Event.CONSUMER_NEW_TOPIC_EVENT, (String topic) -> {
-            consumerNewTopicEventFired.countDown();
-            topicName.value = topic;
-        });
+        // Producer was created and monitor agent notified
+        Producer producer1 = channelManager.findOrCreateProducer(topic);
+        assertNotNull(producer1);
+        verify(mockChannelMonitorAgent).producerTopicCreated(topic);
 
-        String topic = config.getNamespace();
+        // Cached producer was removed and monitor agent wasn't notified
+        Producer producer2 = channelManager.findOrCreateProducer(topic);
+        assertNotNull(producer2);
+        assertSame(producer1, producer2);
+        verifyNoMoreInteractions(mockChannelMonitorAgent);
+    }
+
+    @Test
+    public void testConsumerCached() throws Exception {
+        String topic = "topic:test";
+
+        Consumer consumer1 = channelManager.findOrCreateConsumer(topic);
+        assertNotNull(consumer1);
+        verify(mockChannelMonitorAgent).consumerTopicCreated(topic);
+
+        Consumer consumer2 = channelManager.findOrCreateConsumer(topic);
+        assertNotNull(consumer2);
+        assertSame(consumer1, consumer2);
+        verifyNoMoreInteractions(mockChannelMonitorAgent);
+    }
+
+    @Test
+    public void testRemoveConsumer() {
+        String topic = "topic:test";
+
         channelManager.removeConsumer(topic);
-        Consumer consumer = channelManager.findOrCreateConsumer(topic);
+        verify(mockChannelMonitorAgent, never()).consumerTopicRemoved(topic);
 
-        assertNotNull(consumer);
-        assertTrue(consumerNewTopicEventFired.await(100, TimeUnit.MILLISECONDS));
-        assertEquals(topic, topicName.value);
-    }
-
-    @Test
-    public void testRemoveConsumer() throws InterruptedException {
-        CountDownLatch consumerRemovedTopicEventFired = new CountDownLatch(1);      
-        final Holder<String> topicName = new Holder<>();
-
-        channelManager.on(Event.CONSUMER_REMOVED_TOPIC_EVENT, (String topic) -> {
-            consumerRemovedTopicEventFired.countDown();
-            topicName.value = topic;
-        });
-
-        String topic = config.getNamespace();
-        channelManager.findOrCreateConsumer(topic);
+        channelManager.findOrCreateConsumer(topic); // force creation of the consumer
         channelManager.removeConsumer(topic);
-
-        assertTrue(consumerRemovedTopicEventFired.await(100, TimeUnit.MILLISECONDS));
-        assertEquals(topic, topicName.value);
+        verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
     }
 
     @Test
-    public void testProducerNewMessageEventOnPublishMessage() throws InterruptedException {
-        CountDownLatch producerNewMessageEventFired = new CountDownLatch(1); 
-        final Holder<String> topicName = new Holder<>();
+    public void testPublishMessageInvokesAgent() {
+        String topic = "topic:test";
 
-        channelManager.on(Event.PRODUCER_NEW_MESSAGE_EVENT, (String topic) -> {
-            producerNewMessageEventFired.countDown();
-            topicName.value = topic;
-        });
-
-        String topic = config.getNamespace();
         Producer producer = channelManager.findOrCreateProducer(topic);
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
         producer.publish(message, null);
 
-        assertTrue(producerNewMessageEventFired.await(100, TimeUnit.MILLISECONDS));
-        assertEquals(topic, topicName.value);
+        verify(mockChannelMonitorAgent).producerMessageSent(topic);
     }
 
-
     @Test
-    public void testConsumerNewMessageEventOnReceiveMessage() throws InterruptedException {
-        CountDownLatch awaitRecieveEvents = new CountDownLatch(2);
-        final Holder<Boolean> consumerNewMessageEventFired = new Holder<>();
-        final Holder<String> topicName = new Holder<>();
+    public void testReceiveMessageInvokesAgentAndEmitsEvent() throws InterruptedException {
+        String topic = "topic:test";
+
+        CountDownLatch awaitReceiveEvents = new CountDownLatch(1);
         final Holder<Message> messageEvent = new Holder<>();
-
-        channelManager.on(Event.CONSUMER_NEW_MESSAGE_EVENT, (String topic) -> {
-            consumerNewMessageEventFired.value = true;
-            topicName.value = topic;
-            awaitRecieveEvents.countDown();
-        });
-
         channelManager.on(Event.MESSAGE_EVENT, (Message message) -> {
             messageEvent.value = message;
-            awaitRecieveEvents.countDown();
+            awaitReceiveEvents.countDown();
         });
 
-        String topic = config.getNamespace();
-
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
-        channelManager.findOrCreateProducer(config.getNamespace()).publish(message, null);
+        channelManager.findOrCreateProducer(topic).publish(message, null);
         channelManager.findOrCreateConsumer(topic);
 
-        assertTrue(awaitRecieveEvents.await(3000, TimeUnit.MILLISECONDS));
-        assertTrue(consumerNewMessageEventFired.value);
-        assertEquals(topic, topicName.value);
+        assertTrue(awaitReceiveEvents.await(3000, TimeUnit.MILLISECONDS));
+        verify(mockChannelMonitorAgent).consumerMessageReceived(topic);
         assertNotNull(messageEvent.value);
     }
 }

@@ -8,6 +8,7 @@ import io.github.tcdl.messages.*;
 import io.github.tcdl.messages.payload.Payload;
 
 import java.lang.reflect.Method;
+import java.time.Clock;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +26,8 @@ public class TestUtils {
         MsbConfigurations msbConfig = TestUtils.createMsbConfigurations();
         ChannelManager channelManager = new ChannelManager(msbConfig);
         MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails());
-        MsbContext msbContext = new MsbContext(msbConfig, messageFactory, channelManager);
+        Clock clock = Clock.systemDefaultZone();
+        MsbContext msbContext = new MsbContext(msbConfig, messageFactory, channelManager, clock);
 
         return msbContext;
     }
@@ -114,6 +116,10 @@ public class TestUtils {
         body.put("body", "someRequestBody");
 
         return new Payload.PayloadBuilder().setBody(body).setHeaders(headers).build();
+    }
+
+    public static Payload createSimpleBroadcastPayload() {
+        return createSimpleRequestPayload();
     }
 
     public static Payload createSimpleResponsePayload() {

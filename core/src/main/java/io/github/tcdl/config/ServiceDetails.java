@@ -64,6 +64,9 @@ public final class ServiceDetails {
             pid = getPID();
         }
 
+        public ServiceDetailsBuilder() {
+        }
+
         public ServiceDetails build() {
             return new ServiceDetails(name, version, instanceId, hostname, ip, pid);
         }

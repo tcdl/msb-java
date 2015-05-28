@@ -1,6 +1,5 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.events.Event.RESPONDER_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.events.SingleArgEventHandler;
@@ -8,11 +7,13 @@ import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
+import io.github.tcdl.support.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static io.github.tcdl.events.Event.RESPONDER_EVENT;
 
 /**
  * Created by rdro on 4/29/2015.
@@ -49,6 +50,13 @@ public class ResponderServer {
         ChannelManager channelManager = msbContext.getChannelManager();
 
         channelManager.on(Event.MESSAGE_EVENT, (Message message) -> {
+            if (Utils.isServiceTopic(message.getTopics().getTo())) {
+                /* FIXME this is a hack to prevent consuming of service messages by
+                middleware chain.
+                Should be removed once this handler will be subscribed to specific topic
+                and not on the shared channel manager */
+                return;
+            }
             Responder responder = new Responder(messageOptions, message, msbContext);
             channelManager.emit(RESPONDER_EVENT, responder);
             onResponder.onEvent(responder);
