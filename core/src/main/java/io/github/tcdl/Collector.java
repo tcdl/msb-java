@@ -125,7 +125,7 @@ public class Collector {
     protected void end() {
         LOG.debug("End");
         cancel();
-        channelManager.emit(END_EVENT);
+        channelManager.emit(END_EVENT, payloadMessages);
     }
 
     protected void enableTimeout() {

@@ -1,11 +1,5 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.events.Event.CONSUMER_NEW_MESSAGE_EVENT;
-import static io.github.tcdl.events.Event.CONSUMER_NEW_TOPIC_EVENT;
-import static io.github.tcdl.events.Event.CONSUMER_REMOVED_TOPIC_EVENT;
-import static io.github.tcdl.events.Event.MESSAGE_EVENT;
-import static io.github.tcdl.events.Event.PRODUCER_NEW_MESSAGE_EVENT;
-import static io.github.tcdl.events.Event.PRODUCER_NEW_TOPIC_EVENT;
 import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.adapters.AdapterFactoryLoader;
 import io.github.tcdl.adapters.AdapterFactory;
@@ -21,6 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateUtils;
+
+import static io.github.tcdl.events.Event.*;
 
 /**
  * ChannelManager creates consumers or producers on demand
@@ -98,6 +94,10 @@ public class ChannelManager extends EventEmitterImpl {
         Adapter adapter = getAdapterFactory().createAdapter(topic);
 
         TwoArgsEventHandler<Message, Exception> handler = (message, exception) -> {
+            if (exception != null) {
+                emit(ERROR_EVENT, exception);
+            }
+
             if (isMessageExpired(message))
                 return;
             emit(CONSUMER_NEW_MESSAGE_EVENT, topic);

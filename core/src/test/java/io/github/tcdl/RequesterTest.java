@@ -172,7 +172,7 @@ public class RequesterTest {
         requester.onEnd(args -> {
         });
 
-        verify(channelManagerMock).on(eq(Event.END_EVENT), any(GenericEventHandler.class));
+        verify(channelManagerMock).on(eq(Event.END_EVENT), any(SingleArgEventHandler.class));
     }
 
     @Test

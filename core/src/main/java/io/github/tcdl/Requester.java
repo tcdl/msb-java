@@ -1,27 +1,26 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.events.Event.ERROR_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
-import io.github.tcdl.events.GenericEventHandler;
-import io.github.tcdl.events.SingleArgEventHandler;
-import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
-
-import java.util.Objects;
-
-import javax.annotation.Nullable;
-
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Objects;
+
+import static io.github.tcdl.events.Event.ERROR_EVENT;
+
 /**
+ * Requester is a component which sends a request message to the bus and collects responses
+ *
  * Created by rdro on 4/27/2015.
  */
 public class Requester {
@@ -34,6 +33,12 @@ public class Requester {
     private MetaMessageBuilder metaBuilder;
     private MessageBuilder messageBuilder;
 
+    /**
+     * Creates a new instance of a requester
+     * @param config message options to construct a message
+     * @param originalMessage original message (to take correlation id from)
+     * @param context context which contains MSB related beans
+     */
     public Requester(MsbMessageOptions config, Message originalMessage, MsbContext context) {
         Validate.notNull(config, "the 'config' must not be null");
         this.collector = new Collector(config, context.getChannelManager(), context.getMsbConfig());
@@ -42,6 +47,10 @@ public class Requester {
         this.messageBuilder = messageFactory.createRequestMessage(config, originalMessage);
     }
 
+    /**
+     * Wraps a payload with message meta and sends to the bus
+     * @param requestPayload
+     */
     public void publish(@Nullable Payload requestPayload) {
         if (requestPayload != null) {
             messageBuilder.setPayload(requestPayload);
@@ -58,23 +67,43 @@ public class Requester {
                 .publish(this.message, this::handleMessage);
     }
 
-    public Requester onAcknowledge(SingleArgEventHandler<Acknowledge> acknowledgeHandler) {
-        collector.getChannelManager().on(Event.ACKNOWLEDGE_EVENT, acknowledgeHandler);
+    /**
+     * Registers a callback to be called when acknowledge message received
+     * @param acknowledgeHandler callback
+     * @return requester
+     */
+    public Requester onAcknowledge(Callback<Acknowledge> acknowledgeHandler) {
+        collector.getChannelManager().on(Event.ACKNOWLEDGE_EVENT, acknowledgeHandler::call);
         return this;
     }
 
-    public Requester onResponse(SingleArgEventHandler<Payload> responseHandler) {
-        collector.getChannelManager().on(Event.RESPONSE_EVENT, responseHandler);
+    /**
+     * Registers a callback to be called when response message received
+     * @param responseHandler callback
+     * @return requester
+     */
+    public Requester onResponse(Callback<Payload> responseHandler) {
+        collector.getChannelManager().on(Event.RESPONSE_EVENT, responseHandler::call);
         return this;
     }
 
-    public Requester onEnd(GenericEventHandler endHandler) {
-        collector.getChannelManager().on(Event.END_EVENT, endHandler);
+    /**
+     * Registers a callback to be called when all responses collected
+     * @param endHandler callback
+     * @return requester
+     */
+    public Requester onEnd(Callback<List<Message>> endHandler) {
+        collector.getChannelManager().on(Event.END_EVENT, endHandler::call);
         return this;
     }
 
-    public Requester onError(SingleArgEventHandler<Exception> errorHandler) {
-        collector.getChannelManager().on(Event.ERROR_EVENT, errorHandler);
+    /**
+     * Registers a callback to be called if error happened while collecting responses
+     * @param errorHandler callback
+     * @return requester
+     */
+    public Requester onError(Callback<Exception> errorHandler) {
+        collector.getChannelManager().on(Event.ERROR_EVENT, errorHandler::call);
         return this;
     }
 
