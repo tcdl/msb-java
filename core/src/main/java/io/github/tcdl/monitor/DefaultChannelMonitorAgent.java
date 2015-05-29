@@ -23,8 +23,9 @@ import java.util.Map;
  * This implementation maintains statistics over all topics. It broadcasts that statistics over the bus for special monitoring microservices. The overall
  * process consists of the following steps:
  *
- * 1. The agent sends an announcement message each time when a new consumer or producer is created for some topic 2. The agent listens on special heartbeat
- * topic for periodic heartbeat messages 3. The agent sends the current statistics in response to the heartbeat.
+ * 1. The agent sends an announcement message each time when a new consumer or producer is created for some topic
+ * 2. The agent listens on special heartbeat topic for periodic heartbeat messages
+ * 3. The agent sends the current statistics in response to the heartbeat.
  */
 public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
     private MsbContext msbContext;
@@ -158,7 +159,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
 
         Producer producer = channelManager.findOrCreateProducer(TOPIC_ANNOUNCE);
 
-        MessageBuilder messageBuilder = messageFactory.createBroadcastMessage(new MsbMessageOptions(), TOPIC_ANNOUNCE, payload);
+        MessageBuilder messageBuilder = messageFactory.createBroadcastMessageBuilder(new MsbMessageOptions(), TOPIC_ANNOUNCE, payload);
         Message announcementMessage = messageBuilder.build();
 
         producer.publish(announcementMessage, null);

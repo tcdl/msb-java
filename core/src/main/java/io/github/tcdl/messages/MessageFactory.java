@@ -27,19 +27,19 @@ public class MessageFactory {
     }
 
     public MessageBuilder createRequestMessageBuilder(MsbMessageOptions config, Message originalMessage) {
-        MessageBuilder messageBuilder = createMesageBuilderWithMeta(config, originalMessage);
+        MessageBuilder messageBuilder = createMessageBuilderWithMeta(config, originalMessage);
         Topics topic = new Topics.TopicsBuilder().setTo(config.getNamespace())
                 .setResponse(config.getNamespace() + ":response:" + this.serviceDetails.getInstanceId()).build();
         return messageBuilder.setTopics(topic);
     }
 
     public MessageBuilder createResponseMessageBuilder(MsbMessageOptions config, Message originalMessage) {
-        MessageBuilder messageBuilder = createMesageBuilderWithMeta(config, originalMessage);
+        MessageBuilder messageBuilder = createMessageBuilderWithMeta(config, originalMessage);
         Topics topic = new Topics.TopicsBuilder().setTo(originalMessage.getTopics().getResponse()).build();
         return messageBuilder.setTopics(topic);
     }
 
-    private MessageBuilder createMesageBuilderWithMeta(MsbMessageOptions config, Message originalMessage) {
+    private MessageBuilder createMessageBuilderWithMeta(MsbMessageOptions config, Message originalMessage) {
         MessageBuilder messageBuilder = createBaseMessage(originalMessage);
         MetaMessageBuilder metaBuilder = createMetaBuilder(config);
         return messageBuilder.setMetaBuilder(metaBuilder);
@@ -67,7 +67,7 @@ public class MessageFactory {
         return new MetaMessage.MetaMessageBuilder(ttl, new Date(), this.serviceDetails);
     }
 
-    public MessageBuilder createBroadcastMessage(MsbMessageOptions config, String topicTo, Payload payload) {
+    public MessageBuilder createBroadcastMessageBuilder(MsbMessageOptions config, String topicTo, Payload payload) {
         MessageBuilder messageBuilder = createBaseMessage(null);
         MetaMessageBuilder metaBuilder = createMetaBuilder(config);
         messageBuilder.setMetaBuilder(metaBuilder);
