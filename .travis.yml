@@ -1,6 +1,9 @@
 language: java
 jdk:
-  - oraclejdk8
-# Explicitly mute "install" step. Perform all operations in the following "script" step.
-install: ""
-script: "mvn clean install -B -V"
+- oraclejdk8
+install: ''
+script: mvn clean deploy --settings settings.xml -B -V
+env:
+  global:
+  - secure: EK0DDudj5/Qsvdbx6BTz+TInaqMy8LIgyzq2TZTu73d4fcNTzGD93iACZ29X1VG/aW818sd1byX7fDl2pn34j5q6fVT7KfKAnxdtnKlFqWk8q4FiXjcDYhqH+XxuAO2nkf5Wy+PrpZswcgoCHg7giFSltLldI8SrvXpk4Pro2oA=
+  - secure: FJclhPV7YiRTYNKiaRdV7TWsbghOKxIf+s7pDzCUGZYxTjnc+m56S4LmDEYm3R09KscYz4vDWmmBOX5kchPQF9wDKXjo3RLeKugfE3kmOqbJ6dXIfSuvk9Q/e+ARXmQNWHdve4nKGjPeaw2cvpbeeX1nLz/K5VIJA8cNNqhZ9Ps=
