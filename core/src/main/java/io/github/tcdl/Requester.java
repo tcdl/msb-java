@@ -1,22 +1,22 @@
 package io.github.tcdl;
 
+import static io.github.tcdl.events.Event.ERROR_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
-import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
-import org.apache.commons.lang3.Validate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-import static io.github.tcdl.events.Event.ERROR_EVENT;
+import javax.annotation.Nullable;
+
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Requester is a component which sends a request message to the bus and collects responses
@@ -28,10 +28,9 @@ public class Requester {
     public static final Logger LOG = LoggerFactory.getLogger(Requester.class);
 
     private Collector collector;
-    private MessageFactory messageFactory;
-    private Message message;
-    private MetaMessageBuilder metaBuilder;
+    private MessageFactory messageFactory;  
     private MessageBuilder messageBuilder;
+    private Message message;  
 
     /**
      * Creates a new instance of a requester
@@ -42,9 +41,8 @@ public class Requester {
     public Requester(MsbMessageOptions config, Message originalMessage, MsbContext context) {
         Validate.notNull(config, "the 'config' must not be null");
         this.collector = new Collector(config, context.getChannelManager(), context.getMsbConfig());
-        this.messageFactory = context.getMessageFactory();
-        this.metaBuilder = messageFactory.createMeta(config);
-        this.messageBuilder = messageFactory.createRequestMessage(config, originalMessage);
+        this.messageFactory = context.getMessageFactory();       
+        this.messageBuilder = messageFactory.createRequestMessageBuilder(config, originalMessage);
     }
 
     /**
@@ -52,10 +50,7 @@ public class Requester {
      * @param requestPayload
      */
     public void publish(@Nullable Payload requestPayload) {
-        if (requestPayload != null) {
-            messageBuilder.setPayload(requestPayload);
-        }        
-        this.message = messageFactory.completeMeta(messageBuilder, metaBuilder);
+        this.message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
         if (collector.isWaitForResponses()) {
             collector.listenForResponses(message.getTopics().getResponse(), (responseMessage) ->
