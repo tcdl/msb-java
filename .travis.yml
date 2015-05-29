@@ -1,8 +1,9 @@
 language: java
 jdk:
 - oraclejdk8
-dd:
-- openssl aes-256-cbc -K $encrypted_b346cf4c35c0_key -iv $encrypted_b346cf4c35c0_iv
-  -in settings.xml.enc -out settings.xml -d
-install: ""
-script: "mvn clean deploy --settings target/travis/settings.xml -B -V"
+install: ''
+script: mvn clean deploy --settings settings.xml -B -V
+env:
+  global:
+  - secure: EK0DDudj5/Qsvdbx6BTz+TInaqMy8LIgyzq2TZTu73d4fcNTzGD93iACZ29X1VG/aW818sd1byX7fDl2pn34j5q6fVT7KfKAnxdtnKlFqWk8q4FiXjcDYhqH+XxuAO2nkf5Wy+PrpZswcgoCHg7giFSltLldI8SrvXpk4Pro2oA=
+  - secure: FJclhPV7YiRTYNKiaRdV7TWsbghOKxIf+s7pDzCUGZYxTjnc+m56S4LmDEYm3R09KscYz4vDWmmBOX5kchPQF9wDKXjo3RLeKugfE3kmOqbJ6dXIfSuvk9Q/e+ARXmQNWHdve4nKGjPeaw2cvpbeeX1nLz/K5VIJA8cNNqhZ9Ps=
