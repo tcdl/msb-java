@@ -153,7 +153,7 @@ public class MessageFactoryTest {
         String topic = "topic:target";
 
         Payload broadcastPayload = TestUtils.createSimpleBroadcastPayload();
-        MessageBuilder messageBuilder = messageFactory.createBroadcastMessage(messageOptions, topic, broadcastPayload);
+        MessageBuilder messageBuilder = messageFactory.createBroadcastMessageBuilder(messageOptions, topic, broadcastPayload);
 
         Message message = messageBuilder.build();
 
