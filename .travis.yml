@@ -1,8 +1,6 @@
 language: java
 jdk:
-- oraclejdk8
-install: ''
-script: mvn clean deploy --settings settings.xml.enc -B -V
-dd:
-- openssl aes-256-cbc -K $encrypted_b346cf4c35c0_key -iv $encrypted_b346cf4c35c0_iv
-  -in settings.xml.enc -out settings.xml -d
+  - oraclejdk8
+# Explicitly mute "install" step. Perform all operations in the following "script" step.
+install: ""
+script: "mvn clean install --settings settings.xml -B -V"
