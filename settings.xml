@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<settings xsi:schemaLocation='http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd'
+          xmlns='http://maven.apache.org/SETTINGS/1.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+    <servers>
+    <server>
+      <id>oss-jfrog-msb-java</id>
+      <username>anstr</username>
+      <password>f41VmzciD5JkKjyWx7+vaSnzu89weYw6SvYf3poQ1t2fu4JVKl8TQl0cqXVxp8yS5CkNZdFgLC7KvLwbWkcR+i9FGaMCFpKM+k6jRoZnVz3isNyiQbPEBswzMseWVlhxhJ5OI4o9LOoSsc8SSTplbn3egZnGL3u/qbKcWsMrTGY=</password>
+    </server>
+  </servers>
+
+</settings>
