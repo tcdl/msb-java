@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+
+import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
@@ -28,11 +30,12 @@ public class ResponderServerTest {
     @Test
     public void testResponderServerProcessSuccess() throws Exception {
 
+        MsbMessageOptions messageOptions = TestUtils.createSimpleConfig();
         MsbContext msbContext = TestUtils.createSimpleMsbContext();
         Middleware middleware = (request, responder) -> {};
 
         ResponderServer
-                .create(TestUtils.createSimpleConfig(), msbContext)
+                .create(messageOptions, msbContext)
                 .use(middleware)
                 .listen();
 
@@ -40,7 +43,8 @@ public class ResponderServerTest {
         ArgumentCaptor<Supplier> middlewareCaptor = ArgumentCaptor.forClass(Supplier.class);
 
         ChannelManager channelManager = msbContext.getChannelManager();
-        channelManager.emit(Event.MESSAGE_EVENT, TestUtils.createMsbRequestMessageWithPayloadAndTopicTo("test:responser-server"));
+        channelManager.findOrCreateConsumer(messageOptions.getNamespace())
+            .emit(Event.MESSAGE_EVENT, TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(messageOptions.getNamespace()));
 
         verifyStatic();
         CompletableFuture.supplyAsync(middlewareCaptor.capture());

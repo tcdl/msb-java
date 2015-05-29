@@ -7,13 +7,10 @@ import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
-import io.github.tcdl.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
-
-import static io.github.tcdl.events.Event.RESPONDER_EVENT;
 
 /**
  * Created by rdro on 4/29/2015.
@@ -42,32 +39,20 @@ public class ResponderServer {
     }
 
     public ResponderServer listen() {
-//        if (channelManager != null) {
-//            throw new IllegalStateException("Already listening");
-//        }
-
         String topic = messageOptions.getNamespace();
         ChannelManager channelManager = msbContext.getChannelManager();
 
-        channelManager.on(Event.MESSAGE_EVENT, (Message message) -> {
-            if (Utils.isServiceTopic(message.getTopics().getTo())) {
-                /* FIXME this is a hack to prevent consuming of service messages by
-                middleware chain.
-                Should be removed once this handler will be subscribed to specific topic
-                and not on the shared channel manager */
-                return;
-            }
-            Responder responder = new Responder(messageOptions, message, msbContext);
-            channelManager.emit(RESPONDER_EVENT, responder);
-            onResponder.onEvent(responder);
-        });
+        Consumer consumer = channelManager.findOrCreateConsumer(topic);
 
-        channelManager.findOrCreateConsumer(topic);
+        consumer.on(Event.MESSAGE_EVENT, (Message message) -> {
+            Responder responder = new Responder(messageOptions, message, msbContext);
+            onResponder(responder);
+        });
 
         return this;
     }
 
-    private SingleArgEventHandler<Responder> onResponder = (Responder responder) -> {
+    protected void onResponder (Responder responder) {
             Payload request = responder.getOriginalMessage().getPayload();      
             CompletableFuture.supplyAsync(() ->
                     middlewareChain

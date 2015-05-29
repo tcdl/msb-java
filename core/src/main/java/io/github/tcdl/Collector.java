@@ -1,11 +1,14 @@
 package io.github.tcdl;
 
+import static io.github.tcdl.events.Event.ACKNOWLEDGE_EVENT;
+import static io.github.tcdl.events.Event.END_EVENT;
+import static io.github.tcdl.events.Event.MESSAGE_EVENT;
+import static io.github.tcdl.events.Event.RESPONSE_EVENT;
+import static io.github.tcdl.support.Utils.ifNull;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -16,12 +19,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Predicate;
 
-import static io.github.tcdl.events.Event.ACKNOWLEDGE_EVENT;
-import static io.github.tcdl.events.Event.END_EVENT;
-import static io.github.tcdl.events.Event.MESSAGE_EVENT;
-import static io.github.tcdl.events.Event.PAYLOAD_EVENT;
-import static io.github.tcdl.events.Event.RESPONSE_EVENT;
-import static io.github.tcdl.support.Utils.ifNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by rdro on 4/23/2015.
@@ -82,7 +81,10 @@ public class Collector {
     }
 
     public void listenForResponses(String topic, final Predicate<Message> shouldAcceptMessagePredicate) {
-        channelManager.on(MESSAGE_EVENT, (Message message) -> {
+        Consumer consumer = channelManager.findOrCreateConsumer(topic);
+        this.topic = topic;
+
+        consumer.on(MESSAGE_EVENT, (Message message) -> {
             if (shouldAcceptMessagePredicate != null && !shouldAcceptMessagePredicate.test(message)) {
                 return;
             }
@@ -91,13 +93,12 @@ public class Collector {
             if (message.getPayload() != null) {
                 LOG.debug("Received {}", message.getPayload());
                 payloadMessages.add(message);
-                channelManager.emit(PAYLOAD_EVENT, message.getPayload());
-                channelManager.emit(RESPONSE_EVENT, message.getPayload());
+                consumer.emit(RESPONSE_EVENT, message.getPayload());
                 incResponsesRemaining(-1);
             } else {
                 LOG.debug("Received {}", message.getAck());
                 ackMessages.add(message);
-                channelManager.emit(ACKNOWLEDGE_EVENT, message.getAck());
+                consumer.emit(ACKNOWLEDGE_EVENT, message.getAck());
             }
 
             processAck(message.getAck());
@@ -111,9 +112,6 @@ public class Collector {
 
             end();
         });
-
-        channelManager.findOrCreateConsumer(topic);
-        this.topic = topic;
     }
 
     protected void cancel() {
@@ -124,8 +122,11 @@ public class Collector {
 
     protected void end() {
         LOG.debug("End");
+        Consumer consumer = channelManager.findConsumer(this.topic);
+        if (consumer != null) {
+            consumer.emit(END_EVENT, payloadMessages);
+        }
         cancel();
-        channelManager.emit(END_EVENT, payloadMessages);
     }
 
     protected void enableTimeout() {

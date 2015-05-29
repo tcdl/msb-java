@@ -1,6 +1,7 @@
 package io.github.tcdl.monitor;
 
 import io.github.tcdl.ChannelManager;
+import io.github.tcdl.Consumer;
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.Producer;
 import io.github.tcdl.config.ServiceDetails;
@@ -129,6 +130,7 @@ public class DefaultChannelMonitorAgentTest {
 
     @Test
     public void testStart() {
+        when(mockChannelManager.findOrCreateConsumer(TOPIC_HEARTBEAT)).thenReturn(mock(Consumer.class));
         ChannelMonitorAgent startedAgent = channelMonitorAgent.start();
 
         assertSame(channelMonitorAgent, startedAgent);

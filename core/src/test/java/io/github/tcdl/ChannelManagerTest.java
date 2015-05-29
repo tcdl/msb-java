@@ -97,14 +97,14 @@ public class ChannelManagerTest {
 
         CountDownLatch awaitReceiveEvents = new CountDownLatch(1);
         final Holder<Message> messageEvent = new Holder<>();
-        channelManager.on(Event.MESSAGE_EVENT, (Message message) -> {
-            messageEvent.value = message;
-            awaitReceiveEvents.countDown();
-        });
 
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
         channelManager.findOrCreateProducer(topic).publish(message, null);
-        channelManager.findOrCreateConsumer(topic);
+        channelManager.findOrCreateConsumer(topic)
+                .on(Event.MESSAGE_EVENT, (Message msg) -> {
+                    messageEvent.value = msg;
+                    awaitReceiveEvents.countDown();
+                });
 
         assertTrue(awaitReceiveEvents.await(3000, TimeUnit.MILLISECONDS));
         verify(mockChannelMonitorAgent).consumerMessageReceived(topic);
