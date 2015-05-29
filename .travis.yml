@@ -3,6 +3,6 @@ jdk:
 - oraclejdk8
 dd:
 - openssl aes-256-cbc -K $encrypted_b346cf4c35c0_key -iv $encrypted_b346cf4c35c0_iv
-  -in settings.xml.enc -out settings.xml -d
+  -in settings.xml.enc -out /home/travis/build/tcdl/msb-java/settings.xml -d
 install: ""
 script: "mvn clean deploy --settings settings.xml -B -V"
