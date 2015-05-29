@@ -1,6 +1,5 @@
 language: java
 jdk:
-  - oraclejdk8
-# Explicitly mute "install" step. Perform all operations in the following "script" step.
-install: ""
-script: "mvn clean install -B -V"
+- oraclejdk8
+install: ''
+script: mvn clean deploy --settings settings.xml -B -V
