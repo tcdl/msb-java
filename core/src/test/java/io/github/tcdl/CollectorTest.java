@@ -260,8 +260,7 @@ public class CollectorTest {
         onMessageCaptur.getValue().onEvent(messageWithAck);      
 
         //give extra time for processing scheduled end() task
-        assertTrue(endEventFired.await(ackTimeoutMs + 100, TimeUnit.MILLISECONDS));
-        verify(channelManagerMock).removeConsumer(TOPIC);
+        assertTrue(endEventFired.await(ackTimeoutMs + 100, TimeUnit.MILLISECONDS));       
     }
 
     @Test
@@ -284,8 +283,7 @@ public class CollectorTest {
         onMessageCaptur.getValue().onEvent(messageWithAck);
 
         //give extra time for processing scheduled end() task
-        assertTrue(endEventFired.await(timeoutMs + 100, TimeUnit.MILLISECONDS));
-        verify(channelManagerMock).removeConsumer(TOPIC);
+        assertTrue(endEventFired.await(timeoutMs + 100, TimeUnit.MILLISECONDS));        
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -305,8 +303,7 @@ public class CollectorTest {
         onMessageCaptur.getValue().onEvent(messageSetResponsesRemaining);
 
         //give extra time for processing scheduled end() task
-        assertTrue(endEventFired.await(timeoutMs + 200, TimeUnit.MILLISECONDS));
-        verify(channelManagerMock).removeConsumer(TOPIC);
+        assertTrue(endEventFired.await(timeoutMs + 200, TimeUnit.MILLISECONDS));        
     }
 
     private CountDownLatch awaitRecievePayloadEvents() {
