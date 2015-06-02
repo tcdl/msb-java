@@ -8,10 +8,7 @@ public enum Event {
 
     MESSAGE_EVENT("message"),
     ACKNOWLEDGE_EVENT("ack"),
-    PAYLOAD_EVENT("payload"),
     RESPONSE_EVENT("response"),
-    RESPONDER_EVENT("responder"),
-
     ERROR_EVENT("err"),
     END_EVENT("end");
 

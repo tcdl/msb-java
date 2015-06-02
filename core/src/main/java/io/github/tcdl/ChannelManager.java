@@ -11,19 +11,14 @@ import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.monitor.NoopChannelMonitorAgent;
 import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.time.DateUtils;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static io.github.tcdl.events.Event.ERROR_EVENT;
-import static io.github.tcdl.events.Event.MESSAGE_EVENT;
 
 /**
  * ChannelManager creates consumers or producers on demand
  */
-public class ChannelManager extends EventEmitterImpl {
+public class ChannelManager {
     
     private MsbConfigurations msbConfig;
     private AdapterFactory adapterFactory;
@@ -68,6 +63,10 @@ public class ChannelManager extends EventEmitterImpl {
         return consumer;
     }
 
+    public Consumer findConsumer(final String topic) {
+        return topic != null ? consumersByTopic.get(topic) : null;
+    }
+
     public void removeConsumer(String topic) {
         if (topic == null || !consumersByTopic.containsKey(topic))
             return;
@@ -79,7 +78,7 @@ public class ChannelManager extends EventEmitterImpl {
         channelMonitorAgent.consumerTopicRemoved(topic);
     }
 
-    private Producer createProducer(String topic) {
+    public Producer createProducer(String topic) {
         Utils.validateTopic(topic);
 
         Adapter adapter = getAdapterFactory().createAdapter(topic);
@@ -87,32 +86,14 @@ public class ChannelManager extends EventEmitterImpl {
         return new Producer(adapter, topic, handler);
     }
 
-    private Consumer createConsumer(String topic) {
+    public Consumer createConsumer(String topic) {
         Utils.validateTopic(topic);
 
         Adapter adapter = getAdapterFactory().createAdapter(topic);
 
-        TwoArgsEventHandler<Message, Exception> handler = (message, exception) -> {
-            if (exception != null) {
-                emit(ERROR_EVENT, exception);
-            }
-
-            if (isMessageExpired(message))
-                return;
-            channelMonitorAgent.consumerMessageReceived(topic);
-            emit(MESSAGE_EVENT, message);
-        };
-
-        return new Consumer(adapter, topic, handler, msbConfig);
+        return new Consumer(adapter, topic, new EventEmitterImpl(), msbConfig, channelMonitorAgent);
     }
 
-    private boolean isMessageExpired(Message message) {
-        return message.getMeta() != null
-                && message.getMeta().getTtl() != null
-                && DateUtils.addMilliseconds(message.getMeta().getCreatedAt(), message.getMeta().getTtl()).after(
-                        new Date());
-    }
-    
     private AdapterFactory getAdapterFactory() {
         return this.adapterFactory;
     }

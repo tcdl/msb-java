@@ -4,6 +4,7 @@ import static io.github.tcdl.events.Event.MESSAGE_EVENT;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -51,11 +52,15 @@ public class CollectorTest {
     private ChannelManager channelManagerMock;
 
     @Mock
+    private Consumer consumerMock;
+
+    @Mock
     private MsbConfigurations msbConfigurationsMock;
 
     @Before
     public void setUp() throws IOException {
-
+        when(channelManagerMock.findOrCreateConsumer(anyString())).thenReturn(consumerMock);
+        when(channelManagerMock.findConsumer(anyString())).thenReturn(consumerMock);       
     }
 
     @Test(expected = NullPointerException.class)
@@ -106,7 +111,7 @@ public class CollectorTest {
         CountDownLatch eventsFired = awaitRecievePayloadEvents();
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
-        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        verify(consumerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
         onMessageCaptur.getValue().onEvent(originaMessageWithPayload);
 
         assertTrue(collector.getPayloadMessages().contains(originaMessageWithPayload));
@@ -122,7 +127,7 @@ public class CollectorTest {
         CountDownLatch eventsFired = awaitRecievePayloadEvents();
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
-        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        verify(consumerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
         onMessageCaptur.getValue().onEvent(originaMessageWithPayload);
 
         verify(filterMock).test(eq(originaMessageWithPayload));
@@ -139,7 +144,7 @@ public class CollectorTest {
         CountDownLatch eventsFired = awaitRecievePayloadEvents();
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
-        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        verify(consumerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
         onMessageCaptur.getValue().onEvent(originaMessageWithPayload);
 
         verify(filterMock).test(eq(originaMessageWithPayload));
@@ -162,7 +167,7 @@ public class CollectorTest {
         CountDownLatch endEventFired = awaitRecieveEndEvent();
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
-        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        verify(consumerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
         onMessageCaptur.getValue().onEvent(originaMessageWithPayload);
 
         //give extra time for processing scheduled end() task after ack timeout
@@ -183,7 +188,7 @@ public class CollectorTest {
         CountDownLatch endEventFired = awaitRecieveEndEvent();
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
-        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        verify(consumerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
         onMessageCaptur.getValue().onEvent(originaMessageWithPayload);
 
         //give extra time for processing scheduled end() task after ack timeout
@@ -207,7 +212,7 @@ public class CollectorTest {
         CountDownLatch endEventFired = awaitRecieveEndEvent();
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
-        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        verify(consumerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
         onMessageCaptur.getValue().onEvent(originaMessageWithPayload);
         
         //send ack message with responsesRemaining between ackTimeout task scheduled and run 
@@ -226,7 +231,7 @@ public class CollectorTest {
         CountDownLatch eventsFired = awaitRecieveAckEvents();
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
-        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        verify(consumerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
         onMessageCaptur.getValue().onEvent(originaMessageWithAck);
 
         verify(filterMock).test(eq(originaMessageWithAck));
@@ -251,7 +256,7 @@ public class CollectorTest {
       
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
-        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        verify(consumerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
         onMessageCaptur.getValue().onEvent(messageWithAck);      
 
         //give extra time for processing scheduled end() task
@@ -275,7 +280,7 @@ public class CollectorTest {
         CountDownLatch endEventFired = awaitRecieveEndEvent();
       
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
-        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        verify(consumerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
         onMessageCaptur.getValue().onEvent(messageWithAck);
 
         //give extra time for processing scheduled end() task
@@ -296,7 +301,7 @@ public class CollectorTest {
                 new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(1).setTimeoutMs(timeoutMs).build(), TOPIC);
 
         ArgumentCaptor<SingleArgEventHandler> onMessageCaptur = ArgumentCaptor.forClass(SingleArgEventHandler.class);
-        verify(channelManagerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
+        verify(consumerMock).on(eq(MESSAGE_EVENT), onMessageCaptur.capture());
         onMessageCaptur.getValue().onEvent(messageSetResponsesRemaining);
 
         //give extra time for processing scheduled end() task
@@ -305,32 +310,28 @@ public class CollectorTest {
     }
 
     private CountDownLatch awaitRecievePayloadEvents() {
-        CountDownLatch eventsExpectedOnPayload = new CountDownLatch(2);
-        when(channelManagerMock.emit(eq(Event.RESPONSE_EVENT), any(Payload.class))).thenAnswer(invocation -> {
+        CountDownLatch eventsExpectedOnPayload = new CountDownLatch(1);
+        when(consumerMock.emit(eq(Event.RESPONSE_EVENT), any(Payload.class))).thenAnswer(invocation -> {
             eventsExpectedOnPayload.countDown();
-            return channelManagerMock;
-        });
-        when(channelManagerMock.emit(eq(Event.PAYLOAD_EVENT), any(Payload.class))).thenAnswer(invocation -> {
-            eventsExpectedOnPayload.countDown();
-            return channelManagerMock;
+            return consumerMock;
         });
         return eventsExpectedOnPayload;
     }
 
     private CountDownLatch awaitRecieveAckEvents() {
         CountDownLatch eventExpectedOnAck = new CountDownLatch(1);
-        when(channelManagerMock.emit(eq(Event.ACKNOWLEDGE_EVENT), any(Payload.class))).thenAnswer(invocation -> {
+        when(consumerMock.emit(eq(Event.ACKNOWLEDGE_EVENT), any(Payload.class))).thenAnswer(invocation -> {
             eventExpectedOnAck.countDown();
-            return channelManagerMock;
+            return consumerMock;
         });
         return eventExpectedOnAck;
     }
 
     private CountDownLatch awaitRecieveEndEvent() {
         CountDownLatch eventEndOnAck = new CountDownLatch(1);
-        when(channelManagerMock.emit(eq(Event.END_EVENT), any())).thenAnswer(invocation -> {
+        when(consumerMock.emit(eq(Event.END_EVENT), any())).thenAnswer(invocation -> {
             eventEndOnAck.countDown();
-            return channelManagerMock;
+            return consumerMock;
         });
         return eventEndOnAck;
     }

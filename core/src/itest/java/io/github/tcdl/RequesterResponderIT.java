@@ -68,11 +68,11 @@ public class RequesterResponderIT {
         //Create and send request message directly to broker, wait for ack  
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
         Requester requester = new Requester(messageOptions, null, msbContext);
+        requester.publish(requestPayload);
         requester.onAcknowledge((Acknowledge ack) -> {
             recievedResponseAcks.add(ack);
             ackResponseRecieved.countDown();
         });
-        requester.publish(requestPayload);
 
         //listen for message and send response
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
@@ -84,6 +84,7 @@ public class RequesterResponderIT {
                 }))
                 .listen();
 
+        //Thread.sleep(60000);
         assertTrue("Message ack was not send", ackSend.await(3000, TimeUnit.MILLISECONDS));
         assertTrue("Message ack response not recieved", ackResponseRecieved.await(3000, TimeUnit.MILLISECONDS));
         assertTrue("Expected one ack", recievedResponseAcks.size() == 1);
@@ -106,12 +107,11 @@ public class RequesterResponderIT {
         //Create and send request message directly to broker, wait for ack  
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
         Requester requester = new Requester(messageOptions, null, msbContext);
+        requester.publish(requestPayload);
         requester.onResponse((Payload payload) -> {
             recievedResponses.add(payload);
             respRecieved.countDown();
         });
-
-        requester.publish(requestPayload);
 
         //listen for message and send response
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();

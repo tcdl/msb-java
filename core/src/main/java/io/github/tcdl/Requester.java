@@ -3,6 +3,7 @@ package io.github.tcdl;
 import static io.github.tcdl.events.Event.ERROR_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
+import io.github.tcdl.events.EventEmitter;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
@@ -11,6 +12,7 @@ import io.github.tcdl.messages.payload.Payload;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 
@@ -30,7 +32,8 @@ public class Requester {
     private Collector collector;
     private MessageFactory messageFactory;  
     private MessageBuilder messageBuilder;
-    private Message message;  
+    private Message message;
+    private String topicToListen;
 
     /**
      * Creates a new instance of a requester
@@ -53,8 +56,9 @@ public class Requester {
         this.message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
         if (collector.isWaitForResponses()) {
-            collector.listenForResponses(message.getTopics().getResponse(), (responseMessage) ->
-                            Objects.equals(responseMessage.getCorrelationId(), message.getCorrelationId())
+            topicToListen = message.getTopics().getResponse();
+            collector.listenForResponses(topicToListen,
+                    responseMessage -> Objects.equals(responseMessage.getCorrelationId(), message.getCorrelationId())
             );
         }
 
@@ -68,7 +72,7 @@ public class Requester {
      * @return requester
      */
     public Requester onAcknowledge(Callback<Acknowledge> acknowledgeHandler) {
-        collector.getChannelManager().on(Event.ACKNOWLEDGE_EVENT, acknowledgeHandler::call);
+        getConsumer().ifPresent(consumer -> consumer.on(Event.ACKNOWLEDGE_EVENT, acknowledgeHandler::call));
         return this;
     }
 
@@ -78,7 +82,7 @@ public class Requester {
      * @return requester
      */
     public Requester onResponse(Callback<Payload> responseHandler) {
-        collector.getChannelManager().on(Event.RESPONSE_EVENT, responseHandler::call);
+        getConsumer().ifPresent(eventEmitter -> eventEmitter.on(Event.RESPONSE_EVENT, responseHandler::call));
         return this;
     }
 
@@ -88,7 +92,7 @@ public class Requester {
      * @return requester
      */
     public Requester onEnd(Callback<List<Message>> endHandler) {
-        collector.getChannelManager().on(Event.END_EVENT, endHandler::call);
+        getConsumer().ifPresent(eventEmitter -> eventEmitter.on(Event.END_EVENT, endHandler::call));
         return this;
     }
 
@@ -98,13 +102,13 @@ public class Requester {
      * @return requester
      */
     public Requester onError(Callback<Exception> errorHandler) {
-        collector.getChannelManager().on(Event.ERROR_EVENT, errorHandler::call);
+        getConsumer().ifPresent(consumer -> consumer.on(Event.ERROR_EVENT, errorHandler::call));
         return this;
     }
 
     protected void handleMessage(Message message, Exception exception) {
         if (exception != null) {
-            collector.getChannelManager().emit(ERROR_EVENT, exception);
+            getConsumer().ifPresent(consumer -> consumer.emit(ERROR_EVENT, exception));
             LOG.debug("Exception was thrown.", exception);
             return;
         }
@@ -120,5 +124,9 @@ public class Requester {
     
     boolean isMessageAcknowledged() {
         return !collector.getAckMessages().isEmpty();
+    }
+
+    private Optional<Consumer> getConsumer() {
+        return Optional.ofNullable(collector.getChannelManager().findConsumer(topicToListen));
     }
 }

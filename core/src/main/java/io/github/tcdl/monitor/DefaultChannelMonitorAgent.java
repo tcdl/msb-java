@@ -7,6 +7,7 @@ import io.github.tcdl.ChannelManager;
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.Producer;
 import io.github.tcdl.Responder;
+import io.github.tcdl.*;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Message;
@@ -59,24 +60,18 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
      * @return this channel manages instance. Might be useful for chaining calls.
      */
     public DefaultChannelMonitorAgent start() {
-        channelManager.on(Event.MESSAGE_EVENT, (Message message) -> {
+        channelManager.findOrCreateConsumer(TOPIC_HEARTBEAT) // Launch listener for heartbeat topic
+           .on(Event.MESSAGE_EVENT, (Message message) -> {
+                Responder responder = new Responder(null, message, msbContext);
+                Payload payload = new Payload.PayloadBuilder()
+                        .setBody(topicInfoMap)
+                        .build();
 
-            if (!message.getTopics().getTo().equals(TOPIC_HEARTBEAT)) {
-                /* FIXME this is a hack to filter only heartbeat messages.
-                Should be removed once this handler will be subscribed to specific topic
-                and not on the shared channel manager */
-                return;
-            }
-            Responder responder = new Responder(null, message, msbContext);
-            Payload payload = new Payload.PayloadBuilder()
-                    .setBody(topicInfoMap)
-                    .build();
-
-            responder.send(payload, null);
-        });
+                responder.send(payload, null);
+            });
 
         channelManager.setChannelMonitorAgent(this); // Inject itself in channel manager
-        channelManager.findOrCreateConsumer(TOPIC_HEARTBEAT); // Launch listener for heartbeat topic
+
         return this;
     }
 

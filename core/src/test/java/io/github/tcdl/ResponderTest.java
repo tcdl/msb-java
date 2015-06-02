@@ -23,8 +23,9 @@ import org.mockito.ArgumentCaptor;
  * Created by anstr on 5/26/2015.
  */
 public class ResponderTest {
+
     private MsbMessageOptions config;
-    MsbConfigurations msbConf;
+    private MsbConfigurations msbConf;
     private static final String TOPIC = "test:responder";
 
     private ChannelManager mockChannelManager;
