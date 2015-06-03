@@ -43,7 +43,7 @@ public class Requester {
      */
     public Requester(MsbMessageOptions config, Message originalMessage, MsbContext context) {
         Validate.notNull(config, "the 'config' must not be null");
-        this.collector = new Collector(config, context.getChannelManager(), context.getMsbConfig());
+        this.collector = new Collector(config, context);
         this.messageFactory = context.getMessageFactory();       
         this.messageBuilder = messageFactory.createRequestMessageBuilder(config, originalMessage);
     }
