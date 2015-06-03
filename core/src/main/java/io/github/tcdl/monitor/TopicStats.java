@@ -1,6 +1,6 @@
 package io.github.tcdl.monitor;
 
-import java.util.Date;
+import java.time.Instant;
 
 /**
  * Immutable class that contains statistics for a topic.
@@ -13,10 +13,10 @@ class TopicStats {
     private boolean consumers;
 
     /** Time when this microservice produced to the topic for the last time. */
-    private Date lastProducedAt;
+    private Instant lastProducedAt;
 
     /** Time when this microservice consumed from the topic for the last time */
-    private Date lastConsumedAt;
+    private Instant lastConsumedAt;
 
     public TopicStats() {
     }
@@ -36,11 +36,11 @@ class TopicStats {
         return consumers;
     }
 
-    public Date getLastProducedAt() {
+    public Instant getLastProducedAt() {
         return lastProducedAt;
     }
 
-    public Date getLastConsumedAt() {
+    public Instant getLastConsumedAt() {
         return lastConsumedAt;
     }
 
@@ -56,13 +56,13 @@ class TopicStats {
         return newTopic;
     }
 
-    public TopicStats setLastProducedAt(Date lastProducedAt) {
+    public TopicStats setLastProducedAt(Instant lastProducedAt) {
         TopicStats newTopic = new TopicStats(this);
         newTopic.lastProducedAt = lastProducedAt;
         return newTopic;
     }
 
-    public TopicStats setLastConsumedAt(Date lastConsumedAt) {
+    public TopicStats setLastConsumedAt(Instant lastConsumedAt) {
         TopicStats newTopic = new TopicStats(this);
         newTopic.lastConsumedAt = lastConsumedAt;
         return newTopic;
