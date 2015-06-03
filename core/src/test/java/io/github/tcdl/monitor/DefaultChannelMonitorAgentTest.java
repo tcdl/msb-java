@@ -39,9 +39,9 @@ public class DefaultChannelMonitorAgentTest {
     @Before
     public void setUp() {
         mockChannelManager = mock(ChannelManager.class);
-        ServiceDetails serviceDetails = new ServiceDetails.ServiceDetailsBuilder().build();
-        MessageFactory messageFactory = new MessageFactory(serviceDetails);
         Clock clock = Clock.fixed(CLOCK_INSTANT, ZoneId.systemDefault());
+        ServiceDetails serviceDetails = new ServiceDetails.ServiceDetailsBuilder().build();
+        MessageFactory messageFactory = new MessageFactory(serviceDetails, clock);
         channelMonitorAgent = new DefaultChannelMonitorAgent(new MsbContext(null, messageFactory, mockChannelManager, clock));
     }
 

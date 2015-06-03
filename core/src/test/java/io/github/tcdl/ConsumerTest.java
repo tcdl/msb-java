@@ -22,6 +22,8 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.time.Clock;
+
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 
@@ -48,25 +50,27 @@ public class ConsumerTest {
     @Captor
     ArgumentCaptor<RawMessageHandler> messageHandlerCaptur;
 
+    private Clock clock = Clock.systemDefaultZone();
+
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullAdapter() {
-        new Consumer(null, TOPIC, eventEmitterMock, msbConfMock, channelMonitorAgentMock);
+        new Consumer(null, TOPIC, eventEmitterMock, msbConfMock, clock, channelMonitorAgentMock);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullTopic() {
-        new Consumer(adapterMock, null, eventEmitterMock, msbConfMock, channelMonitorAgentMock);
+        new Consumer(adapterMock, null, eventEmitterMock, msbConfMock, clock, channelMonitorAgentMock);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullMsbConf() {
-        new Consumer(adapterMock, TOPIC, eventEmitterMock, null, channelMonitorAgentMock);
+        new Consumer(adapterMock, TOPIC, eventEmitterMock, null, clock, channelMonitorAgentMock);
     }
 
     @Test
     public void testConsumeFromTopicValidateThrowException() {
         MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
-        Consumer consumer = new Consumer(adapterMock, TOPIC, eventEmitterMock, msbConf, channelMonitorAgentMock).subscribe();
+        Consumer consumer = new Consumer(adapterMock, TOPIC, eventEmitterMock, msbConf, clock, channelMonitorAgentMock).subscribe();
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
         verify(eventEmitterMock).emit(eq(Event.ERROR_EVENT), isA(JsonSchemaValidationException.class));
@@ -76,7 +80,7 @@ public class ConsumerTest {
     public void testConsumeFromSeviceTopicValidateThrowException() {
         String service_topic = "_service:topic";
         MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
-        Consumer consumer = new Consumer(adapterMock, service_topic, eventEmitterMock, msbConf, channelMonitorAgentMock).subscribe();
+        Consumer consumer = new Consumer(adapterMock, service_topic, eventEmitterMock, msbConf, clock, channelMonitorAgentMock).subscribe();
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
         verify(eventEmitterMock).emit(eq(Event.ERROR_EVENT), isA(JsonConversionException.class));
@@ -85,7 +89,7 @@ public class ConsumerTest {
     @Test
     public void testConsumeFromTopic() throws JsonConversionException {
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
-        Consumer consumer = new Consumer(adapterMock, TOPIC, eventEmitterMock, msbConfMock, channelMonitorAgentMock).subscribe();
+        Consumer consumer = new Consumer(adapterMock, TOPIC, eventEmitterMock, msbConfMock, clock, channelMonitorAgentMock).subscribe();
 
         consumer.handleRawMessage(Utils.toJson(originalMessage));
         verify(eventEmitterMock).emit(eq(Event.MESSAGE_EVENT), any(Message.class));

@@ -2,7 +2,8 @@ package io.github.tcdl.messages;
 
 import io.github.tcdl.config.ServiceDetails;
 
-import java.util.Date;
+import java.time.Clock;
+import java.time.Instant;
 
 import org.apache.commons.lang3.Validate;
 
@@ -14,11 +15,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public final class MetaMessage {
 
     private final Integer ttl;
-    private final Date createdAt;
+    private final Instant createdAt;
     private final Long durationMs;
     private final ServiceDetails serviceDetails;
 
-    private MetaMessage(@JsonProperty("ttl") Integer ttl, @JsonProperty("createdAt") Date createdAt, @JsonProperty("durationMs") Long durationMs,
+    private MetaMessage(@JsonProperty("ttl") Integer ttl, @JsonProperty("createdAt") Instant createdAt, @JsonProperty("durationMs") Long durationMs,
             @JsonProperty("serviceDetails") ServiceDetails serviceDetails) {
         Validate.notNull(createdAt, "the 'createdAt' must not be null");
         Validate.notNull(durationMs, "the 'durationMs' must not be null");
@@ -31,17 +32,19 @@ public final class MetaMessage {
 
     public static class MetaMessageBuilder {
         private Integer ttl;
-        private Date createdAt;      
+        private Instant createdAt;
         private ServiceDetails serviceDetails;
+        private Clock clock;
 
-        public MetaMessageBuilder(Integer ttl, Date createdAt, ServiceDetails serviceDetails) {
+        public MetaMessageBuilder(Integer ttl, Instant createdAt, ServiceDetails serviceDetails, Clock clock) {
             this.ttl = ttl;
             this.createdAt = createdAt;
             this.serviceDetails = serviceDetails;
+            this.clock = clock;
         }     
 
         public MetaMessage build() {
-            Long durationMs = new Date().getTime() - this.createdAt.getTime();
+            Long durationMs = clock.instant().toEpochMilli() - this.createdAt.toEpochMilli();
             return new MetaMessage(ttl, createdAt, durationMs, serviceDetails);
         }
     }
@@ -50,7 +53,7 @@ public final class MetaMessage {
         return ttl;
     }
 
-    public Date getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 

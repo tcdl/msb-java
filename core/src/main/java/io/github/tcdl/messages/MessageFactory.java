@@ -7,12 +7,10 @@ import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.Utils;
-
-import java.util.Date;
+import org.apache.commons.lang3.Validate;
 
 import javax.annotation.Nullable;
-
-import org.apache.commons.lang3.Validate;
+import java.time.Clock;
 
 /**
  * Created by rdro on 4/22/2015.
@@ -20,10 +18,13 @@ import org.apache.commons.lang3.Validate;
 public class MessageFactory {
 
     private ServiceDetails serviceDetails;
+    private Clock clock;
 
-    public MessageFactory(ServiceDetails serviceDetails) {
-        Validate.notNull(serviceDetails, "the 'serviceDetails' must not be null");
+    public MessageFactory(ServiceDetails serviceDetails, Clock clock) {
+        Validate.notNull(serviceDetails, "'serviceDetails' must not be null");
+        Validate.notNull(clock, "'clock' must not be null");
         this.serviceDetails = serviceDetails;
+        this.clock = clock;
     }
 
     public MessageBuilder createRequestMessageBuilder(MsbMessageOptions config, Message originalMessage) {
@@ -64,7 +65,7 @@ public class MessageFactory {
 
     public MetaMessageBuilder createMetaBuilder(MsbMessageOptions config) {
         Integer ttl = config == null ? null : config.getTtl();
-        return new MetaMessage.MetaMessageBuilder(ttl, new Date(), this.serviceDetails);
+        return new MetaMessage.MetaMessageBuilder(ttl, clock.instant(), this.serviceDetails, clock);
     }
 
     public MessageBuilder createBroadcastMessageBuilder(MsbMessageOptions config, String topicTo, Payload payload) {

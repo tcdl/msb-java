@@ -2,18 +2,23 @@ package io.github.tcdl;
 
 import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.events.*;
+import io.github.tcdl.events.Event;
+import io.github.tcdl.events.EventEmitter;
+import io.github.tcdl.events.SingleArgEventHandler;
+import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.MetaMessage;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static io.github.tcdl.events.Event.ERROR_EVENT;
 import static io.github.tcdl.events.Event.MESSAGE_EVENT;
@@ -30,18 +35,22 @@ public class Consumer {
     private final String topic;
     private MsbConfigurations msbConfig;
     private ChannelMonitorAgent channelMonitorAgent;
+    private Clock clock;
 
-    public Consumer(Adapter rawAdapter, String topic, EventEmitter eventEmitter, MsbConfigurations msbConfig, ChannelMonitorAgent channelMonitorAgent) {
+    public Consumer(Adapter rawAdapter, String topic, EventEmitter eventEmitter, MsbConfigurations msbConfig, Clock clock, ChannelMonitorAgent channelMonitorAgent) {
         LOG.debug("Creating consumer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
         Validate.notNull(topic, "the 'topic' must not be null");
         Validate.notNull(eventEmitter, "the 'eventEmitter' must not be null");
         Validate.notNull(msbConfig, "the 'msbConfig' must not be null");
+        Validate.notNull(clock, "the 'clock' must not be null");
+        Validate.notNull(channelMonitorAgent, "the 'channelMonitorAgent' must not be null");
 
         this.rawAdapter = rawAdapter;
         this.topic = topic;
         this.eventEmitter = eventEmitter;
         this.msbConfig = msbConfig;
+        this.clock = clock;
         this.channelMonitorAgent = channelMonitorAgent;
     }
 
@@ -106,9 +115,15 @@ public class Consumer {
     }
 
     private boolean isMessageExpired(Message message) {
-        return message.getMeta() != null
-                && message.getMeta().getTtl() != null
-                && DateUtils.addMilliseconds(message.getMeta().getCreatedAt(), message.getMeta().getTtl()).after(
-                new Date());
+        MetaMessage meta = message.getMeta();
+        if (meta == null || meta.getTtl() == null) {
+            return false;
+        }
+
+        Integer ttl = meta.getTtl();
+        Instant expiryTime = meta.getCreatedAt().plus(ttl, ChronoUnit.MILLIS);
+        Instant now = clock.instant();
+
+        return expiryTime.isBefore(now);
     }
 }

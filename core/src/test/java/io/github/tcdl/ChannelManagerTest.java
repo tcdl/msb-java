@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.xml.ws.Holder;
+import java.time.Clock;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -32,7 +33,8 @@ public class ChannelManagerTest {
     @Before
     public void setUp() {
         MsbConfigurations msbConfig = TestUtils.createMsbConfigurations();
-        this.channelManager = new ChannelManager(msbConfig);
+        Clock clock = Clock.systemDefaultZone();
+        this.channelManager = new ChannelManager(msbConfig, clock);
 
         mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
         channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);
