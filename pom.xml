@@ -32,6 +32,7 @@
         <module>core</module>
         <module>amqp</module>
         <module>cli</module>
+        <module>examples</module>
     </modules>
 
     <properties>
