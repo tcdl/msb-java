@@ -40,7 +40,7 @@ public class DateExtractor {
 
                     if (matcher.matches()) {
                         // send acknowledge
-                        responder.sendAck(500, null, null);
+                        responder.sendAck(500, null);
 
                         // parse year
                         String str = matcher.group(1);
@@ -64,7 +64,7 @@ public class DateExtractor {
                                 .setStatusCode(200)
                                 .setBody(responseBody).build();
 
-                        responder.send(responsePayload, null);
+                        responder.send(responsePayload);
                     }
                 }))
                 .listen();

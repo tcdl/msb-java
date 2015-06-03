@@ -6,7 +6,6 @@ import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import io.github.tcdl.adapters.Adapter;
-import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.exception.ChannelException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.TestUtils;
@@ -29,7 +28,7 @@ public class ProducerTest {
     private Adapter adapterMock;
 
     @Mock
-    private TwoArgsEventHandler<Message, Exception> handlerMock;
+    private Callback<Message> handlerMock;
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerProducerNullAdapter() {
@@ -50,42 +49,33 @@ public class ProducerTest {
     @SuppressWarnings("unchecked")
     public void testPublishVerifyHandlerAndCallbackCalled() {
         Message originaMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
-        TwoArgsEventHandler<Message, Exception> callbackMock = mock(TwoArgsEventHandler.class);
 
         Producer producer = new Producer(adapterMock, TOPIC, handlerMock);
-        producer.publish(originaMessage, callbackMock);
+        producer.publish(originaMessage);
 
-        verify(handlerMock).onEvent(any(Message.class), eq(null));
-        verify(callbackMock).onEvent(any(Message.class), eq(null));
+        verify(handlerMock).call(any(Message.class));
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void testPublishAdapterThrowExceptionVerifyCallbackIsCalled() throws ChannelException {
         Message originaMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
-        TwoArgsEventHandler<Message, Exception> callbackMock = mock(TwoArgsEventHandler.class);
 
         Mockito.doThrow(ChannelException.class).when(adapterMock).publish(any());
 
         Producer producer = new Producer(adapterMock, TOPIC, handlerMock);
-        producer.publish(originaMessage, callbackMock);
-
-        verify(handlerMock, Mockito.never()).onEvent(any(Message.class), eq(null));
-        verify(callbackMock).onEvent(any(Message.class), isA(ChannelException.class));
+        producer.publish(originaMessage);
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void testPublishThrowExceptionVerifyCallbackNotSetNotCalled() throws ChannelException {
         Message originaMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
-        TwoArgsEventHandler<Message, Exception> callbackMock = mock(TwoArgsEventHandler.class);
 
         Mockito.doThrow(ChannelException.class).when(adapterMock).publish(any());
 
         Producer producer = new Producer(adapterMock, TOPIC, handlerMock);
-        producer.publish(originaMessage, callbackMock);
-
-        verify(handlerMock, Mockito.never()).onEvent(any(Message.class), eq(null));
+        producer.publish(originaMessage);
     }
 
 }

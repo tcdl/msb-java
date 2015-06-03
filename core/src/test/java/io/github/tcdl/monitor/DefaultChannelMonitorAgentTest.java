@@ -5,7 +5,6 @@ import io.github.tcdl.Consumer;
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.Producer;
 import io.github.tcdl.config.ServiceDetails;
-import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MessageFactory;
 import org.junit.Before;
@@ -139,7 +138,7 @@ public class DefaultChannelMonitorAgentTest {
     private Message verifyProducerInvokedAndReturnMessage(Producer mockProducer) {
         verify(mockChannelManager).findOrCreateProducer(TOPIC_ANNOUNCE);
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-        verify(mockProducer).publish(messageCaptor.capture(), isNull(TwoArgsEventHandler.class));
+        verify(mockProducer).publish(messageCaptor.capture());
         return messageCaptor.getValue();
     }
 

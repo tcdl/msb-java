@@ -1,7 +1,6 @@
 package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
@@ -33,29 +32,28 @@ public class Responder {
         this.messageBuilder = messageFactory.createResponseMessageBuilder(config, originalMessage);
     }
 
-    public void sendAck(Integer timeoutMs, Integer responsesRemaining,
-            TwoArgsEventHandler<Message, Exception> callback) {
+    public void sendAck(Integer timeoutMs, Integer responsesRemaining) {
         AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.setTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
         ackBuilder.setResponsesRemaining(responsesRemaining == null ? 1 : responsesRemaining);
 
         Message message = this.messageFactory.createResponseMessage(this.messageBuilder, ackBuilder.build(), null);
-        sendMessage(message, callback);
+        sendMessage(message);
     }
 
-    public void send(Payload responsePayload, TwoArgsEventHandler<Message, Exception> callback) {
+    public void send(Payload responsePayload) {
         AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.setResponsesRemaining(-1);
 
         Message message = this.messageFactory.createResponseMessage(this.messageBuilder, ackBuilder.build(), responsePayload);
-        sendMessage(message, callback);
+        sendMessage(message);
     }
 
-    private void sendMessage(Message message, TwoArgsEventHandler<Message, Exception> callback) {
+    private void sendMessage(Message message) {
         this.responseMessage = message;
         Producer producer = channelManager.findOrCreateProducer(message.getTopics().getTo());
         LOG.debug("Publishing message to topic : {}", message.getTopics().getTo());
-        producer.publish(message, callback);
+        producer.publish(message);
     }
 
     private void validateRecievedMessage(Message originalMessage) {

@@ -1,8 +1,10 @@
 package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.payload.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,14 +14,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Optional;
 import java.util.function.Predicate;
 
-import static io.github.tcdl.events.Event.ACKNOWLEDGE_EVENT;
-import static io.github.tcdl.events.Event.END_EVENT;
-import static io.github.tcdl.events.Event.MESSAGE_EVENT;
-import static io.github.tcdl.events.Event.RESPONSE_EVENT;
 import static io.github.tcdl.support.Utils.ifNull;
 
 /**
@@ -43,31 +40,44 @@ public class Collector {
     private int responsesRemaining;
 
     private Long startedAt;
-    private TimerTask timeout;
-    private TimerTask ackTimeout;
+    private  final TimerProvider timer;
 
     private Clock clock;
 
     private String topic;
 
-    public Collector(MsbMessageOptions config, MsbContext msbContext) {
+    private Optional<Callback<Payload>> onResponse = Optional.empty();
+    private Optional<Callback<Acknowledge>> onAcknowledge = Optional.empty();
+    private Optional<Callback<Exception>> onError = Optional.empty();
+    private Optional<Callback<List<Message>>> onEnd = Optional.empty();
+
+    public Collector(MsbMessageOptions messageOptions, MsbContext msbContext, EventHandlers eventHandlers) {
         this.channelManager = msbContext.getChannelManager();
         this.clock = msbContext.getClock();
 
         this.startedAt = clock.instant().toEpochMilli();
+
         this.ackMessages = new LinkedList<>();
         this.payloadMessages = new LinkedList<>();
         this.timeoutMsById = new HashMap<>();
         this.responsesRemainingById = new HashMap<>();
 
-        this.timeoutMs = getResponseTimeout(config);
+        this.timeoutMs = getResponseTimeoutFromConfigs(messageOptions);
         this.currentTimeoutMs = timeoutMs;
 
-        this.waitForAcksUntil = config.getAckTimeout() != null
-                ? startedAt + config.getAckTimeout() : 0;
-
-        this.waitForResponses = getWaitForResponses(config);
+        this.waitForAcksUntil = getWaitForAckUntilFromConfigs(messageOptions);
+        this.waitForResponses = getWaitForResponsesFromConfigs(messageOptions);
         this.responsesRemaining = waitForResponses;
+
+        this.timer = new TimerProvider(this);
+
+        if (eventHandlers != null) {
+            onResponse = Optional.ofNullable(eventHandlers.onResponse());
+            onAcknowledge = Optional.ofNullable(eventHandlers.onAcknowledge());
+            onError = Optional.ofNullable(eventHandlers.onError());
+            onEnd = Optional.ofNullable(eventHandlers.onEnd());
+        }
+
     }
 
     public boolean isWaitForResponses() {
@@ -86,85 +96,67 @@ public class Collector {
         Consumer consumer = channelManager.findOrCreateConsumer(topic);
         this.topic = topic;
 
-        consumer.on(MESSAGE_EVENT, (Message message) -> {
-            if (shouldAcceptMessagePredicate != null && !shouldAcceptMessagePredicate.test(message)) {
-                return;
-            }
-            LOG.debug("Received {}", message);
-
-            if (message.getPayload() != null) {
-                LOG.debug("Received {}", message.getPayload());
-                payloadMessages.add(message);
-                consumer.emit(RESPONSE_EVENT, message.getPayload());
-                incResponsesRemaining(-1);
-            } else {
-                LOG.debug("Received {}", message.getAck());
-                ackMessages.add(message);
-                consumer.emit(ACKNOWLEDGE_EVENT, message.getAck());
-            }
-
-            processAck(message.getAck());
-
-            if (isAwaitingResponses())
-                return;
-            if (isAwaitingAcks()) {
-                enableAckTimeout();
-                return;
-            }
-
-            end();
-        });
+        consumer.subscribe(
+                message -> {
+                    if (shouldAcceptMessagePredicate == null || shouldAcceptMessagePredicate.test(message)) {
+                        handleMessage(message);
+                    }
+                },
+                this::handleError
+        );
     }
 
-    protected void cancel() {
-        clearTimeout(timeout);
-        clearTimeout(ackTimeout);
-        channelManager.removeConsumer(topic);
+    protected void handleMessage(Message message) {
+        LOG.debug("Received {}", message);
+
+        if (message.getPayload() != null) {
+            LOG.debug("Received {}", message.getPayload());
+            payloadMessages.add(message);
+
+            onResponse.ifPresent(handler -> handler.call(message.getPayload()));
+            incResponsesRemaining(-1);
+        } else {
+            LOG.debug("Received {}", message.getAck());
+            ackMessages.add(message);
+            onAcknowledge.ifPresent(handler -> handler.call((message.getAck())));
+        }
+
+        processAck(message.getAck());
+
+        if (isAwaitingResponses()) {
+            waitForResponses();
+            return;
+        }
+
+        if (isAwaitingAcks()) {
+            waitForAcks();
+            return;
+        }
+
+        end();
+    }
+
+    protected void handleError(Exception exception) {
+        onError.ifPresent(handler -> handler.call(exception));
     }
 
     protected void end() {
-        LOG.debug("End");
-        Consumer consumer = channelManager.findConsumer(this.topic);
-        if (consumer != null) {
-            consumer.emit(END_EVENT, payloadMessages);
-        }
-        cancel();
+        LOG.debug("Stop response processing");
+
+        this.timer.stopTimers();
+        channelManager.removeConsumer(topic);
+        onEnd.ifPresent(handler -> handler.call(payloadMessages));
     }
 
-    protected void enableTimeout() {
-        clearTimeout(timeout);
-
-        timeout = new TimerTask() {
-            @Override
-            public void run() {
-                LOG.debug("Running enableTimeout() TimerTask");
-                end();
-            }
-        };
-
-        LOG.debug("Enabling response timeout for {} ms", currentTimeoutMs);
-        setTimeout(timeout, currentTimeoutMs);
+    protected void waitForResponses() {
+        LOG.debug("Waiting for responses until {}.", Instant.ofEpochMilli(System.currentTimeMillis() + this.currentTimeoutMs)); // FIXME
+        timer.enableResponseTimeout(this.currentTimeoutMs);
     }
 
-    protected void enableAckTimeout() {
-        if (ackTimeout != null)
-            return;
-
-        ackTimeout = new TimerTask() {
-            @Override
-            public void run() {
-                if (isAwaitingResponses()) {
-                    LOG.debug("Ack timer task run, but waiting for responses. No END event fired");
-                    return;
-                }
-                LOG.debug("Running enableAckTimeout() TimerTask");
-                end();
-            }
-        };
-
-        long ackTimeoutMs = waitForAcksUntil - clock.instant().toEpochMilli();
-        LOG.debug("Waiting for ack until {}. Enabling ack timeout for {} ms", Instant.ofEpochMilli(waitForAcksUntil), ackTimeoutMs);
-        setTimeout(ackTimeout, ackTimeoutMs);
+    private void waitForAcks() {
+        LOG.debug("Waiting for ack until {}.", Instant.ofEpochMilli(this.waitForAcksUntil)); // FIXME
+        long ackTimeoutMs = waitForAcksUntil - System.currentTimeMillis(); // FIXME
+        timer.enableAckTimeout(ackTimeoutMs);
     }
 
     private void processAck(Acknowledge acknowledge) {
@@ -178,7 +170,7 @@ public class Collector {
 
                 this.currentTimeoutMs = getMaxTimeoutMs();
                 if (prevTimeoutMs != currentTimeoutMs) {
-                    enableTimeout();
+                    timer.enableResponseTimeout(this.currentTimeoutMs);
                 }
             }
         }
@@ -253,28 +245,25 @@ public class Collector {
         return responsesRemainingById.get(responderId);
     }
 
-    private void setTimeout(TimerTask onTimeout, long delay) {
-        new Timer().schedule(onTimeout, delay);
-    }
-
-    private void clearTimeout(TimerTask onTimeout) {
-        if (onTimeout != null) {
-            onTimeout.cancel();
-        }
-    }
-
-    private int getResponseTimeout(MsbMessageOptions messageConfigs) {
-        if (messageConfigs.getResponseTimeout() == null) {
+    private int getResponseTimeoutFromConfigs(MsbMessageOptions messageOptions) {
+        if (messageOptions.getResponseTimeout() == null) {
             return 3000;
         }
-        return messageConfigs.getResponseTimeout();
+        return messageOptions.getResponseTimeout();
     }
 
-    private int getWaitForResponses(MsbMessageOptions messageConfigs) {
-        if (messageConfigs.getWaitForResponses() == null || messageConfigs.getWaitForResponses() == -1) {
+    private long getWaitForAckUntilFromConfigs(MsbMessageOptions messageOptions) {
+        if (messageOptions.getAckTimeout() == null) {
             return 0;
         }
-        return messageConfigs.getWaitForResponses();
+        return this.startedAt + messageOptions.getAckTimeout();
+    }
+
+    private int getWaitForResponsesFromConfigs(MsbMessageOptions messageOptions) {
+        if (messageOptions.getWaitForResponses() == null || messageOptions.getWaitForResponses() == -1) {
+            return 0;
+        }
+        return messageOptions.getWaitForResponses();
     }
 
     ChannelManager getChannelManager() {

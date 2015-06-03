@@ -1,9 +1,6 @@
 package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.Event;
-import io.github.tcdl.events.SingleArgEventHandler;
-import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
@@ -44,10 +41,15 @@ public class ResponderServer {
 
         Consumer consumer = channelManager.findOrCreateConsumer(topic);
 
-        consumer.on(Event.MESSAGE_EVENT, (Message message) -> {
-            Responder responder = new Responder(messageOptions, message, msbContext);
-            onResponder(responder);
-        });
+        consumer.subscribe(message -> {
+                Responder responder = new Responder(messageOptions, message, msbContext);
+                onResponder(responder);
+            },
+            exception -> {
+                Responder responder = new Responder(messageOptions, null, msbContext);
+                errorHandler(null, responder, exception);
+            }
+        );
 
         return this;
     }
@@ -64,11 +66,11 @@ public class ResponderServer {
                             .invoke(request, responder));
     };
 
-    private void errorHandler(Payload request, Responder responder, Exception err) {
+    protected void errorHandler(Payload request, Responder responder, Exception err) {
         LOG.error("Error processing request {}", request);
         Payload responsePayload = new Payload.PayloadBuilder()
                 .setStatusCode(500)
                 .setStatusMessage(err.getMessage()).build();
-        responder.send(responsePayload, null);
+        responder.send(responsePayload);
     }
 }

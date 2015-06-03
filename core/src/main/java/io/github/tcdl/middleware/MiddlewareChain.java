@@ -1,7 +1,6 @@
 package io.github.tcdl.middleware;
 
 import io.github.tcdl.Responder;
-import io.github.tcdl.events.ThreeArgsEventHandler;
 import io.github.tcdl.messages.payload.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,7 @@ public class MiddlewareChain {
 
     private List<Middleware> middlewareList = new LinkedList<>();
     private Iterator<Middleware> iterator;
-    private ThreeArgsEventHandler<Payload, Responder, Exception> handler;
+    private MiddlewareHandler handler;
 
     public void add(Middleware... middleware) {
         middlewareList.addAll(Arrays.asList(middleware));
@@ -39,7 +38,7 @@ public class MiddlewareChain {
             } catch (Exception e) {
                 LOG.error("Error while processing request: {}", e.getMessage());
                 if (handler != null) {
-                    handler.onEvent(request, responder, e);
+                    handler.handle( request, responder, e);
                 }
             }
         }
@@ -54,13 +53,13 @@ public class MiddlewareChain {
             } catch (Exception e) {
                 LOG.error("Error while processing request: {}", e.getMessage());
                 if (handler != null) {
-                    handler.onEvent(request, responder, e);
+                    handler.handle(request, responder, e);
                 }
             }
         }
     }
 
-    public MiddlewareChain withErrorHandler(ThreeArgsEventHandler<Payload, Responder, Exception> handler) {
+    public MiddlewareChain withErrorHandler(MiddlewareHandler handler) {
         this.handler = handler;
         return this;
     }
