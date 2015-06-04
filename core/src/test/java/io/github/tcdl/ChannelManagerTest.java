@@ -1,7 +1,6 @@
 package io.github.tcdl;
 
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.support.TestUtils;
@@ -88,7 +87,7 @@ public class ChannelManagerTest {
 
         Producer producer = channelManager.findOrCreateProducer(topic);
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
-        producer.publish(message, null);
+        producer.publish(message);
 
         verify(mockChannelMonitorAgent).producerMessageSent(topic);
     }
@@ -101,9 +100,9 @@ public class ChannelManagerTest {
         final Holder<Message> messageEvent = new Holder<>();
 
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
-        channelManager.findOrCreateProducer(topic).publish(message, null);
+        channelManager.findOrCreateProducer(topic).publish(message);
         channelManager.findOrCreateConsumer(topic)
-                .on(Event.MESSAGE_EVENT, (Message msg) -> {
+                .subscribe(msg -> {
                     messageEvent.value = msg;
                     awaitReceiveEvents.countDown();
                 });

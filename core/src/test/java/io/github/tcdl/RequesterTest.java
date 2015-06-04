@@ -1,21 +1,17 @@
 package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.Event;
-import io.github.tcdl.events.SingleArgEventHandler;
+import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
+import io.github.tcdl.support.Utils;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.Arrays;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -26,16 +22,12 @@ import static org.mockito.Mockito.*;
 /**
  * Created by rdro on 4/27/2015.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Requester.class)
+@RunWith(MockitoJUnitRunner.class)
 public class RequesterTest {
 
     private MsbContext msbContext;
     private MsbMessageOptions messageOptions;
 
-    @Mock
-    private MsbMessageOptions messageOptionsMock;
-    
     @Mock
     private ChannelManager channelManagerMock;
     private Collector collectorMock;
@@ -44,35 +36,43 @@ public class RequesterTest {
     @Mock
     private Consumer consumerMock;
 
-    public void initMocks(MsbMessageOptions config) throws Exception {
+    private Requester requester;
+
+    public void initRequesterForResponses(int numberOfResponses) throws Exception {
+        initRequesterForResponses(numberOfResponses, null);
+    }
+
+    public void initRequesterForResponses(int numberOfResponses, EventHandlers eventHandlers) throws Exception {
+        messageOptions = TestUtils.createSimpleConfig();
+        messageOptions.setWaitForResponses(numberOfResponses);
+
         msbContext = TestUtils.createSimpleMsbContext();
         msbContext.setChannelManager(channelManagerMock);
 
-        collectorMock = spy(new Collector(config, msbContext));
-        PowerMockito.whenNew(Collector.class).withAnyArguments().thenReturn(collectorMock);
-
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
         when(channelManagerMock.findOrCreateConsumer(anyString())).thenReturn(consumerMock);
-        when(channelManagerMock.findConsumer(anyString())).thenReturn(consumerMock);
-    }
 
-    public void initForResponses(int numberOfResponses) throws Exception {
-        messageOptions = TestUtils.createSimpleConfig();
-        messageOptions.setWaitForResponses(numberOfResponses);
-        initMocks(messageOptions);
+
+        EventHandlers handlers = Utils.ifNull(eventHandlers, new EventHandlers());
+        collectorMock = spy(new Collector(messageOptions, msbContext, handlers));
+
+        requester = new Requester(messageOptions, null, msbContext) {
+            protected Collector createCollector(MsbMessageOptions messageOptions, MsbContext channelManager, EventHandlers eventHandlers) {
+                return collectorMock;
+            }
+        };
     }
 
     @After
     public void tearDown() {
-        reset(channelManagerMock, producerMock, consumerMock);
+        reset(channelManagerMock, producerMock);
     }
 
     @Test
     public void testPublishNoWaitForResponses() throws Exception {
-        initForResponses(0);
+        initRequesterForResponses(0);
 
         Payload request = TestUtils.createSimpleRequestPayload();
-        Requester requester = new Requester(messageOptions, null, msbContext);
         requester.publish(request);
 
         verify(collectorMock, never()).listenForResponses(anyString(), any());
@@ -82,10 +82,9 @@ public class RequesterTest {
 
     @Test
     public void testPublishWaitForResponses() throws Exception {
-        initForResponses(1);
+        initRequesterForResponses(1);
 
         Payload request = TestUtils.createSimpleRequestPayload();
-        Requester requester = new Requester(messageOptions, null, msbContext);
         requester.publish(request);
 
         verify(collectorMock).listenForResponses(anyString(), any());
@@ -95,101 +94,85 @@ public class RequesterTest {
 
     @Test
     public void testOnLastMessageEnd() throws Exception {
-        initForResponses(0);
+        initRequesterForResponses(0);
 
         Message message = TestUtils.createMsbResponseMessage();
-        Requester requester = new Requester(messageOptions, null, msbContext);
-        requester.handleMessage(message, null);
+        collectorMock.handleMessage(message);
 
         verify(collectorMock).end();
     }
 
     @Test
     public void testOnRemainingSetTimeout() throws Exception {
-        initForResponses(1);
+        initRequesterForResponses(1);
 
         Message message = TestUtils.createMsbResponseMessage();
-        Requester requester = new Requester(messageOptions, null, msbContext);
-        requester.handleMessage(message, null);
+        requester.publish(TestUtils.createSimpleRequestPayload());
+        collectorMock.handleMessage(message);
 
-        verify(collectorMock).enableTimeout();
+        verify(collectorMock).waitForResponses();
     }
 
     @Test
-    public void testOnErrorFiresError() throws Exception {
-        initForResponses(1);
+    @SuppressWarnings("unchecked")
+    public void testOnAcknowledge() throws Exception {
+        Callback onAckMock = mock(Callback.class);
+        initRequesterForResponses(1, new EventHandlers().onAcknowledge(onAckMock));
+
+        Message message = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(messageOptions.getNamespace());
+        requester.onError(onAckMock);
+        requester.publish(message.getPayload());
+        collectorMock.handleMessage(message);
+
+        verify(onAckMock).call(eq(message.getAck()));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testOnResponse() throws Exception {
+        Callback onResponseMock = mock(Callback.class);
+        initRequesterForResponses(1, new EventHandlers().onResponse(onResponseMock));
+
+        Message message = TestUtils.createMsbResponseMessage();
+        requester.onResponse(onResponseMock);
+        requester.publish(message.getPayload());
+        collectorMock.handleMessage(message);
+
+        verify(onResponseMock).call(eq(message.getPayload()));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testOnError() throws Exception {
+        Callback onErrorMock = mock(Callback.class);
+        initRequesterForResponses(1, new EventHandlers().onError(onErrorMock));
 
         Message message = TestUtils.createMsbResponseMessage();
         Exception exception = new Exception();
-        Requester requester = new Requester(messageOptions, null, msbContext);
+        requester.onError(onErrorMock);
         requester.publish(message.getPayload());
-        requester.handleMessage(message, exception);
+        collectorMock.handleError(exception);
 
-        verify(consumerMock).emit(eq(Event.ERROR_EVENT), eq(exception));
+        verify(onErrorMock).call(eq(exception));
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testSubscribeOnAcknowledge() throws Exception {
-        initForResponses(1);
+    public void testOnEnd() throws Exception {
+        Callback onEndMock = mock(Callback.class);
+        initRequesterForResponses(1, new EventHandlers().onEnd(onEndMock));
 
-        Requester requester = new Requester(messageOptions, null, msbContext);
-        requester.onAcknowledge(acknowledge -> {
-        });
+        Message message = TestUtils.createMsbResponseMessage();
+        requester.onEnd(onEndMock);
+        requester.publish(message.getPayload());
+        collectorMock.handleMessage(message);
 
-        verify(consumerMock).on(eq(Event.ACKNOWLEDGE_EVENT), any(SingleArgEventHandler.class));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testSubscribeOnResponse() throws Exception {
-        initForResponses(1);
-
-        Requester requester = new Requester(messageOptions, null, msbContext);
-        requester.onResponse(response -> {
-        });
-
-        verify(consumerMock).on(eq(Event.RESPONSE_EVENT), any(SingleArgEventHandler.class));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testSubscribeOnError() throws Exception {
-        initForResponses(1);
-
-        Requester requester = new Requester(messageOptions, null, msbContext);
-        requester.onError(error -> {
-        });
-
-        verify(consumerMock).on(eq(Event.ERROR_EVENT), any(SingleArgEventHandler.class));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testSubscribeOnEnd() throws Exception {
-        initForResponses(1);
-
-        Requester requester = new Requester(messageOptions, null, msbContext);
-        requester.onEnd(args -> {
-        });
-
-        verify(consumerMock).on(eq(Event.END_EVENT), any(SingleArgEventHandler.class));
-    }
-
-    @Test
-    public void testIsMessageAcknowledged() throws Exception {
-        initForResponses(1);
-
-        Requester requester = new Requester(messageOptions, null, msbContext);
-        when(collectorMock.getAckMessages())
-                .thenReturn(Arrays.asList(TestUtils.createMsbResponseMessage()));
-
-        assertTrue(requester.isMessageAcknowledged());
+        verify(onEndMock).call(anyListOf(Message.class));
     }
 
     @Test
     public void testRequestMessage() throws Exception {
-        initForResponses(0);
+        initRequesterForResponses(0);
 
         Payload request = TestUtils.createSimpleRequestPayload();
         Requester requester = new Requester(messageOptions, null, msbContext);
@@ -209,7 +192,7 @@ public class RequesterTest {
 
     private Message captureMessage(Producer producer) {
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-        verify(producer).publish(messageCaptor.capture(), any());
+        verify(producer).publish(messageCaptor.capture());
 
         Message message = messageCaptor.getValue();
         assertNotNull(message.getPayload());

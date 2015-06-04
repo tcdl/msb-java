@@ -7,8 +7,6 @@ package io.github.tcdl;
 import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.adapters.Adapter.RawMessageHandler;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.events.Event;
-import io.github.tcdl.events.EventEmitter;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
@@ -39,59 +37,62 @@ public class ConsumerTest {
     private Adapter adapterMock;
 
     @Mock
-    private EventEmitter eventEmitterMock;
-
-    @Mock
     private MsbConfigurations msbConfMock;
 
     @Mock
     private ChannelMonitorAgent channelMonitorAgentMock;
 
     @Captor
-    ArgumentCaptor<RawMessageHandler> messageHandlerCaptur;
+    private ArgumentCaptor<RawMessageHandler> messageHandlerCaptor;
+
+    @Mock
+    private Callback<Message> messageHandler;
+
+    @Mock
+    private Callback<Exception> errorHandler;
 
     private Clock clock = Clock.systemDefaultZone();
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullAdapter() {
-        new Consumer(null, TOPIC, eventEmitterMock, msbConfMock, clock, channelMonitorAgentMock);
+        new Consumer(null, TOPIC, msbConfMock, clock, channelMonitorAgentMock);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullTopic() {
-        new Consumer(adapterMock, null, eventEmitterMock, msbConfMock, clock, channelMonitorAgentMock);
+        new Consumer(adapterMock, null, msbConfMock, clock, channelMonitorAgentMock);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullMsbConf() {
-        new Consumer(adapterMock, TOPIC, eventEmitterMock, null, clock, channelMonitorAgentMock);
+        new Consumer(adapterMock, TOPIC, null, clock, channelMonitorAgentMock);
     }
 
     @Test
     public void testConsumeFromTopicValidateThrowException() {
         MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
-        Consumer consumer = new Consumer(adapterMock, TOPIC, eventEmitterMock, msbConf, clock, channelMonitorAgentMock).subscribe();
+        Consumer consumer = new Consumer(adapterMock, TOPIC, msbConf, clock, channelMonitorAgentMock).subscribe(messageHandler, errorHandler);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
-        verify(eventEmitterMock).emit(eq(Event.ERROR_EVENT), isA(JsonSchemaValidationException.class));
+        verify(errorHandler).call(isA(JsonSchemaValidationException.class));
     }
 
     @Test
     public void testConsumeFromSeviceTopicValidateThrowException() {
         String service_topic = "_service:topic";
         MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
-        Consumer consumer = new Consumer(adapterMock, service_topic, eventEmitterMock, msbConf, clock, channelMonitorAgentMock).subscribe();
+        Consumer consumer = new Consumer(adapterMock, service_topic, msbConf, clock, channelMonitorAgentMock).subscribe(messageHandler, errorHandler);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
-        verify(eventEmitterMock).emit(eq(Event.ERROR_EVENT), isA(JsonConversionException.class));
+        verify(errorHandler).call(isA(JsonConversionException.class));
     }
 
     @Test
     public void testConsumeFromTopic() throws JsonConversionException {
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
-        Consumer consumer = new Consumer(adapterMock, TOPIC, eventEmitterMock, msbConfMock, clock, channelMonitorAgentMock).subscribe();
+        Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock).subscribe(messageHandler, errorHandler);
 
         consumer.handleRawMessage(Utils.toJson(originalMessage));
-        verify(eventEmitterMock).emit(eq(Event.MESSAGE_EVENT), any(Message.class));
+        verify(messageHandler).call(any(Message.class));
     }
 }

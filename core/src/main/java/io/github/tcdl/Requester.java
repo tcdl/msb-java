@@ -1,24 +1,19 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.events.Event.ERROR_EVENT;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.Event;
-import io.github.tcdl.events.EventEmitter;
+import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
-import javax.annotation.Nullable;
-
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Requester is a component which sends a request message to the bus and collects responses
@@ -29,23 +24,30 @@ public class Requester {
 
     public static final Logger LOG = LoggerFactory.getLogger(Requester.class);
 
-    private Collector collector;
-    private MessageFactory messageFactory;  
-    private MessageBuilder messageBuilder;
+    private MsbMessageOptions messageOptions;
+    private MsbContext context;
+
     private Message message;
-    private String topicToListen;
+    private MessageFactory messageFactory;
+    private MessageBuilder messageBuilder;
+    private EventHandlers eventHandlers;
 
     /**
      * Creates a new instance of a requester
-     * @param config message options to construct a message
+     * @param messageOptions message options to construct a message
      * @param originalMessage original message (to take correlation id from)
      * @param context context which contains MSB related beans
      */
-    public Requester(MsbMessageOptions config, Message originalMessage, MsbContext context) {
-        Validate.notNull(config, "the 'config' must not be null");
-        this.collector = new Collector(config, context);
-        this.messageFactory = context.getMessageFactory();       
-        this.messageBuilder = messageFactory.createRequestMessageBuilder(config, originalMessage);
+    public Requester(MsbMessageOptions messageOptions, Message originalMessage, MsbContext context) {
+        Validate.notNull(messageOptions, "the 'messageOptions' must not be null");
+        Validate.notNull(context, "the 'context' must not be null");
+
+        this.messageOptions = messageOptions;
+        this.context = context;
+
+        this.eventHandlers = new EventHandlers();
+        this.messageFactory = context.getMessageFactory();
+        this.messageBuilder = messageFactory.createRequestMessageBuilder(messageOptions, originalMessage);
     }
 
     /**
@@ -55,15 +57,23 @@ public class Requester {
     public void publish(@Nullable Payload requestPayload) {
         this.message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
+        Collector collector = createCollector(messageOptions, context, eventHandlers);
+
         if (collector.isWaitForResponses()) {
-            topicToListen = message.getTopics().getResponse();
-            collector.listenForResponses(topicToListen,
+            String topic = message.getTopics().getResponse();
+            collector.listenForResponses(topic,
                     responseMessage -> Objects.equals(responseMessage.getCorrelationId(), message.getCorrelationId())
             );
         }
 
         collector.getChannelManager().findOrCreateProducer(this.message.getTopics().getTo())
-                .publish(this.message, this::handleMessage);
+                .publish(this.message);
+
+        if (collector.isWaitForResponses()) {
+            collector.waitForResponses();
+        } else {
+            collector.end();
+        }
     }
 
     /**
@@ -72,7 +82,7 @@ public class Requester {
      * @return requester
      */
     public Requester onAcknowledge(Callback<Acknowledge> acknowledgeHandler) {
-        getConsumer().ifPresent(consumer -> consumer.on(Event.ACKNOWLEDGE_EVENT, acknowledgeHandler::call));
+        eventHandlers.onAcknowledge(acknowledgeHandler);
         return this;
     }
 
@@ -82,7 +92,7 @@ public class Requester {
      * @return requester
      */
     public Requester onResponse(Callback<Payload> responseHandler) {
-        getConsumer().ifPresent(eventEmitter -> eventEmitter.on(Event.RESPONSE_EVENT, responseHandler::call));
+        eventHandlers.onResponse(responseHandler);
         return this;
     }
 
@@ -92,7 +102,7 @@ public class Requester {
      * @return requester
      */
     public Requester onEnd(Callback<List<Message>> endHandler) {
-        getConsumer().ifPresent(eventEmitter -> eventEmitter.on(Event.END_EVENT, endHandler::call));
+        eventHandlers.onEnd(endHandler);
         return this;
     }
 
@@ -102,31 +112,15 @@ public class Requester {
      * @return requester
      */
     public Requester onError(Callback<Exception> errorHandler) {
-        getConsumer().ifPresent(consumer -> consumer.on(Event.ERROR_EVENT, errorHandler::call));
+        eventHandlers.onError(errorHandler);
         return this;
     }
 
-    protected void handleMessage(Message message, Exception exception) {
-        if (exception != null) {
-            getConsumer().ifPresent(consumer -> consumer.emit(ERROR_EVENT, exception));
-            LOG.debug("Exception was thrown.", exception);
-            return;
-        }
-
-        if (!collector.isAwaitingResponses())
-            collector.end();
-        collector.enableTimeout();
-    }
-
-    Message getMessage() {
+    protected Message getMessage() {
         return message;
     }
-    
-    boolean isMessageAcknowledged() {
-        return !collector.getAckMessages().isEmpty();
-    }
 
-    private Optional<Consumer> getConsumer() {
-        return Optional.ofNullable(collector.getChannelManager().findConsumer(topicToListen));
+    protected Collector createCollector(MsbMessageOptions messageOptions, MsbContext context, EventHandlers eventHandlers) {
+        return new Collector(messageOptions, context, eventHandlers);
     }
 }

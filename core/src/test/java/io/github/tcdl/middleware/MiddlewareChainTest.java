@@ -3,7 +3,6 @@ package io.github.tcdl.middleware;
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.Responder;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.ThreeArgsEventHandler;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
@@ -56,7 +55,7 @@ public class MiddlewareChainTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testExecuteWithError() throws Exception {
-        ThreeArgsEventHandler<Payload, Responder, Exception> errorHandlerMock = mock(ThreeArgsEventHandler.class);
+        MiddlewareHandler errorHandlerMock = mock(MiddlewareHandler.class);
 
         MiddlewareChain middlewareChain = new MiddlewareChain().withErrorHandler(errorHandlerMock);
         middlewareChain.add(middlewareMock);
@@ -74,6 +73,6 @@ public class MiddlewareChainTest {
         verify(middlewareMock, only())
                 .execute(eq(request), eq(responder), eq(middlewareChain));
         verify(errorHandlerMock, only())
-                .onEvent(eq(request), eq(responder), any());
+                .handle(eq(request), eq(responder), any());
     }
 }

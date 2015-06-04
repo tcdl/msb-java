@@ -2,10 +2,6 @@ package io.github.tcdl;
 
 import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.events.Event;
-import io.github.tcdl.events.EventEmitter;
-import io.github.tcdl.events.SingleArgEventHandler;
-import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
@@ -20,9 +16,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-import static io.github.tcdl.events.Event.ERROR_EVENT;
-import static io.github.tcdl.events.Event.MESSAGE_EVENT;
-
 /**
  * Created by rdro on 4/23/2015.
  */
@@ -30,33 +23,40 @@ public class Consumer {
 
     public static final Logger LOG = LoggerFactory.getLogger(Consumer.class);
 
-    private EventEmitter eventEmitter;
     private final Adapter rawAdapter;
     private final String topic;
     private MsbConfigurations msbConfig;
     private ChannelMonitorAgent channelMonitorAgent;
     private Clock clock;
+    private Callback<Message> messageHandler;
+    private Callback<Exception> errorHandler;
 
-    public Consumer(Adapter rawAdapter, String topic, EventEmitter eventEmitter, MsbConfigurations msbConfig, Clock clock, ChannelMonitorAgent channelMonitorAgent) {
+    public Consumer(Adapter rawAdapter, String topic, MsbConfigurations msbConfig, Clock clock, ChannelMonitorAgent channelMonitorAgent) {
         LOG.debug("Creating consumer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
         Validate.notNull(topic, "the 'topic' must not be null");
-        Validate.notNull(eventEmitter, "the 'eventEmitter' must not be null");
         Validate.notNull(msbConfig, "the 'msbConfig' must not be null");
         Validate.notNull(clock, "the 'clock' must not be null");
         Validate.notNull(channelMonitorAgent, "the 'channelMonitorAgent' must not be null");
 
         this.rawAdapter = rawAdapter;
         this.topic = topic;
-        this.eventEmitter = eventEmitter;
         this.msbConfig = msbConfig;
         this.clock = clock;
         this.channelMonitorAgent = channelMonitorAgent;
     }
 
-    public Consumer subscribe() {
-        // merge msgOptions with msbConfig
-        // do other stuff
+    public Consumer subscribe(Callback<Message> messageHandler) {
+        subscribe(messageHandler, null);
+        return this;
+    }
+
+    public Consumer subscribe(Callback<Message> messageHandler, Callback<Exception> errorHandler) {
+        Validate.notNull(messageHandler, "the 'messageHandler' must not be null");
+
+        this.messageHandler = messageHandler;
+        this.errorHandler = errorHandler;
+
         rawAdapter.subscribe(this::handleRawMessage);
 
         return this;
@@ -65,21 +65,6 @@ public class Consumer {
     public void end() {
         LOG.debug("Shutting down consumer for topic {}", topic);
         rawAdapter.unsubscribe();
-    }
-
-    public <A1> Consumer on(Event event, SingleArgEventHandler<A1> eventHandler) {
-        eventEmitter.on(event, eventHandler);
-        return this;
-    }
-
-    public <A1, A2> Consumer on(Event event, TwoArgsEventHandler<A1, A2> eventHandler) {
-        eventEmitter.on(event, eventHandler);
-        return this;
-    }
-
-    public <A1> Consumer emit(Event event, A1 arg) {
-        eventEmitter.emit(event, arg);
-        return this;
     }
 
     protected void handleRawMessage(String jsonMessage) {
@@ -100,7 +85,8 @@ public class Consumer {
         }
 
         if (error != null) {
-            eventEmitter.emit(ERROR_EVENT, error);
+            if (errorHandler != null)
+                errorHandler.call(error);
             return;
         }
 
@@ -111,7 +97,7 @@ public class Consumer {
             channelMonitorAgent.consumerMessageReceived(topic);
         }
 
-        eventEmitter.emit(MESSAGE_EVENT, message);
+        messageHandler.call(message);
     }
 
     private boolean isMessageExpired(Message message) {

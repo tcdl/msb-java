@@ -41,13 +41,14 @@ public class RequesterResponderIT {
         //Create and send request message
         Requester requester = new Requester(messageOptions, null, msbContext);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        requester.publish(requestPayload);
 
         ResponderServer.create(messageOptions, msbContext)
                 .use(((request, response) -> {
                     requestRecieved.countDown();
                 }))
                 .listen();
+
+        requester.publish(requestPayload);
 
         assertTrue("Message was not recieved", requestRecieved.await(2000, TimeUnit.MILLISECONDS));
     }
@@ -67,24 +68,24 @@ public class RequesterResponderIT {
 
         //Create and send request message directly to broker, wait for ack  
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = new Requester(messageOptions, null, msbContext);
-        requester.publish(requestPayload);
-        requester.onAcknowledge((Acknowledge ack) -> {
-            recievedResponseAcks.add(ack);
-            ackResponseRecieved.countDown();
-        });
+        new Requester(messageOptions, null, msbContext).
+            onAcknowledge((Acknowledge ack) -> {
+                recievedResponseAcks.add(ack);
+                ackResponseRecieved.countDown();
+        })
+        .publish(requestPayload);
+
 
         //listen for message and send response
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
         ResponderServer.create(messageOptions, serverMsbContext)
                 .use(((request, response) -> {
-                    response.sendAck(100, 2, null);
+                    response.sendAck(100, 2);
                     sendedAcks.add(response.getResponseMessage());
                     ackSend.countDown();
                 }))
                 .listen();
 
-        //Thread.sleep(60000);
         assertTrue("Message ack was not send", ackSend.await(3000, TimeUnit.MILLISECONDS));
         assertTrue("Message ack response not recieved", ackResponseRecieved.await(3000, TimeUnit.MILLISECONDS));
         assertTrue("Expected one ack", recievedResponseAcks.size() == 1);
@@ -101,17 +102,17 @@ public class RequesterResponderIT {
         CountDownLatch respSend = new CountDownLatch(1);
         CountDownLatch respRecieved = new CountDownLatch(1);
 
-        ConcurrentLinkedQueue<Message> sendedResponses = new ConcurrentLinkedQueue<Message>();
-        ConcurrentLinkedQueue<Payload> recievedResponses = new ConcurrentLinkedQueue<Payload>();
+        ConcurrentLinkedQueue<Payload> sendedResponses = new ConcurrentLinkedQueue<>();
+        ConcurrentLinkedQueue<Payload> recievedResponses = new ConcurrentLinkedQueue<>();
 
         //Create and send request message directly to broker, wait for ack  
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = new Requester(messageOptions, null, msbContext);
-        requester.publish(requestPayload);
-        requester.onResponse((Payload payload) -> {
-            recievedResponses.add(payload);
-            respRecieved.countDown();
-        });
+        new Requester(messageOptions, null, msbContext)
+            .onResponse(payload -> {
+                recievedResponses.add(payload);
+                respRecieved.countDown();
+            })
+            .publish(requestPayload);
 
         //listen for message and send response
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
@@ -121,14 +122,9 @@ public class RequesterResponderIT {
                     Payload payload = new Payload.PayloadBuilder().setBody(
                             new HashMap<String, String>().put("body", "payload from test : testResponderAnswerWithResponseRequesterRecieveResponse"))
                             .setStatusCode(3333).build();
-
-                    response.send(payload, (Message m, Exception ex) -> {
-                        sendedResponses.add(m);
-
-                        //verify no exception was thrown
-                            assertNull(ex);
-                            respSend.countDown();
-                        });
+                    response.send(payload);
+                    sendedResponses.add(payload);
+                    respSend.countDown();
 
                 }))
                 .listen();
@@ -136,7 +132,7 @@ public class RequesterResponderIT {
         assertTrue("Message response was not send", respSend.await(2000, TimeUnit.MILLISECONDS));
         assertTrue("Message response not recieved", respRecieved.await(2000, TimeUnit.MILLISECONDS));
         assertTrue("Expected one response", recievedResponses.size() == 1);
-        assertEquals(sendedResponses.poll().getPayload().getStatusCode(), recievedResponses.poll().getStatusCode());
+        assertEquals(sendedResponses.poll().getStatusCode(), recievedResponses.poll().getStatusCode());
     }
 
     @Test
@@ -159,15 +155,15 @@ public class RequesterResponderIT {
                     //Create and send request message, wait for ack 
                     Requester requester = new Requester(requestAwaitAckMessageOptions, null, msbContext);
                     Payload requestPayload = TestUtils.createSimpleRequestPayload();
-                    requester.publish(requestPayload);
                     requester.onAcknowledge((Acknowledge a) -> ackRecieved.countDown());
+                    requester.publish(requestPayload);
                 }))
                 .listen();
 
         MsbContext serverTwoMsbContext = TestUtils.createSimpleMsbContext();
         ResponderServer.create(responderServerTwoMessageOptions, serverTwoMsbContext)
                 .use(((request, response) -> {
-                    response.sendAck(100, 2, null);
+                    response.sendAck(100, 2);
                     ackSent.countDown();
                 }))
                 .listen();

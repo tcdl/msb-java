@@ -23,12 +23,12 @@ public class ResponderExample {
                 .use(((request, responder) -> {
                     System.out.print(">>> REQUEST: " + request.getHeaders());
 
-                    responder.sendAck(10000, 3, null);
+                    responder.sendAck(10000, 3);
                     Thread.sleep(5000);
 
-                    responder.send(createResponse(1), null);
-                    responder.send(createResponse(2), null);
-                    responder.send(createResponse(3), null);
+                    responder.send(createResponse(1));
+                    responder.send(createResponse(2));
+                    responder.send(createResponse(3));
                 }))
                 .listen();
     }

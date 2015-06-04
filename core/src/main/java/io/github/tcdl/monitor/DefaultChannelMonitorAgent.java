@@ -5,7 +5,6 @@ import io.github.tcdl.MsbContext;
 import io.github.tcdl.Producer;
 import io.github.tcdl.Responder;
 import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
@@ -61,14 +60,16 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
      */
     public DefaultChannelMonitorAgent start() {
         channelManager.findOrCreateConsumer(TOPIC_HEARTBEAT) // Launch listener for heartbeat topic
-           .on(Event.MESSAGE_EVENT, (Message message) -> {
-               Responder responder = new Responder(null, message, msbContext);
-               Payload payload = new Payload.PayloadBuilder()
-                       .setBody(topicInfoMap)
-                       .build();
+           .subscribe(message -> {
+                Responder responder = new Responder(null, message, msbContext);
+                Payload payload = new Payload.PayloadBuilder()
+                        .setBody(topicInfoMap)
+                        .build();
 
-               responder.send(payload, null);
-           });
+                responder.send(payload);
+            },
+            exception -> {/*TODO*/}
+           );
 
         channelManager.setChannelMonitorAgent(this); // Inject itself in channel manager
 
@@ -157,6 +158,6 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
         MessageBuilder messageBuilder = messageFactory.createBroadcastMessageBuilder(new MsbMessageOptions(), TOPIC_ANNOUNCE, payload);
         Message announcementMessage = messageBuilder.build();
 
-        producer.publish(announcementMessage, null);
+        producer.publish(announcementMessage);
     }
 }

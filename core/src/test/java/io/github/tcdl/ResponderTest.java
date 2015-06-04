@@ -70,7 +70,7 @@ public class ResponderTest {
     @Test
     public void testProducerWasCreatedForProperTopic() {
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-        responder.send(payload, null);
+        responder.send(payload);
 
         verify(mockChannelManager).findOrCreateProducer(argument.capture());
 
@@ -79,17 +79,17 @@ public class ResponderTest {
 
     @Test
     public void testProducerPublishMethodInvoked() {
-        responder.send(payload, null);
+        responder.send(payload);
 
-        verify(mockProducer, times(1)).publish(anyObject(), anyObject());
+        verify(mockProducer, times(1)).publish(anyObject());
     }
 
     @Test
     public void testProducerPublishUseCorrectPayload() {
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
-        responder.send(payload, null);
+        responder.send(payload);
 
-        verify(mockProducer).publish(argument.capture(), anyObject());
+        verify(mockProducer).publish(argument.capture());
 
         assertEquals(payload, argument.getValue().getPayload());
     }
@@ -99,9 +99,9 @@ public class ResponderTest {
         Integer timeout = Integer.valueOf(222);
         Integer responsesRemaining = Integer.valueOf(2);
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
-        responder.sendAck(timeout, responsesRemaining, null);
+        responder.sendAck(timeout, responsesRemaining);
 
-        verify(mockProducer).publish(argument.capture(), anyObject());
+        verify(mockProducer).publish(argument.capture());
 
         assertEquals(argument.getValue().getAck().getTimeoutMs(), timeout);
         assertEquals(argument.getValue().getAck().getResponsesRemaining(), responsesRemaining);

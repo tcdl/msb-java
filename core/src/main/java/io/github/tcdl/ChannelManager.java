@@ -4,8 +4,6 @@ import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.adapters.AdapterFactoryLoader;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.events.EventEmitterImpl;
-import io.github.tcdl.events.TwoArgsEventHandler;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.monitor.NoopChannelMonitorAgent;
@@ -58,16 +56,10 @@ public class ChannelManager {
         if (consumer == null) {
             consumer = createConsumer(topic);
             consumersByTopic.put(topic, consumer);
-            consumer.subscribe();
-
             channelMonitorAgent.consumerTopicCreated(topic);
         }
 
         return consumer;
-    }
-
-    public Consumer findConsumer(final String topic) {
-        return topic != null ? consumersByTopic.get(topic) : null;
     }
 
     public void removeConsumer(String topic) {
@@ -81,20 +73,20 @@ public class ChannelManager {
         channelMonitorAgent.consumerTopicRemoved(topic);
     }
 
-    public Producer createProducer(String topic) {
+    private Producer createProducer(String topic) {
         Utils.validateTopic(topic);
 
         Adapter adapter = getAdapterFactory().createAdapter(topic);
-        TwoArgsEventHandler<Message, Exception> handler = (message, exception) -> channelMonitorAgent.producerMessageSent(topic);
+        Callback<Message> handler = message -> channelMonitorAgent.producerMessageSent(topic);
         return new Producer(adapter, topic, handler);
     }
 
-    public Consumer createConsumer(String topic) {
+    private Consumer createConsumer(String topic) {
         Utils.validateTopic(topic);
 
         Adapter adapter = getAdapterFactory().createAdapter(topic);
 
-        return new Consumer(adapter, topic, new EventEmitterImpl(), msbConfig, clock, channelMonitorAgent);
+        return new Consumer(adapter, topic, msbConfig, clock, channelMonitorAgent);
     }
 
     private AdapterFactory getAdapterFactory() {
