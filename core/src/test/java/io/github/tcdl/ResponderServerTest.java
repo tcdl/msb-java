@@ -1,38 +1,28 @@
 package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
-import io.github.tcdl.middleware.MiddlewareChain;
 import io.github.tcdl.support.TestUtils;
+import io.github.tcdl.support.Utils;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.spy;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by rdro on 4/30/2015.
  */
-@RunWith(PowerMockRunner.class)
 public class ResponderServerTest {
-
     private MsbMessageOptions messageOptions;
-    private MsbContext msbContext = TestUtils.createSimpleMsbContext();
 
+    private MsbContext msbContext = TestUtils.createSimpleMsbContext();
 
     @Before
     public void setUp() {
@@ -41,27 +31,33 @@ public class ResponderServerTest {
     }
 
     @Test
-    @PrepareForTest({ ResponderServer.class } )
     public void testResponderServerAsyncProcessSuccess() throws Exception {
 
-        Middleware middleware = (request, responder) -> {};
+        Middleware middleware = (request, responder) -> {
+        };
+
+        ChannelManager channelManager = msbContext.getChannelManager();
+        Consumer consumer = channelManager.findOrCreateConsumer(messageOptions.getNamespace());
+
+        ChannelManager spyChannelManager = spy(channelManager);
+        MsbContext spyMsbContext = spy(msbContext);
+
+        when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
+        when(spyChannelManager.findOrCreateConsumer(messageOptions.getNamespace())).thenReturn(consumer);
+
         ResponderServer responderServer = ResponderServer
-                .create(messageOptions, msbContext)
+                .create(messageOptions, spyMsbContext);
+
+        ResponderServer spyResponderServer = spy(responderServer);
+
+        spyResponderServer
                 .use(middleware)
                 .listen();
 
-        mockStatic(CompletableFuture.class);
-        ArgumentCaptor<Supplier> middlewareCaptor = ArgumentCaptor.forClass(Supplier.class);
+        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(messageOptions.getNamespace());
+        consumer.handleRawMessage(Utils.toJson(originalMessage));
 
-        // simulate incoming request
-        responderServer.onResponder(new Responder(messageOptions, TestUtils.createMsbRequestMessageNoPayload(), msbContext));
-
-        verifyStatic();
-        CompletableFuture.supplyAsync(middlewareCaptor.capture());
-        MiddlewareChain middlewareChain = (MiddlewareChain) middlewareCaptor.getValue().get();
-
-        assertNotNull(middlewareChain);
-        assertEquals(middleware, middlewareChain.getMiddleware().iterator().next());
+        verify(spyResponderServer).onResponder(anyObject());
     }
 
     @Test
