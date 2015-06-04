@@ -1,16 +1,13 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.events.Event.ACKNOWLEDGE_EVENT;
-import static io.github.tcdl.events.Event.END_EVENT;
-import static io.github.tcdl.events.Event.MESSAGE_EVENT;
-import static io.github.tcdl.events.Event.RESPONSE_EVENT;
-import static io.github.tcdl.support.Utils.ifNull;
-import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Date;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,8 +16,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Predicate;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static io.github.tcdl.events.Event.ACKNOWLEDGE_EVENT;
+import static io.github.tcdl.events.Event.END_EVENT;
+import static io.github.tcdl.events.Event.MESSAGE_EVENT;
+import static io.github.tcdl.events.Event.RESPONSE_EVENT;
+import static io.github.tcdl.support.Utils.ifNull;
 
 /**
  * Created by rdro on 4/23/2015.
@@ -46,13 +46,15 @@ public class Collector {
     private TimerTask timeout;
     private TimerTask ackTimeout;
 
+    private Clock clock;
+
     private String topic;
-    private MsbConfigurations msbConfigurations;
-    
-    public Collector(MsbMessageOptions config, ChannelManager channelManager, MsbConfigurations msbConfigurations) {  
-        this.channelManager = channelManager;
-        this.msbConfigurations = msbConfigurations;
-        this.startedAt = System.currentTimeMillis();
+
+    public Collector(MsbMessageOptions config, MsbContext msbContext) {
+        this.channelManager = msbContext.getChannelManager();
+        this.clock = msbContext.getClock();
+
+        this.startedAt = clock.instant().toEpochMilli();
         this.ackMessages = new LinkedList<>();
         this.payloadMessages = new LinkedList<>();
         this.timeoutMsById = new HashMap<>();
@@ -73,7 +75,7 @@ public class Collector {
     }
 
     public boolean isAwaitingAcks() {
-        return waitForAcksUntil > System.currentTimeMillis();
+        return waitForAcksUntil > clock.instant().toEpochMilli();
     }
 
     public boolean isAwaitingResponses() {
@@ -160,8 +162,8 @@ public class Collector {
             }
         };
 
-        long ackTimeoutMs = waitForAcksUntil - System.currentTimeMillis();
-        LOG.debug("Waiting for ack until {}. Enabling ack timeout for {} ms", new Date(waitForAcksUntil), ackTimeoutMs);
+        long ackTimeoutMs = waitForAcksUntil - clock.instant().toEpochMilli();
+        LOG.debug("Waiting for ack until {}. Enabling ack timeout for {} ms", Instant.ofEpochMilli(waitForAcksUntil), ackTimeoutMs);
         setTimeout(ackTimeout, ackTimeoutMs);
     }
 

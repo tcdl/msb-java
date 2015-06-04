@@ -1,13 +1,9 @@
 package io.github.tcdl.monitor;
 
-import static io.github.tcdl.support.Utils.TOPIC_ANNOUNCE;
-import static io.github.tcdl.support.Utils.TOPIC_HEARTBEAT;
-import static io.github.tcdl.support.Utils.isServiceTopic;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.Producer;
 import io.github.tcdl.Responder;
-import io.github.tcdl.*;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.Event;
 import io.github.tcdl.messages.Message;
@@ -16,9 +12,13 @@ import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 
 import java.time.Clock;
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+
+import static io.github.tcdl.support.Utils.TOPIC_ANNOUNCE;
+import static io.github.tcdl.support.Utils.TOPIC_HEARTBEAT;
+import static io.github.tcdl.support.Utils.isServiceTopic;
 
 /**
  * This implementation maintains statistics over all topics. It broadcasts that statistics over the bus for special monitoring microservices. The overall
@@ -62,13 +62,13 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
     public DefaultChannelMonitorAgent start() {
         channelManager.findOrCreateConsumer(TOPIC_HEARTBEAT) // Launch listener for heartbeat topic
            .on(Event.MESSAGE_EVENT, (Message message) -> {
-                Responder responder = new Responder(null, message, msbContext);
-                Payload payload = new Payload.PayloadBuilder()
-                        .setBody(topicInfoMap)
-                        .build();
+               Responder responder = new Responder(null, message, msbContext);
+               Payload payload = new Payload.PayloadBuilder()
+                       .setBody(topicInfoMap)
+                       .build();
 
-                responder.send(payload, null);
-            });
+               responder.send(payload, null);
+           });
 
         channelManager.setChannelMonitorAgent(this); // Inject itself in channel manager
 
@@ -119,8 +119,8 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
             return;
         }
 
-        Date currentTime = Date.from(clock.instant());
-        TopicStats updatedStats = getOrCreateTopicStats(topicName).setLastProducedAt(currentTime);
+        Instant now = clock.instant();
+        TopicStats updatedStats = getOrCreateTopicStats(topicName).setLastProducedAt(now);
         topicInfoMap.put(topicName, updatedStats);
     }
 
@@ -131,8 +131,8 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
             return;
         }
 
-        Date currentTime = Date.from(clock.instant());
-        TopicStats updatedStats = getOrCreateTopicStats(topicName).setLastConsumedAt(currentTime);
+        Instant now = clock.instant();
+        TopicStats updatedStats = getOrCreateTopicStats(topicName).setLastConsumedAt(now);
         topicInfoMap.put(topicName, updatedStats);
     }
 

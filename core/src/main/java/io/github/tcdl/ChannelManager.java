@@ -12,6 +12,7 @@ import io.github.tcdl.monitor.NoopChannelMonitorAgent;
 import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
 
+import java.time.Clock;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,14 +22,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChannelManager {
     
     private MsbConfigurations msbConfig;
+    private Clock clock;
     private AdapterFactory adapterFactory;
     private ChannelMonitorAgent channelMonitorAgent;
 
     private Map<String, Producer> producersByTopic;
     private Map<String, Consumer> consumersByTopic;
 
-    public ChannelManager(MsbConfigurations msbConfig) {
+    public ChannelManager(MsbConfigurations msbConfig, Clock clock) {
         this.msbConfig = msbConfig;
+        this.clock = clock;
         this.adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
         this.producersByTopic = new ConcurrentHashMap<>();
         this.consumersByTopic = new ConcurrentHashMap<>();
@@ -91,7 +94,7 @@ public class ChannelManager {
 
         Adapter adapter = getAdapterFactory().createAdapter(topic);
 
-        return new Consumer(adapter, topic, new EventEmitterImpl(), msbConfig, channelMonitorAgent);
+        return new Consumer(adapter, topic, new EventEmitterImpl(), msbConfig, clock, channelMonitorAgent);
     }
 
     private AdapterFactory getAdapterFactory() {

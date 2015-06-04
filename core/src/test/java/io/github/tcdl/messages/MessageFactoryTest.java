@@ -1,5 +1,21 @@
 package io.github.tcdl.messages;
 
+import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.ServiceDetails;
+import io.github.tcdl.messages.Message.MessageBuilder;
+import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.support.TestUtils;
+import io.github.tcdl.support.Utils;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -9,25 +25,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
-import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.config.ServiceDetails;
-import io.github.tcdl.messages.Message.MessageBuilder;
-import io.github.tcdl.messages.payload.Payload;
-import io.github.tcdl.support.TestUtils;
-import io.github.tcdl.support.Utils;
-
-import java.util.Calendar;
-import java.util.Date;
-
-import org.apache.commons.lang3.time.DateUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageFactoryTest {
+
+    private final Instant FIXED_CLOCK_INSTANT = Instant.parse("2007-12-03T10:15:30.00Z");
+    private final Clock FIXED_CLOCK = Clock.fixed(FIXED_CLOCK_INSTANT, ZoneId.systemDefault());
 
     @Mock
     private MsbMessageOptions messageOptions;
@@ -37,7 +40,7 @@ public class MessageFactoryTest {
 
     private ServiceDetails serviceDetails = TestUtils.createMsbConfigurations().getServiceDetails();
 
-    private MessageFactory messageFactory = new MessageFactory(serviceDetails);
+    private MessageFactory messageFactory = new MessageFactory(serviceDetails, FIXED_CLOCK);
 
     @Test
     public void testCreateRequestMessageHasBasicFieldsSet() {
@@ -123,7 +126,7 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateMessageBuilderMetaFromMsgOptions() throws Exception {
-        Integer ttl = Integer.valueOf(123);
+        Integer ttl = 123;
         when(messageOptions.getNamespace()).thenReturn("test:meta-set");
         when(messageOptions.getTtl()).thenReturn(ttl);
         Message originalMessage = TestUtils.createMsbRequestMessageNoPayload();
@@ -131,8 +134,7 @@ public class MessageFactoryTest {
 
         Message message = mesageBuilder.build();
         assertEquals("Message ttl is not set correctly", ttl, message.getMeta().getTtl());
-        assertEquals("Message create_at is not equals now", DateUtils.truncate(new Date(), Calendar.SECOND),
-                DateUtils.truncate(message.getMeta().getCreatedAt(), Calendar.SECOND));
+        assertEquals("Message create_at is not equals now", FIXED_CLOCK_INSTANT, message.getMeta().getCreatedAt());
 
         assertThat(message.getMeta().getDurationMs().intValue(), equalTo(0));
     }

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import com.github.fge.jackson.JsonNodeReader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
@@ -20,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.text.SimpleDateFormat;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -35,7 +36,6 @@ public class Utils {
     public static final String TOPIC_HEARTBEAT = "_channels:heartbeat";
 
     private final static Pattern VALID_TOPIC_REGEXP = Pattern.compile("^_?([a-z0-9\\-]+\\:)+([a-z0-9\\-]+)$");
-    private final static SimpleDateFormat JSON_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     public static String generateId() {
         return UUID.randomUUID().toString();// TODO
@@ -57,11 +57,11 @@ public class Utils {
     }
 
     public static ObjectMapper getMsbJsonObjectMapper() {
-        ObjectMapper objectMapper =  new ObjectMapper().setDateFormat(JSON_DATE_FORMAT);
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-
-        return objectMapper;
+        return new ObjectMapper()
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .registerModule(new JSR310Module());
     }
 
     public static String toJson(Object object) throws JsonConversionException {

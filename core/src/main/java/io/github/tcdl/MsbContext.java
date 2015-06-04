@@ -60,11 +60,11 @@ public class MsbContext {
 
     public static class MsbContextBuilder {
         public MsbContext build() {
+            Clock clock = Clock.systemDefaultZone();
             Config config = ConfigFactory.load();
             MsbConfigurations msbConfig = new MsbConfigurations(config);
-            ChannelManager channelManager = new ChannelManager(msbConfig);
-            MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails());
-            Clock clock = Clock.systemDefaultZone();
+            ChannelManager channelManager = new ChannelManager(msbConfig, clock);
+            MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);
 
             return new MsbContext(msbConfig, messageFactory, channelManager, clock);
         }

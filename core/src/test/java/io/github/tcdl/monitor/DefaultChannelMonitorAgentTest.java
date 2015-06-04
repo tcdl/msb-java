@@ -15,7 +15,6 @@ import org.mockito.ArgumentCaptor;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Date;
 
 import static io.github.tcdl.support.Utils.TOPIC_ANNOUNCE;
 import static io.github.tcdl.support.Utils.TOPIC_HEARTBEAT;
@@ -40,9 +39,9 @@ public class DefaultChannelMonitorAgentTest {
     @Before
     public void setUp() {
         mockChannelManager = mock(ChannelManager.class);
-        ServiceDetails serviceDetails = new ServiceDetails.ServiceDetailsBuilder().build();
-        MessageFactory messageFactory = new MessageFactory(serviceDetails);
         Clock clock = Clock.fixed(CLOCK_INSTANT, ZoneId.systemDefault());
+        ServiceDetails serviceDetails = new ServiceDetails.ServiceDetailsBuilder().build();
+        MessageFactory messageFactory = new MessageFactory(serviceDetails, clock);
         channelMonitorAgent = new DefaultChannelMonitorAgent(new MsbContext(null, messageFactory, mockChannelManager, clock));
     }
 
@@ -115,7 +114,7 @@ public class DefaultChannelMonitorAgentTest {
         channelMonitorAgent.producerMessageSent(topicName);
 
         assertTrue(channelMonitorAgent.topicInfoMap.containsKey(topicName));
-        assertEquals(Date.from(CLOCK_INSTANT), channelMonitorAgent.topicInfoMap.get(topicName).getLastProducedAt());
+        assertEquals(CLOCK_INSTANT, channelMonitorAgent.topicInfoMap.get(topicName).getLastProducedAt());
     }
 
     @Test
@@ -125,7 +124,7 @@ public class DefaultChannelMonitorAgentTest {
         channelMonitorAgent.consumerMessageReceived(topicName);
 
         assertTrue(channelMonitorAgent.topicInfoMap.containsKey(topicName));
-        assertEquals(Date.from(CLOCK_INSTANT), channelMonitorAgent.topicInfoMap.get(topicName).getLastConsumedAt());
+        assertEquals(CLOCK_INSTANT, channelMonitorAgent.topicInfoMap.get(topicName).getLastConsumedAt());
     }
 
     @Test

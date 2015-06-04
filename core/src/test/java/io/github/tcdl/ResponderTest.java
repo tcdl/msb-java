@@ -19,6 +19,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.time.Clock;
+
 /**
  * Created by anstr on 5/26/2015.
  */
@@ -39,8 +41,9 @@ public class ResponderTest {
         config = TestUtils.createSimpleConfig();
 
         msbConf = TestUtils.createMsbConfigurations();
+        Clock clock = Clock.systemDefaultZone();
 
-        MessageFactory messageFactory = new MessageFactory(msbConf.getServiceDetails());
+        MessageFactory messageFactory = new MessageFactory(msbConf.getServiceDetails(), clock);
         MessageFactory spyMessageFactory = spy(messageFactory);
 
         MsbContext msbContext = TestUtils.createSimpleMsbContext();

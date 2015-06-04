@@ -48,7 +48,7 @@ public class RequesterTest {
         msbContext = TestUtils.createSimpleMsbContext();
         msbContext.setChannelManager(channelManagerMock);
 
-        collectorMock = spy(new Collector(config, msbContext.getChannelManager(), msbContext.getMsbConfig()));
+        collectorMock = spy(new Collector(config, msbContext));
         PowerMockito.whenNew(Collector.class).withAnyArguments().thenReturn(collectorMock);
 
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
