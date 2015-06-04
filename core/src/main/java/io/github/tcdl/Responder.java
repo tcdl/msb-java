@@ -7,6 +7,7 @@ import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 
+import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ public class Responder {
 
     public static final Logger LOG = LoggerFactory.getLogger(Responder.class);
 
+    private String responderId;
     private Message originalMessage;
     private ChannelManager channelManager;
     private MessageFactory messageFactory;
@@ -26,6 +28,7 @@ public class Responder {
 
     public Responder(MsbMessageOptions config, Message originalMessage, MsbContext msbContext) {
         validateRecievedMessage(originalMessage);
+        this.responderId = Utils.generateId();
         this.originalMessage = originalMessage;
         this.channelManager = msbContext.getChannelManager();
         this.messageFactory = msbContext.getMessageFactory();
@@ -34,6 +37,7 @@ public class Responder {
 
     public void sendAck(Integer timeoutMs, Integer responsesRemaining) {
         AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
+        ackBuilder.setResponderId(responderId);
         ackBuilder.setTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
         ackBuilder.setResponsesRemaining(responsesRemaining == null ? 1 : responsesRemaining);
 
@@ -43,6 +47,7 @@ public class Responder {
 
     public void send(Payload responsePayload) {
         AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
+        ackBuilder.setResponderId(responderId);
         ackBuilder.setResponsesRemaining(-1);
 
         Message message = this.messageFactory.createResponseMessage(this.messageBuilder, ackBuilder.build(), responsePayload);

@@ -3,11 +3,8 @@ package io.github.tcdl;
 import static junit.framework.TestCase.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Message;
@@ -15,6 +12,7 @@ import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 
+import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -105,5 +103,21 @@ public class ResponderTest {
 
         assertEquals(argument.getValue().getAck().getTimeoutMs(), timeout);
         assertEquals(argument.getValue().getAck().getResponsesRemaining(), responsesRemaining);
+    }
+
+    @Test
+    public void testSendWithSameResponderId() {
+        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
+        responder.sendAck(1000, 1);
+
+        verify(mockProducer).publish(messageCaptor.capture());
+        String responderIdInAck = messageCaptor.getValue().getAck().getResponderId();
+
+        reset(mockProducer);
+        responder.send(TestUtils.createSimpleResponsePayload());
+        verify(mockProducer).publish(messageCaptor.capture());
+
+        String responderIdInAckPayload = messageCaptor.getValue().getAck().getResponderId();
+        assertEquals(responderIdInAck, responderIdInAckPayload);
     }
 }
