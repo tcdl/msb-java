@@ -1,11 +1,11 @@
 package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
 import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -13,11 +13,14 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
@@ -38,7 +41,7 @@ public class ResponderServerTest {
     }
 
     @Test
-    @PrepareForTest({ ResponderServer.class, Responder.class } )
+    @PrepareForTest({ ResponderServer.class } )
     public void testResponderServerAsyncProcessSuccess() throws Exception {
 
         Middleware middleware = (request, responder) -> {};
@@ -61,20 +64,31 @@ public class ResponderServerTest {
         assertEquals(middleware, middlewareChain.getMiddleware().iterator().next());
     }
 
-    @Test @Ignore("unstable")
+    @Test
     public void testResponderServerAsyncProcessWithError() throws Exception {
 
         Exception error = new Exception();
         Middleware middleware = (request, responder) -> { throw error; };
 
-        ResponderServer responderServer = spy(ResponderServer
-                .create(messageOptions, msbContext))
+        ResponderServer responderServer = ResponderServer
+                .create(messageOptions, msbContext)
                 .use(middleware)
                 .listen();
 
         // simulate incoming request
-        responderServer.onResponder(new Responder(messageOptions, TestUtils.createMsbRequestMessageNoPayload(), msbContext));
+        ArgumentCaptor<Payload> responseCaptor = ArgumentCaptor.forClass(Payload.class);
+        Responder responder = spy(new Responder(messageOptions, TestUtils.createMsbRequestMessageNoPayload(), msbContext));
 
-        verify(responderServer).errorHandler(any(), any(), eq(error));
+        CountDownLatch awaitSendResponse = new CountDownLatch(1);
+        doAnswer(invocation -> {
+                    awaitSendResponse.countDown();
+                    return awaitSendResponse;
+                }
+        ).when(responder).send(responseCaptor.capture());
+
+        responderServer.onResponder(responder);
+
+        awaitSendResponse.await(2000, TimeUnit.MILLISECONDS);
+        assertEquals(500, responseCaptor.getValue().getStatusCode().intValue());
     }
 }
