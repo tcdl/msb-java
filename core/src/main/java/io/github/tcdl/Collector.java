@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -149,13 +150,13 @@ public class Collector {
     }
 
     protected void waitForResponses() {
-        LOG.debug("Waiting for responses until {}.", Instant.ofEpochMilli(System.currentTimeMillis() + this.currentTimeoutMs)); // FIXME
+        LOG.debug("Waiting for responses until {}.", clock.instant().plus(currentTimeoutMs, ChronoUnit.MILLIS));
         timer.enableResponseTimeout(this.currentTimeoutMs);
     }
 
     private void waitForAcks() {
-        LOG.debug("Waiting for ack until {}.", Instant.ofEpochMilli(this.waitForAcksUntil)); // FIXME
-        long ackTimeoutMs = waitForAcksUntil - System.currentTimeMillis(); // FIXME
+        LOG.debug("Waiting for ack until {}.", Instant.ofEpochMilli(this.waitForAcksUntil));
+        long ackTimeoutMs = waitForAcksUntil - clock.instant().toEpochMilli();
         timer.enableAckTimeout(ackTimeoutMs);
     }
 
