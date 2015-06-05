@@ -41,7 +41,7 @@ public class Collector {
     private int responsesRemaining;
 
     private Long startedAt;
-    private  final TimerProvider timer;
+    private TimerProvider timer;
 
     private Clock clock;
 
@@ -70,8 +70,6 @@ public class Collector {
         this.waitForResponses = getWaitForResponsesFromConfigs(messageOptions);
         this.responsesRemaining = waitForResponses;
 
-        this.timer = new TimerProvider(this);
-
         if (eventHandlers != null) {
             onResponse = Optional.ofNullable(eventHandlers.onResponse());
             onAcknowledge = Optional.ofNullable(eventHandlers.onAcknowledge());
@@ -94,6 +92,7 @@ public class Collector {
     }
 
     public void listenForResponses(String topic, final Predicate<Message> shouldAcceptMessagePredicate) {
+        this.timer = initTimer();
         Consumer consumer = channelManager.findOrCreateConsumer(topic);
         this.topic = topic;
 
@@ -107,7 +106,7 @@ public class Collector {
         );
     }
 
-    protected void handleMessage(Message message) {
+    private void handleMessage(Message message) {
         LOG.debug("Received {}", message);
 
         if (message.getPayload() != null) {
@@ -137,14 +136,17 @@ public class Collector {
         end();
     }
 
-    protected void handleError(Exception exception) {
+    private void handleError(Exception exception) {
+        LOG.debug("Received error [{}]", exception.getMessage());
         onError.ifPresent(handler -> handler.call(exception));
     }
 
     protected void end() {
         LOG.debug("Stop response processing");
 
-        this.timer.stopTimers();
+        if (this.timer != null){
+            this.timer.stopTimers();
+        }
         channelManager.removeConsumer(topic);
         onEnd.ifPresent(handler -> handler.call(payloadMessages));
     }
@@ -265,6 +267,10 @@ public class Collector {
             return 0;
         }
         return messageOptions.getWaitForResponses();
+    }
+
+    TimerProvider initTimer () {
+        return new TimerProvider(this);
     }
 
     ChannelManager getChannelManager() {
