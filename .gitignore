@@ -12,3 +12,5 @@ target/
 # Intellij #
 *.iml
 .idea/
+
+logs/
