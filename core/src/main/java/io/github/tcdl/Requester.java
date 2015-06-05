@@ -35,10 +35,23 @@ public class Requester {
     /**
      * Creates a new instance of a requester
      * @param messageOptions message options to construct a message
+     * @param context context which contains MSB related beans
+     */
+    public static Requester create(MsbMessageOptions messageOptions, MsbContext context) {
+        return new Requester(messageOptions, null, context);
+    }
+
+    /**
+     * Creates a new instance of a requester
+     * @param messageOptions message options to construct a message
      * @param originalMessage original message (to take correlation id from)
      * @param context context which contains MSB related beans
      */
-    public Requester(MsbMessageOptions messageOptions, Message originalMessage, MsbContext context) {
+    public static Requester create(MsbMessageOptions messageOptions, Message originalMessage, MsbContext context) {
+        return new Requester(messageOptions, originalMessage, context);
+    }
+
+    private Requester(MsbMessageOptions messageOptions, Message originalMessage, MsbContext context) {
         Validate.notNull(messageOptions, "the 'messageOptions' must not be null");
         Validate.notNull(context, "the 'context' must not be null");
 

@@ -26,7 +26,7 @@ public class RequesterExample {
         headers.put("From", "user@example.com");
         Payload requestPayload = new Payload.PayloadBuilder().setHeaders(headers).build();
 
-        Requester requester = new Requester(options, null, msbContext);
+        Requester requester = Requester.create(options, msbContext);
 
         requester
                 .onAcknowledge(acknowledge ->

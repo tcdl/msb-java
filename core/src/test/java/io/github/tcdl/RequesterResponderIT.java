@@ -39,7 +39,7 @@ public class RequesterResponderIT {
         CountDownLatch requestRecieved = new CountDownLatch(1);
 
         //Create and send request message
-        Requester requester = new Requester(messageOptions, null, msbContext);
+        Requester requester = Requester.create(messageOptions, msbContext);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
 
         ResponderServer.create(messageOptions, msbContext)
@@ -68,7 +68,7 @@ public class RequesterResponderIT {
 
         //Create and send request message directly to broker, wait for ack  
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        new Requester(messageOptions, null, msbContext).
+        Requester.create(messageOptions, msbContext).
             onAcknowledge((Acknowledge ack) -> {
                 recievedResponseAcks.add(ack);
                 ackResponseRecieved.countDown();
@@ -107,7 +107,7 @@ public class RequesterResponderIT {
 
         //Create and send request message directly to broker, wait for ack  
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        new Requester(messageOptions, null, msbContext)
+        Requester.create(messageOptions, msbContext)
             .onResponse(payload -> {
                 recievedResponses.add(payload);
                 respRecieved.countDown();
@@ -153,7 +153,7 @@ public class RequesterResponderIT {
                 .use(((request, response) -> {
 
                     //Create and send request message, wait for ack 
-                    Requester requester = new Requester(requestAwaitAckMessageOptions, null, msbContext);
+                    Requester requester = Requester.create(requestAwaitAckMessageOptions, msbContext);
                     Payload requestPayload = TestUtils.createSimpleRequestPayload();
                     requester.onAcknowledge((Acknowledge a) -> ackRecieved.countDown());
                     requester.publish(requestPayload);
