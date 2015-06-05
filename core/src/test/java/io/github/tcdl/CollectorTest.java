@@ -1,30 +1,15 @@
 package io.github.tcdl;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.EventHandlers;
+import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
-
-import java.io.IOException;
-import java.time.Clock;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -33,6 +18,29 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.io.IOException;
+import java.time.Clock;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 /**
  * Created by rdro on 4/27/2015.
  */
@@ -40,8 +48,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class CollectorTest {
 
     private static final String TOPIC = "test:collector";
-    private static Message originaMessageWithPayload = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
-    private static Message originaMessageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(TOPIC);
+    private static Message originalMessageWithPayload = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
+    private static Message originalMessageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(TOPIC);
 
     @Mock
     private MessageFactory messageFactoryMock;
@@ -61,12 +69,14 @@ public class CollectorTest {
     @Mock
     private MsbConfigurations msbConfigurationsMock;
 
+    @Mock
+    private TimerProvider timerProviderMock;
+
     private MsbContext msbContext;
 
     @Before
     public void setUp() throws IOException {
         when(channelManagerMock.findOrCreateConsumer(anyString())).thenReturn(consumerMock);
-
         msbContext = new MsbContext(msbConfigurationsMock, messageFactoryMock, channelManagerMock, Clock.systemDefaultZone());
     }
 
@@ -120,10 +130,10 @@ public class CollectorTest {
 
         ArgumentCaptor<Callback> onMessageCaptor = ArgumentCaptor.forClass(Callback.class);
         verify(consumerMock).subscribe(onMessageCaptor.capture(), any());
-        onMessageCaptor.getValue().call(originaMessageWithPayload);
+        onMessageCaptor.getValue().call(originalMessageWithPayload);
 
-        verify(onResponse).call(originaMessageWithPayload.getPayload());
-        assertTrue(collector.getPayloadMessages().contains(originaMessageWithPayload));
+        verify(onResponse).call(originalMessageWithPayload.getPayload());
+        assertTrue(collector.getPayloadMessages().contains(originalMessageWithPayload));
     }
 
     @Test
@@ -137,11 +147,11 @@ public class CollectorTest {
 
         ArgumentCaptor<Callback> onMessageCaptor = ArgumentCaptor.forClass(Callback.class);
         verify(consumerMock).subscribe(onMessageCaptor.capture(), any());
-        onMessageCaptor.getValue().call(originaMessageWithPayload);
+        onMessageCaptor.getValue().call(originalMessageWithPayload);
 
-        verify(filterMock).test(eq(originaMessageWithPayload));
-        verify(onResponse).call(originaMessageWithPayload.getPayload());
-        assertTrue(collector.getPayloadMessages().contains(originaMessageWithPayload));
+        verify(filterMock).test(eq(originalMessageWithPayload));
+        verify(onResponse).call(originalMessageWithPayload.getPayload());
+        assertTrue(collector.getPayloadMessages().contains(originalMessageWithPayload));
     }
 
     @Test
@@ -155,11 +165,11 @@ public class CollectorTest {
 
         ArgumentCaptor<Callback> onMessageCaptor = ArgumentCaptor.forClass(Callback.class);
         verify(consumerMock).subscribe(onMessageCaptor.capture(), any());
-        onMessageCaptor.getValue().call(originaMessageWithPayload);
+        onMessageCaptor.getValue().call(originalMessageWithPayload);
 
-        verify(filterMock).test(eq(originaMessageWithPayload));
-        verify(onResponse, never()).call(originaMessageWithPayload.getPayload());
-        assertFalse(collector.getPayloadMessages().contains(originaMessageWithPayload));
+        verify(filterMock).test(eq(originalMessageWithPayload));
+        verify(onResponse, never()).call(originalMessageWithPayload.getPayload());
+        assertFalse(collector.getPayloadMessages().contains(originalMessageWithPayload));
     }
 
     @Test
@@ -173,57 +183,151 @@ public class CollectorTest {
 
         ArgumentCaptor<Callback> onMessageCaptor = ArgumentCaptor.forClass(Callback.class);
         verify(consumerMock).subscribe(onMessageCaptor.capture(), any());
-        onMessageCaptor.getValue().call(originaMessageWithAck);
+        onMessageCaptor.getValue().call(originalMessageWithAck);
 
-        verify(filterMock).test(eq(originaMessageWithAck));
-        verify(onAck).call(originaMessageWithAck.getAck());
-        assertTrue(collector.getAckMessages().contains(originaMessageWithAck));
+        verify(filterMock).test(eq(originalMessageWithAck));
+        verify(onAck).call(originalMessageWithAck.getAck());
+        assertTrue(collector.getAckMessages().contains(originalMessageWithAck));
     }
 
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesHandleError() throws InterruptedException {
+        Callback<Exception> onError = mock(Callback.class);
+        when(eventHandlers.onError()).thenReturn(onError);
+        JsonConversionException error = new JsonConversionException("Json invalid");
+        Predicate<Message> filterMock = mockFilterResult(true);
+        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        collector.listenForResponses(TOPIC, filterMock);
+
+        ArgumentCaptor<Callback> onErrorCaptor = ArgumentCaptor.forClass(Callback.class);
+        verify(consumerMock).subscribe(any(), onErrorCaptor.capture());
+        onErrorCaptor.getValue().call(error);
+
+        verify(onError).call(error);
+    }
 
     @Test
-    @Ignore
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public void testListenForResponsesWaitForOneMoreResponseNoTimeout() throws InterruptedException {
-        /*ackTimeout = 200, responseTimeout=200; waitForResponses = 2
-        */
-        int ackAndTimeoutMs = 200;
-        when(messageOptionsMock.getAckTimeout()).thenReturn(ackAndTimeoutMs);
-        when(messageOptionsMock.getResponseTimeout()).thenReturn(ackAndTimeoutMs);
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(2);
+    public void testListenForResponsesEndEventNoResponsesRemaining() throws InterruptedException {
+        Callback<List<Message>> onEnd = mock(Callback.class);
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
 
+        Predicate<Message> filterMock = mockFilterResult(true);
         Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
-        collector.listenForResponses(TOPIC, null);
-        CountDownLatch endEventFired = awaitReceiveEnd();
+        collector.listenForResponses(TOPIC, filterMock);
 
         ArgumentCaptor<Callback> onMessageCaptor = ArgumentCaptor.forClass(Callback.class);
         verify(consumerMock).subscribe(onMessageCaptor.capture(), any());
-        onMessageCaptor.getValue().call(originaMessageWithPayload);
+        onMessageCaptor.getValue().call(originalMessageWithAck);
 
-        //give extra time for processing scheduled end() task after ack timeout
-        assertFalse(endEventFired.await(ackAndTimeoutMs + 100, TimeUnit.MILLISECONDS));
+        verify(onEnd).call(anyList());
     }
 
     @Test
-    @Ignore
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public void testListenForResponsesRecievePayloadAwaitAck() throws InterruptedException {
-        /*ackTimeout = 200, responseTimeout=200; waitForResponses = 1
+    public void testListenForResponsesNoWaitForNextResponse() throws InterruptedException {
+        /*ackTimeout = 0, responseTimeout=200; waitForResponses = 1
         */
-        int ackimeoutMs = 200;
-        when(messageOptionsMock.getAckTimeout()).thenReturn(ackimeoutMs);
+        int responseTimeout = 200;
+        when(messageOptionsMock.getAckTimeout()).thenReturn(0);
+        when(messageOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
         when(messageOptionsMock.getWaitForResponses()).thenReturn(1);
 
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        Callback<Payload> onResponse = mock(Callback.class);
+        when(eventHandlers.onResponse()).thenReturn(onResponse);
+        Callback<List<Message>> onEnd = mock(Callback.class);
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        Collector collector = initCollectorWithTimer(messageOptionsMock);
         collector.listenForResponses(TOPIC, null);
-        CountDownLatch endEventFired = awaitReceiveEnd();
 
         ArgumentCaptor<Callback> onMessageCaptor = ArgumentCaptor.forClass(Callback.class);
         verify(consumerMock).subscribe(onMessageCaptor.capture(), any());
-        onMessageCaptor.getValue().call(originaMessageWithPayload);
+        onMessageCaptor.getValue().call(originalMessageWithPayload);
 
-        //give extra time for processing scheduled end() task after ack timeout
-        assertTrue(endEventFired.await(ackimeoutMs + 100, TimeUnit.MILLISECONDS));
+        verify(onResponse).call(originalMessageWithPayload.getPayload());
+        verify(timerProviderMock, never()).enableResponseTimeout(anyInt());
+        verify(timerProviderMock, never()).enableAckTimeout(anyInt());
+        verify(onEnd).call(anyList());
+    }
+
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesWaitForOneMoreResponse() throws InterruptedException {
+        /*ackTimeout = 0, responseTimeout=200; waitForResponses = 2
+        */
+        int responseTimeout = 200;
+        when(messageOptionsMock.getAckTimeout()).thenReturn(0);
+        when(messageOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
+        when(messageOptionsMock.getWaitForResponses()).thenReturn(2);
+
+        Callback<Payload> onResponse = mock(Callback.class);
+        when(eventHandlers.onResponse()).thenReturn(onResponse);
+        Callback<List<Message>> onEnd = mock(Callback.class);
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        collector.listenForResponses(TOPIC, null);
+        ArgumentCaptor<Callback> onMessageCaptor = ArgumentCaptor.forClass(Callback.class);
+        verify(consumerMock).subscribe(onMessageCaptor.capture(), any());
+
+        //send first response
+        onMessageCaptor.getValue().call(originalMessageWithPayload);
+        verify(onResponse).call(originalMessageWithPayload.getPayload());
+        verify(timerProviderMock).enableResponseTimeout(anyInt());
+        verify(timerProviderMock, never()).enableAckTimeout(anyInt());
+        verify(onEnd, never()).call(anyList());
+
+        //send last response
+        onMessageCaptor.getValue().call(originalMessageWithPayload);
+        verify(onResponse, times(2)).call(originalMessageWithPayload.getPayload());
+        verify(timerProviderMock).enableResponseTimeout(anyInt());
+        verify(timerProviderMock, never()).enableAckTimeout(anyInt());
+        verify(onEnd).call(anyList());
+
+    }
+
+    @Test
+    @Ignore
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesRecievePayloadButAwaitAck() throws InterruptedException {
+        /*ackTimeout = 500, responseTimeout=0; waitForResponses = 1
+        */
+        int ackTimeoutMs = 500;
+        CountDownLatch awaitEnd = new CountDownLatch(1);
+        when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
+        when(messageOptionsMock.getResponseTimeout()).thenReturn(0);
+        when(messageOptionsMock.getWaitForResponses()).thenReturn(1);
+
+        Callback<Payload> onResponse = mock(Callback.class);
+        when(eventHandlers.onResponse()).thenReturn(onResponse);
+
+        Callback<List<Message>> onEnd = mock(Callback.class);
+        doAnswer(invocationOnMock -> {awaitEnd.countDown(); return onEnd;}).when(onEnd).call(anyList());
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        Callback<Acknowledge> onAck = mock(Callback.class);
+        when(eventHandlers.onAcknowledge()).thenReturn(onAck);
+
+        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        collector.listenForResponses(TOPIC, null);
+
+        ArgumentCaptor<Callback> onMessageCaptor = ArgumentCaptor.forClass(Callback.class);
+        verify(consumerMock).subscribe(onMessageCaptor.capture(), any());
+
+        //send response
+        onMessageCaptor.getValue().call(originalMessageWithPayload);
+        verify(onResponse).call(originalMessageWithPayload.getPayload());
+        verify(onAck, never()).call(any());
+        verify(onEnd, never()).call(anyList());
+
+        //send ack
+        onMessageCaptor.getValue().call(originalMessageWithAck);
+        verify(onAck).call(any());
+        assertTrue(awaitEnd.await(1000 +200, TimeUnit.MILLISECONDS));
+        verify(onEnd).call(anyList());
     }
 
     @Test
@@ -239,13 +343,13 @@ public class CollectorTest {
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
                 ack, TOPIC);
 
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        Collector collector = initCollectorWithTimer(messageOptionsMock);
         collector.listenForResponses(TOPIC, null);
         CountDownLatch endEventFired = awaitReceiveEnd();
 
         ArgumentCaptor<Callback> onMessageCaptor = ArgumentCaptor.forClass(Callback.class);
         verify(consumerMock).subscribe(onMessageCaptor.capture(), any());
-        onMessageCaptor.getValue().call(originaMessageWithPayload);
+        onMessageCaptor.getValue().call(originalMessageWithPayload);
 
         //send ack message with responsesRemaining between ackTimeout task scheduled and run 
         onMessageCaptor.getValue().call(messageWithAck);
@@ -338,4 +442,14 @@ public class CollectorTest {
         when(filterMock.test(any(Message.class))).thenReturn(result);
         return filterMock;
     }
+
+
+    private Collector initCollectorWithTimer(MsbMessageOptions messageOptions) {
+
+        Collector collector = spy(new Collector(messageOptions, msbContext, eventHandlers));
+        doReturn(timerProviderMock).when(collector).initTimer();
+
+        return collector;
+    }
+
 }

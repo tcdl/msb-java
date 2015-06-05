@@ -30,7 +30,7 @@ public class Requester {
     private Message message;
     private MessageFactory messageFactory;
     private MessageBuilder messageBuilder;
-    private EventHandlers eventHandlers;
+    EventHandlers eventHandlers;
 
     /**
      * Creates a new instance of a requester
