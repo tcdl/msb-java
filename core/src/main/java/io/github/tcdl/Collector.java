@@ -32,13 +32,13 @@ public class Collector {
     private List<Message> payloadMessages;
 
     private Map<String, Integer> timeoutMsById;
-    private Map<String, Integer> responsesRemainingById;
+    Map<String, Integer> responsesRemainingById;
 
     private int timeoutMs;
     private int currentTimeoutMs;
     private long waitForAcksUntil;
     private int waitForResponses;
-    private int responsesRemaining;
+    int responsesRemaining;
 
     private Long startedAt;
     private TimerProvider timer;
@@ -96,6 +96,11 @@ public class Collector {
         Consumer consumer = channelManager.findOrCreateConsumer(topic);
         this.topic = topic;
 
+        //start ack TimerTask that when run will end conversation in case no more responses are expected
+        if (isAwaitingAcks()) {
+            waitForAcks();
+        }
+
         consumer.subscribe(
                 message -> {
                     if (shouldAcceptMessagePredicate == null || shouldAcceptMessagePredicate.test(message)) {
@@ -123,13 +128,8 @@ public class Collector {
 
         processAck(message.getAck());
 
-        if (isAwaitingResponses()) {
-            waitForResponses();
-            return;
-        }
-
-        if (isAwaitingAcks()) {
-            waitForAcks();
+        if (isAwaitingAcks() || isAwaitingResponses() ) {
+            //ack and response TimerTask are responsible for closing conversation after timeouts expiration
             return;
         }
 
