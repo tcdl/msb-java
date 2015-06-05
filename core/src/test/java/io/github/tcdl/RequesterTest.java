@@ -162,7 +162,7 @@ public class RequesterTest {
         MsbContext msbContext = TestUtils.createSimpleMsbContext();
         msbContext.setChannelManager(channelManagerMock);
 
-        Requester requester = spy(new Requester(messageOptionsMock, null, msbContext));
+        Requester requester = spy(Requester.create(messageOptionsMock, null, msbContext));
 
         collectorMock = spy(new Collector(messageOptionsMock, msbContext, eventHandlerMock));
 

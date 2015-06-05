@@ -44,7 +44,7 @@ public class RequesterIT {
     @Test
     public void testRequestMessage() throws Exception {
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = new Requester(messageOptions, null, msbContext);
+        Requester requester = Requester.create(messageOptions, msbContext);
         requester.publish(requestPayload);
         Message message = requester.getMessage();
 
