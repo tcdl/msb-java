@@ -19,7 +19,7 @@ public class MiddlewareChain {
 
     private List<Middleware> middlewareList = new LinkedList<>();
     private Iterator<Middleware> iterator;
-    private MiddlewareHandler handler;
+    private MiddlewareHandler errorHandler;
 
     public void add(Middleware... middleware) {
         middlewareList.addAll(Arrays.asList(middleware));
@@ -37,8 +37,8 @@ public class MiddlewareChain {
                 middleware.execute(request, responder, this);
             } catch (Exception e) {
                 LOG.error("Error while processing request: {}", e.getMessage());
-                if (handler != null) {
-                    handler.handle( request, responder, e);
+                if (errorHandler != null) {
+                    errorHandler.handle(request, responder, e);
                 }
             }
         }
@@ -52,15 +52,15 @@ public class MiddlewareChain {
                 middleware.execute(request, responder, this);
             } catch (Exception e) {
                 LOG.error("Error while processing request: {}", e.getMessage());
-                if (handler != null) {
-                    handler.handle(request, responder, e);
+                if (errorHandler != null) {
+                    errorHandler.handle(request, responder, e);
                 }
             }
         }
     }
 
     public MiddlewareChain withErrorHandler(MiddlewareHandler handler) {
-        this.handler = handler;
+        this.errorHandler = handler;
         return this;
     }
 }
