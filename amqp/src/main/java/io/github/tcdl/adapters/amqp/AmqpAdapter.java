@@ -11,10 +11,9 @@ import java.io.IOException;
 import org.apache.commons.lang3.Validate;
 
 /**
- *  The AmqpAdapter class impements {@link Adapter} 
+ *  The AmqpAdapter class implements {@link Adapter}
  *  and encapsulates logic of interaction with RabbitMQ.
  */
-
 public class AmqpAdapter implements Adapter {
     private String topic;
 
@@ -26,7 +25,6 @@ public class AmqpAdapter implements Adapter {
     /**
      * The constructor.
      * @param topic - a topic name associated with the adapter
-     * @param adapterConfig
      */
     public AmqpAdapter(String topic, AmqpBrokerConfig amqpBrokerConfig, AmqpConnectionManager connectionManager) {
         Validate.notNull(topic, "the 'topic' must not be null");
@@ -100,7 +98,6 @@ public class AmqpAdapter implements Adapter {
      * @param topic - topic name associated with the adapter
      * @param groupId - group service Id
      * @param durable - queue durability
-     * @return
      */
     private String generateQueueName(String topic, String groupId, boolean durable) {
         return topic + "." + groupId + "." + (durable ? "d" : "t");
