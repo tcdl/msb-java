@@ -405,12 +405,12 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
+        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        collector.listenForResponses(TOPIC, null);
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(responsesRemaining)
                 .setTimeoutMs(timeoutMsInAck).build();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
                 ack, TOPIC);
-        Collector collector = initCollectorWithTimer(messageOptionsMock);
-        collector.listenForResponses(TOPIC, null);
 
         ArgumentCaptor<Callback> onMessageCaptor = ArgumentCaptor.forClass(Callback.class);
         verify(consumerMock).subscribe(onMessageCaptor.capture(), any());
@@ -422,7 +422,51 @@ public class CollectorTest {
 
     @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public void testListenForResponsesResponsesRemainingIsDecreased() {
+    public void testListenForResponsesReceivedAcksWithUpdatedTimeoutAndResponsesRemaining() {
+        /*ackTimeout = 0, responseTimeout= 50; waitForResponses = 2
+        */
+        int timeoutMs = 50;
+        int timeoutMsInAckResponderOne = 100;
+        int responsesRemainingResponderOne = 5;
+        int timeoutMsInAckResponderTwo = 222;
+        int responsesRemainingResponderTwo = 7;
+        when(messageOptionsMock.getAckTimeout()).thenReturn(0);
+        when(messageOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);
+        when(messageOptionsMock.getWaitForResponses()).thenReturn(0);
+
+        Callback<List<Message>> onEnd = mock(Callback.class);
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        collector.listenForResponses(TOPIC, null);
+
+        Acknowledge ackRespOne = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(responsesRemainingResponderOne)
+                .setTimeoutMs(timeoutMsInAckResponderOne).build();
+        Message messageWithAckOne = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
+                ackRespOne, TOPIC);
+
+        Acknowledge ackRespTwo = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(responsesRemainingResponderTwo)
+                .setTimeoutMs(timeoutMsInAckResponderTwo).build();
+        Message messageWithAckTwo = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(
+                ackRespTwo, TOPIC);
+
+        ArgumentCaptor<Callback> onMessageCaptor = ArgumentCaptor.forClass(Callback.class);
+        verify(consumerMock).subscribe(onMessageCaptor.capture(), any());
+
+        onMessageCaptor.getValue().call(messageWithAckOne);
+        verify(timerProviderMock).enableResponseTimeout(timeoutMsInAckResponderOne);
+        assertEquals(responsesRemainingResponderOne, collector.getResponsesRemaining());
+        verify(onEnd, never()).call(anyList());
+
+        onMessageCaptor.getValue().call(messageWithAckTwo);
+        verify(timerProviderMock, times(1)).enableResponseTimeout(timeoutMsInAckResponderTwo);
+        assertEquals(responsesRemainingResponderOne + responsesRemainingResponderTwo, collector.getResponsesRemaining());
+        verify(onEnd, never()).call(anyList());
+    }
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesEnsureResponsesRemainingIsDecreased() {
         /*ackTimeout = 0, responseTimeout=200; waitForResponses = 2
         */
         int responseTimeout = 200;
@@ -441,16 +485,16 @@ public class CollectorTest {
         ArgumentCaptor<Callback> onMessageCaptor = ArgumentCaptor.forClass(Callback.class);
         verify(consumerMock).subscribe(onMessageCaptor.capture(), any());
 
-        assertEquals(responsesRemaining, collector.responsesRemaining);
+        assertEquals(responsesRemaining, collector.getResponsesRemaining());
 
         //send first response
         onMessageCaptor.getValue().call(originalMessageWithPayload);
-        assertEquals(1, collector.responsesRemaining);
+        assertEquals(1, collector.getResponsesRemaining());
         verify(onEnd, never()).call(anyList());
 
         //send last response
         onMessageCaptor.getValue().call(originalMessageWithPayload);
-        assertEquals(0, collector.responsesRemaining);
+        assertEquals(0, collector.getResponsesRemaining());
         verify(onEnd).call(anyList());
     }
 

@@ -133,7 +133,7 @@ public class Requester {
         return message;
     }
 
-    protected Collector createCollector(MsbMessageOptions messageOptions, MsbContext context, EventHandlers eventHandlers) {
+    Collector createCollector(MsbMessageOptions messageOptions, MsbContext context, EventHandlers eventHandlers) {
         return new Collector(messageOptions, context, eventHandlers);
     }
 }
