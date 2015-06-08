@@ -166,10 +166,9 @@ public class RequesterTest {
 
         collectorMock = spy(new Collector(messageOptionsMock, msbContext, eventHandlerMock));
 
-        doReturn(collectorMock )
+        doReturn(collectorMock)
                 .when(requester)
-                .createCollector(any(MsbMessageOptions.class), any(MsbContext.class), any( EventHandlers.class ));
-
+                .createCollector(any(MsbMessageOptions.class), any(MsbContext.class), any(EventHandlers.class));
 
         return requester;
     }
