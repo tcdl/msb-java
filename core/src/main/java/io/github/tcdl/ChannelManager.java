@@ -37,7 +37,7 @@ public class ChannelManager {
         channelMonitorAgent = new NoopChannelMonitorAgent();
     }
 
-    public Producer findOrCreateProducer(final String topic) {
+    public synchronized Producer findOrCreateProducer(final String topic) {
         Validate.notNull(topic, "field 'topic' is null");
         Producer producer = producersByTopic.get(topic);
         if (producer == null) {
@@ -50,7 +50,7 @@ public class ChannelManager {
         return producer;
     }
 
-    public Consumer findOrCreateConsumer(final String topic) {
+    public synchronized Consumer findOrCreateConsumer(final String topic) {
         Validate.notNull(topic, "field 'topic' is null");
         Consumer consumer = consumersByTopic.get(topic);
         if (consumer == null) {
