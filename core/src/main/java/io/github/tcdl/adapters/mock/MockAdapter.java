@@ -34,7 +34,7 @@ public class MockAdapter implements Adapter {
 
     @Override
     public void publish(String jsonMessage) throws ChannelException {
-        LOG.info("Recieved request {}", jsonMessage);
+        LOG.info("Received request {}", jsonMessage);
         try {
             Message incommingMessage = Utils.fromJson(jsonMessage, Message.class);
             String topicTo = incommingMessage.getTopics().getTo();
@@ -49,7 +49,7 @@ public class MockAdapter implements Adapter {
             messagesQueue.add(jsonMessage);
             LOG.info("Message for topic {} published: [{}]", topicTo, jsonMessage);
         } catch (JsonConversionException e) {
-            LOG.error("Recieved message can not be parsed");
+            LOG.error("Received message can not be parsed");
         }
     }
 
