@@ -74,4 +74,28 @@ public final class Acknowledge {
                 ", responsesRemaining=" + responsesRemaining +
                 ", timeoutMs=" + timeoutMs + "]";
     }
+
+    @Override public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        Acknowledge that = (Acknowledge) o;
+
+        if (responderId != null ? !responderId.equals(that.responderId) : that.responderId != null)
+            return false;
+        if (responsesRemaining != null ? !responsesRemaining.equals(that.responsesRemaining) : that.responsesRemaining != null)
+            return false;
+        return !(timeoutMs != null ? !timeoutMs.equals(that.timeoutMs) : that.timeoutMs != null);
+
+    }
+
+    @Override public int hashCode() {
+        int result = responderId != null ? responderId.hashCode() : 0;
+        result = 31 * result + (responsesRemaining != null ? responsesRemaining.hashCode() : 0);
+        result = 31 * result + (timeoutMs != null ? timeoutMs.hashCode() : 0);
+        return result;
+    }
+
 }
