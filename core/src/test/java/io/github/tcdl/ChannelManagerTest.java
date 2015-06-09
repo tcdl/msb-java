@@ -6,6 +6,9 @@ import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.xml.ws.Holder;
 import java.time.Clock;
@@ -24,10 +27,13 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
  * @author rdro
  * @since 4/24/2015
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ChannelManagerTest {
 
     private ChannelManager channelManager;
     private ChannelMonitorAgent mockChannelMonitorAgent;
+    @Mock
+    private Consumer.Subscriber subscriberMock;
 
     @Before
     public void setUp() {
@@ -59,25 +65,25 @@ public class ChannelManagerTest {
     public void testConsumerCached() throws Exception {
         String topic = "topic:test";
 
-        Consumer consumer1 = channelManager.findOrCreateConsumer(topic);
+        Consumer consumer1 = channelManager.subscribe(topic, subscriberMock);
         assertNotNull(consumer1);
         verify(mockChannelMonitorAgent).consumerTopicCreated(topic);
 
-        Consumer consumer2 = channelManager.findOrCreateConsumer(topic);
+        Consumer consumer2 = channelManager.subscribe(topic, subscriberMock);
         assertNotNull(consumer2);
         assertSame(consumer1, consumer2);
         verifyNoMoreInteractions(mockChannelMonitorAgent);
     }
 
     @Test
-    public void testRemoveConsumer() {
+    public void testUnsubscribe() {
         String topic = "topic:test";
 
-        channelManager.removeConsumer(topic);
+        channelManager.unsubscribe(topic, subscriberMock);
         verify(mockChannelMonitorAgent, never()).consumerTopicRemoved(topic);
 
-        channelManager.findOrCreateConsumer(topic); // force creation of the consumer
-        channelManager.removeConsumer(topic);
+        channelManager.subscribe(topic, subscriberMock); // force creation of the consumer
+        channelManager.unsubscribe(topic, subscriberMock);
         verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
     }
 
@@ -101,11 +107,10 @@ public class ChannelManagerTest {
 
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
         channelManager.findOrCreateProducer(topic).publish(message);
-        channelManager.findOrCreateConsumer(topic)
-                .subscribe(new Consumer.Subscriber(msg -> {
-                    messageEvent.value = msg;
-                    awaitReceiveEvents.countDown();
-                }, null, null));
+        channelManager.subscribe(topic, (msg, exception) -> {
+                messageEvent.value = msg;
+                awaitReceiveEvents.countDown();
+        });
 
         assertTrue(awaitReceiveEvents.await(3000, TimeUnit.MILLISECONDS));
         verify(mockChannelMonitorAgent).consumerMessageReceived(topic);

@@ -48,6 +48,9 @@ public class RequesterTest {
     private Consumer consumerMock;
 
     @Mock
+    private Consumer.Subscriber subscriberMock;
+
+    @Mock
     private Collector collectorMock;
 
     @Test
@@ -170,7 +173,7 @@ public class RequesterTest {
         when(messageOptionsMock.getResponseTimeout()).thenReturn(100);
 
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
-        when(channelManagerMock.findOrCreateConsumer(anyString())).thenReturn(consumerMock);
+        when(channelManagerMock.subscribe(anyString(), subscriberMock)).thenReturn(consumerMock);
 
         MsbContext msbContext = TestUtils.createSimpleMsbContext();
         msbContext.setChannelManager(channelManagerMock);
