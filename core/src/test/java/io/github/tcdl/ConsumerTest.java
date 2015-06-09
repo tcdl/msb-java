@@ -15,16 +15,20 @@ import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.time.Clock;
-import java.util.function.Function;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -95,5 +99,27 @@ public class ConsumerTest {
 
         consumer.handleRawMessage(Utils.toJson(originalMessage));
         verify(subscriberMock).handleMessage(any(Message.class), any());
+    }
+
+    @Test
+    public void testSubscribeUnsubscribeOne() {
+        Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock);
+        Consumer.Subscriber subscriber = (message, exception) -> {};
+        consumer.subscribe(subscriber);
+
+        assertTrue(consumer.unsubscribe(subscriber));
+    }
+
+    @Test
+    public void testSubscribeUnsubscribeMultiple() {
+        Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock);
+        Consumer.Subscriber subscriber1 = (message, exception) -> {};
+        Consumer.Subscriber subscriber2 = (message, exception) -> {};
+
+        consumer.subscribe(subscriber1);
+        consumer.subscribe(subscriber2);
+
+        assertFalse(consumer.unsubscribe(subscriber1));
+        assertTrue(consumer.unsubscribe(subscriber2));
     }
 }

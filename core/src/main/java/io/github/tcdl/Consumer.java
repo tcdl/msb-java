@@ -15,10 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Predicate;
 
 /**
  * Created by rdro on 4/23/2015.
@@ -52,11 +49,17 @@ public class Consumer {
         this.subscribers = new ConcurrentLinkedQueue<>();
     }
 
+    /**
+     * Adds a subscriber to call it when message received
+     */
     public void subscribe(Subscriber subscriber) {
         Validate.notNull(subscriber, "the 'subscriber' must not be null");
         subscribers.add(subscriber);
     }
 
+    /**
+     * @return true if last subscriber removed
+     */
     public boolean unsubscribe(Subscriber subscriber) {
         subscribers.remove(subscriber);
         return subscribers.isEmpty();
@@ -88,11 +91,9 @@ public class Consumer {
             channelMonitorAgent.consumerMessageReceived(topic);
         }
 
-        synchronized (this) {
-            for (Subscriber subscriber : subscribers) {
-                if (error != null || !isMessageExpired(message)) {
-                    subscriber.handleMessage(message, error);
-                }
+        for (Subscriber subscriber : subscribers) {
+            if (error != null || !isMessageExpired(message)) {
+                subscriber.handleMessage(message, error);
             }
         }
     }

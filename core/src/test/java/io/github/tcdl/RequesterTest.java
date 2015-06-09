@@ -61,7 +61,7 @@ public class RequesterTest {
 
         requester.publish(TestUtils.createSimpleRequestPayload());
 
-        verify(collectorMock).listenForResponses(anyString(), any(Predicate.class));
+        verify(collectorMock).listenForResponses(anyString(), any(Message.class));
         verify(collectorMock, never()).end();
     }
 

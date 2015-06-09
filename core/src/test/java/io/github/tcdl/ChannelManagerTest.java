@@ -15,24 +15,17 @@ import java.time.Clock;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author rdro
  * @since 4/24/2015
  */
-@RunWith(MockitoJUnitRunner.class)
 public class ChannelManagerTest {
 
     private ChannelManager channelManager;
     private ChannelMonitorAgent mockChannelMonitorAgent;
-    @Mock
     private Consumer.Subscriber subscriberMock;
 
     @Before
@@ -43,6 +36,7 @@ public class ChannelManagerTest {
 
         mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
         channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);
+        subscriberMock = mock(Consumer.Subscriber.class);
     }
 
     @Test
@@ -65,13 +59,10 @@ public class ChannelManagerTest {
     public void testConsumerCached() throws Exception {
         String topic = "topic:test";
 
-        Consumer consumer1 = channelManager.subscribe(topic, subscriberMock);
-        assertNotNull(consumer1);
+        channelManager.subscribe(topic, subscriberMock);
         verify(mockChannelMonitorAgent).consumerTopicCreated(topic);
 
-        Consumer consumer2 = channelManager.subscribe(topic, subscriberMock);
-        assertNotNull(consumer2);
-        assertSame(consumer1, consumer2);
+        channelManager.subscribe(topic, subscriberMock);
         verifyNoMoreInteractions(mockChannelMonitorAgent);
     }
 
@@ -108,8 +99,8 @@ public class ChannelManagerTest {
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
         channelManager.findOrCreateProducer(topic).publish(message);
         channelManager.subscribe(topic, (msg, exception) -> {
-                messageEvent.value = msg;
-                awaitReceiveEvents.countDown();
+            messageEvent.value = msg;
+            awaitReceiveEvents.countDown();
         });
 
         assertTrue(awaitReceiveEvents.await(3000, TimeUnit.MILLISECONDS));

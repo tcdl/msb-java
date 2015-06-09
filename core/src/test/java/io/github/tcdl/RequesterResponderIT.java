@@ -2,7 +2,16 @@ package io.github.tcdl;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import io.github.tcdl.adapters.mock.MockAdapter;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.support.TestUtils;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,12 +21,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.github.tcdl.adapters.mock.MockAdapter;
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.payload.Payload;
-import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -214,7 +217,7 @@ public class RequesterResponderIT {
         randomAckValue.ints();
         ResponderServer.create(messageOptions, serverMsbContext)
                 .use(((request, response) -> {
-                    response.sendAck(randomAckValue.nextInt(100), randomAckValue.nextInt(100));
+                    response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
                     sentAcks.add(response.getResponseMessage());
                     ackSend.countDown();
                 }))

@@ -23,12 +23,12 @@ public class Collector implements Consumer.Subscriber {
 
     public static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
-    protected ChannelManager channelManager;
+    private ChannelManager channelManager;
     private List<Message> ackMessages;
     private List<Message> payloadMessages;
 
     private Map<String, Integer> timeoutMsById;
-    Map<String, Integer> responsesRemainingById;
+    private Map<String, Integer> responsesRemainingById;
 
     private int timeoutMs;
     private int currentTimeoutMs;
@@ -42,13 +42,12 @@ public class Collector implements Consumer.Subscriber {
     private Clock clock;
 
     private String topic;
+    private Message requestMessage;
 
     private Optional<Callback<Payload>> onResponse = Optional.empty();
     private Optional<Callback<Acknowledge>> onAcknowledge = Optional.empty();
     private Optional<Callback<Exception>> onError = Optional.empty();
     private Optional<Callback<List<Message>>> onEnd = Optional.empty();
-
-    private Predicate<Message> shouldAcceptMessagePredicate;
 
     public Collector(MsbMessageOptions messageOptions, MsbContext msbContext, EventHandlers eventHandlers) {
         this.channelManager = msbContext.getChannelManager();
@@ -88,10 +87,10 @@ public class Collector implements Consumer.Subscriber {
         return getResponsesRemaining() > 0;
     }
 
-    public void listenForResponses(String topic, final Predicate<Message> shouldAcceptMessagePredicate) {
+    public void listenForResponses(String topic, Message requestMessage) {
         this.timer = initTimer();
         this.topic = topic;
-        this.shouldAcceptMessagePredicate = shouldAcceptMessagePredicate;
+        this.requestMessage = requestMessage;
         channelManager.subscribe(this.topic, this);
 
         //start ack TimerTask that when run will end conversation in case no more responses are expected
@@ -108,30 +107,37 @@ public class Collector implements Consumer.Subscriber {
             return;
         }
 
-        if (shouldAcceptMessagePredicate == null || shouldAcceptMessagePredicate.test(message)) {
-            LOG.debug("Received {}", message);
-
-            if (message.getPayload() != null) {
-                LOG.debug("Received {}", message.getPayload());
-                payloadMessages.add(message);
-
-                onResponse.ifPresent(handler -> handler.call(message.getPayload()));
-                incResponsesRemaining(-1);
-            } else {
-                LOG.debug("Received {}", message.getAck());
-                ackMessages.add(message);
-                onAcknowledge.ifPresent(handler -> handler.call((message.getAck())));
-            }
-
-            processAck(message.getAck());
-
-            if (isAwaitingAcks() || isAwaitingResponses()) {
-                //ack and response TimerTask are responsible for closing conversation after timeouts expiration
-                return;
-            }
-
-            end();
+        if (!acceptMessage(message)) {
+            LOG.debug("Rejected {}", message);
+            return;
         }
+
+        LOG.debug("Received {}", message);
+
+        if (message.getPayload() != null) {
+            LOG.debug("Received {}", message.getPayload());
+            payloadMessages.add(message);
+
+            onResponse.ifPresent(handler -> handler.call(message.getPayload()));
+            incResponsesRemaining(-1);
+        } else {
+            LOG.debug("Received {}", message.getAck());
+            ackMessages.add(message);
+            onAcknowledge.ifPresent(handler -> handler.call((message.getAck())));
+        }
+
+        processAck(message.getAck());
+
+        if (isAwaitingAcks() || isAwaitingResponses()) {
+            //ack and response TimerTask are responsible for closing conversation after timeouts expiration
+            return;
+        }
+
+        end();
+    }
+
+    protected boolean acceptMessage(Message message) {
+        return requestMessage != null && Objects.equals(requestMessage.getCorrelationId(), message.getCorrelationId());
     }
 
     protected void end() {

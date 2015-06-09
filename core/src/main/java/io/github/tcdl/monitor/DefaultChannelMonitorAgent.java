@@ -57,19 +57,19 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
      */
     public DefaultChannelMonitorAgent start() {
         channelManager.subscribe(TOPIC_HEARTBEAT, // Launch listener for heartbeat topic
-        (message, error) -> {
-            if (error != null) {
-                // TODO
-                return;
-            }
+                (message, error) -> {
+                    if (error != null) {
+                        // TODO
+                        return;
+                    }
 
-            Responder responder = new Responder(null, message, msbContext);
-            Payload payload = new Payload.PayloadBuilder()
-                    .setBody(topicInfoMap)
-                    .build();
+                    Responder responder = new Responder(null, message, msbContext);
+                    Payload payload = new Payload.PayloadBuilder()
+                            .setBody(topicInfoMap)
+                            .build();
 
-            responder.send(payload);
-        });
+                    responder.send(payload);
+                });
         channelManager.setChannelMonitorAgent(this); // Inject itself in channel manager
 
         return this;

@@ -11,8 +11,8 @@ import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
 
 import java.time.Clock;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ChannelManager creates consumers or producers on demand
@@ -31,8 +31,8 @@ public class ChannelManager {
         this.msbConfig = msbConfig;
         this.clock = clock;
         this.adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
-        this.producersByTopic = new ConcurrentHashMap<>();
-        this.consumersByTopic = new ConcurrentHashMap<>();
+        this.producersByTopic = new HashMap<>();
+        this.consumersByTopic = new HashMap<>();
 
         channelMonitorAgent = new NoopChannelMonitorAgent();
     }
@@ -50,16 +50,20 @@ public class ChannelManager {
         return producer;
     }
 
-    public synchronized Consumer subscribe(final String topic, Consumer.Subscriber subscriber) {
+    public synchronized void subscribe(final String topic, final Consumer.Subscriber subscriber) {
+        Consumer consumer = findOrCreateConsumer(topic);
+        consumer.subscribe(subscriber);
+    }
+
+    private Consumer findOrCreateConsumer(final String topic) {
         Validate.notNull(topic, "field 'topic' is null");
         Consumer consumer = consumersByTopic.get(topic);
+
         if (consumer == null) {
             consumer = createConsumer(topic);
             consumersByTopic.put(topic, consumer);
             channelMonitorAgent.consumerTopicCreated(topic);
         }
-
-        consumer.subscribe(subscriber);
 
         return consumer;
     }
