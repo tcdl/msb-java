@@ -69,8 +69,8 @@ public class ConsumerTest {
     @Test
     public void testConsumeFromTopicValidateThrowException() {
         MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
-        Consumer consumer = new Consumer(adapterMock, TOPIC, msbConf, clock, channelMonitorAgentMock)
-                .subscribe(subscriberMock);
+        Consumer consumer = new Consumer(adapterMock, TOPIC, msbConf, clock, channelMonitorAgentMock);
+        consumer.subscribe(subscriberMock);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
         verify(subscriberMock).handleMessage(any(), isA(JsonSchemaValidationException.class));
@@ -80,8 +80,8 @@ public class ConsumerTest {
     public void testConsumeFromSeviceTopicValidateThrowException() {
         String service_topic = "_service:topic";
         MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
-        Consumer consumer = new Consumer(adapterMock, service_topic, msbConf, clock, channelMonitorAgentMock)
-                .subscribe(subscriberMock);
+        Consumer consumer = new Consumer(adapterMock, service_topic, msbConf, clock, channelMonitorAgentMock);
+        consumer.subscribe(subscriberMock);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
         verify(subscriberMock).handleMessage(any(), isA(JsonConversionException.class));
@@ -90,8 +90,8 @@ public class ConsumerTest {
     @Test
     public void testConsumeFromTopic() throws JsonConversionException {
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
-        Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock)
-                .subscribe(subscriberMock);
+        Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock);
+        consumer.subscribe(subscriberMock);
 
         consumer.handleRawMessage(Utils.toJson(originalMessage));
         verify(subscriberMock).handleMessage(any(Message.class), any());

@@ -52,12 +52,9 @@ public class Consumer {
         this.subscribers = new ConcurrentLinkedQueue<>();
     }
 
-    public Consumer subscribe(Subscriber subscriber) {
+    public void subscribe(Subscriber subscriber) {
         Validate.notNull(subscriber, "the 'subscriber' must not be null");
-
         subscribers.add(subscriber);
-
-        return this;
     }
 
     public boolean unsubscribe(Subscriber subscriber) {
