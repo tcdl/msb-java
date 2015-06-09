@@ -38,7 +38,7 @@ public class Collector {
     private int currentTimeoutMs;
     private long waitForAcksUntil;
     private int waitForResponses;
-    int responsesRemaining;
+    private int responsesRemaining;
 
     private Long startedAt;
     private TimerProvider timer;
@@ -179,7 +179,7 @@ public class Collector {
         }
 
         if (acknowledge.getResponsesRemaining() != null) {
-            LOG.debug("Remaining responses {}",
+            LOG.debug("Responses remaining for responderId [{}] is set to {}", acknowledge.getResponderId(),
                     setResponsesRemainingForResponderId(acknowledge.getResponderId(), acknowledge.getResponsesRemaining()));
         }
     }
@@ -193,7 +193,7 @@ public class Collector {
         return timeoutMs;
     }
 
-    private Integer getResponsesRemaining() {
+    int getResponsesRemaining() {
         if (responsesRemainingById == null || responsesRemainingById.isEmpty()) {
             return responsesRemaining;
         }

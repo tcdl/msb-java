@@ -52,27 +52,27 @@ public class RequesterTest {
 
     @Test
     public void testPublishNoWaitForResponses() throws Exception {
-        Requester requester = initRequesterForResponses(0);
+        Requester requester = initRequesterForResponsesWithTimeout(0);
 
         requester.publish(TestUtils.createSimpleRequestPayload());
 
         verify(collectorMock, never()).listenForResponses(anyString(), any());
+        verify(collectorMock).end();
     }
 
     @Test
     public void testPublishWaitForResponses() throws Exception {
-        Requester requester = initRequesterForResponses(1);
+        Requester requester = initRequesterForResponsesWithTimeout(1);
 
         requester.publish(TestUtils.createSimpleRequestPayload());
 
-        verify(collectorMock).listenForResponses(anyString(), any());
         verify(collectorMock).listenForResponses(anyString(), any(Predicate.class));
         verify(collectorMock, never()).end();
     }
 
     @Test
     public void testPublishCallProducerPublishWithPayload() throws Exception {
-        Requester requester = initRequesterForResponses(0);
+        Requester requester = initRequesterForResponsesWithTimeout(0);
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
         Payload payload = TestUtils.createSimpleRequestPayload();
 
@@ -86,7 +86,7 @@ public class RequesterTest {
     @SuppressWarnings("unchecked")
     public void testAcknowledgeEventHandlerIsAdded() throws Exception {
         Callback onAckMock = mock(Callback.class);
-        Requester requester = initRequesterForResponses(1);
+        Requester requester = initRequesterForResponsesWithTimeout(1);
 
         requester.onAcknowledge(onAckMock);
 
@@ -100,7 +100,7 @@ public class RequesterTest {
     @SuppressWarnings("unchecked")
     public void testResponseEventHandlerIsAdded() throws Exception {
         Callback onResponseMock = mock(Callback.class);
-        Requester requester = initRequesterForResponses(1);
+        Requester requester = initRequesterForResponsesWithTimeout(1);
 
         requester.onResponse(onResponseMock);
 
@@ -114,7 +114,7 @@ public class RequesterTest {
     @SuppressWarnings("unchecked")
     public void testErrorEventHandlerIsAdded() throws Exception {
         Callback onErrorMock = mock(Callback.class);
-        Requester requester = initRequesterForResponses(1);
+        Requester requester = initRequesterForResponsesWithTimeout(1);
 
         requester.onError(onErrorMock);
 
@@ -128,7 +128,7 @@ public class RequesterTest {
     @SuppressWarnings("unchecked")
     public void testEndEventHandlerIsAdded() throws Exception {
         Callback onEndMock = mock(Callback.class);
-        Requester requester = initRequesterForResponses(1);
+        Requester requester = initRequesterForResponsesWithTimeout(1);
 
         requester.onEnd(onEndMock);
 
@@ -139,8 +139,20 @@ public class RequesterTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    public void testNoEventHandlerAdded() throws Exception {
+        Callback onEndMock = mock(Callback.class);
+        Requester requester = initRequesterForResponsesWithTimeout(1);
+
+        assertThat(requester.eventHandlers.onAcknowledge(), not(onEndMock));
+        assertThat(requester.eventHandlers.onResponse(), not(onEndMock));
+        assertThat(requester.eventHandlers.onError(), not(onEndMock));
+        assertThat(requester.eventHandlers.onEnd(), not(onEndMock));
+    }
+
+    @Test
     public void testRequestMessage() throws Exception {
-        Requester requester = initRequesterForResponses(0);
+        Requester requester = initRequesterForResponsesWithTimeout(0);
         Payload request = TestUtils.createSimpleRequestPayload();
 
         requester.publish(request);
@@ -151,10 +163,11 @@ public class RequesterTest {
         assertNotNull(requestMessage.getPayload());
     }
 
-    private Requester initRequesterForResponses(int numberOfResponses) throws Exception {
+    private Requester initRequesterForResponsesWithTimeout(int numberOfResponses) throws Exception {
         MsbMessageOptions messageOptionsMock = mock(MsbMessageOptions.class);
         when(messageOptionsMock.getNamespace()).thenReturn("test:requester");
         when(messageOptionsMock.getWaitForResponses()).thenReturn(numberOfResponses);
+        when(messageOptionsMock.getResponseTimeout()).thenReturn(100);
 
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
         when(channelManagerMock.findOrCreateConsumer(anyString())).thenReturn(consumerMock);
