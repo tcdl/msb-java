@@ -36,14 +36,16 @@ public class ResponderServerTest {
         Middleware middleware = (request, responder) -> {
         };
 
+        Consumer.Subscriber subscriberMock = mock(Consumer.Subscriber.class);
+
         ChannelManager channelManager = msbContext.getChannelManager();
-        Consumer consumer = channelManager.findOrCreateConsumer(messageOptions.getNamespace());
+        Consumer consumer = channelManager.subscribe(messageOptions.getNamespace(), subscriberMock);
 
         ChannelManager spyChannelManager = spy(channelManager);
         MsbContext spyMsbContext = spy(msbContext);
 
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
-        when(spyChannelManager.findOrCreateConsumer(messageOptions.getNamespace())).thenReturn(consumer);
+        when(spyChannelManager.subscribe(messageOptions.getNamespace(), subscriberMock)).thenReturn(consumer);
 
         ResponderServer responderServer = ResponderServer
                 .create(messageOptions, spyMsbContext);

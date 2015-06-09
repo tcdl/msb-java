@@ -19,12 +19,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by rdro on 4/27/2015.
@@ -168,9 +163,7 @@ public class RequesterTest {
         when(messageOptionsMock.getNamespace()).thenReturn("test:requester");
         when(messageOptionsMock.getWaitForResponses()).thenReturn(numberOfResponses);
         when(messageOptionsMock.getResponseTimeout()).thenReturn(100);
-
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
-        when(channelManagerMock.findOrCreateConsumer(anyString())).thenReturn(consumerMock);
 
         MsbContext msbContext = TestUtils.createSimpleMsbContext();
         msbContext.setChannelManager(channelManagerMock);

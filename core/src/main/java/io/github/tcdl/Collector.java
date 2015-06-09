@@ -11,11 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static io.github.tcdl.support.Utils.ifNull;
@@ -23,7 +19,7 @@ import static io.github.tcdl.support.Utils.ifNull;
 /**
  * Created by rdro on 4/23/2015.
  */
-public class Collector {
+public class Collector implements Consumer.Subscriber {
 
     public static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
@@ -52,6 +48,8 @@ public class Collector {
     private Optional<Callback<Exception>> onError = Optional.empty();
     private Optional<Callback<List<Message>>> onEnd = Optional.empty();
 
+    private Predicate<Message> shouldAcceptMessagePredicate;
+
     public Collector(MsbMessageOptions messageOptions, MsbContext msbContext, EventHandlers eventHandlers) {
         this.channelManager = msbContext.getChannelManager();
         this.clock = msbContext.getClock();
@@ -76,7 +74,6 @@ public class Collector {
             onError = Optional.ofNullable(eventHandlers.onError());
             onEnd = Optional.ofNullable(eventHandlers.onEnd());
         }
-
     }
 
     public boolean isWaitForResponses() {
@@ -93,52 +90,48 @@ public class Collector {
 
     public void listenForResponses(String topic, final Predicate<Message> shouldAcceptMessagePredicate) {
         this.timer = initTimer();
-        Consumer consumer = channelManager.findOrCreateConsumer(topic);
         this.topic = topic;
+        this.shouldAcceptMessagePredicate = shouldAcceptMessagePredicate;
+        channelManager.subscribe(this.topic, this);
 
         //start ack TimerTask that when run will end conversation in case no more responses are expected
         if (isAwaitingAcks()) {
             waitForAcks();
         }
-
-        consumer.subscribe(
-                message -> {
-                    if (shouldAcceptMessagePredicate == null || shouldAcceptMessagePredicate.test(message)) {
-                        handleMessage(message);
-                    }
-                },
-                this::handleError
-        );
     }
 
-    private void handleMessage(Message message) {
-        LOG.debug("Received {}", message);
-
-        if (message.getPayload() != null) {
-            LOG.debug("Received {}", message.getPayload());
-            payloadMessages.add(message);
-
-            onResponse.ifPresent(handler -> handler.call(message.getPayload()));
-            incResponsesRemaining(-1);
-        } else {
-            LOG.debug("Received {}", message.getAck());
-            ackMessages.add(message);
-            onAcknowledge.ifPresent(handler -> handler.call((message.getAck())));
-        }
-
-        processAck(message.getAck());
-
-        if (isAwaitingAcks() || isAwaitingResponses() ) {
-            //ack and response TimerTask are responsible for closing conversation after timeouts expiration
+    @Override
+    public void handleMessage(Message message, Exception error) {
+        if (error != null) {
+            LOG.debug("Received error [{}]", error.getMessage());
+            onError.ifPresent(handler -> handler.call(error));
             return;
         }
 
-        end();
-    }
+        if (shouldAcceptMessagePredicate == null || shouldAcceptMessagePredicate.test(message)) {
+            LOG.debug("Received {}", message);
 
-    private void handleError(Exception exception) {
-        LOG.debug("Received error [{}]", exception.getMessage());
-        onError.ifPresent(handler -> handler.call(exception));
+            if (message.getPayload() != null) {
+                LOG.debug("Received {}", message.getPayload());
+                payloadMessages.add(message);
+
+                onResponse.ifPresent(handler -> handler.call(message.getPayload()));
+                incResponsesRemaining(-1);
+            } else {
+                LOG.debug("Received {}", message.getAck());
+                ackMessages.add(message);
+                onAcknowledge.ifPresent(handler -> handler.call((message.getAck())));
+            }
+
+            processAck(message.getAck());
+
+            if (isAwaitingAcks() || isAwaitingResponses()) {
+                //ack and response TimerTask are responsible for closing conversation after timeouts expiration
+                return;
+            }
+
+            end();
+        }
     }
 
     protected void end() {
@@ -147,7 +140,8 @@ public class Collector {
         if (this.timer != null){
             this.timer.stopTimers();
         }
-        channelManager.removeConsumer(topic);
+
+        channelManager.unsubscribe(topic, this);
         onEnd.ifPresent(handler -> handler.call(payloadMessages));
     }
 
