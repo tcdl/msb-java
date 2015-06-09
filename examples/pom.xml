@@ -28,5 +28,9 @@
             <groupId>io.github.tcdl</groupId>
             <artifactId>msb-java-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.github.tcdl</groupId>
+            <artifactId>msb-java-amqp</artifactId>
+        </dependency>
     </dependencies>
 </project>
