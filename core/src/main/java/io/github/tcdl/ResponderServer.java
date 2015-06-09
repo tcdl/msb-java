@@ -39,15 +39,15 @@ public class ResponderServer {
         String topic = messageOptions.getNamespace();
         ChannelManager channelManager = msbContext.getChannelManager();
 
-        Consumer consumer = channelManager.findOrCreateConsumer(topic);
+        channelManager.subscribe(topic, (message, exception) -> {
+                if (exception != null) {
+                   Responder responder = new Responder(messageOptions, null, msbContext);
+                   errorHandler(null, responder, exception);
+                   return;
+                }
 
-        consumer.subscribe(message -> {
                 Responder responder = new Responder(messageOptions, message, msbContext);
                 onResponder(responder);
-            },
-            exception -> {
-                Responder responder = new Responder(messageOptions, null, msbContext);
-                errorHandler(null, responder, exception);
             }
         );
 

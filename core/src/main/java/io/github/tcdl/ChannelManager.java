@@ -50,7 +50,7 @@ public class ChannelManager {
         return producer;
     }
 
-    public synchronized Consumer findOrCreateConsumer(final String topic) {
+    public synchronized Consumer subscribe(final String topic, Consumer.Subscriber subscriber) {
         Validate.notNull(topic, "field 'topic' is null");
         Consumer consumer = consumersByTopic.get(topic);
         if (consumer == null) {
@@ -59,18 +59,23 @@ public class ChannelManager {
             channelMonitorAgent.consumerTopicCreated(topic);
         }
 
+        consumer.subscribe(subscriber);
+
         return consumer;
     }
 
-    public void removeConsumer(String topic) {
+    public synchronized void unsubscribe(String topic, Consumer.Subscriber subscriber) {
         if (topic == null || !consumersByTopic.containsKey(topic))
             return;
+
         Consumer consumer = consumersByTopic.get(topic);
+        boolean isLast = consumer.unsubscribe(subscriber);
 
-        consumer.end();
-        consumersByTopic.remove(topic);
-
-        channelMonitorAgent.consumerTopicRemoved(topic);
+        if (isLast) {
+            consumer.end();
+            consumersByTopic.remove(topic);
+            channelMonitorAgent.consumerTopicRemoved(topic);
+        }
     }
 
     private Producer createProducer(String topic) {

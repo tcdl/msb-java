@@ -102,10 +102,10 @@ public class ChannelManagerTest {
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
         channelManager.findOrCreateProducer(topic).publish(message);
         channelManager.findOrCreateConsumer(topic)
-                .subscribe(msg -> {
+                .subscribe(new Consumer.Subscriber(msg -> {
                     messageEvent.value = msg;
                     awaitReceiveEvents.countDown();
-                });
+                }, null, null));
 
         assertTrue(awaitReceiveEvents.await(3000, TimeUnit.MILLISECONDS));
         verify(mockChannelMonitorAgent).consumerMessageReceived(topic);
