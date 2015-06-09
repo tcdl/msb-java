@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by rdro on 4/23/2015.
@@ -28,8 +30,8 @@ public class Consumer {
     private MsbConfigurations msbConfig;
     private ChannelMonitorAgent channelMonitorAgent;
     private Clock clock;
-    private Callback<Message> messageHandler;
-    private Callback<Exception> errorHandler;
+
+    private List<Subscriber> subscribers;
 
     public Consumer(Adapter rawAdapter, String topic, MsbConfigurations msbConfig, Clock clock, ChannelMonitorAgent channelMonitorAgent) {
         LOG.debug("Creating consumer for topic: {}", topic);
@@ -44,6 +46,7 @@ public class Consumer {
         this.msbConfig = msbConfig;
         this.clock = clock;
         this.channelMonitorAgent = channelMonitorAgent;
+        this.subscribers = new ArrayList<>();
     }
 
     public Consumer subscribe(Callback<Message> messageHandler) {
@@ -51,12 +54,10 @@ public class Consumer {
         return this;
     }
 
-    public Consumer subscribe(Callback<Message> messageHandler, Callback<Exception> errorHandler) {
+    public synchronized Consumer subscribe(Callback<Message> messageHandler, Callback<Exception> errorHandler) {
         Validate.notNull(messageHandler, "the 'messageHandler' must not be null");
 
-        this.messageHandler = messageHandler;
-        this.errorHandler = errorHandler;
-
+        subscribers.add(new Subscriber(messageHandler, errorHandler));
         rawAdapter.subscribe(this::handleRawMessage);
 
         return this;
@@ -84,20 +85,30 @@ public class Consumer {
             error = e;
         }
 
-        if (error != null) {
-            if (errorHandler != null)
-                errorHandler.call(error);
-            return;
-        }
-
-        if (isMessageExpired(message))
-            return;
-
         if (channelMonitorAgent != null) {
             channelMonitorAgent.consumerMessageReceived(topic);
         }
 
-        messageHandler.call(message);
+        synchronized (this) {
+            for (Subscriber subscriber : subscribers) {
+
+                if (error != null) {
+                    Callback<Exception> errorHandler = subscriber.getErrorHandler();
+                    if (errorHandler != null) {
+                        errorHandler.call(error);
+                    }
+                } else {
+                    if (isMessageExpired(message)) {
+                        return;
+                    }
+
+                    Callback<Message> messageHandler = subscriber.getMessageHandler();
+                    if (messageHandler != null) {
+                        messageHandler.call(message);
+                    }
+                }
+            }
+        }
     }
 
     private boolean isMessageExpired(Message message) {
@@ -111,5 +122,24 @@ public class Consumer {
         Instant now = clock.instant();
 
         return expiryTime.isBefore(now);
+    }
+
+    private static class Subscriber {
+
+        private Callback<Message> messageHandler;
+        private Callback<Exception> errorHandler;
+
+        public Subscriber(Callback<Message> messageHandler, Callback<Exception> errorHandler) {
+            this.messageHandler = messageHandler;
+            this.errorHandler = errorHandler;
+        }
+
+        public Callback<Message> getMessageHandler() {
+            return messageHandler;
+        }
+
+        public Callback<Exception> getErrorHandler() {
+            return errorHandler;
+        }
     }
 }
