@@ -43,6 +43,11 @@ public class TimerProvider {
             return;
         }
 
+        if (timeoutMs <= 0) {
+            LOG.debug("Unable to schedule timeout with negative delay : {}", timeoutMs);
+            return;
+        }
+
         ackTimeout = new TimerTask() {
             @Override
             public void run() {
