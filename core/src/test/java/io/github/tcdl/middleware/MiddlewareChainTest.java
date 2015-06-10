@@ -16,7 +16,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -29,27 +28,58 @@ public class MiddlewareChainTest {
     
     @Mock
     private Middleware middlewareMock;
-    
+
+    private MsbMessageOptions msgOptions;
+    private Message message;
+    private Payload request;
+    private Responder responder;
+
     @Before
     public void setUp() {
         this.msbContext = TestUtils.createSimpleMsbContext();
+
+        msgOptions = TestUtils.createSimpleConfig();
+        message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo("middleware:testexecute-sucess");
+        request = message.getPayload();
+        responder = new Responder(msgOptions, message, msbContext);
+    }
+
+    @Test
+    public void testInvokeSuccess() throws Exception {
+        MiddlewareChain middlewareChain = new MiddlewareChain();
+        middlewareChain.add(middlewareMock);
+
+        middlewareChain.invoke(request, responder);
+
+        verify(middlewareMock).execute(eq(request), eq(responder), eq(middlewareChain));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testInvokeWithError() throws Exception {
+        MiddlewareHandler errorHandlerMock = mock(MiddlewareHandler.class);
+
+        MiddlewareChain middlewareChain = new MiddlewareChain().withErrorHandler(errorHandlerMock);
+        middlewareChain.add(middlewareMock);
+
+        Exception exception = new NullPointerException();
+        doThrow(exception).when(middlewareMock)
+                .execute(any(), any(), any());
+
+        middlewareChain.invoke(request, responder);
+
+        verify(middlewareMock).execute(eq(request), eq(responder), eq(middlewareChain));
+        verify(errorHandlerMock).handle(eq(request), eq(responder), eq(exception));
     }
 
     @Test
     public void testExecuteSuccess() throws Exception {
-
         MiddlewareChain middlewareChain = new MiddlewareChain();
         middlewareChain.add(middlewareMock);
 
-        MsbMessageOptions msgOptions = TestUtils.createSimpleConfig();
-        Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo("middleware:testexecute-sucess");
-        Payload request = message.getPayload();
-        Responder responder = new Responder(msgOptions, message, msbContext);
+        middlewareChain.execute(request, responder);
 
-        middlewareChain.invoke(request, responder);
-
-        verify(middlewareMock, only())
-                .execute(eq(request), eq(responder), eq(middlewareChain));
+        verify(middlewareMock).execute(eq(request), eq(responder), eq(middlewareChain));
     }
 
     @Test
@@ -60,19 +90,13 @@ public class MiddlewareChainTest {
         MiddlewareChain middlewareChain = new MiddlewareChain().withErrorHandler(errorHandlerMock);
         middlewareChain.add(middlewareMock);
 
-        MsbMessageOptions msgOptions = TestUtils.createSimpleConfig();
-        Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo("middleware:testexecute-witherror");
-        Payload request = message.getPayload();
-        Responder responder = new Responder(msgOptions, message, msbContext);
-
-        doThrow(Exception.class).when(middlewareMock)
+        Exception exception = new NullPointerException();
+        doThrow(exception).when(middlewareMock)
                 .execute(any(), any(), any());
 
-        middlewareChain.invoke(request, responder);
+        middlewareChain.execute(request, responder);
 
-        verify(middlewareMock, only())
-                .execute(eq(request), eq(responder), eq(middlewareChain));
-        verify(errorHandlerMock, only())
-                .handle(eq(request), eq(responder), any());
+        verify(middlewareMock).execute(eq(request), eq(responder), eq(middlewareChain));
+        verify(errorHandlerMock).handle(eq(request), eq(responder), eq(exception));
     }
 }
