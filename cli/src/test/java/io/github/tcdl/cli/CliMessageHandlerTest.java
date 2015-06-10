@@ -1,18 +1,20 @@
 package io.github.tcdl.cli;
 
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.Collections;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class CliMessageHandlerTest {
     @Test
     public void testSubscriptionToResponseQueue() {
-        CliMessageHandlerSubscriber subscriber = Mockito.mock(CliMessageHandlerSubscriber.class);
+        CliMessageSubscriber subscriber = mock(CliMessageSubscriber.class);
 
-        CliMessageHandler handler = new CliMessageHandler(subscriber, true, Collections.singletonList("response"));
+        CliMessageHandler handler = new CliMessageHandler(subscriber, Collections.singletonList("response"), true);
         handler.onMessage(
                 "{  \"topics\": {\n"
                         + "    \"to\": \"search:parsers:facets:v1\",\n"
@@ -20,14 +22,14 @@ public class CliMessageHandlerTest {
                         + "  }}"
         );
 
-        Mockito.verify(subscriber).subscribe("search:parsers:facets:v1:response:3c3dec275b326c6500010843", handler);
+        verify(subscriber).subscribe("search:parsers:facets:v1:response:3c3dec275b326c6500010843", handler);
     }
 
     @Test
     public void testNoSubscriptionIfMissingResponseQueue() {
-        CliMessageHandlerSubscriber subscriber = Mockito.mock(CliMessageHandlerSubscriber.class);
+        CliMessageSubscriber subscriber = mock(CliMessageSubscriber.class);
 
-        CliMessageHandler handler = new CliMessageHandler(subscriber, true, Collections.singletonList("response"));
+        CliMessageHandler handler = new CliMessageHandler(subscriber, Collections.singletonList("response"), true);
         handler.onMessage(
                 "{  \"topics\": {\n"
                         + "    \"to\": \"search:parsers:facets:v1\"\n"
@@ -39,9 +41,9 @@ public class CliMessageHandlerTest {
 
     @Test
     public void testNoSubscriptionIfNullResponseQueue() {
-        CliMessageHandlerSubscriber subscriber = Mockito.mock(CliMessageHandlerSubscriber.class);
+        CliMessageSubscriber subscriber = mock(CliMessageSubscriber.class);
 
-        CliMessageHandler handler = new CliMessageHandler(subscriber, true, Collections.singletonList("response"));
+        CliMessageHandler handler = new CliMessageHandler(subscriber, Collections.singletonList("response"), true);
         handler.onMessage(
                 "{  \"topics\": {\n"
                         + "    \"to\": \"search:parsers:facets:v1\",\n"
@@ -54,10 +56,10 @@ public class CliMessageHandlerTest {
 
     @Test
     public void testSubscriptionNonExistingQueue() {
-        CliMessageHandlerSubscriber subscriber = Mockito.mock(CliMessageHandlerSubscriber.class);
-        CliMessageHandler handler = new CliMessageHandler(subscriber, true, Collections.singletonList("response"));
+        CliMessageSubscriber subscriber = mock(CliMessageSubscriber.class);
+        CliMessageHandler handler = new CliMessageHandler(subscriber, Collections.singletonList("response"), true);
 
-        Mockito.doThrow(new RuntimeException()).when(subscriber).subscribe("non-existent-queue", handler);
+        doThrow(new RuntimeException()).when(subscriber).subscribe("non-existent-queue", handler);
 
         handler.onMessage(
                 "{  \"topics\": {\n"
