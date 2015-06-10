@@ -32,5 +32,40 @@
             <groupId>io.github.tcdl</groupId>
             <artifactId>msb-java-amqp</artifactId>
         </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
     </dependencies>
+    <profiles>
+        <profile>
+            <id>app-level-test</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.2.1</version>
+                        <executions>
+                            <execution>
+                                <id>first-responder</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                                <configuration>
+                                    <mainClass>io.github.tcdl.examples.MultipleRequesterResponderRunner</mainClass>
+                                    <arguments>
+                                        <argument>test:simple-queue1</argument>
+                                        <argument>test:simple-queue2</argument>
+                                        <argument>test:simple-queue3</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

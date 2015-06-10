@@ -15,12 +15,12 @@ public class SimpleResponderExample {
     public static void main(String... args) {
         MsbMessageOptions options = new MsbMessageOptions();
 
-        if (args.length == 1) {
+        if (args.length != 1) {
             System.out.println("If you would like set topic which will be used please pass it through parameter");
-            System.out.println("Example:java ResponderExample test:simple-queue");
-            options.setNamespace(args[0]);
+            System.out.println("Example:java SimpleResponderExample test:simple-queue");
+            System.exit(1);
         } else {
-            options.setNamespace("test:simple-requester");
+            options.setNamespace(args[0]);
         }
 
         MsbContext msbContext = new MsbContext.MsbContextBuilder().build();

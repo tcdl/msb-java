@@ -17,7 +17,7 @@ import java.util.concurrent.Future;
  * Created by anstr on 6/9/2015.
  */
 public class MultipleRequesterResponder {
-    public static void main(String[] args) {
+    public static void main(String... args) {
         MsbMessageOptions optionsResponder = new MsbMessageOptions();
         MsbMessageOptions optionsRequester1 = new MsbMessageOptions();
         MsbMessageOptions optionsRequester2 = new MsbMessageOptions();
