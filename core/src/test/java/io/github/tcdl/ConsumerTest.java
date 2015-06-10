@@ -1,11 +1,7 @@
 package io.github.tcdl;
 
-/**
- * Created by rdro on 4/28/2015.
- */
-
-import io.github.tcdl.adapters.Adapter;
-import io.github.tcdl.adapters.Adapter.RawMessageHandler;
+import io.github.tcdl.adapters.ConsumerAdapter;
+import io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.exception.JsonSchemaValidationException;
@@ -15,7 +11,6 @@ import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -23,12 +18,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.time.Clock;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -39,7 +33,7 @@ public class ConsumerTest {
     private static final String TOPIC = "test:consumer";
 
     @Mock
-    private Adapter adapterMock;
+    private ConsumerAdapter adapterMock;
 
     @Mock
     private MsbConfigurations msbConfMock;

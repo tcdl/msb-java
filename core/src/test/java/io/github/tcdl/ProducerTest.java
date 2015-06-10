@@ -1,20 +1,17 @@
 package io.github.tcdl;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import io.github.tcdl.adapters.Adapter;
+import io.github.tcdl.adapters.ProducerAdapter;
 import io.github.tcdl.exception.ChannelException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.TestUtils;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -25,7 +22,7 @@ public class ProducerTest {
     private static final String TOPIC = "test:producer";
 
     @Mock
-    private Adapter adapterMock;
+    private ProducerAdapter adapterMock;
 
     @Mock
     private Callback<Message> handlerMock;

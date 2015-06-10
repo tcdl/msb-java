@@ -1,7 +1,8 @@
 package io.github.tcdl.adapters.mock;
 
-import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.adapters.AdapterFactory;
+import io.github.tcdl.adapters.ConsumerAdapter;
+import io.github.tcdl.adapters.ProducerAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 
 /**
@@ -17,8 +18,17 @@ public class MockAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public Adapter createAdapter(String topic) {
+    public ProducerAdapter createProducerAdapter(String topic) {
         return new MockAdapter(topic, null);
     }
 
+    @Override
+    public ConsumerAdapter createConsumerAdapter(String topic) {
+        return new MockAdapter(topic, null);
+    }
+
+    @Override
+    public void close() {
+        // No-op
+    }
 }

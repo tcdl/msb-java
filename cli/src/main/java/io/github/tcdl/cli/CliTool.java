@@ -1,13 +1,16 @@
 package io.github.tcdl.cli;
 
-import io.github.tcdl.adapters.Adapter;
-import io.github.tcdl.adapters.AdapterFactoryLoader;
+import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.adapters.AdapterFactory;
+import io.github.tcdl.adapters.AdapterFactoryLoader;
+import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 
-import java.util.*;
-
-import com.typesafe.config.ConfigFactory;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class CliTool implements CliMessageHandlerSubscriber {
     private AdapterFactory adapterFactory;
@@ -26,7 +29,7 @@ public class CliTool implements CliMessageHandlerSubscriber {
     public void subscribe(String topicName, CliMessageHandler handler) {
         synchronized (registeredTopics) {
             if (!registeredTopics.contains(topicName)) {
-                Adapter adapter = adapterFactory.createAdapter(topicName);
+                ConsumerAdapter adapter = adapterFactory.createConsumerAdapter(topicName);
                 adapter.subscribe(handler);
                 registeredTopics.add(topicName);
             }

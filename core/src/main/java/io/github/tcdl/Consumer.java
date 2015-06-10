@@ -1,6 +1,6 @@
 package io.github.tcdl;
 
-import io.github.tcdl.adapters.Adapter;
+import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.exception.JsonSchemaValidationException;
@@ -24,7 +24,7 @@ public class Consumer {
 
     public static final Logger LOG = LoggerFactory.getLogger(Consumer.class);
 
-    private final Adapter rawAdapter;
+    private final ConsumerAdapter rawAdapter;
     private final String topic;
     private MsbConfigurations msbConfig;
     private ChannelMonitorAgent channelMonitorAgent;
@@ -32,7 +32,7 @@ public class Consumer {
 
     private ConcurrentLinkedQueue<Subscriber> subscribers;
 
-    public Consumer(Adapter rawAdapter, String topic, MsbConfigurations msbConfig, Clock clock, ChannelMonitorAgent channelMonitorAgent) {
+    public Consumer(ConsumerAdapter rawAdapter, String topic, MsbConfigurations msbConfig, Clock clock, ChannelMonitorAgent channelMonitorAgent) {
         LOG.debug("Creating consumer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
         Validate.notNull(topic, "the 'topic' must not be null");

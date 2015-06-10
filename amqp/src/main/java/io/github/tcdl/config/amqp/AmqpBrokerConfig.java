@@ -1,27 +1,25 @@
 package io.github.tcdl.config.amqp;
 
-import static io.github.tcdl.config.ConfigurationUtil.getString;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
+import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.typesafe.config.Config;
+import static io.github.tcdl.config.ConfigurationUtil.getString;
 
 public class AmqpBrokerConfig {
-
-    public final Logger log = LoggerFactory.getLogger(getClass());
 
     private final int port;
     private final String host;
     private String groupId;
     private final boolean durable;
+    private final int consumerThreadPoolSize;
 
-    public AmqpBrokerConfig(String host, int port, String groupId, boolean durable) {
+    public AmqpBrokerConfig(String host, int port, String groupId, boolean durable, int consumerThreadPoolSize) {
         this.port = port;
         this.host = host;
         this.groupId = groupId;
         this.durable = durable;
+        this.consumerThreadPoolSize = consumerThreadPoolSize;
     }
 
     public static class AmqpBrokerConfigBuilder {
@@ -29,16 +27,18 @@ public class AmqpBrokerConfig {
         private String host;
         private String groupId;
         private boolean durable;
+        private int consumerThreadPoolSize;
 
         public AmqpBrokerConfigBuilder(Config config) {
             this.host = config.getString("host");
             this.port = config.getInt("port");
             this.groupId = getString(config, "groupId", null);
             this.durable = config.getBoolean("durable");
+            this.consumerThreadPoolSize = config.getInt("consumerThreadPoolSize");
        }
 
         public AmqpBrokerConfig build() {
-            return new AmqpBrokerConfig(host, port, groupId, durable);
+            return new AmqpBrokerConfig(host, port, groupId, durable, consumerThreadPoolSize);
         }
     }
 
@@ -62,27 +62,13 @@ public class AmqpBrokerConfig {
         this.groupId = groupId;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
-        if (obj.getClass() != getClass()) {
-          return false;
-        }
-        AmqpBrokerConfig config = (AmqpBrokerConfig) obj;
-        return new EqualsBuilder()
-                .appendSuper(super.equals(obj))
-                .append(host, config.host)
-                .append(port, config.port)
-                .append(groupId, config.groupId)
-                .append(durable, config.durable)
-                .isEquals();
+    public int getConsumerThreadPoolSize() {
+        return consumerThreadPoolSize;
     }
-    
+
     @Override
     public String toString() {
-        return "AmqpBrokerConfig [host=" + host + ", port=" + port + ", groupId=" + groupId + ", durable=" + durable
-                + "]";
+        return String.format("AmqpBrokerConfig [host=%s, port=%d, groupId=%s, durable=%s, consumerThreadPoolSize=%s]", host, port, groupId, durable, consumerThreadPoolSize);
     }
 
 }
