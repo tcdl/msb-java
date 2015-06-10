@@ -1,5 +1,9 @@
 package io.github.tcdl;
 
+import java.time.Clock;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.adapters.AdapterFactoryLoader;
 import io.github.tcdl.adapters.ConsumerAdapter;
@@ -10,10 +14,6 @@ import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.monitor.NoopChannelMonitorAgent;
 import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
-
-import java.time.Clock;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * ChannelManager creates consumers or producers on demand
@@ -32,21 +32,19 @@ public class ChannelManager {
         this.msbConfig = msbConfig;
         this.clock = clock;
         this.adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
-        this.producersByTopic = new HashMap<>();
-        this.consumersByTopic = new HashMap<>();
+        this.producersByTopic = new ConcurrentHashMap<>();
+        this.consumersByTopic = new ConcurrentHashMap<>();
 
         channelMonitorAgent = new NoopChannelMonitorAgent();
     }
 
-    public synchronized Producer findOrCreateProducer(final String topic) {
+    public Producer findOrCreateProducer(final String topic) {
         Validate.notNull(topic, "field 'topic' is null");
-        Producer producer = producersByTopic.get(topic);
-        if (producer == null) {
-            producer = createProducer(topic);
-            producersByTopic.put(topic, producer);
-
-            channelMonitorAgent.producerTopicCreated(topic);
-        }
+        Producer producer = producersByTopic.computeIfAbsent(topic, key -> {
+            Producer newProducer = createProducer(key);
+            channelMonitorAgent.producerTopicCreated(key);
+            return newProducer;
+        });
 
         return producer;
     }
@@ -58,13 +56,11 @@ public class ChannelManager {
 
     private Consumer findOrCreateConsumer(final String topic) {
         Validate.notNull(topic, "field 'topic' is null");
-        Consumer consumer = consumersByTopic.get(topic);
-
-        if (consumer == null) {
-            consumer = createConsumer(topic);
-            consumersByTopic.put(topic, consumer);
-            channelMonitorAgent.consumerTopicCreated(topic);
-        }
+        Consumer consumer = consumersByTopic.computeIfAbsent(topic, key -> {
+            Consumer newConsumer = createConsumer(key);
+            channelMonitorAgent.consumerTopicCreated(key);
+            return newConsumer;
+        });
 
         return consumer;
     }

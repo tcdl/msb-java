@@ -139,54 +139,8 @@ public class TestUtils {
         return new Payload.PayloadBuilder().setBody(body).setHeaders(headers).build();
     }
 
-    public static Payload createSimpleResponsePayloadWithBodyAndStatusCode(String respBody, int respStatusCode) {
-        Map<String, String> headers = new HashMap<String, String>();
-        headers.put("statusCode", String.valueOf(respStatusCode));
-        headers.put("method", "Response");
-
-        Map<String, String> body = new HashMap<String, String>();
-        body.put("body", respBody);
-
-        return new Payload.PayloadBuilder().setBody(body).setHeaders(headers).build();
-    }
-
     public static MetaMessageBuilder createSimpleMetaBuilder(MsbConfigurations msbConf, Clock clock) {
         return new MetaMessage.MetaMessageBuilder(null, clock.instant(), msbConf.getServiceDetails(), clock);
     }
 
-    public static <T> T _g(Object object, String fieldName) {
-        try {
-            return (T) FieldUtils.readField(object, fieldName, true);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static void _s(Object object, String fieldName, Object value) {
-        try {
-            FieldUtils.writeField(object, fieldName, value, true);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static <T> T _m(Object object, String methodName) {
-        try {
-            Method method = object.getClass().getDeclaredMethod(methodName);
-            method.setAccessible(true);
-            return (T) method.invoke(object);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static <T> T _m(Object object, String methodName, Object[] args, Class... argTypes) {
-        try {
-            Method method = object.getClass().getDeclaredMethod(methodName, argTypes);
-            method.setAccessible(true);
-            return (T) method.invoke(object, args);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
