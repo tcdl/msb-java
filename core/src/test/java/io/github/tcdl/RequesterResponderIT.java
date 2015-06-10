@@ -135,8 +135,8 @@ public class RequesterResponderIT {
                 }))
                 .listen();
 
-        assertTrue("Message response was not send", respSend.await(2000, TimeUnit.MILLISECONDS));
-        assertTrue("Message response not received", respReceived.await(2000, TimeUnit.MILLISECONDS));
+        assertTrue("Message response was not send", respSend.await(3000, TimeUnit.MILLISECONDS));
+        assertTrue("Message response not received", respReceived.await(3000, TimeUnit.MILLISECONDS));
         assertTrue("Expected one response", receivedResponses.size() == 1);
         assertEquals(sentResponses.poll().getStatusCode(), receivedResponses.poll().getStatusCode());
     }

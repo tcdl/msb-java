@@ -5,7 +5,7 @@ jdk:
 install: ""
 script: "mvn clean deploy --settings settings.xml -B -V"
 after_success:
-  - mvn clean cobertura:cobertura org.eluder.coveralls:coveralls-maven-plugin:report
+  - mvn clean test jacoco:report coveralls:report
 env:
   global:
   - secure: EK0DDudj5/Qsvdbx6BTz+TInaqMy8LIgyzq2TZTu73d4fcNTzGD93iACZ29X1VG/aW818sd1byX7fDl2pn34j5q6fVT7KfKAnxdtnKlFqWk8q4FiXjcDYhqH+XxuAO2nkf5Wy+PrpZswcgoCHg7giFSltLldI8SrvXpk4Pro2oA=
