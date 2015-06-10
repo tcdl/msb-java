@@ -2,6 +2,7 @@ package io.github.tcdl.middleware;
 
 import io.github.tcdl.Responder;
 import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,10 +26,6 @@ public class MiddlewareChain {
         middlewareList.addAll(Arrays.asList(middleware));
     }
 
-    public List<Middleware> getMiddleware() {
-        return middlewareList;
-    }
-
     public MiddlewareChain invoke(Payload request, Responder responder) {
         if (!middlewareList.isEmpty()) {
             iterator = middlewareList.iterator();
@@ -46,6 +43,8 @@ public class MiddlewareChain {
     }
 
     public void execute(Payload request, Responder responder) {
+        iterator = Utils.ifNull(iterator, middlewareList.iterator());
+
         if (iterator.hasNext()) {
             Middleware middleware = iterator.next();
             try {
