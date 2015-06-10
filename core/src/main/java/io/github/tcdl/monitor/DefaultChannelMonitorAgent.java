@@ -1,9 +1,6 @@
 package io.github.tcdl.monitor;
 
-import io.github.tcdl.ChannelManager;
-import io.github.tcdl.MsbContext;
-import io.github.tcdl.Producer;
-import io.github.tcdl.Responder;
+import io.github.tcdl.*;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
@@ -59,18 +56,20 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
      * @return this channel manages instance. Might be useful for chaining calls.
      */
     public DefaultChannelMonitorAgent start() {
-        channelManager.findOrCreateConsumer(TOPIC_HEARTBEAT) // Launch listener for heartbeat topic
-           .subscribe(message -> {
-                Responder responder = new Responder(null, message, msbContext);
-                Payload payload = new Payload.PayloadBuilder()
-                        .setBody(topicInfoMap)
-                        .build();
+        channelManager.subscribe(TOPIC_HEARTBEAT, // Launch listener for heartbeat topic
+                (message, error) -> {
+                    if (error != null) {
+                        // TODO
+                        return;
+                    }
 
-                responder.send(payload);
-            },
-            exception -> {/*TODO*/}
-           );
+                    Responder responder = new Responder(null, message, msbContext);
+                    Payload payload = new Payload.PayloadBuilder()
+                            .setBody(topicInfoMap)
+                            .build();
 
+                    responder.send(payload);
+                });
         channelManager.setChannelMonitorAgent(this); // Inject itself in channel manager
 
         return this;

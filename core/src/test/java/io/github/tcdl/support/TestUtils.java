@@ -59,17 +59,17 @@ public class TestUtils {
 
     public static Message createMsbRequestMessageWithAckNoPayloadAndTopicTo(String topicTo) {
         Acknowledge simpleAck = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).build();
-        return createMsbRequestMessageWithAckNoPayloadAndTopicTo(simpleAck, topicTo);
+        return createMsbRequestMessageWithAckNoPayloadAndTopicTo(simpleAck, topicTo, Utils.generateId());
     }
 
-    public static Message createMsbRequestMessageWithAckNoPayloadAndTopicTo(Acknowledge ack, String topicTo) {
+    public static Message createMsbRequestMessageWithAckNoPayloadAndTopicTo(Acknowledge ack, String topicTo, String correlationId) {
         MsbConfigurations msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics.TopicsBuilder().setTo(topicTo)
                 .setResponse(topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
         MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMetaBuilder(metaBuilder)
+        return new Message.MessageBuilder().setCorrelationId(Utils.ifNull(correlationId, Utils.generateId())).setId(Utils.generateId()).setTopics(topic).setMetaBuilder(metaBuilder)
                 .setPayload(null).setAck(ack).build();
     }
 

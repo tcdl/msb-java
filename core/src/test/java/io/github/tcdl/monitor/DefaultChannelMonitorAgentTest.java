@@ -10,6 +10,7 @@ import io.github.tcdl.messages.MessageFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -17,17 +18,9 @@ import java.time.ZoneId;
 
 import static io.github.tcdl.support.Utils.TOPIC_ANNOUNCE;
 import static io.github.tcdl.support.Utils.TOPIC_HEARTBEAT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.isNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class DefaultChannelMonitorAgentTest {
     private static final Instant CLOCK_INSTANT = Instant.parse("2007-12-03T10:15:30.00Z");
@@ -71,8 +64,7 @@ public class DefaultChannelMonitorAgentTest {
     @Test
     public void testAnnounceConsumerForServiceTopic() {
         channelMonitorAgent.consumerTopicCreated(TOPIC_ANNOUNCE);
-
-        verify(mockChannelManager, never()).findOrCreateConsumer(anyString());
+        verify(mockChannelManager, never()).subscribe(anyString(), Mockito.any(Consumer.Subscriber.class));
     }
 
     @Test
@@ -128,11 +120,10 @@ public class DefaultChannelMonitorAgentTest {
 
     @Test
     public void testStart() {
-        when(mockChannelManager.findOrCreateConsumer(TOPIC_HEARTBEAT)).thenReturn(mock(Consumer.class));
         ChannelMonitorAgent startedAgent = channelMonitorAgent.start();
 
         assertSame(channelMonitorAgent, startedAgent);
-        verify(mockChannelManager).findOrCreateConsumer(TOPIC_HEARTBEAT);
+        verify(mockChannelManager).subscribe(Mockito.eq(TOPIC_HEARTBEAT), Mockito.any(Consumer.Subscriber.class));
     }
 
     private Message verifyProducerInvokedAndReturnMessage(Producer mockProducer) {

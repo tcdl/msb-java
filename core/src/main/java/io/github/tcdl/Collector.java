@@ -11,11 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static io.github.tcdl.support.Utils.ifNull;
@@ -23,16 +19,16 @@ import static io.github.tcdl.support.Utils.ifNull;
 /**
  * Created by rdro on 4/23/2015.
  */
-public class Collector {
+public class Collector implements Consumer.Subscriber {
 
     public static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
-    protected ChannelManager channelManager;
+    private ChannelManager channelManager;
     private List<Message> ackMessages;
     private List<Message> payloadMessages;
 
     private Map<String, Integer> timeoutMsById;
-    Map<String, Integer> responsesRemainingById;
+    private Map<String, Integer> responsesRemainingById;
 
     private int timeoutMs;
     private int currentTimeoutMs;
@@ -46,6 +42,7 @@ public class Collector {
     private Clock clock;
 
     private String topic;
+    private Message requestMessage;
 
     private Optional<Callback<Payload>> onResponse = Optional.empty();
     private Optional<Callback<Acknowledge>> onAcknowledge = Optional.empty();
@@ -76,7 +73,6 @@ public class Collector {
             onError = Optional.ofNullable(eventHandlers.onError());
             onEnd = Optional.ofNullable(eventHandlers.onEnd());
         }
-
     }
 
     public boolean isWaitForResponses() {
@@ -91,27 +87,31 @@ public class Collector {
         return getResponsesRemaining() > 0;
     }
 
-    public void listenForResponses(String topic, final Predicate<Message> shouldAcceptMessagePredicate) {
+    public void listenForResponses(String topic, Message requestMessage) {
         this.timer = initTimer();
-        Consumer consumer = channelManager.findOrCreateConsumer(topic);
         this.topic = topic;
+        this.requestMessage = requestMessage;
+        channelManager.subscribe(this.topic, this);
 
         //start ack TimerTask that when run will end conversation in case no more responses are expected
         if (isAwaitingAcks()) {
             waitForAcks();
         }
-
-        consumer.subscribe(
-                message -> {
-                    if (shouldAcceptMessagePredicate == null || shouldAcceptMessagePredicate.test(message)) {
-                        handleMessage(message);
-                    }
-                },
-                this::handleError
-        );
     }
 
-    private void handleMessage(Message message) {
+    @Override
+    public void handleMessage(Message message, Exception error) {
+        if (error != null) {
+            LOG.debug("Received error [{}]", error.getMessage());
+            onError.ifPresent(handler -> handler.call(error));
+            return;
+        }
+
+        if (!acceptMessage(message)) {
+            LOG.debug("Rejected {}", message);
+            return;
+        }
+
         LOG.debug("Received {}", message);
 
         if (message.getPayload() != null) {
@@ -128,7 +128,7 @@ public class Collector {
 
         processAck(message.getAck());
 
-        if (isAwaitingAcks() || isAwaitingResponses() ) {
+        if (isAwaitingAcks() || isAwaitingResponses()) {
             //ack and response TimerTask are responsible for closing conversation after timeouts expiration
             return;
         }
@@ -136,9 +136,8 @@ public class Collector {
         end();
     }
 
-    private void handleError(Exception exception) {
-        LOG.debug("Received error [{}]", exception.getMessage());
-        onError.ifPresent(handler -> handler.call(exception));
+    protected boolean acceptMessage(Message message) {
+        return requestMessage != null && Objects.equals(requestMessage.getCorrelationId(), message.getCorrelationId());
     }
 
     protected void end() {
@@ -147,7 +146,8 @@ public class Collector {
         if (this.timer != null){
             this.timer.stopTimers();
         }
-        channelManager.removeConsumer(topic);
+
+        channelManager.unsubscribe(topic, this);
         onEnd.ifPresent(handler -> handler.call(payloadMessages));
     }
 

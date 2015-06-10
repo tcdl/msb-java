@@ -1,16 +1,10 @@
 package io.github.tcdl;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.github.tcdl.adapters.mock.MockAdapter;
 import io.github.tcdl.config.MsbMessageOptions;
@@ -18,6 +12,18 @@ import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -186,7 +192,7 @@ public class RequesterResponderIT {
         CountDownLatch ackResponseReceived = new CountDownLatch(requestsToSendDuringTest);
 
         List<Message> sentAcks = new LinkedList<Message>();
-        List<Acknowledge> receivedResponseAcks = new LinkedList<Acknowledge>();
+        Set<Acknowledge> receivedResponseAcks = new HashSet<>();
 
         //Create and send request messages directly to broker, wait for ack
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
@@ -214,7 +220,7 @@ public class RequesterResponderIT {
         randomAckValue.ints();
         ResponderServer.create(messageOptions, serverMsbContext)
                 .use(((request, response) -> {
-                    response.sendAck(randomAckValue.nextInt(100), randomAckValue.nextInt(100));
+                    response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
                     sentAcks.add(response.getResponseMessage());
                     ackSend.countDown();
                 }))
@@ -223,6 +229,6 @@ public class RequesterResponderIT {
         assertTrue("Message ack was not send", ackSend.await(3000, TimeUnit.MILLISECONDS));
         assertTrue("Message ack response not received", ackResponseReceived.await(3000, TimeUnit.MILLISECONDS));
         assertTrue("Expected one ack", receivedResponseAcks.size() == requestsToSendDuringTest);
-        assertEquals(sentAcks.stream().map(Message::getAck).collect(toList()), receivedResponseAcks);
+        assertEquals(sentAcks.stream().map(Message::getAck).collect(toSet()), receivedResponseAcks);
     }
 }

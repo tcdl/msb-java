@@ -11,8 +11,8 @@ import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
 
 import java.time.Clock;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ChannelManager creates consumers or producers on demand
@@ -31,8 +31,8 @@ public class ChannelManager {
         this.msbConfig = msbConfig;
         this.clock = clock;
         this.adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
-        this.producersByTopic = new ConcurrentHashMap<>();
-        this.consumersByTopic = new ConcurrentHashMap<>();
+        this.producersByTopic = new HashMap<>();
+        this.consumersByTopic = new HashMap<>();
 
         channelMonitorAgent = new NoopChannelMonitorAgent();
     }
@@ -50,9 +50,15 @@ public class ChannelManager {
         return producer;
     }
 
-    public synchronized Consumer findOrCreateConsumer(final String topic) {
+    public synchronized void subscribe(final String topic, final Consumer.Subscriber subscriber) {
+        Consumer consumer = findOrCreateConsumer(topic);
+        consumer.subscribe(subscriber);
+    }
+
+    private Consumer findOrCreateConsumer(final String topic) {
         Validate.notNull(topic, "field 'topic' is null");
         Consumer consumer = consumersByTopic.get(topic);
+
         if (consumer == null) {
             consumer = createConsumer(topic);
             consumersByTopic.put(topic, consumer);
@@ -62,15 +68,18 @@ public class ChannelManager {
         return consumer;
     }
 
-    public void removeConsumer(String topic) {
+    public synchronized void unsubscribe(String topic, Consumer.Subscriber subscriber) {
         if (topic == null || !consumersByTopic.containsKey(topic))
             return;
+
         Consumer consumer = consumersByTopic.get(topic);
+        boolean isLast = consumer.unsubscribe(subscriber);
 
-        consumer.end();
-        consumersByTopic.remove(topic);
-
-        channelMonitorAgent.consumerTopicRemoved(topic);
+        if (isLast) {
+            consumer.end();
+            consumersByTopic.remove(topic);
+            channelMonitorAgent.consumerTopicRemoved(topic);
+        }
     }
 
     private Producer createProducer(String topic) {

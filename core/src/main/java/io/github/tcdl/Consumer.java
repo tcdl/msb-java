@@ -15,8 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by rdro on 4/23/2015.
@@ -31,7 +30,7 @@ public class Consumer {
     private ChannelMonitorAgent channelMonitorAgent;
     private Clock clock;
 
-    private List<Subscriber> subscribers;
+    private ConcurrentLinkedQueue<Subscriber> subscribers;
 
     public Consumer(Adapter rawAdapter, String topic, MsbConfigurations msbConfig, Clock clock, ChannelMonitorAgent channelMonitorAgent) {
         LOG.debug("Creating consumer for topic: {}", topic);
@@ -42,25 +41,28 @@ public class Consumer {
         Validate.notNull(channelMonitorAgent, "the 'channelMonitorAgent' must not be null");
 
         this.rawAdapter = rawAdapter;
+        this.rawAdapter.subscribe(this::handleRawMessage);
         this.topic = topic;
         this.msbConfig = msbConfig;
         this.clock = clock;
         this.channelMonitorAgent = channelMonitorAgent;
-        this.subscribers = new ArrayList<>();
+        this.subscribers = new ConcurrentLinkedQueue<>();
     }
 
-    public Consumer subscribe(Callback<Message> messageHandler) {
-        subscribe(messageHandler, null);
-        return this;
+    /**
+     * Adds a subscriber to call it when message received
+     */
+    public void subscribe(Subscriber subscriber) {
+        Validate.notNull(subscriber, "the 'subscriber' must not be null");
+        subscribers.add(subscriber);
     }
 
-    public synchronized Consumer subscribe(Callback<Message> messageHandler, Callback<Exception> errorHandler) {
-        Validate.notNull(messageHandler, "the 'messageHandler' must not be null");
-
-        subscribers.add(new Subscriber(messageHandler, errorHandler));
-        rawAdapter.subscribe(this::handleRawMessage);
-
-        return this;
+    /**
+     * @return true if last subscriber removed
+     */
+    public boolean unsubscribe(Subscriber subscriber) {
+        subscribers.remove(subscriber);
+        return subscribers.isEmpty();
     }
 
     public void end() {
@@ -89,24 +91,9 @@ public class Consumer {
             channelMonitorAgent.consumerMessageReceived(topic);
         }
 
-        synchronized (this) {
-            for (Subscriber subscriber : subscribers) {
-
-                if (error != null) {
-                    Callback<Exception> errorHandler = subscriber.getErrorHandler();
-                    if (errorHandler != null) {
-                        errorHandler.call(error);
-                    }
-                } else {
-                    if (isMessageExpired(message)) {
-                        return;
-                    }
-
-                    Callback<Message> messageHandler = subscriber.getMessageHandler();
-                    if (messageHandler != null) {
-                        messageHandler.call(message);
-                    }
-                }
+        for (Subscriber subscriber : subscribers) {
+            if (error != null || !isMessageExpired(message)) {
+                subscriber.handleMessage(message, error);
             }
         }
     }
@@ -124,22 +111,7 @@ public class Consumer {
         return expiryTime.isBefore(now);
     }
 
-    private static class Subscriber {
-
-        private Callback<Message> messageHandler;
-        private Callback<Exception> errorHandler;
-
-        public Subscriber(Callback<Message> messageHandler, Callback<Exception> errorHandler) {
-            this.messageHandler = messageHandler;
-            this.errorHandler = errorHandler;
-        }
-
-        public Callback<Message> getMessageHandler() {
-            return messageHandler;
-        }
-
-        public Callback<Exception> getErrorHandler() {
-            return errorHandler;
-        }
+    public interface Subscriber {
+        void handleMessage(Message message, Exception exception);
     }
 }

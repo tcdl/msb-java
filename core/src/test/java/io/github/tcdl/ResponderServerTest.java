@@ -5,7 +5,6 @@ import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.support.TestUtils;
-import io.github.tcdl.support.Utils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -36,14 +35,11 @@ public class ResponderServerTest {
         Middleware middleware = (request, responder) -> {
         };
 
-        ChannelManager channelManager = msbContext.getChannelManager();
-        Consumer consumer = channelManager.findOrCreateConsumer(messageOptions.getNamespace());
-
-        ChannelManager spyChannelManager = spy(channelManager);
+        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ChannelManager spyChannelManager = spy(msbContext.getChannelManager());
         MsbContext spyMsbContext = spy(msbContext);
 
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
-        when(spyChannelManager.findOrCreateConsumer(messageOptions.getNamespace())).thenReturn(consumer);
 
         ResponderServer responderServer = ResponderServer
                 .create(messageOptions, spyMsbContext);
@@ -54,8 +50,10 @@ public class ResponderServerTest {
                 .use(middleware)
                 .listen();
 
+        verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
+
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(messageOptions.getNamespace());
-        consumer.handleRawMessage(Utils.toJson(originalMessage));
+        subscriberCaptor.getValue().handleMessage(originalMessage, null);
 
         verify(spyResponderServer).onResponder(anyObject());
     }

@@ -74,9 +74,7 @@ public class Requester {
 
         if (collector.isWaitForResponses()) {
             String topic = message.getTopics().getResponse();
-            collector.listenForResponses(topic,
-                    responseMessage -> Objects.equals(responseMessage.getCorrelationId(), message.getCorrelationId())
-            );
+            collector.listenForResponses(topic, this.message);
         }
 
         collector.getChannelManager().findOrCreateProducer(this.message.getTopics().getTo())
