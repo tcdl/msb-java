@@ -23,4 +23,9 @@ public interface AdapterFactory {
      */
     Adapter createAdapter(String topic);
 
+    /**
+     * Closes all resources used by amqp producers and consumers. Should be called for graceful shutdown.
+     */
+    void close();
+
 }

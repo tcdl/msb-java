@@ -21,4 +21,8 @@ public class MockAdapterFactory implements AdapterFactory {
         return new MockAdapter(topic, null);
     }
 
+    @Override
+    public void close() {
+        // No-op
+    }
 }

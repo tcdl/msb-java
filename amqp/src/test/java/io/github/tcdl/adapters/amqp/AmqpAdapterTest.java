@@ -3,7 +3,6 @@ package io.github.tcdl.adapters.amqp;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Consumer;
-import com.rabbitmq.client.Envelope;
 import io.github.tcdl.adapters.Adapter.RawMessageHandler;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
 import org.junit.Before;
@@ -11,7 +10,10 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
@@ -24,6 +26,7 @@ public class AmqpAdapterTest {
 
     private Channel mockChannel;
     private AmqpConnectionManager mockAmqpConnectionManager;
+    private ExecutorService mockConsumerThreadPool;
 
     @Before
     public void setUp() throws Exception {
@@ -34,6 +37,8 @@ public class AmqpAdapterTest {
         
         when(mockAmqpConnectionManager.obtainConnection()).thenReturn(mockConnection);
         when(mockConnection.createChannel()).thenReturn(mockChannel);
+
+        mockConsumerThreadPool = mock(ExecutorService.class);
     }
 
     @Test
@@ -92,16 +97,11 @@ public class AmqpAdapterTest {
         ArgumentCaptor<Consumer> amqpConsumerCaptor = ArgumentCaptor.forClass(Consumer.class);
         verify(mockChannel).basicConsume(eq("myTopic.myGroupId.t"), eq(false) /* autoAck */, amqpConsumerCaptor.capture());
 
-        // verify that when message arrives, AMQP handler invokes ours
-        long deliveryTag = 1234L;
-        String messageStr = "some message";
-        Envelope envelope = mock(Envelope.class);
-        when(envelope.getDeliveryTag()).thenReturn(deliveryTag);
-        amqpConsumerCaptor.getValue().handleDelivery("consumer tag", envelope, null, messageStr.getBytes());
-        verify(mockHandler).onMessage(messageStr);
-
-        // Check that acknowledgement for this message has been sent
-        verify(mockChannel).basicAck(deliveryTag, false);
+        assertTrue(amqpConsumerCaptor.getValue() instanceof AmqpMsbConsumer);
+        AmqpMsbConsumer consumer = (AmqpMsbConsumer) amqpConsumerCaptor.getValue();
+        assertEquals(mockChannel, consumer.getChannel());
+        assertEquals(mockConsumerThreadPool, consumer.consumerThreadPool);
+        assertEquals(mockHandler, consumer.msgHandler);
     }
 
     @Test
@@ -118,7 +118,7 @@ public class AmqpAdapterTest {
     }
 
     private AmqpAdapter createAdapterForSubscribe(String topic, String groupId, boolean durable) {
-        AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("127.0.0.1", 10, groupId, durable);
-        return new AmqpAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager);
+        AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("127.0.0.1", 10, groupId, durable, 5);
+        return new AmqpAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, mockConsumerThreadPool);
     }
 }
