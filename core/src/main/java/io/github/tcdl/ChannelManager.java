@@ -1,8 +1,9 @@
 package io.github.tcdl;
 
-import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.adapters.AdapterFactoryLoader;
+import io.github.tcdl.adapters.ConsumerAdapter;
+import io.github.tcdl.adapters.ProducerAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
@@ -85,7 +86,7 @@ public class ChannelManager {
     private Producer createProducer(String topic) {
         Utils.validateTopic(topic);
 
-        Adapter adapter = getAdapterFactory().createAdapter(topic);
+        ProducerAdapter adapter = getAdapterFactory().createProducerAdapter(topic);
         Callback<Message> handler = message -> channelMonitorAgent.producerMessageSent(topic);
         return new Producer(adapter, topic, handler);
     }
@@ -93,7 +94,7 @@ public class ChannelManager {
     private Consumer createConsumer(String topic) {
         Utils.validateTopic(topic);
 
-        Adapter adapter = getAdapterFactory().createAdapter(topic);
+        ConsumerAdapter adapter = getAdapterFactory().createConsumerAdapter(topic);
 
         return new Consumer(adapter, topic, msbConfig, clock, channelMonitorAgent);
     }

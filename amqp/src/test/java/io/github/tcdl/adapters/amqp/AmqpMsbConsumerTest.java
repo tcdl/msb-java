@@ -2,7 +2,6 @@ package io.github.tcdl.adapters.amqp;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
-import io.github.tcdl.adapters.Adapter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -10,6 +9,7 @@ import org.mockito.ArgumentCaptor;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
+import static io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,7 +18,7 @@ public class AmqpMsbConsumerTest {
 
     private Channel mockChannel;
     private ExecutorService mockExecutorService;
-    private Adapter.RawMessageHandler mockMessageHandler;
+    private RawMessageHandler mockMessageHandler;
 
     private AmqpMsbConsumer amqpMsbConsumer;
 
@@ -26,7 +26,7 @@ public class AmqpMsbConsumerTest {
     public void setUp() {
         mockChannel = mock(Channel.class);
         mockExecutorService = mock(ExecutorService.class);
-        mockMessageHandler = mock(Adapter.RawMessageHandler.class);
+        mockMessageHandler = mock(RawMessageHandler.class);
 
         amqpMsbConsumer = new AmqpMsbConsumer(mockChannel, mockExecutorService, mockMessageHandler);
     }

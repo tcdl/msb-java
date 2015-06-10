@@ -1,11 +1,10 @@
 package io.github.tcdl;
 
-import io.github.tcdl.adapters.Adapter;
+import io.github.tcdl.adapters.ProducerAdapter;
 import io.github.tcdl.exception.ChannelException;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.Utils;
-
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +16,10 @@ public class Producer {
 
     public static final Logger LOG = LoggerFactory.getLogger(Producer.class);
 
-    private final Adapter rawAdapter;
+    private final ProducerAdapter rawAdapter;
     private final Callback<Message> messageHandler;
 
-    public Producer(Adapter rawAdapter, String topic, Callback<Message> messageHandler) {
+    public Producer(ProducerAdapter rawAdapter, String topic, Callback<Message> messageHandler) {
         LOG.debug("Creating producer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
         Validate.notNull(topic, "the 'topic' must not be null");

@@ -1,26 +1,26 @@
 package io.github.tcdl.adapters.mock;
 
-import io.github.tcdl.adapters.Adapter;
+import io.github.tcdl.adapters.ConsumerAdapter;
+import io.github.tcdl.adapters.ProducerAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.exception.ChannelException;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * MockAdapter class represents implementation of {@link Adapter}
+ * MockAdapter class represents implementation of {@link ProducerAdapter} and {@link ConsumerAdapter}
  * for test purposes.
  * 
  */
-public class MockAdapter implements Adapter {
+public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
 
     public static final Logger LOG = LoggerFactory.getLogger(MockAdapter.class);
 

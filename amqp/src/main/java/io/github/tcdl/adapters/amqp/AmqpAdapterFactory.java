@@ -2,8 +2,9 @@ package io.github.tcdl.adapters.amqp;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import io.github.tcdl.adapters.Adapter;
 import io.github.tcdl.adapters.AdapterFactory;
+import io.github.tcdl.adapters.ConsumerAdapter;
+import io.github.tcdl.adapters.ProducerAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
@@ -17,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * AmqpAdapterFactory is an implementation of {@link AdapterFactory}
- * for {@link AmqpAdapter}
+ * for {@link AmqpProducerAdapter} and {@link AmqpConsumerAdapter}
  */
 public class AmqpAdapterFactory implements AdapterFactory {
     private static final Logger logger = LoggerFactory.getLogger(AmqpAdapterFactory.class);
@@ -54,8 +55,13 @@ public class AmqpAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public Adapter createAdapter(String topic) {
-        return new AmqpAdapter(topic, amqpBrokerConfig, connectionManager, consumerThreadPool);
+    public ProducerAdapter createProducerAdapter(String topic) {
+        return new AmqpProducerAdapter(topic, connectionManager);
+    }
+
+    @Override
+    public ConsumerAdapter createConsumerAdapter(String topic) {
+        return new AmqpConsumerAdapter(topic, amqpBrokerConfig, connectionManager, consumerThreadPool);
     }
 
     @Override

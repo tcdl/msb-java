@@ -4,12 +4,13 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
-import io.github.tcdl.adapters.Adapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+
+import static io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
 
 /**
  * Special consumer that allows to process messages coming from single AMQP channel in parallel.
@@ -27,9 +28,9 @@ public class AmqpMsbConsumer extends DefaultConsumer {
     private static final Logger logger = LoggerFactory.getLogger(AmqpMsbConsumer.class);
 
     ExecutorService consumerThreadPool;
-    Adapter.RawMessageHandler msgHandler;
+    RawMessageHandler msgHandler;
 
-    public AmqpMsbConsumer(Channel channel, ExecutorService consumerThreadPool, Adapter.RawMessageHandler msgHandler) {
+    public AmqpMsbConsumer(Channel channel, ExecutorService consumerThreadPool, RawMessageHandler msgHandler) {
         super(channel);
         this.consumerThreadPool = consumerThreadPool;
         this.msgHandler = msgHandler;

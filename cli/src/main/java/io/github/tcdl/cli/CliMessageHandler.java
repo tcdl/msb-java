@@ -3,13 +3,14 @@ package io.github.tcdl.cli;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import io.github.tcdl.adapters.Adapter;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
 
-class CliMessageHandler implements Adapter.RawMessageHandler {
+import static io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
+
+class CliMessageHandler implements RawMessageHandler {
     private CliMessageHandlerSubscriber subscriber;
     private boolean prettyOutput;
     private List<String> follow;
