@@ -61,6 +61,7 @@ public class Consumer {
      * @return true if last subscriber removed
      */
     public boolean unsubscribe(Subscriber subscriber) {
+        Validate.notNull(subscriber, "the 'subscriber' must not be null");
         subscribers.remove(subscriber);
         return subscribers.isEmpty();
     }

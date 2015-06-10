@@ -1,5 +1,16 @@
 package io.github.tcdl;
 
+import static io.github.tcdl.support.Utils.ifNull;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.messages.Acknowledge;
@@ -7,14 +18,6 @@ import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.time.Clock;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.function.Predicate;
-
-import static io.github.tcdl.support.Utils.ifNull;
 
 /**
  * Created by rdro on 4/23/2015.
