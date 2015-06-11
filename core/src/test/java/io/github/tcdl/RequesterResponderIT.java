@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,7 +99,7 @@ public class RequesterResponderIT {
         assertEquals(sentAcks.get(0).getAck().getResponderId(), receivedResponseAcks.get(0).getResponderId());
     }
 
-    @Test
+    @Test @Ignore("Unstable")
     public void testResponderAnswerWithResponseRequesterReceiveResponse() throws Exception {
         MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-test-get-resp");
         messageOptions.setAckTimeout(2000);
