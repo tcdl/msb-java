@@ -3,9 +3,9 @@ jdk:
 - oraclejdk8
 # Explicitly mute "install" step. Perform all operations in the following "script" step.
 install: ""
-script: "mvn clean deploy --settings settings.xml -B -V"
+script: "mvn clean deploy --settings settings.xml -B -V -Dtest=RequesterResponderIT#testResponderAnswerWithResponseRequesterReceiveResponse"
 after_success:
-  - mvn clean test jacoco:report coveralls:report
+  - mvn clean test jacoco:report coveralls:report -Dtest=RequesterResponderIT#testResponderAnswerWithResponseRequesterReceiveResponse
 env:
   global:
   - secure: EK0DDudj5/Qsvdbx6BTz+TInaqMy8LIgyzq2TZTu73d4fcNTzGD93iACZ29X1VG/aW818sd1byX7fDl2pn34j5q6fVT7KfKAnxdtnKlFqWk8q4FiXjcDYhqH+XxuAO2nkf5Wy+PrpZswcgoCHg7giFSltLldI8SrvXpk4Pro2oA=
