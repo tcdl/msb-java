@@ -10,15 +10,20 @@ import java.util.List;
 
 import static io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
 
+/**
+ * This handler dumps messages from the given topics.
+ *
+ * Additionally it examines the content of messages, looks for any other topics mentioned there (for example response topics) and subscribes to them as well.
+ */
 class CliMessageHandler implements RawMessageHandler {
-    private CliMessageHandlerSubscriber subscriber;
+    private CliMessageSubscriber subscriber;
     private boolean prettyOutput;
     private List<String> follow;
 
-    public CliMessageHandler(CliMessageHandlerSubscriber subscriber, boolean prettyOutput, List<String> follow) {
+    public CliMessageHandler(CliMessageSubscriber subscriber, List<String> follow, boolean prettyOutput) {
         this.subscriber = subscriber;
-        this.prettyOutput = prettyOutput;
         this.follow = follow;
+        this.prettyOutput = prettyOutput;
     }
 
     @Override
