@@ -1,6 +1,7 @@
 package io.github.tcdl.adapters;
 
 import io.github.tcdl.adapters.mock.MockAdapterFactory;
+import io.github.tcdl.adapters.mock.MockAdapterFactoryTest;
 import io.github.tcdl.config.MsbConfigurations;
 
 import com.typesafe.config.Config;

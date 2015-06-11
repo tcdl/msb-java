@@ -19,12 +19,12 @@ public class MockAdapterFactory implements AdapterFactory {
 
     @Override
     public ProducerAdapter createProducerAdapter(String topic) {
-        return new MockAdapter(topic, null);
+        return new MockAdapter(topic);
     }
 
     @Override
     public ConsumerAdapter createConsumerAdapter(String topic) {
-        return new MockAdapter(topic, null);
+        return new MockAdapter(topic);
     }
 
     @Override

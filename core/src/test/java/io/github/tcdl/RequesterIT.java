@@ -4,24 +4,21 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.tcdl.adapters.mock.MockAdapter;
-import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * @author ruk
@@ -48,7 +45,7 @@ public class RequesterIT {
         requester.publish(requestPayload);
         Message message = requester.getMessage();
 
-        assertEquals("Message payload not match sended", requestPayload, message.getPayload());
+        assertEquals("Message payload not match sent", requestPayload, message.getPayload());
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(messageOptions.getNamespace());
         assertRequestMessage(adapterJsonMessage, message);
