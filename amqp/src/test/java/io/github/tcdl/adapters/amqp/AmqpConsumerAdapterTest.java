@@ -51,6 +51,13 @@ public class AmqpConsumerAdapterTest {
         verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
     }
 
+    @Test(expected = RuntimeException.class)
+    public void testInitializationError() throws IOException {
+        when(mockChannel.exchangeDeclare(anyString(), anyString(), anyBoolean(), anyBoolean(), any())).thenThrow(new IOException());
+
+        createAdapter("myTopic", "myGroupId", false);
+    }
+
     @Test
     public void testSubscribeTransientQueueCreated() throws IOException {
         AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", false);

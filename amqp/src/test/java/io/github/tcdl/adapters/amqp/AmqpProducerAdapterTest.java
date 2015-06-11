@@ -9,6 +9,9 @@ import org.junit.Test;
 
 import java.io.IOException;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,6 +37,13 @@ public class AmqpProducerAdapterTest {
         new AmqpProducerAdapter(topicName, mockAmqpConnectionManager);
 
         verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testInitializationError() throws IOException {
+        when(mockChannel.exchangeDeclare(anyString(), anyString(), anyBoolean(), anyBoolean(), any())).thenThrow(new IOException());
+
+        new AmqpProducerAdapter("myTopic", mockAmqpConnectionManager);
     }
 
     @Test
