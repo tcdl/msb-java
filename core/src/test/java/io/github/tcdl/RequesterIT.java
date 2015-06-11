@@ -1,19 +1,14 @@
 package io.github.tcdl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.tcdl.adapters.mock.MockAdapter;
-import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -21,7 +16,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author ruk
@@ -34,11 +32,13 @@ public class RequesterIT {
 
     private MsbMessageOptions messageOptions;
     private MsbContext msbContext;
+    private JsonValidator validator;
 
     @Before
     public void setUp() throws Exception {
         this.messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester");
         this.msbContext = TestUtils.createSimpleMsbContext();
+        this.validator = new JsonValidator();
     }
 
     @Test
@@ -57,7 +57,7 @@ public class RequesterIT {
     private void assertRequestMessage(String json, Message message) {
 
         try {
-            Utils.validateJsonWithSchema(json, this.msbContext.getMsbConfig().getSchema());
+            validator.validate(json, this.msbContext.getMsbConfig().getSchema());
             JSONObject jsonObject = new JSONObject(json);
 
             // payload fields set 

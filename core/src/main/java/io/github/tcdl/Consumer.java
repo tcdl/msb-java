@@ -7,6 +7,7 @@ import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MetaMessage;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
+import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ public class Consumer {
     private Clock clock;
 
     private ConcurrentLinkedQueue<Subscriber> subscribers;
+    private JsonValidator jsonValidator;
 
     public Consumer(ConsumerAdapter rawAdapter, String topic, MsbConfigurations msbConfig, Clock clock, ChannelMonitorAgent channelMonitorAgent) {
         LOG.debug("Creating consumer for topic: {}", topic);
@@ -47,6 +49,7 @@ public class Consumer {
         this.clock = clock;
         this.channelMonitorAgent = channelMonitorAgent;
         this.subscribers = new ConcurrentLinkedQueue<>();
+        this.jsonValidator = new JsonValidator();
     }
 
     /**
@@ -79,7 +82,7 @@ public class Consumer {
         try {
             if (msbConfig.getSchema() != null
                     && !Utils.isServiceTopic(topic)) {
-                Utils.validateJsonWithSchema(jsonMessage,
+                jsonValidator.validate(jsonMessage,
                         msbConfig.getSchema());
             }
             message = Utils.fromJson(jsonMessage,
