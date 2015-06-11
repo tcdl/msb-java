@@ -106,7 +106,7 @@ public class ChannelManagerTest {
             awaitReceiveEvents.countDown();
         });
 
-        assertTrue(awaitReceiveEvents.await(3000, TimeUnit.MILLISECONDS));
+        assertTrue(awaitReceiveEvents.await(4000, TimeUnit.MILLISECONDS));
         verify(mockChannelMonitorAgent).consumerMessageReceived(topic);
         assertNotNull(messageEvent.value);
     }
