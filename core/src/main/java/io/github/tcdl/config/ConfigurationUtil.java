@@ -33,7 +33,7 @@ public class ConfigurationUtil {
 
     public static Optional<String> getOptionalString(Config config, String key) {
         if (config.hasPath(key)) {
-            return Optional.of(config.getString(key));
+            return Optional.ofNullable(config.getString(key));
         }
         return Optional.empty();
     }
