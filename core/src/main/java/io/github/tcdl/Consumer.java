@@ -88,9 +88,7 @@ public class Consumer {
             error = e;
         }
 
-        if (channelMonitorAgent != null) {
-            channelMonitorAgent.consumerMessageReceived(topic);
-        }
+        channelMonitorAgent.consumerMessageReceived(topic);
 
         for (Subscriber subscriber : subscribers) {
             if (error != null || !isMessageExpired(message)) {

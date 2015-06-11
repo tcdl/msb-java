@@ -30,7 +30,6 @@ public class AmqpConsumerAdapterTest {
 
     @Before
     public void setUp() throws Exception {
-        // Setup channel mock
         Connection mockConnection = mock(Connection.class);
         mockChannel = mock(Channel.class);
         mockAmqpConnectionManager = mock(AmqpConnectionManager.class);
@@ -44,7 +43,7 @@ public class AmqpConsumerAdapterTest {
     @Test
     public void testTopicExchangeCreated() throws Exception {
         String topicName = "myTopic";
-        AmqpConsumerAdapter adapter = createAdapterForSubscribe(topicName, "myGroupId", false);
+        AmqpConsumerAdapter adapter = createAdapter(topicName, "myGroupId", false);
 
         adapter.subscribe(jsonMessage -> {
         });
@@ -52,9 +51,16 @@ public class AmqpConsumerAdapterTest {
         verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
     }
 
+    @Test(expected = RuntimeException.class)
+    public void testInitializationError() throws IOException {
+        when(mockChannel.exchangeDeclare(anyString(), anyString(), anyBoolean(), anyBoolean(), any())).thenThrow(new IOException());
+
+        createAdapter("myTopic", "myGroupId", false);
+    }
+
     @Test
     public void testSubscribeTransientQueueCreated() throws IOException {
-        AmqpConsumerAdapter adapter = createAdapterForSubscribe("myTopic", "myGroupId", false);
+        AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", false);
         
         adapter.subscribe(jsonMessage -> {
         });
@@ -71,7 +77,7 @@ public class AmqpConsumerAdapterTest {
 
     @Test
     public void testSubscribeDurableQueueCreated() throws IOException {
-        AmqpConsumerAdapter adapter = createAdapterForSubscribe("myTopic", "myGroupId", true);
+        AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", true);
 
         adapter.subscribe(jsonMessage -> {
         });
@@ -88,7 +94,7 @@ public class AmqpConsumerAdapterTest {
 
     @Test
     public void testRegisteredHandlerInvoked() throws IOException {
-        AmqpConsumerAdapter adapter = createAdapterForSubscribe("myTopic", "myGroupId", false);
+        AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", false);
         RawMessageHandler mockHandler = mock(RawMessageHandler.class);
 
         adapter.subscribe(mockHandler);
@@ -106,7 +112,7 @@ public class AmqpConsumerAdapterTest {
 
     @Test
     public void testUnsubscribe() throws IOException {
-        AmqpConsumerAdapter adapter = createAdapterForSubscribe("myTopic", "myGroupId", false);
+        AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", false);
         String consumerTag = "my consumer tag";
         when(mockChannel.basicConsume(anyString(), anyBoolean(), any(Consumer.class))).thenReturn(consumerTag);
 
@@ -117,7 +123,7 @@ public class AmqpConsumerAdapterTest {
         verify(mockChannel).basicCancel(consumerTag);
     }
 
-    private AmqpConsumerAdapter createAdapterForSubscribe(String topic, String groupId, boolean durable) {
+    private AmqpConsumerAdapter createAdapter(String topic, String groupId, boolean durable) {
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("127.0.0.1", 10, groupId, durable, 5);
         return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, mockConsumerThreadPool);
     }
