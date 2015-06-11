@@ -1,6 +1,7 @@
 package io.github.tcdl;
 
 import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.middleware.MiddlewareChain;
@@ -40,34 +41,38 @@ public class ResponderServer {
         ChannelManager channelManager = msbContext.getChannelManager();
 
         channelManager.subscribe(topic, (message, exception) -> {
-                if (exception != null) {
-                   Responder responder = new Responder(messageOptions, null, msbContext);
-                   errorHandler(null, responder, exception);
-                   return;
-                }
+                    LOG.debug("Received message with id {} from topic {}", message.getId(), topic);
+                    if (exception != null) {
+                        Responder responder = new Responder(messageOptions, null, msbContext);
+                        errorHandler(null, responder, exception);
+                        return;
+                    }
 
-                Responder responder = new Responder(messageOptions, message, msbContext);
-                onResponder(responder);
-            }
+                    Responder responder = new Responder(messageOptions, message, msbContext);
+                    onResponder(responder);
+                }
         );
 
         return this;
     }
 
-    protected void onResponder (Responder responder) {
-            Payload request = responder.getOriginalMessage().getPayload();      
-            CompletableFuture.supplyAsync(() ->
-                    middlewareChain
-                            .withErrorHandler((req, resp, error) -> {
-                                    if (error == null)
-                                        return;
-                                    errorHandler(request, responder, error);
-                            })
-                            .invoke(request, responder));
-    };
+    protected void onResponder(Responder responder) {
+        Message originalMessage = responder.getOriginalMessage();
+        Payload request = originalMessage.getPayload();
+        LOG.debug("Pushing message with id {} to middleware chain", originalMessage.getId());
+        CompletableFuture.supplyAsync(() ->
+                middlewareChain
+                        .withErrorHandler((req, resp, error) -> {
+                            if (error == null)
+                                return;
+                            errorHandler(request, responder, error);
+                        })
+                        .invoke(request, responder));
+    }
 
     protected void errorHandler(Payload request, Responder responder, Exception err) {
-        LOG.error("Error processing request {}", request);
+        Message originalMessage = responder.getOriginalMessage();
+        LOG.error("Handling error for message with id {}", originalMessage.getId());
         Payload responsePayload = new Payload.PayloadBuilder()
                 .setStatusCode(500)
                 .setStatusMessage(err.getMessage()).build();

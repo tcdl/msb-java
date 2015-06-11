@@ -101,7 +101,7 @@ public class RequesterResponderIT {
     public void testResponderAnswerWithResponseRequesterReceiveResponse() throws Exception {
         MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-test-get-resp");
         messageOptions.setAckTimeout(2000);
-        messageOptions.setResponseTimeout(3000);
+        messageOptions.setResponseTimeout(5000);
         messageOptions.setWaitForResponses(1);
 
         CountDownLatch respSend = new CountDownLatch(1);
@@ -134,8 +134,8 @@ public class RequesterResponderIT {
                 }))
                 .listen();
 
-        assertTrue("Message response was not send", respSend.await(3000, TimeUnit.MILLISECONDS));
-        assertTrue("Message response not received", respReceived.await(3000, TimeUnit.MILLISECONDS));
+        assertTrue("Message response was not send", respSend.await(5000, TimeUnit.MILLISECONDS));
+        assertTrue("Message response not received", respReceived.await(5000, TimeUnit.MILLISECONDS));
         assertTrue("Expected one response", receivedResponses.size() == 1);
         assertEquals(sentResponses.poll().getStatusCode(), receivedResponses.poll().getStatusCode());
     }
