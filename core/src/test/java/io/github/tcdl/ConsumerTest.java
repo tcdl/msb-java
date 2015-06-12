@@ -145,7 +145,7 @@ public class ConsumerTest {
 
     @Test
     public void testHandleRawMessageConsumeFromTopicExpiredMessage() throws JsonConversionException {
-        Message expiredMessage = createExpiredMsbRequestMessageWithAndTopicTo(TOPIC);
+        Message expiredMessage = createExpiredMsbRequestMessageWithTopicTo(TOPIC);
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
         consumer.subscribe(subscriberMock);
 
@@ -176,7 +176,7 @@ public class ConsumerTest {
         assertTrue(consumer.unsubscribe(subscriber2));
     }
 
-    private  Message createExpiredMsbRequestMessageWithAndTopicTo(String topicTo) {
+    private  Message createExpiredMsbRequestMessageWithTopicTo(String topicTo) {
         MsbConfigurations msbConf = new MsbConfigurations(ConfigFactory.load());
         Clock clock = Clock.systemDefaultZone();
 

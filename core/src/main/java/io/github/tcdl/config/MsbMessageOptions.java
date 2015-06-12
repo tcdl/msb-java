@@ -23,12 +23,19 @@ public class MsbMessageOptions {
         return responseTimeout;
     }
 
-    public Integer getWaitForResponses() {
+    public int getWaitForResponses() {
+        if (waitForResponses == null || waitForResponses == -1) {
+            return 0;
+        }
         return waitForResponses;
     }
 
     public Integer getTtl() {
         return ttl;
+    }
+
+    public boolean isWaitForResponses() {
+        return getWaitForResponses() != 0;
     }
 
     public void setNamespace(String namespace) {
