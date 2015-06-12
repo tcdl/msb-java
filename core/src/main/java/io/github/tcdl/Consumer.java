@@ -79,29 +79,25 @@ public class Consumer {
 
     protected void handleRawMessage(String jsonMessage) {
         LOG.debug("Topic [{}] message received [{}]", this.topic, jsonMessage);
-        Exception error = null;
-        Message message = null;
+        channelMonitorAgent.consumerMessageReceived(topic);
 
         try {
-            if (msbConfig.getSchema() != null
-                    && !Utils.isServiceTopic(topic)) {
+            if (msbConfig.getSchema() != null && !Utils.isServiceTopic(topic)) {
                 LOG.debug("Validating schema for {}", jsonMessage);
                 validator.validate(jsonMessage, msbConfig.getSchema());
             }
             LOG.debug("Parsing message {}", jsonMessage);
-            message = Utils.fromJson(jsonMessage, Message.class);
+            Message message = Utils.fromJson(jsonMessage, Message.class);
             LOG.debug("Message has been successfully parsed {}", jsonMessage);
+
+            if (!isMessageExpired(message)) {
+                subscribers.forEach(subscriber -> subscriber.handleMessage(message));
+            } else {
+                LOG.warn("Expired message: {}", jsonMessage);
+            }
         } catch (JsonConversionException | JsonSchemaValidationException e) {
             LOG.error("Got error while parsing message {}, {}", jsonMessage, e);
-            error = e;
-        }
-
-        channelMonitorAgent.consumerMessageReceived(topic);
-
-        for (Subscriber subscriber : subscribers) {
-            if (error != null || !isMessageExpired(message)) {
-                subscriber.handleMessage(message, error);
-            }
+            subscribers.forEach(subscriber -> subscriber.handleError(e));
         }
     }
 
@@ -119,6 +115,14 @@ public class Consumer {
     }
 
     public interface Subscriber {
-        void handleMessage(Message message, Exception exception);
+        /**
+         * Invoked when a message is successfully parsed and is ready for processing
+         */
+        void handleMessage(Message message);
+
+        /**
+         * Invoked when some error happens during message parsing
+         */
+        void handleError(Exception exception);
     }
 }
