@@ -85,12 +85,14 @@ public class Consumer {
         try {
             if (msbConfig.getSchema() != null
                     && !Utils.isServiceTopic(topic)) {
-                validator.validate(jsonMessage,
-                        msbConfig.getSchema());
+                LOG.debug("Validating schema for {}", jsonMessage);
+                validator.validate(jsonMessage, msbConfig.getSchema());
             }
-            message = Utils.fromJson(jsonMessage,
-                    Message.class);
+            LOG.debug("Parsing message {}", jsonMessage);
+            message = Utils.fromJson(jsonMessage, Message.class);
+            LOG.debug("Message has been successfully parsed {}", jsonMessage);
         } catch (JsonConversionException | JsonSchemaValidationException e) {
+            LOG.error("Got error while parsing message {}, {}", jsonMessage, e);
             error = e;
         }
 

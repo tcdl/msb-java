@@ -50,7 +50,7 @@ public class MockAdapterTest {
 
         mockAdapter.subscribe(mockHandler);
 
-        verify(mockHandler, timeout(50)).onMessage(eq(message));
+        verify(mockHandler, timeout(500)).onMessage(eq(message));
     }
 
 }
