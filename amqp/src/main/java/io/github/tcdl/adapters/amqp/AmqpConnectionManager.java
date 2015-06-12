@@ -41,8 +41,10 @@ public class AmqpConnectionManager {
     }
 
     public void close() throws IOException {
-        logger.info("Closing AMQP connection...");
-        connection.close();
-        logger.info("AMQP connection closed.");
+        if (connection.isOpen()) {
+            logger.info("Closing AMQP connection...");
+            connection.close();
+            logger.info("AMQP connection closed.");
+        }
     }
 }
