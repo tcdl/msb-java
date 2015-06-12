@@ -33,12 +33,10 @@ public class Producer {
             String jsonMessage = Utils.toJson(message);
             LOG.debug("Publishing message to adapter : {}", jsonMessage);
             rawAdapter.publish(jsonMessage);
+            messageHandler.call(message);
         } catch (ChannelException | JsonConversionException e) {
             LOG.error("Exception while message publish to adapter", e);
         }
-
-
-        this.messageHandler.call(message);
 
         return this;
     }
