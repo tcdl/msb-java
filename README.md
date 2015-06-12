@@ -1,4 +1,4 @@
-MSB-Java ![Project status](https://travis-ci.org/tcdl/msb-java.svg?branch=master)
+MSB-Java [![Project status](https://travis-ci.org/tcdl/msb-java.svg?branch=master)](https://travis-ci.org/tcdl/msb-java) [![Coverage Status](http://img.shields.io/coveralls/tcdl/msb-java/master.svg)](https://coveralls.io/r/tcdl/msb-java?branch=master)
 ===========
 
 Microservice bus - Java API
