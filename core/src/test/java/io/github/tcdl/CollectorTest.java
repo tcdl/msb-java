@@ -79,24 +79,17 @@ public class CollectorTest {
     }
 
     @Test
-    public void testGetWaitForResponsesConfigsNoWaitForResponsesReturnFalse() {
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(null);
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
-        assertFalse("expect false if MessageOptions.waitForResponses null", collector.isWaitForResponses());
-    }
-
-    @Test
     public void testGetWaitForResponsesConfigsReturnFalse() {
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(-1);
+        when(messageOptionsMock.getWaitForResponses()).thenReturn(0);
         Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
-        assertFalse("expect false if MessageOptions.waitForResponses equals -1", collector.isWaitForResponses());
+        assertFalse("expect false if MessageOptions.waitForResponses equals 0", collector.isAwaitingResponses());
     }
 
     @Test
     public void testGetWaitForResponsesConfigsReturnTrue() {
         when(messageOptionsMock.getWaitForResponses()).thenReturn(100);
         Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
-        assertTrue("expect true if MessageOptions.waitForResponses equals 100", collector.isWaitForResponses());
+        assertTrue("expect true if MessageOptions.waitForResponses equals 100", collector.isAwaitingResponses());
     }
 
     @Test
@@ -157,7 +150,7 @@ public class CollectorTest {
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
-        verify(channelManagerMock).subscribe(anyString(),subscriberCaptor.capture());
+        verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
         subscriberCaptor.getValue().handleMessage(originalMessageWithPayload);
 
         verify(collector).acceptMessage(eq(originalMessageWithPayload));
@@ -294,7 +287,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = initCollectorWithTimer(messageOptionsMock);
-        collector.listenForResponses(TOPIC, null);
+        collector.listenForResponses(TOPIC, originalMessageWithPayload);
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
 
@@ -321,7 +314,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = initCollectorWithTimer(messageOptionsMock);
-        collector.listenForResponses(TOPIC, null);
+        collector.listenForResponses(TOPIC, originalMessageWithPayload);
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
 
@@ -330,6 +323,34 @@ public class CollectorTest {
         verify(timerProviderMock, never()).enableResponseTimeout(anyInt());
         verify(timerProviderMock).enableAckTimeout(anyInt());
         verify(onEnd, never()).call(anyList());
+    }
+
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testListenForResponsesNoResponsesRemainingAndWaitUntilAckBeforeNow() {
+        /*ackTimeout = 0, responseTimeout=0; waitForResponses = 0
+        */
+        int ackTimeoutMs = 0;
+        when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
+        when(messageOptionsMock.getResponseTimeout()).thenReturn(0);
+        when(messageOptionsMock.getWaitForResponses()).thenReturn(0);
+
+        Callback<Acknowledge> onAck = mock(Callback.class);
+        when(eventHandlers.onAcknowledge()).thenReturn(onAck);
+        Callback<List<Message>> onEnd = mock(Callback.class);
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        collector.listenForResponses(TOPIC, originalMessageWithPayload);
+        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
+
+        //send payload response
+        subscriberCaptor.getValue().handleMessage(originalMessageWithPayload);
+        verify(timerProviderMock, never()).enableResponseTimeout(anyInt());
+        verify(timerProviderMock, never()).enableAckTimeout(anyInt());
+        verify(onEnd).call(anyList());
     }
 
     @Test
@@ -500,5 +521,4 @@ public class CollectorTest {
 
         return collector;
     }
-
 }

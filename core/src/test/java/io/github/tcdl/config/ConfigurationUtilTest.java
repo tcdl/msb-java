@@ -1,8 +1,6 @@
-package io.github.tcdl.configuration;
+package io.github.tcdl.config;
 
 import com.typesafe.config.Config;
-import io.github.tcdl.config.ConfigurationUtil;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
