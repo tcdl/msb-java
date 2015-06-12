@@ -11,6 +11,7 @@ import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
 import org.json.JSONException;
@@ -31,11 +32,13 @@ public class RequesterIT {
 
     private MsbMessageOptions messageOptions;
     private MsbContext msbContext;
+    private JsonValidator validator;
 
     @Before
     public void setUp() throws Exception {
         this.messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester");
         this.msbContext = TestUtils.createSimpleMsbContext();
+        this.validator = new JsonValidator();
     }
 
     @Test
@@ -54,7 +57,7 @@ public class RequesterIT {
     private void assertRequestMessage(String json, Message message) {
 
         try {
-            Utils.validateJsonWithSchema(json, this.msbContext.getMsbConfig().getSchema());
+            validator.validate(json, this.msbContext.getMsbConfig().getSchema());
             JSONObject jsonObject = new JSONObject(json);
 
             // payload fields set 

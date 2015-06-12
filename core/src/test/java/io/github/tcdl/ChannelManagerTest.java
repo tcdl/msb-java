@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
+import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +34,8 @@ public class ChannelManagerTest {
     public void setUp() {
         MsbConfigurations msbConfig = TestUtils.createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
-        this.channelManager = new ChannelManager(msbConfig, clock);
+        JsonValidator validator = new JsonValidator();
+        this.channelManager = new ChannelManager(msbConfig, clock, validator);
 
         mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
         channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);

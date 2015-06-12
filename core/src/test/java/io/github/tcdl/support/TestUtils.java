@@ -28,7 +28,8 @@ public class TestUtils {
     public static MsbContext createSimpleMsbContext() {
         MsbConfigurations msbConfig = TestUtils.createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
-        ChannelManager channelManager = new ChannelManager(msbConfig, clock);
+        JsonValidator validator = new JsonValidator();
+        ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator);
         MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);
 
         return new MsbContext(msbConfig, messageFactory, channelManager, clock);

@@ -10,6 +10,7 @@ import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
 
@@ -27,10 +28,12 @@ public class ResponderIT {
     public static final Logger LOG = LoggerFactory.getLogger(ResponderIT.class);
 
     private MsbContext msbContext;
+    private JsonValidator validator;
 
     @Before
     public void setUp() throws Exception {
         msbContext = new MsbContext.MsbContextBuilder().build();
+        validator = new JsonValidator();
     }
 
     @Test
@@ -51,7 +54,7 @@ public class ResponderIT {
 
     private void assertAckMessage(String recievedAckMsg, Message originalAckMsg) {
         try {
-            Utils.validateJsonWithSchema(recievedAckMsg, this.msbContext.getMsbConfig().getSchema());
+            validator.validate(recievedAckMsg, this.msbContext.getMsbConfig().getSchema());
 
             JSONObject jsonObject = new JSONObject(recievedAckMsg);
             
@@ -96,7 +99,7 @@ public class ResponderIT {
 
     private void assertResponseMessage(String recievedResponseMsg, Message originalResponseMsg) {
         try {
-            Utils.validateJsonWithSchema(recievedResponseMsg, this.msbContext.getMsbConfig().getSchema());
+            validator.validate(recievedResponseMsg, this.msbContext.getMsbConfig().getSchema());
             JSONObject jsonObject = new JSONObject(recievedResponseMsg);
 
             // payload fields set 

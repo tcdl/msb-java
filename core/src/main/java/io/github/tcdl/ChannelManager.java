@@ -12,6 +12,7 @@ import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.monitor.NoopChannelMonitorAgent;
+import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
 
@@ -22,15 +23,17 @@ public class ChannelManager {
     
     private MsbConfigurations msbConfig;
     private Clock clock;
+    private JsonValidator validator;
     private AdapterFactory adapterFactory;
     private ChannelMonitorAgent channelMonitorAgent;
 
     private Map<String, Producer> producersByTopic;
     private Map<String, Consumer> consumersByTopic;
 
-    public ChannelManager(MsbConfigurations msbConfig, Clock clock) {
+    public ChannelManager(MsbConfigurations msbConfig, Clock clock, JsonValidator validator) {
         this.msbConfig = msbConfig;
         this.clock = clock;
+        this.validator = validator;
         this.adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
         this.producersByTopic = new ConcurrentHashMap<>();
         this.consumersByTopic = new ConcurrentHashMap<>();
@@ -92,7 +95,7 @@ public class ChannelManager {
 
         ConsumerAdapter adapter = getAdapterFactory().createConsumerAdapter(topic);
 
-        return new Consumer(adapter, topic, msbConfig, clock, channelMonitorAgent);
+        return new Consumer(adapter, topic, msbConfig, clock, channelMonitorAgent, validator);
     }
 
     private AdapterFactory getAdapterFactory() {
