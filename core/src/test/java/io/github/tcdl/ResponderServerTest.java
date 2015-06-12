@@ -53,7 +53,7 @@ public class ResponderServerTest {
         verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
 
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(messageOptions.getNamespace());
-        subscriberCaptor.getValue().handleMessage(originalMessage, null);
+        subscriberCaptor.getValue().handleMessage(originalMessage);
 
         verify(spyResponderServer).onResponder(anyObject());
     }
