@@ -3,6 +3,7 @@ package io.github.tcdl.adapters.amqp;
 import com.rabbitmq.client.Channel;
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
+import io.github.tcdl.exception.ChannelException;
 import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;
@@ -55,7 +56,7 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
 
             consumerTag = channel.basicConsume(queueName, false /* autoAck */, new AmqpMsbConsumer(channel, consumerThreadPool, msgHandler));
         } catch (IOException e) {
-            throw new RuntimeException(String.format("Failed to subscribe to topic %s", topic), e);
+            throw new ChannelException(String.format("Failed to subscribe to topic %s", topic), e);
         }
     }
 
