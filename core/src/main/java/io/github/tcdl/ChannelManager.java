@@ -95,7 +95,7 @@ public class ChannelManager {
         return new Consumer(adapter, topic, msbConfig, clock, channelMonitorAgent);
     }
 
-    private AdapterFactory getAdapterFactory() {
+    public AdapterFactory getAdapterFactory() {
         return this.adapterFactory;
     }
 
