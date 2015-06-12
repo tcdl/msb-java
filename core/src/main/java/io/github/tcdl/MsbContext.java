@@ -4,6 +4,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.messages.MessageFactory;
+import io.github.tcdl.support.JsonValidator;
 
 import java.time.Clock;
 
@@ -62,8 +63,9 @@ public class MsbContext {
         public MsbContext build() {
             Clock clock = Clock.systemDefaultZone();
             Config config = ConfigFactory.load();
+            JsonValidator validator = new JsonValidator();
             MsbConfigurations msbConfig = new MsbConfigurations(config);
-            ChannelManager channelManager = new ChannelManager(msbConfig, clock);
+            ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator);
             MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);
 
             return new MsbContext(msbConfig, messageFactory, channelManager, clock);

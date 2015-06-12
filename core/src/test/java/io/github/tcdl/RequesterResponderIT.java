@@ -1,17 +1,16 @@
 package io.github.tcdl;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import io.github.tcdl.adapters.mock.MockAdapter;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,11 +23,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.util.stream.Collectors.toSet;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+@Ignore("Unstable")
 public class RequesterResponderIT {
 
     public static final Logger LOG = LoggerFactory.getLogger(RequesterResponderIT.class);

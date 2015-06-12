@@ -7,6 +7,7 @@ import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MetaMessage;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
+import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -31,14 +32,18 @@ public class Consumer {
     private Clock clock;
 
     private ConcurrentLinkedQueue<Subscriber> subscribers;
+    private JsonValidator validator;
 
-    public Consumer(ConsumerAdapter rawAdapter, String topic, MsbConfigurations msbConfig, Clock clock, ChannelMonitorAgent channelMonitorAgent) {
+    public Consumer(ConsumerAdapter rawAdapter, String topic, MsbConfigurations msbConfig,
+            Clock clock, ChannelMonitorAgent channelMonitorAgent, JsonValidator validator) {
+
         LOG.debug("Creating consumer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
         Validate.notNull(topic, "the 'topic' must not be null");
         Validate.notNull(msbConfig, "the 'msbConfig' must not be null");
         Validate.notNull(clock, "the 'clock' must not be null");
         Validate.notNull(channelMonitorAgent, "the 'channelMonitorAgent' must not be null");
+        Validate.notNull(validator, "the 'validator' must not be null");
 
         this.rawAdapter = rawAdapter;
         this.rawAdapter.subscribe(this::handleRawMessage);
@@ -47,6 +52,7 @@ public class Consumer {
         this.clock = clock;
         this.channelMonitorAgent = channelMonitorAgent;
         this.subscribers = new ConcurrentLinkedQueue<>();
+        this.validator = validator;
     }
 
     /**
@@ -79,7 +85,7 @@ public class Consumer {
         try {
             if (msbConfig.getSchema() != null
                     && !Utils.isServiceTopic(topic)) {
-                Utils.validateJsonWithSchema(jsonMessage,
+                validator.validate(jsonMessage,
                         msbConfig.getSchema());
             }
             message = Utils.fromJson(jsonMessage,
