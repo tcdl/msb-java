@@ -12,5 +12,5 @@ public interface ProducerAdapter {
     /**
      * Publishes the message to the associated topic
      */
-    void publish(String jsonMessage) throws ChannelException;
+    void publish(String jsonMessage);
 }

@@ -5,6 +5,7 @@ import com.rabbitmq.client.ConnectionFactory;
 
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
 
+import io.github.tcdl.exception.ChannelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +33,7 @@ public class AmqpConnectionManager {
             connection = connectionFactory.newConnection();
             logger.info("AMQP connection opened.");
         } catch (IOException e) {
-            throw new RuntimeException("Failed to obtain connection to AMQP broker", e);
+            throw new ChannelException("Failed to obtain connection to AMQP broker", e);
         }
     }
 

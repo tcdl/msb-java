@@ -25,7 +25,7 @@ public class AmqpProducerAdapter implements ProducerAdapter {
             channel = connectionManager.obtainConnection().createChannel();
             channel.exchangeDeclare(exchangeName, "fanout", false /* durable */, true /* auto-delete */, null);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to setup channel from ActiveMQ connection", e);
+            throw new ChannelException("Failed to setup channel from ActiveMQ connection", e);
         }
     }
 
@@ -33,12 +33,11 @@ public class AmqpProducerAdapter implements ProducerAdapter {
      * {@inheritDoc}
      */
     @Override
-    public void publish(String jsonMessage) throws ChannelException {
+    public void publish(String jsonMessage) {
         try {
             channel.basicPublish(exchangeName, "" /* routing key */, MessageProperties.PERSISTENT_BASIC, jsonMessage.getBytes());
         } catch (IOException e) {
-            throw new RuntimeException(String.format("Failed to publish message '%s' into exchange '%s'", jsonMessage, exchangeName), e);
+            throw new ChannelException(String.format("Failed to publish message '%s' into exchange '%s'", jsonMessage, exchangeName), e);
         }
     }
-
 }
