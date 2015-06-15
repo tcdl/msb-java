@@ -103,13 +103,7 @@ public class Collector implements Consumer.Subscriber {
     }
 
     @Override
-    public void handleMessage(Message message, Exception error) {
-        if (error != null) {
-            LOG.debug("Received error [{}]", error.getMessage());
-            onError.ifPresent(handler -> handler.call(error));
-            return;
-        }
-
+    public void handleMessage(Message message) {
         if (!acceptMessage(message)) {
             LOG.debug("Rejected {}", message);
             return;
@@ -137,6 +131,12 @@ public class Collector implements Consumer.Subscriber {
         }
 
         end();
+    }
+
+    @Override
+    public void handleError(Exception exception) {
+        LOG.debug("Received error [{}]", exception.getMessage());
+        onError.ifPresent(handler -> handler.call(exception));
     }
 
     protected boolean acceptMessage(Message message) {

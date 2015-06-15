@@ -1,15 +1,5 @@
 package io.github.tcdl;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import java.time.Clock;
-
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
@@ -29,6 +19,16 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.time.Clock;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -77,33 +77,37 @@ public class ConsumerTest {
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
 
-        Consumer.Subscriber subscriberMock1 = mock( Consumer.Subscriber.class);
-        Consumer.Subscriber subscriberMock2 = mock( Consumer.Subscriber.class);
+        Consumer.Subscriber subscriberMock1 = mock(Consumer.Subscriber.class);
+        Consumer.Subscriber subscriberMock2 = mock(Consumer.Subscriber.class);
 
         consumer.subscribe(subscriberMock1);
         consumer.subscribe(subscriberMock2);
 
         consumer.handleRawMessage(Utils.toJson(originalMessage));
 
-        verify(subscriberMock1).handleMessage(any(Message.class), eq(null));
-        verify(subscriberMock2).handleMessage(any(Message.class), eq(null));
+        verify(subscriberMock1).handleMessage(any(Message.class));
+        verify(subscriberMock2).handleMessage(any(Message.class));
+        verify(subscriberMock1, never()).handleError(any(Exception.class));
+        verify(subscriberMock1, never()).handleError(any(Exception.class));
     }
 
     @Test
     public void testExceptionWhileMessageConvertingProcessedByAllSubscribers() throws JsonConversionException {
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
-        Consumer.Subscriber subscriberMock1 = mock( Consumer.Subscriber.class);
-        Consumer.Subscriber subscriberMock2 = mock( Consumer.Subscriber.class);
+        Consumer.Subscriber subscriberMock1 = mock(Consumer.Subscriber.class);
+        Consumer.Subscriber subscriberMock2 = mock(Consumer.Subscriber.class);
 
         consumer.subscribe(subscriberMock1);
         consumer.subscribe(subscriberMock2);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
 
-        verify(subscriberMock1).handleMessage(any(Message.class), isA(JsonConversionException.class));
-        verify(subscriberMock2).handleMessage(any(Message.class), isA(JsonConversionException.class));
-    }
+        verify(subscriberMock1).handleError(isA(JsonConversionException.class));
+        verify(subscriberMock2).handleError(isA(JsonConversionException.class));
 
+        verify(subscriberMock1, never()).handleMessage(any(Message.class));
+        verify(subscriberMock2, never()).handleMessage(any(Message.class));
+    }
 
     @Test
     public void testHandleRawMessageConsumeFromTopicValidateThrowException() {
@@ -112,7 +116,8 @@ public class ConsumerTest {
         consumer.subscribe(subscriberMock);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
-        verify(subscriberMock).handleMessage(any(Message.class), isA(JsonSchemaValidationException.class));
+        verify(subscriberMock).handleError(isA(JsonSchemaValidationException.class));
+        verify(subscriberMock, never()).handleMessage(any(Message.class));
     }
 
     @Test
@@ -123,7 +128,8 @@ public class ConsumerTest {
         consumer.subscribe(subscriberMock);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
-        verify(subscriberMock).handleMessage(any(Message.class), isA(JsonConversionException.class));
+        verify(subscriberMock).handleError(isA(JsonConversionException.class));
+        verify(subscriberMock, never()).handleMessage(any(Message.class));
     }
 
     @Test
@@ -133,7 +139,8 @@ public class ConsumerTest {
         consumer.subscribe(subscriberMock);
 
         consumer.handleRawMessage(Utils.toJson(originalMessage));
-        verify(subscriberMock).handleMessage(any(Message.class), eq(null));
+        verify(subscriberMock).handleMessage(any(Message.class));
+        verify(subscriberMock, never()).handleError(isA(JsonConversionException.class));
     }
 
     @Test
@@ -143,13 +150,14 @@ public class ConsumerTest {
         consumer.subscribe(subscriberMock);
 
         consumer.handleRawMessage(Utils.toJson(expiredMessage));
-        verify(subscriberMock, never()).handleMessage(any(Message.class), eq(null));
+        verify(subscriberMock, never()).handleMessage(any(Message.class));
+        verify(subscriberMock, never()).handleError(any(Exception.class));
     }
 
     @Test
     public void testSubscribeUnsubscribeOne() {
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
-        Consumer.Subscriber subscriber = (message, exception) -> {};
+        Consumer.Subscriber subscriber = new NoopSubscriber();
         consumer.subscribe(subscriber);
 
         assertTrue(consumer.unsubscribe(subscriber));
@@ -158,8 +166,8 @@ public class ConsumerTest {
     @Test
     public void testSubscribeUnsubscribeMultiple() {
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
-        Consumer.Subscriber subscriber1 = (message, exception) -> {};
-        Consumer.Subscriber subscriber2 = (message, exception) -> {};
+        Consumer.Subscriber subscriber1 = new NoopSubscriber();
+        Consumer.Subscriber subscriber2 = new NoopSubscriber();
 
         consumer.subscribe(subscriber1);
         consumer.subscribe(subscriber2);
@@ -177,5 +185,13 @@ public class ConsumerTest {
         MetaMessage.MetaMessageBuilder metaBuilder = new MetaMessage.MetaMessageBuilder(0, clock.instant(), msbConf.getServiceDetails(), clock);
         return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMetaBuilder(metaBuilder)
                 .build();
+    }
+
+    private static class NoopSubscriber implements Consumer.Subscriber {
+        @Override
+        public void handleMessage(Message message) {}
+
+        @Override
+        public void handleError(Exception exception) {}
     }
 }
