@@ -32,7 +32,7 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
 
     @Override
     public void publish(String jsonMessage) throws ChannelException {
-        LOG.info("Received request {}", jsonMessage);
+        LOG.debug("Received request {}", jsonMessage);
         try {
             Message incomingMessage = Utils.fromJson(jsonMessage, Message.class);
             pushRequestMessage(incomingMessage);
@@ -68,7 +68,7 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
 
     @Override
     public void unsubscribe() {
-        LOG.info("Unsubscribe");
+        LOG.debug("Unsubscribe");
     }
 
     public static String pollJsonMessageForTopic(String topic) {
@@ -78,7 +78,7 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
         }
 
         if (jsonMessage == null) {
-            LOG.warn("No message found for topic {}", topic);
+            LOG.debug("No message found for topic {}", topic);
         }
         return jsonMessage;
     }
@@ -96,7 +96,7 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
         try {
             String jsonMessage = Utils.toJson(message);
             messagesQueue.add(jsonMessage);
-            LOG.info("Message for topic {} published: [{}]", topicTo, jsonMessage);
+            LOG.debug("Message for topic {} published: [{}]", topicTo, jsonMessage);
         } catch (JsonConversionException e) {
             LOG.error("Pushed message can not be parsed");
         }

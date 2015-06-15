@@ -11,18 +11,14 @@
 
     <appender name="fileAppender" class="org.apache.log4j.RollingFileAppender">
         <param name="append" value="false"/>
-        <param name="file" value="logs/msb-java.log"/>
+        <param name="file" value="logs/micro-services.log"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d{ABSOLUTE} %-5p [%t] %c{1} %m%n"/>
         </layout>
     </appender>
 
-    <logger name="org.apache">
-        <level value="INFO"/>
-    </logger>
-
     <root>
-        <level value="DEBUG"/>
+        <level value="INFO"/>
         <appender-ref ref="consoleAppender"/>
         <appender-ref ref="fileAppender"/>
     </root>

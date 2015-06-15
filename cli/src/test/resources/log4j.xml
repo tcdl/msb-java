@@ -9,18 +9,9 @@
         </layout>
     </appender>
 
-    <appender name="fileAppender" class="org.apache.log4j.RollingFileAppender">
-        <param name="append" value="false"/>
-        <param name="file" value="logs/cli-tool.log"/>
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{ABSOLUTE} %-5p [%t] %c{1} %m%n"/>
-        </layout>
-    </appender>
-
     <root>
         <level value="INFO"/>
         <appender-ref ref="consoleAppender"/>
-        <appender-ref ref="fileAppender"/>
     </root>
 
 </log4j:configuration>

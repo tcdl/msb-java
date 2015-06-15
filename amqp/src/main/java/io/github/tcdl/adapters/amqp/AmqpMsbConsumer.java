@@ -26,7 +26,7 @@ import static io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
  */
 public class AmqpMsbConsumer extends DefaultConsumer {
 
-    private static final Logger logger = LoggerFactory.getLogger(AmqpMsbConsumer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AmqpMsbConsumer.class);
 
     ExecutorService consumerThreadPool;
     RawMessageHandler msgHandler;
@@ -40,15 +40,15 @@ public class AmqpMsbConsumer extends DefaultConsumer {
     @Override
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
         String bodyStr = new String(body);
-        logger.debug(String.format("[consumer tag: %s] Message consumed from broker: %s", consumerTag, bodyStr));
+        LOG.debug(String.format("[consumer tag: %s] Message consumed from broker: %s", consumerTag, bodyStr));
 
         consumerThreadPool.submit(() -> {
-            logger.debug(String.format("[consumer tag: %s] Starting message processing: %s", consumerTag, bodyStr));
+            LOG.debug(String.format("[consumer tag: %s] Starting message processing: %s", consumerTag, bodyStr));
             msgHandler.onMessage(bodyStr);
-            logger.debug(String.format("[consumer tag: %s] Message has been processed: %s. About to send AMQP ack...", consumerTag, bodyStr));
+            LOG.debug(String.format("[consumer tag: %s] Message has been processed: %s. About to send AMQP ack...", consumerTag, bodyStr));
             try {
                 getChannel().basicAck(envelope.getDeliveryTag(), false);
-                logger.debug(String.format("[consumer tag: %s] AMQP ack has been sent for message: %s", consumerTag, bodyStr));
+                LOG.debug(String.format("[consumer tag: %s] AMQP ack has been sent for message: %s", consumerTag, bodyStr));
             } catch (IOException e) {
                 throw new ChannelException(String.format("[consumer tag: %s] Failed to ack message %s", consumerTag, bodyStr), e);
             }
