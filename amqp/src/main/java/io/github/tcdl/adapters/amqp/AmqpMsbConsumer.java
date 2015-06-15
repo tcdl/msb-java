@@ -4,6 +4,7 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
+import io.github.tcdl.exception.ChannelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +50,7 @@ public class AmqpMsbConsumer extends DefaultConsumer {
                 getChannel().basicAck(envelope.getDeliveryTag(), false);
                 logger.debug(String.format("[consumer tag: %s] AMQP ack has been sent for message: %s", consumerTag, bodyStr));
             } catch (IOException e) {
-                logger.error(String.format("[consumer tag: %s] Failed to ack message %s", consumerTag, bodyStr));
+                throw new ChannelException(String.format("[consumer tag: %s] Failed to ack message %s", consumerTag, bodyStr), e);
             }
         });
     }
