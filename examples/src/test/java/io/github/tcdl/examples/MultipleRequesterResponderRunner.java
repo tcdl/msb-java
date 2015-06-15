@@ -32,7 +32,7 @@ public class MultipleRequesterResponderRunner {
                 "test:simple-queue1");
         requesterExample.runSimpleRequesterExample();
 
-        TimeUnit.SECONDS.sleep(2);
+        TimeUnit.SECONDS.sleep(5);
 
         responderExample1.getMsbContext().getChannelManager().getAdapterFactory().close();
         responderExample2.getMsbContext().getChannelManager().getAdapterFactory().close();
