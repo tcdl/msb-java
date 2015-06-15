@@ -1,5 +1,18 @@
 package io.github.tcdl;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.messages.Message;
@@ -10,16 +23,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.function.Predicate;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
 
 /**
  * Created by rdro on 4/27/2015.
@@ -52,7 +55,7 @@ public class RequesterTest {
         requester.publish(TestUtils.createSimpleRequestPayload());
 
         verify(collectorMock, never()).listenForResponses(anyString(), any());
-        verify(collectorMock).end();
+        verify(collectorMock, never()).waitForResponses();
     }
 
     @Test
@@ -62,7 +65,7 @@ public class RequesterTest {
         requester.publish(TestUtils.createSimpleRequestPayload());
 
         verify(collectorMock).listenForResponses(anyString(), any(Message.class));
-        verify(collectorMock, never()).end();
+        verify(collectorMock).waitForResponses();
     }
 
     @Test
@@ -162,6 +165,7 @@ public class RequesterTest {
         MsbMessageOptions messageOptionsMock = mock(MsbMessageOptions.class);
         when(messageOptionsMock.getNamespace()).thenReturn("test:requester");
         when(messageOptionsMock.getWaitForResponses()).thenReturn(numberOfResponses);
+        when(messageOptionsMock.isWaitForResponses()).thenReturn(numberOfResponses>0 ? true : false);
         when(messageOptionsMock.getResponseTimeout()).thenReturn(100);
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
 

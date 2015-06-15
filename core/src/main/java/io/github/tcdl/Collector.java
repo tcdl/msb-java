@@ -67,7 +67,7 @@ public class Collector implements Consumer.Subscriber {
         this.currentTimeoutMs = timeoutMs;
 
         this.waitForAcksUntil = getWaitForAckUntilFromConfigs(messageOptions);
-        this.waitForResponses = getWaitForResponsesFromConfigs(messageOptions);
+        this.waitForResponses = messageOptions.getWaitForResponses();
         this.responsesRemaining = waitForResponses;
 
         if (eventHandlers != null) {
@@ -78,11 +78,7 @@ public class Collector implements Consumer.Subscriber {
         }
     }
 
-    public boolean isWaitForResponses() {
-        return waitForResponses != 0;
-    }
-
-    public boolean isAwaitingAcks() {
+    boolean isAwaitingAcks() {
         return waitForAcksUntil > clock.instant().toEpochMilli();
     }
 
@@ -95,11 +91,6 @@ public class Collector implements Consumer.Subscriber {
         this.topic = topic;
         this.requestMessage = requestMessage;
         channelManager.subscribe(this.topic, this);
-
-        //start ack TimerTask that when run will end conversation in case no more responses are expected
-        if (isAwaitingAcks()) {
-            waitForAcks();
-        }
     }
 
     @Override
@@ -125,8 +116,13 @@ public class Collector implements Consumer.Subscriber {
 
         processAck(message.getAck());
 
-        if (isAwaitingAcks() || isAwaitingResponses()) {
-            //ack and response TimerTask are responsible for closing conversation after timeouts expiration
+        if (isAwaitingResponses()) {
+            return;
+        }
+
+        //set ack timer task in case we received ALL expected responses but still have to wait for ack
+        if (isAwaitingAcks()) {
+            waitForAcks();
             return;
         }
 
@@ -146,7 +142,7 @@ public class Collector implements Consumer.Subscriber {
     protected void end() {
         LOG.debug("Stop response processing");
 
-        if (this.timer != null){
+        if (this.timer != null) {
             this.timer.stopTimers();
         }
 
@@ -159,6 +155,7 @@ public class Collector implements Consumer.Subscriber {
         timer.enableResponseTimeout(this.currentTimeoutMs);
     }
 
+    //TODO: make sure we schedule task at most once.
     private void waitForAcks() {
         LOG.debug("Waiting for ack until {}.", Instant.ofEpochMilli(this.waitForAcksUntil));
         long ackTimeoutMs = waitForAcksUntil - clock.instant().toEpochMilli();
@@ -265,14 +262,7 @@ public class Collector implements Consumer.Subscriber {
         return this.startedAt + messageOptions.getAckTimeout();
     }
 
-    private int getWaitForResponsesFromConfigs(MsbMessageOptions messageOptions) {
-        if (messageOptions.getWaitForResponses() == null || messageOptions.getWaitForResponses() == -1) {
-            return 0;
-        }
-        return messageOptions.getWaitForResponses();
-    }
-
-    TimerProvider initTimer () {
+    TimerProvider initTimer() {
         return new TimerProvider(this);
     }
 

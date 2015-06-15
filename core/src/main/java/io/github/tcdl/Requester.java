@@ -1,7 +1,12 @@
 package io.github.tcdl;
 
+import javax.annotation.Nullable;
+import java.util.List;
+
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.EventHandlers;
+import io.github.tcdl.exception.ChannelException;
+import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
@@ -10,10 +15,6 @@ import io.github.tcdl.messages.payload.Payload;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Requester is a component which sends a request message to the bus and collects responses
@@ -34,6 +35,7 @@ public class Requester {
 
     /**
      * Creates a new instance of a requester
+     *
      * @param messageOptions message options to construct a message
      * @param context context which contains MSB related beans
      */
@@ -43,6 +45,7 @@ public class Requester {
 
     /**
      * Creates a new instance of a requester
+     *
      * @param messageOptions message options to construct a message
      * @param originalMessage original message (to take correlation id from)
      * @param context context which contains MSB related beans
@@ -65,30 +68,33 @@ public class Requester {
 
     /**
      * Wraps a payload with message meta and sends to the bus
+     *
      * @param requestPayload
+     * @throws ChannelException - if an error is encountered during publishing to broker
+     * @throws JsonConversionException - if unable to parse message to JSON before sending to broker
      */
     public void publish(@Nullable Payload requestPayload) {
         this.message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
-        Collector collector = createCollector(messageOptions, context, eventHandlers);
-
-        if (collector.isWaitForResponses()) {
+        //use Collector instance to handle expected responses/acks
+        if (messageOptions.isWaitForResponses()) {
+            Collector collector = createCollector(messageOptions, context, eventHandlers);
             String topic = message.getTopics().getResponse();
             collector.listenForResponses(topic, this.message);
-        }
 
-        collector.getChannelManager().findOrCreateProducer(this.message.getTopics().getTo())
-                .publish(this.message);
+            getChannelManager().findOrCreateProducer(this.message.getTopics().getTo())
+                    .publish(this.message);
 
-        if (collector.isWaitForResponses()) {
             collector.waitForResponses();
         } else {
-            collector.end();
+            getChannelManager().findOrCreateProducer(this.message.getTopics().getTo())
+                    .publish(this.message);
         }
     }
 
     /**
      * Registers a callback to be called when acknowledge message received
+     *
      * @param acknowledgeHandler callback
      * @return requester
      */
@@ -99,6 +105,7 @@ public class Requester {
 
     /**
      * Registers a callback to be called when response message received
+     *
      * @param responseHandler callback
      * @return requester
      */
@@ -109,6 +116,7 @@ public class Requester {
 
     /**
      * Registers a callback to be called when all responses collected
+     *
      * @param endHandler callback
      * @return requester
      */
@@ -119,6 +127,7 @@ public class Requester {
 
     /**
      * Registers a callback to be called if error happened while collecting responses
+     *
      * @param errorHandler callback
      * @return requester
      */
@@ -129,6 +138,10 @@ public class Requester {
 
     protected Message getMessage() {
         return message;
+    }
+
+    private ChannelManager getChannelManager() {
+        return context.getChannelManager();
     }
 
     Collector createCollector(MsbMessageOptions messageOptions, MsbContext context, EventHandlers eventHandlers) {
