@@ -15,20 +15,34 @@ import static org.junit.Assert.assertTrue;
  * Created by anstr on 6/9/2015.
  */
 public class SimpleRequesterExample {
+    private boolean passed;
+
+    private MsbContext msbContext;
+    private MsbMessageOptions options = new MsbMessageOptions();
+
+    SimpleRequesterExample(MsbContext msbContext, String namespace) {
+        this.msbContext = msbContext;
+        options.setNamespace(namespace);
+    }
+
+    public boolean isPassed() {
+        return passed;
+    }
+
+    public void setPassed(boolean passed) {
+        this.passed = passed;
+    }
+
+    public MsbContext getMsbContext() {
+        return msbContext;
+    }
+
+    public void setMsbContext(MsbContext msbContext) {
+        this.msbContext = msbContext;
+    }
+
     @Test
-    public static void main(String... args) {
-
-        MsbMessageOptions options = new MsbMessageOptions();
-
-        if (args.length != 1) {
-            System.out.println("If you would like set topic which will be used please pass it through parameter");
-            System.out.println("Example:java SimpleRequesterExample test:simple-queue");
-            System.exit(1);
-        } else {
-            options.setNamespace(args[0]);
-        }
-
-        MsbContext msbContext = new MsbContext.MsbContextBuilder().build();
+    public void runSimpleRequesterExample() {
         options.setWaitForResponses(1);
         options.setResponseTimeout(10000);
 
@@ -45,12 +59,10 @@ public class SimpleRequesterExample {
                             try {
                                 assertTrue(payload.getBody().toString().contains("test:simple-queue2"));
                                 assertTrue(payload.getBody().toString().contains("test:simple-queue3"));
-                            }catch (Throwable throwable) {
-                                System.out.println("!!!!!!!!!!Test wasn't pass!!!!!!!!!!");
-                                System.exit(1);
+                                passed = true;
+                            } catch (Throwable throwable) {
+                                passed = false;
                             }
-                            System.out.println("Test Passed Successfully");
-                            System.exit(0);
                         }
                 );
 

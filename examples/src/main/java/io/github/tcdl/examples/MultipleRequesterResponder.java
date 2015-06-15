@@ -5,6 +5,7 @@ import io.github.tcdl.Requester;
 import io.github.tcdl.ResponderServer;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.payload.Payload;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,24 +18,34 @@ import java.util.concurrent.Future;
  * Created by anstr on 6/9/2015.
  */
 public class MultipleRequesterResponder {
-    public static void main(String... args) {
-        MsbMessageOptions optionsResponder = new MsbMessageOptions();
-        MsbMessageOptions optionsRequester1 = new MsbMessageOptions();
-        MsbMessageOptions optionsRequester2 = new MsbMessageOptions();
+    private MsbContext msbContext;
 
-        if (args.length != 3) {
-            System.out.println("Please run MultipleRequesterResponder in the following format:");
-            System.out.println("Example:java RequesterExample test:simple-queue1 test:simple-queue2 test:simple-queue3");
-            System.exit(1);
-        } else {
-            optionsResponder.setNamespace(args[0]);
-            optionsRequester1.setNamespace(args[1]);
-            optionsRequester2.setNamespace(args[2]);
-        }
+    private MsbMessageOptions optionsResponder = new MsbMessageOptions();
+    private MsbMessageOptions optionsRequester1 = new MsbMessageOptions();
+    private MsbMessageOptions optionsRequester2 = new MsbMessageOptions();
 
-        MsbContext msbContext = new MsbContext.MsbContextBuilder().build();
+    MultipleRequesterResponder(MsbContext msbContext, String responderNamespace, String requesterNamespace1,
+                               String requesterNamespace2) {
+        this.msbContext = msbContext;
+        optionsResponder.setNamespace(responderNamespace);
+        optionsRequester1.setNamespace(requesterNamespace1);
+        optionsRequester2.setNamespace(requesterNamespace2);
+    }
 
-        ExecutorService executor = Executors.newFixedThreadPool(5);
+    public MsbContext getMsbContext() {
+        return msbContext;
+    }
+
+    public void setMsbContext(MsbContext msbContext) {
+        this.msbContext = msbContext;
+    }
+
+    public void runMultipleRequesterResponder() {
+        BasicThreadFactory threadFactory = new BasicThreadFactory.Builder()
+                .namingPattern("MultipleRequesterResponder-%d")
+                .build();
+
+        ExecutorService executor = Executors.newFixedThreadPool(2, threadFactory);
 
         ResponderServer.create(optionsResponder, msbContext)
                 .use(((request, responder) -> {
@@ -45,10 +56,12 @@ public class MultipleRequesterResponder {
 
                     Thread.sleep(500);
 
-                    String result1=futureRequester1.get();
-                    String result2=futureRequester2.get();
+                    String result1 = futureRequester1.get();
+                    String result2 = futureRequester2.get();
 
-                    responder.send(createResponse(result1+result2));
+                    executor.shutdownNow();
+
+                    responder.send(createResponse(result1 + result2));
                 }))
                 .listen();
     }
