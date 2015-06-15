@@ -16,7 +16,7 @@ import java.io.IOException;
  * The responsibility of this singleton class is to manage the lifecycle of that connection.
  */
 public class AmqpConnectionManager {
-    private static Logger logger = LoggerFactory.getLogger(AmqpConnectionManager.class);
+    private static Logger LOG = LoggerFactory.getLogger(AmqpConnectionManager.class);
 
     private Connection connection;
 
@@ -29,9 +29,9 @@ public class AmqpConnectionManager {
         connectionFactory.setPort(port);
 
         try {
-            logger.info(String.format("Opening AMQP connection to host = %s, port = %s...", host, port));
+            LOG.info(String.format("Opening AMQP connection to host = %s, port = %s...", host, port));
             connection = connectionFactory.newConnection();
-            logger.info("AMQP connection opened.");
+            LOG.info("AMQP connection opened.");
         } catch (IOException e) {
             throw new ChannelException("Failed to obtain connection to AMQP broker", e);
         }
@@ -43,9 +43,9 @@ public class AmqpConnectionManager {
 
     public void close() throws IOException {
         if (connection.isOpen()) {
-            logger.info("Closing AMQP connection...");
+            LOG.info("Closing AMQP connection...");
             connection.close();
-            logger.info("AMQP connection closed.");
+            LOG.info("AMQP connection closed.");
         }
     }
 }
