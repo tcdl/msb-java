@@ -16,7 +16,7 @@ import com.typesafe.config.ConfigFactory;
  */
 public class MsbConfigurations {
 
-    public final Logger log = LoggerFactory.getLogger(getClass());
+    public final Logger LOG = LoggerFactory.getLogger(getClass());
 
     //Broker Adapter Factory class. Represented with brokerAdapterFactory property from config 
     private String brokerAdapterFactoryClass;
@@ -37,14 +37,14 @@ public class MsbConfigurations {
         this.brokerAdapterFactoryClass = getBrokerAdapterFactory(config);
         this.brokerConfig = config.hasPath("brokerConfig") ? config.getConfig("brokerConfig") : ConfigFactory.empty();
 
-        log.info("MSB configuration {}", this);
+        LOG.debug("MSB configuration {}", this);
     }
 
     private String readJsonSchema() {
         try {
             return IOUtils.toString(getClass().getResourceAsStream("/schema.js"));
         } catch (IOException e) {
-            log.error("MSB configuration failed to load Json validation schema", this);
+            LOG.error("MSB configuration failed to load Json validation schema", this);
             return null;
         }
     }

@@ -19,7 +19,7 @@ import com.typesafe.config.Config;
  * Class contains configuration data related to service instance *
  */
 public final class ServiceDetails {
-    public final static Logger log = LoggerFactory.getLogger(ServiceDetails.class);
+    public final static Logger LOG = LoggerFactory.getLogger(ServiceDetails.class);
 
     private final String name;
     private final String version;
@@ -76,7 +76,7 @@ public final class ServiceDetails {
             try {
                 hostInfo = InetAddress.getLocalHost();
             } catch (UnknownHostException ex) {
-                log.error("Fail to retrieve host info", ex);
+                LOG.error("Fail to retrieve host info", ex);
             }
             return hostInfo;
         }

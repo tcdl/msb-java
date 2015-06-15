@@ -1,8 +1,6 @@
 package io.github.tcdl.config.amqp;
 
 import com.typesafe.config.Config;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static io.github.tcdl.config.ConfigurationUtil.getString;
 

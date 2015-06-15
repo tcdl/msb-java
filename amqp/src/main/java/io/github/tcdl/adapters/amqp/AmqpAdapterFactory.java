@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * for {@link AmqpProducerAdapter} and {@link AmqpConsumerAdapter}
  */
 public class AmqpAdapterFactory implements AdapterFactory {
-    private static final Logger logger = LoggerFactory.getLogger(AmqpAdapterFactory.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AmqpAdapterFactory.class);
 
     private AmqpBrokerConfig amqpBrokerConfig;
     private AmqpConnectionManager connectionManager;
@@ -47,9 +47,9 @@ public class AmqpAdapterFactory implements AdapterFactory {
         Runtime.getRuntime().addShutdownHook(new Thread("AMQP adapter shutdown hook") {
             @Override
             public void run() {
-                logger.info("Invoking shutdown hook...");
+                LOG.info("Invoking shutdown hook...");
                 close();
-                logger.info("Shutdown hook has been invoked.");
+                LOG.info("Shutdown hook has been invoked.");
             }
         });
     }
@@ -66,21 +66,21 @@ public class AmqpAdapterFactory implements AdapterFactory {
 
     @Override
     public void close() {
-        logger.info("Shutting down consumer thread pool...");
+        LOG.info("Shutting down consumer thread pool...");
         consumerThreadPool.shutdown();
         try {
             while (!consumerThreadPool.awaitTermination(10, TimeUnit.SECONDS)) {
-                logger.info("Consumer thread pool has still some work to do. Waiting...");
+                LOG.info("Consumer thread pool has still some work to do. Waiting...");
             }
         } catch (InterruptedException e) {
-            logger.warn("Interrupted while waiting for termination", e);
+            LOG.warn("Interrupted while waiting for termination", e);
         }
-        logger.info("Consumer thread pool has been shut down.");
+        LOG.info("Consumer thread pool has been shut down.");
 
         try {
             connectionManager.close();
         } catch (IOException e) {
-            logger.error("Error while closing AMQP connection", e);
+            LOG.error("Error while closing AMQP connection", e);
         }
     }
 
