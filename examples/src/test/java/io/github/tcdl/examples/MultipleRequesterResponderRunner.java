@@ -12,6 +12,7 @@ import static org.junit.Assert.assertTrue;
  */
 
 public class MultipleRequesterResponderRunner {
+    private static long TIMEOUT_IN_SECONDS = 5 ;
 
     @Test
     public void runTest() throws InterruptedException {
@@ -32,7 +33,7 @@ public class MultipleRequesterResponderRunner {
                 "test:simple-queue1");
         requesterExample.runSimpleRequesterExample();
 
-        TimeUnit.SECONDS.sleep(2);
+        TimeUnit.SECONDS.sleep(TIMEOUT_IN_SECONDS);
 
         responderExample1.getMsbContext().getChannelManager().getAdapterFactory().close();
         responderExample2.getMsbContext().getChannelManager().getAdapterFactory().close();
