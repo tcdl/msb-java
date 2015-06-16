@@ -1,71 +1,41 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.MsbContext;
 import io.github.tcdl.Requester;
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.messages.payload.Payload;
-import org.junit.Test;
+import org.apache.commons.lang3.ArrayUtils;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 import static org.junit.Assert.assertTrue;
 
 /**
  * Created by anstr on 6/9/2015.
  */
-public class SimpleRequesterExample {
+public class SimpleRequesterExample extends BaseExample {
+
     private boolean passed;
 
-    private MsbContext msbContext;
-    private MsbMessageOptions options = new MsbMessageOptions();
+    private String namespace;
 
-    SimpleRequesterExample(MsbContext msbContext, String namespace) {
-        this.msbContext = msbContext;
-        options.setNamespace(namespace);
+    SimpleRequesterExample(String namespace) {
+        this.namespace = namespace;
     }
 
     public boolean isPassed() {
         return passed;
     }
 
-    public void setPassed(boolean passed) {
-        this.passed = passed;
-    }
+    public void runSimpleRequesterExample(String... expectedResponses) throws Exception {
+        Requester requester = createRequester(namespace, 1);
 
-    public MsbContext getMsbContext() {
-        return msbContext;
-    }
+        passed = ArrayUtils.isEmpty(expectedResponses);
 
-    public void setMsbContext(MsbContext msbContext) {
-        this.msbContext = msbContext;
-    }
-
-    @Test
-    public void runSimpleRequesterExample() {
-        options.setWaitForResponses(1);
-        options.setResponseTimeout(10000);
-
-        Map<String, String> headers = new HashMap<>();
-        headers.put("From", "user@example.com");
-        Payload requestPayload = new Payload.PayloadBuilder().setHeaders(headers).build();
-
-        Requester requester = Requester.create(options, msbContext);
-
-        requester
-                .onResponse(payload -> {
-                            System.out.println(">>> RESPONSE body: " + payload.getBody());
-                            System.out.println();
-                            try {
-                                assertTrue(payload.getBody().toString().contains("test:simple-queue2"));
-                                assertTrue(payload.getBody().toString().contains("test:simple-queue3"));
-                                passed = true;
-                            } catch (Throwable throwable) {
-                                passed = false;
-                            }
-                        }
-                );
-
-        requester.publish(requestPayload);
+        sendRequest(requester, 1, response -> {
+            String body = response.getBody().toString();
+            for (String bodyFragment : expectedResponses) {
+                if (body.contains(bodyFragment)) {
+                    passed = true;
+                }
+            }
+        });
     }
 }
