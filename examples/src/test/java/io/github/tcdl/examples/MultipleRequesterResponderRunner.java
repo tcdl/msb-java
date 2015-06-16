@@ -11,7 +11,8 @@ import static org.junit.Assert.assertTrue;
  */
 
 public class MultipleRequesterResponderRunner {
-    private static long TIMEOUT_IN_SECONDS = 10 ;
+
+    private static long TIMEOUT_IN_SECONDS = 5 ;
 
     @Test
     public void runTest() throws Exception {
@@ -28,7 +29,7 @@ public class MultipleRequesterResponderRunner {
         multipleRequesterResponder.runMultipleRequesterResponder();
 
         SimpleRequesterExample requesterExample = new SimpleRequesterExample("test:simple-queue1");
-        requesterExample.runSimpleRequesterExample();
+        requesterExample.runSimpleRequesterExample("test:simple-queue2", "test:simple-queue3");
 
         TimeUnit.SECONDS.sleep(TIMEOUT_IN_SECONDS);
 

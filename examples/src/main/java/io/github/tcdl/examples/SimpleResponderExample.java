@@ -16,7 +16,7 @@ public class SimpleResponderExample extends BaseExample {
                 .use(((request, responder) -> {
                     System.out.print(">>> REQUEST: " + request.getHeaders());
                     sleep(500);
-                    respond(responder, "SimpleResponderExample");
+                    respond(responder, namespace + ":" + "SimpleResponderExample");
                 }))
                 .listen();
     }
