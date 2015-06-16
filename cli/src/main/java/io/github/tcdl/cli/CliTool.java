@@ -73,7 +73,7 @@ public class CliTool {
             }
         }
 
-        return false;
+        return true;
     }
 
     static List<String> getOptionAsList(String[] args, String optionName, String alias) {
