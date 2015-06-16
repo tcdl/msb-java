@@ -4,12 +4,13 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
-
 import io.github.tcdl.exception.ChannelException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * To work with AMQP broker (for example RabbitMQ) we use single connection.
@@ -23,11 +24,23 @@ public class AmqpConnectionManager {
     public AmqpConnectionManager(AmqpBrokerConfig adapterConfig) {
         String host = adapterConfig.getHost();
         int port = adapterConfig.getPort();
+        Optional<String> userName = adapterConfig.getUserName();
+        Optional<String> password = adapterConfig.getPassword();
+        Optional<String> virtualHost = adapterConfig.getVirtualHost();
 
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(host);
         connectionFactory.setPort(port);
-
+        if(userName.isPresent()) {
+            connectionFactory.setUsername(userName.get());
+        }
+        if(password.isPresent()) {
+            connectionFactory.setPassword(password.get());
+        }
+        if(virtualHost.isPresent()) {
+            connectionFactory.setVirtualHost(virtualHost.get());
+        }
+        
         try {
             LOG.info(String.format("Opening AMQP connection to host = %s, port = %s...", host, port));
             connection = connectionFactory.newConnection();
