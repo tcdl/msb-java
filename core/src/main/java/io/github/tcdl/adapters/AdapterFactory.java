@@ -1,6 +1,7 @@
 package io.github.tcdl.adapters;
 
 import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.exception.ConfigurationException;
 
 /**
  * MSBAdapterFactory interface represents a common way for creation a particular AdapterFactory
@@ -11,8 +12,9 @@ public interface AdapterFactory {
     /**
      * Initialize AdapterFactory. The method should be called only once from AdapterFactoryLoader.
      * @param msbConfig - MsbConfigurations object 
+     * @throws ConfigurationException
      */
-    void init(MsbConfigurations msbConfig);
+    void init(MsbConfigurations msbConfig) throws ConfigurationException;
 
     /**
      * @param topic - topic name

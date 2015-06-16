@@ -22,27 +22,11 @@ public class AmqpConnectionManager {
     private Connection connection;
 
     public AmqpConnectionManager(AmqpBrokerConfig adapterConfig) {
-        String host = adapterConfig.getHost();
-        int port = adapterConfig.getPort();
-        Optional<String> userName = adapterConfig.getUserName();
-        Optional<String> password = adapterConfig.getPassword();
-        Optional<String> virtualHost = adapterConfig.getVirtualHost();
-
-        ConnectionFactory connectionFactory = new ConnectionFactory();
-        connectionFactory.setHost(host);
-        connectionFactory.setPort(port);
-        if(userName.isPresent()) {
-            connectionFactory.setUsername(userName.get());
-        }
-        if(password.isPresent()) {
-            connectionFactory.setPassword(password.get());
-        }
-        if(virtualHost.isPresent()) {
-            connectionFactory.setVirtualHost(virtualHost.get());
-        }
-        
+        ConnectionFactory connectionFactory = createConnectionFactory(adapterConfig);
         try {
-            LOG.info(String.format("Opening AMQP connection to host = %s, port = %s...", host, port));
+            LOG.info(String.format("Opening AMQP connection to host = %s, port = %s, username = %s, password = %s, virtualHost = %s...", 
+                    connectionFactory.getHost(), connectionFactory.getPort(), connectionFactory.getUsername(),
+                    connectionFactory.getPassword(), connectionFactory.getVirtualHost()));
             connection = connectionFactory.newConnection();
             LOG.info("AMQP connection opened.");
         } catch (IOException e) {
@@ -60,5 +44,31 @@ public class AmqpConnectionManager {
             connection.close();
             LOG.info("AMQP connection closed.");
         }
+    }
+    
+    protected ConnectionFactory createConnectionFactory(AmqpBrokerConfig adapterConfig) {
+        String host = adapterConfig.getHost();
+        int port = adapterConfig.getPort();
+        Optional<String> username = adapterConfig.getUsername();
+        Optional<String> password = adapterConfig.getPassword();
+        Optional<String> virtualHost = adapterConfig.getVirtualHost();
+
+        ConnectionFactory connectionFactory = createConnectionFactory();
+        connectionFactory.setHost(host);
+        connectionFactory.setPort(port);
+        if(username.isPresent()) {
+            connectionFactory.setUsername(username.get());
+        }
+        if(password.isPresent()) {
+            connectionFactory.setPassword(password.get());
+        }
+        if(virtualHost.isPresent()) {
+            connectionFactory.setVirtualHost(virtualHost.get());
+        }
+        return connectionFactory;
+    }
+    
+    protected ConnectionFactory createConnectionFactory() {
+        return new ConnectionFactory();
     }
 }

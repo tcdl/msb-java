@@ -2,11 +2,14 @@ package io.github.tcdl.adapters.amqp;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+
 import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ProducerAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
+import io.github.tcdl.exception.ConfigurationException;
+
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +30,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
     private AmqpConnectionManager connectionManager;
     private ExecutorService consumerThreadPool;
 
-    public void init(MsbConfigurations msbConfig) {
+    public void init(MsbConfigurations msbConfig) throws ConfigurationException {
         Config amqpApplicationConfig = msbConfig.getBrokerConfig();
         Config amqpLibConfig = ConfigFactory.load("amqp").getConfig("config.amqp");
 

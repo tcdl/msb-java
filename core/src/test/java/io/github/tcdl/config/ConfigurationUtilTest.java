@@ -1,10 +1,13 @@
 package io.github.tcdl.config;
 
 import com.typesafe.config.Config;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import io.github.tcdl.exception.ConfigurationException;
 
 import java.util.Optional;
 
@@ -45,6 +48,23 @@ public class ConfigurationUtilTest {
 
         verify(config, never()).getBoolean(eq(param));
         assertEquals(fallback, value);
+    }
+
+    @Test
+    public void testGetMandatoryBooleanExists() {
+        String param = "parameter.boolean";
+        when(config.hasPath(param)).thenReturn(true);
+
+        ConfigurationUtil.getBoolean(config, param);
+        verify(config).getBoolean(eq(param));
+    }
+
+    @Test (expected = ConfigurationException.class)
+    public void testGetMandatoryBooleanNotExists() {
+        String param = "parameter.boolean";
+        when(config.hasPath(param)).thenReturn(false);
+
+        ConfigurationUtil.getBoolean(config, param);
     }
 
     @Test
@@ -96,6 +116,25 @@ public class ConfigurationUtilTest {
     }
 
     @Test
+    public void testGetMandatoryStringExists() {
+        String param = "parameter.string";
+
+        when(config.hasPath(param)).thenReturn(true);
+
+        ConfigurationUtil.getString(config, param);
+        verify(config).getString(eq(param));
+    }
+
+    @Test (expected = ConfigurationException.class)
+    public void testGetMandatoryStringNotExists() {
+        String param = "parameter.string";
+
+        when(config.hasPath(param)).thenReturn(false);
+
+        ConfigurationUtil.getString(config, param);
+    }
+
+    @Test
     public void testGetOptionalStringExists() {
         String param = "parameter.string";
 
@@ -142,4 +181,26 @@ public class ConfigurationUtilTest {
         verify(config).getInt(eq(param));
         assertEquals(fallback, value);
     }
+    
+    @Test
+    public void testGetMandatoryIntegerExists() {
+        String param = "parameter.integer";
+
+        when(config.hasPath(param)).thenReturn(true);
+
+        ConfigurationUtil.getInt(config, param);
+
+        verify(config).getInt(eq(param));
+    }
+
+    @Test (expected = ConfigurationException.class)
+    public void testGetMandatoryIntegerNotExists() {
+        String param = "parameter.integer";
+
+        when(config.hasPath(param)).thenReturn(false);
+
+        ConfigurationUtil.getInt(config, param);
+    }
+
+
 }

@@ -3,12 +3,15 @@ package io.github.tcdl.adapters.amqp;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Consumer;
+
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 import static io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
@@ -124,7 +127,7 @@ public class AmqpConsumerAdapterTest {
     }
 
     private AmqpConsumerAdapter createAdapter(String topic, String groupId, boolean durable) {
-        AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("127.0.0.1", 10, null, null, null, groupId, durable, 5);
+        AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(), groupId, durable, 5);
         return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, mockConsumerThreadPool);
     }
 }
