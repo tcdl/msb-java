@@ -7,8 +7,6 @@ import io.github.tcdl.exception.ConfigurationException;
 
 import com.typesafe.config.Config;
 
-import static io.github.tcdl.config.ConfigurationUtil.getString;
-
 public class AmqpBrokerConfig {
     
     private final int port;
@@ -102,8 +100,8 @@ public class AmqpBrokerConfig {
 
     @Override
     public String toString() {
-        return String.format("AmqpBrokerConfig [host=%s, port=%d, username=%s, password=%s, virtualHost=%s, groupId=%s, durable=%s, consumerThreadPoolSize=%s]", 
-                host, port, username, password, virtualHost, groupId, durable, consumerThreadPoolSize);
+        return String.format("AmqpBrokerConfig [host=%s, port=%d, username=%s, password=xxx, virtualHost=%s, groupId=%s, durable=%s, consumerThreadPoolSize=%s]", 
+                host, port, username, virtualHost, groupId, durable, consumerThreadPoolSize);
     }
 
 }
