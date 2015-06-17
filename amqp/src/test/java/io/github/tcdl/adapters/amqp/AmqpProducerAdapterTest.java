@@ -42,7 +42,6 @@ public class AmqpProducerAdapterTest {
     @Test(expected = RuntimeException.class)
     public void testInitializationError() throws IOException {
         when(mockChannel.exchangeDeclare(anyString(), anyString(), anyBoolean(), anyBoolean(), any())).thenThrow(new IOException());
-
         new AmqpProducerAdapter("myTopic", mockAmqpConnectionManager);
     }
 

@@ -1,5 +1,7 @@
 package io.github.tcdl.config;
 
+import io.github.tcdl.exception.ConfigurationException;
+
 import java.util.Optional;
 
 import com.typesafe.config.Config;
@@ -9,6 +11,13 @@ import com.typesafe.config.Config;
  * 
  */
 public class ConfigurationUtil {
+
+    public static boolean getBoolean(Config config, String key) throws ConfigurationException {
+        if (config.hasPath(key)) {
+            return config.getBoolean(key);
+        }
+        throw new ConfigurationException(key);
+    }
 
     public static boolean getBoolean(Config config, String key, boolean fallback) {
         if (config.hasPath(key)) {
@@ -31,6 +40,13 @@ public class ConfigurationUtil {
         return fallback;
     }
 
+    public static String getString(Config config, String key) throws ConfigurationException {
+        if (config.hasPath(key)) {
+            return config.getString(key);
+        }
+        throw new ConfigurationException(key);
+    }
+
     public static Optional<String> getOptionalString(Config config, String key) {
         if (config.hasPath(key)) {
             return Optional.ofNullable(config.getString(key));
@@ -43,6 +59,13 @@ public class ConfigurationUtil {
             return config.getInt(key);
         }
         return fallback;
+    }
+
+    public static int getInt(Config config, String key) throws ConfigurationException {
+        if (config.hasPath(key)) {
+            return config.getInt(key);
+        }
+        throw new ConfigurationException(key);
     }
 
 }

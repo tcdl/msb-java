@@ -1,15 +1,13 @@
 package io.github.tcdl.adapters.amqp;
 
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-
-import io.github.tcdl.config.amqp.AmqpBrokerConfig;
-
 import io.github.tcdl.exception.ChannelException;
+
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import com.rabbitmq.client.Connection;
 
 /**
  * To work with AMQP broker (for example RabbitMQ) we use single connection.
@@ -20,21 +18,8 @@ public class AmqpConnectionManager {
 
     private Connection connection;
 
-    public AmqpConnectionManager(AmqpBrokerConfig adapterConfig) {
-        String host = adapterConfig.getHost();
-        int port = adapterConfig.getPort();
-
-        ConnectionFactory connectionFactory = new ConnectionFactory();
-        connectionFactory.setHost(host);
-        connectionFactory.setPort(port);
-
-        try {
-            LOG.info(String.format("Opening AMQP connection to host = %s, port = %s...", host, port));
-            connection = connectionFactory.newConnection();
-            LOG.info("AMQP connection opened.");
-        } catch (IOException e) {
-            throw new ChannelException("Failed to obtain connection to AMQP broker", e);
-        }
+    public AmqpConnectionManager(Connection connection) throws ChannelException {
+        this.connection = connection;
     }
 
     public Connection obtainConnection() {
@@ -47,5 +32,5 @@ public class AmqpConnectionManager {
             connection.close();
             LOG.info("AMQP connection closed.");
         }
-    }
+    }    
 }

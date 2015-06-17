@@ -1,16 +1,16 @@
 package io.github.tcdl.adapters;
 
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import io.github.tcdl.adapters.mock.MockAdapterFactory;
-import io.github.tcdl.adapters.mock.MockAdapterFactoryTest;
 import io.github.tcdl.config.MsbConfigurations;
-
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 
 import org.junit.Test;
 
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
-import static org.junit.Assert.*;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 /**
  * AdapterFactoryLoaderTest.
