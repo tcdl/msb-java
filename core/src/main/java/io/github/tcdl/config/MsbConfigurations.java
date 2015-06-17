@@ -1,5 +1,6 @@
 package io.github.tcdl.config;
 
+import static io.github.tcdl.config.ConfigurationUtil.getInt;
 import static io.github.tcdl.config.ConfigurationUtil.getString;
 
 import java.io.IOException;
@@ -12,7 +13,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 /**
- *  MsbConfigurations class provides access to configuration properties
+ *  {@link MsbConfigurations} class provides access to configuration properties
  */
 public class MsbConfigurations {
 
@@ -28,6 +29,8 @@ public class MsbConfigurations {
 
     private String schema;
 
+    private int timerThreadPoolSize;
+
     public MsbConfigurations(Config loadedConfig) {
         Config config = loadedConfig.getConfig("msbConfig");
 
@@ -36,6 +39,7 @@ public class MsbConfigurations {
         this.schema = readJsonSchema();
         this.brokerAdapterFactoryClass = getBrokerAdapterFactory(config);
         this.brokerConfig = config.hasPath("brokerConfig") ? config.getConfig("brokerConfig") : ConfigFactory.empty();
+        this.timerThreadPoolSize = getInt(config, "timerThreadPoolSize", 5);
 
         LOG.debug("MSB configuration {}", this);
     }
@@ -52,7 +56,7 @@ public class MsbConfigurations {
     private String getBrokerAdapterFactory(Config config) {
         return getString(config, "brokerAdapterFactory", "");
     }
-    
+
     public ServiceDetails getServiceDetails() {
         return this.serviceDetails;
     }
@@ -69,10 +73,13 @@ public class MsbConfigurations {
         return brokerAdapterFactoryClass;
     }
 
+    public int getTimerThreadPoolSize() {
+        return timerThreadPoolSize;
+    }
+
     @Override
     public String toString() {
-        return "MsbConfigurations [serviceDetails=" + serviceDetails + ", schema=" + schema 
-                + ", brokerAdapterFactory=" + brokerAdapterFactoryClass + ", brokerConfig=" + brokerConfig + "]";
+        return String.format("MsbConfigurations [serviceDetails=%s, schema=%d, timerThreadPoolSize=%s, brokerAdapterFactory=%s, brokerConfig=%s]", serviceDetails, schema, timerThreadPoolSize, brokerAdapterFactoryClass, brokerConfig);
     }
 
 }

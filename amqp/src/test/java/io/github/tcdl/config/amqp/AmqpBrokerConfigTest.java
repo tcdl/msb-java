@@ -65,7 +65,7 @@ public class AmqpBrokerConfigTest {
                 + "}";
 
         Config amqpConfig = ConfigFactory.parseString(configStr).getConfig("config.amqp");
-        ;
+        
         AmqpBrokerConfigBuilder brokerConfigBuilder = new AmqpBrokerConfigBuilder(amqpConfig);
         AmqpBrokerConfig brokerConfig = brokerConfigBuilder.build();
 

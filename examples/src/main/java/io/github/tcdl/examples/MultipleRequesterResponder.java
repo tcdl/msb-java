@@ -2,13 +2,8 @@ package io.github.tcdl.examples;
 
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.Requester;
-import io.github.tcdl.ResponderServer;
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.messages.payload.Payload;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,27 +12,17 @@ import java.util.concurrent.Future;
 /**
  * Created by anstr on 6/9/2015.
  */
-public class MultipleRequesterResponder {
+public class MultipleRequesterResponder extends BaseExample {
     private MsbContext msbContext;
 
-    private MsbMessageOptions optionsResponder = new MsbMessageOptions();
-    private MsbMessageOptions optionsRequester1 = new MsbMessageOptions();
-    private MsbMessageOptions optionsRequester2 = new MsbMessageOptions();
+    private String responderNamespace;
+    private String requesterNamespace1;
+    private String requesterNamespace2;
 
-    MultipleRequesterResponder(MsbContext msbContext, String responderNamespace, String requesterNamespace1,
-                               String requesterNamespace2) {
-        this.msbContext = msbContext;
-        optionsResponder.setNamespace(responderNamespace);
-        optionsRequester1.setNamespace(requesterNamespace1);
-        optionsRequester2.setNamespace(requesterNamespace2);
-    }
-
-    public MsbContext getMsbContext() {
-        return msbContext;
-    }
-
-    public void setMsbContext(MsbContext msbContext) {
-        this.msbContext = msbContext;
+    MultipleRequesterResponder(String responderNamespace, String requesterNamespace1, String requesterNamespace2) {
+        this.responderNamespace = responderNamespace;
+        this.requesterNamespace1 = requesterNamespace1;
+        this.requesterNamespace2 = requesterNamespace2;
     }
 
     public void runMultipleRequesterResponder() {
@@ -47,57 +32,40 @@ public class MultipleRequesterResponder {
 
         ExecutorService executor = Executors.newFixedThreadPool(2, threadFactory);
 
-        ResponderServer.create(optionsResponder, msbContext)
+         createResponderServer(responderNamespace)
                 .use(((request, responder) -> {
-                    System.out.print(">>> REQUEST: " + request.getHeaders());
+                    System.out.print(">>> REQUEST: " + request);
 
-                    Future<String> futureRequester1 = createAndRunRequester(optionsRequester1, msbContext, executor, "user1@example.com");
-                    Future<String> futureRequester2 = createAndRunRequester(optionsRequester2, msbContext, executor, "user2@example.com");
+                    Future<String> futureRequester1 = createAndRunRequester(executor, requesterNamespace1, "requester1");
+                    Future<String> futureRequester2 = createAndRunRequester(executor, requesterNamespace2, "requester2");
 
-                    Thread.sleep(500);
+                    sleep(500);
 
                     String result1 = futureRequester1.get();
                     String result2 = futureRequester2.get();
 
                     executor.shutdownNow();
 
-                    responder.send(createResponse(result1 + result2));
+                    respond(responder, "response from MultipleRequesterResponder:" + (result1 + result2));
                 }))
                 .listen();
     }
 
-    private static Payload createResponse(String message) {
-        Map<String, String> body = new HashMap<>();
-        body.put("result", "response from MultipleRequesterResponder:" + message);
-        return new Payload.PayloadBuilder().setBody(body).build();
-    }
-
-    private static Future<String> createAndRunRequester(MsbMessageOptions options, MsbContext msbContext,
-                                                        ExecutorService executor, String email) {
-        options.setWaitForResponses(1);
-        options.setResponseTimeout(5000);
-
-        Map<String, String> headers = new HashMap<>();
-        headers.put("From", email);
-        Payload requestPayload = new Payload.PayloadBuilder().setHeaders(headers).build();
-        Requester requester = Requester.create(options, msbContext);
-
+    private Future<String> createAndRunRequester(ExecutorService executor, String namespace, String bodyText) {
+        Requester requester = createRequester(namespace, 1, null, 5000);
         Future<String> future = executor.submit(new Callable<String>() {
             String result = null;
 
             @Override
             public String call() throws Exception {
-                requester
-                        .onResponse(payload -> {
-                                    System.out.println(">>> RESPONSE body: " + payload.getBody());
-                                    result = payload.getBody().toString();
-                                    synchronized (this) {
-                                        notify();
-                                    }
-                                }
+                sendRequest(requester, 1, response -> {
+                    System.out.println(">>> RESPONSE body: " + response.getBody());
+                    result = response.getBody().toString();
+                    synchronized (this) {
+                        notify();
+                    }
 
-                        );
-                requester.publish(requestPayload);
+                });
 
                 synchronized (this) {
                     wait();

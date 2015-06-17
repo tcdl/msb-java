@@ -79,7 +79,7 @@ public class CliToolTest {
     @Test
     public void getPrettyOutputDefaultValue() {
         boolean prettyOutput = CliTool.getPrettyOutput(strToArr("--follow response,ack"));
-        assertFalse(prettyOutput);
+        assertTrue(prettyOutput);
     }
 
     @Test
