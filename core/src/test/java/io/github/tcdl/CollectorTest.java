@@ -1,5 +1,22 @@
 package io.github.tcdl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import java.io.IOException;
+import java.time.Clock;
+import java.util.List;
+
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.EventHandlers;
@@ -16,25 +33,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.io.IOException;
-import java.time.Clock;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Created by rdro on 4/27/2015.
@@ -64,13 +62,13 @@ public class CollectorTest {
     private MsbConfigurations msbConfigurationsMock;
 
     @Mock
-    private TimerProvider timerProviderMock;
+    private TimeoutManager timeoutManagerMock;
 
     private MsbContext msbContext;
 
     @Before
     public void setUp() throws IOException {
-        msbContext = new MsbContext(msbConfigurationsMock, messageFactoryMock, channelManagerMock, Clock.systemDefaultZone());
+        msbContext = new MsbContext(msbConfigurationsMock, messageFactoryMock, channelManagerMock, Clock.systemDefaultZone(), timeoutManagerMock);
     }
 
     @Test(expected = NullPointerException.class)
@@ -225,7 +223,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
@@ -233,8 +231,8 @@ public class CollectorTest {
         subscriberCaptor.getValue().handleMessage(originalMessageWithPayload);
 
         verify(onResponse).call(originalMessageWithPayload.getPayload());
-        verify(timerProviderMock, never()).enableResponseTimeout(anyInt());
-        verify(timerProviderMock, never()).enableAckTimeout(anyInt());
+        verify(timeoutManagerMock, never()).enableResponseTimeout(eq(responseTimeout), eq(collector));
+        verify(timeoutManagerMock, never()).enableAckTimeout(eq(0), eq(collector));
         verify(onEnd).call(anyList());
     }
 
@@ -253,7 +251,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
@@ -266,8 +264,8 @@ public class CollectorTest {
         //send last response
         subscriberCaptor.getValue().handleMessage(originalMessageWithPayload);
         verify(onResponse, times(2)).call(originalMessageWithPayload.getPayload());
-        verify(timerProviderMock, never()).enableResponseTimeout(anyInt());
-        verify(timerProviderMock, never()).enableAckTimeout(anyInt());
+        verify(timeoutManagerMock, never()).enableResponseTimeout(eq(responseTimeout), eq(collector));
+        verify(timeoutManagerMock, never()).enableAckTimeout(eq(0), eq(collector));
         verify(onEnd).call(anyList());
     }
 
@@ -286,15 +284,15 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
 
         //send payload response
         subscriberCaptor.getValue().handleMessage(originalMessageWithPayload);
-        verify(timerProviderMock, never()).enableResponseTimeout(anyInt());
-        verify(timerProviderMock).enableAckTimeout(anyInt());
+        verify(timeoutManagerMock, never()).enableResponseTimeout(eq(0), eq(collector));
+        verify(timeoutManagerMock).enableAckTimeout(anyInt(), eq(collector));
         verify(onEnd, never()).call(anyList());
     }
 
@@ -313,18 +311,17 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
 
         //send payload response
         subscriberCaptor.getValue().handleMessage(originalMessageWithPayload);
-        verify(timerProviderMock, never()).enableResponseTimeout(anyInt());
-        verify(timerProviderMock).enableAckTimeout(anyInt());
+        verify(timeoutManagerMock, never()).enableResponseTimeout(eq(0), eq(collector));
+        verify(timeoutManagerMock).enableAckTimeout(anyInt(), eq(collector));
         verify(onEnd, never()).call(anyList());
     }
-
 
     @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -341,15 +338,15 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
 
         //send payload response
         subscriberCaptor.getValue().handleMessage(originalMessageWithPayload);
-        verify(timerProviderMock, never()).enableResponseTimeout(anyInt());
-        verify(timerProviderMock, never()).enableAckTimeout(anyInt());
+        verify(timeoutManagerMock, never()).enableResponseTimeout(eq(0), eq(collector));
+        verify(timeoutManagerMock, never()).enableAckTimeout(eq(ackTimeoutMs), eq(collector));
         verify(onEnd).call(anyList());
     }
 
@@ -366,7 +363,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(0).setTimeoutMs(timeoutMs).build();
@@ -376,7 +373,7 @@ public class CollectorTest {
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
         subscriberCaptor.getValue().handleMessage(messageWithAck);
 
-        verify(timerProviderMock, never()).enableResponseTimeout(timeoutMs);
+        verify(timeoutManagerMock, never()).enableResponseTimeout(eq(timeoutMs), eq(collector));
         verify(onEnd).call(anyList());
     }
 
@@ -394,7 +391,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(0).setTimeoutMs(timeoutMsInAck).build();
@@ -404,7 +401,7 @@ public class CollectorTest {
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
         subscriberCaptor.getValue().handleMessage(messageWithAck);
 
-        verify(timerProviderMock).enableResponseTimeout(timeoutMsInAck);
+        verify(timeoutManagerMock).enableResponseTimeout(eq(timeoutMsInAck), eq(collector));
         verify(onEnd).call(anyList());
     }
 
@@ -423,7 +420,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(responsesRemaining)
@@ -434,7 +431,7 @@ public class CollectorTest {
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
         subscriberCaptor.getValue().handleMessage(messageWithAck);
 
-        verify(timerProviderMock).enableResponseTimeout(timeoutMsInAck);
+        verify(timeoutManagerMock).enableResponseTimeout(eq(timeoutMsInAck), eq(collector));
         verify(onEnd, never()).call(anyList());
     }
 
@@ -455,7 +452,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = initCollectorWithTimer(messageOptionsMock);
+        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
         Acknowledge ackRespOne = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(responsesRemainingResponderOne)
@@ -470,12 +467,12 @@ public class CollectorTest {
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
 
         subscriberCaptor.getValue().handleMessage(messageWithAckOne);
-        verify(timerProviderMock).enableResponseTimeout(timeoutMsInAckResponderOne);
+        verify(timeoutManagerMock).enableResponseTimeout(eq(timeoutMsInAckResponderOne), eq(collector));
         assertEquals(responsesRemainingResponderOne, collector.getResponsesRemaining());
         verify(onEnd, never()).call(anyList());
 
         subscriberCaptor.getValue().handleMessage(messageWithAckTwo);
-        verify(timerProviderMock, times(1)).enableResponseTimeout(timeoutMsInAckResponderTwo);
+        verify(timeoutManagerMock, times(1)).enableResponseTimeout(eq(timeoutMsInAckResponderTwo), eq(collector));
         assertEquals(responsesRemainingResponderOne + responsesRemainingResponderTwo, collector.getResponsesRemaining());
         verify(onEnd, never()).call(anyList());
     }
@@ -512,13 +509,5 @@ public class CollectorTest {
         subscriberCaptor.getValue().handleMessage(originalMessageWithPayload);
         assertEquals(0, collector.getResponsesRemaining());
         verify(onEnd).call(anyList());
-    }
-
-    private Collector initCollectorWithTimer(MsbMessageOptions messageOptions) {
-
-        Collector collector = spy(new Collector(messageOptions, msbContext, eventHandlers));
-        doReturn(timerProviderMock).when(collector).initTimer();
-
-        return collector;
     }
 }

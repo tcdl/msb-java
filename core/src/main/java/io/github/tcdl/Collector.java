@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ScheduledFuture;
 
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.EventHandlers;
@@ -40,7 +41,7 @@ public class Collector implements Consumer.Subscriber {
     private int responsesRemaining;
 
     private Long startedAt;
-    private TimerProvider timer;
+    private TimeoutManager timeoutManager;
 
     private Clock clock;
 
@@ -51,6 +52,9 @@ public class Collector implements Consumer.Subscriber {
     private Optional<Callback<Acknowledge>> onAcknowledge = Optional.empty();
     private Optional<Callback<Exception>> onError = Optional.empty();
     private Optional<Callback<List<Message>>> onEnd = Optional.empty();
+
+    private  ScheduledFuture ackTimeoutFuture;
+    private  ScheduledFuture responseTimeoutFuture;
 
     public Collector(MsbMessageOptions messageOptions, MsbContext msbContext, EventHandlers eventHandlers) {
         this.channelManager = msbContext.getChannelManager();
@@ -70,6 +74,8 @@ public class Collector implements Consumer.Subscriber {
         this.waitForResponses = messageOptions.getWaitForResponses();
         this.responsesRemaining = waitForResponses;
 
+        this.timeoutManager = msbContext.getTimeoutManager();
+
         if (eventHandlers != null) {
             onResponse = Optional.ofNullable(eventHandlers.onResponse());
             onAcknowledge = Optional.ofNullable(eventHandlers.onAcknowledge());
@@ -87,7 +93,6 @@ public class Collector implements Consumer.Subscriber {
     }
 
     public void listenForResponses(String topic, Message requestMessage) {
-        this.timer = initTimer();
         this.topic = topic;
         this.requestMessage = requestMessage;
         channelManager.subscribe(this.topic, this);
@@ -142,9 +147,8 @@ public class Collector implements Consumer.Subscriber {
     protected void end() {
         LOG.debug("Stop response processing");
 
-        if (this.timer != null) {
-            this.timer.stopTimers();
-        }
+        cancelAckTimeoutTask();
+        cancelResponseTimeoutTask();
 
         channelManager.unsubscribe(topic, this);
         onEnd.ifPresent(handler -> handler.call(payloadMessages));
@@ -152,14 +156,17 @@ public class Collector implements Consumer.Subscriber {
 
     protected void waitForResponses() {
         LOG.debug("Waiting for responses until {}.", clock.instant().plus(currentTimeoutMs, ChronoUnit.MILLIS));
-        timer.enableResponseTimeout(this.currentTimeoutMs);
+        this.responseTimeoutFuture = timeoutManager.enableResponseTimeout(this.currentTimeoutMs, this);
     }
 
-    //TODO: make sure we schedule task at most once.
     private void waitForAcks() {
-        LOG.debug("Waiting for ack until {}.", Instant.ofEpochMilli(this.waitForAcksUntil));
-        long ackTimeoutMs = waitForAcksUntil - clock.instant().toEpochMilli();
-        timer.enableAckTimeout(ackTimeoutMs);
+        if (ackTimeoutFuture == null) {
+            LOG.debug("Waiting for ack until {}.", Instant.ofEpochMilli(this.waitForAcksUntil));
+            long ackTimeoutMs = waitForAcksUntil - clock.instant().toEpochMilli();
+            ackTimeoutFuture =  timeoutManager.enableAckTimeout(ackTimeoutMs, this);
+        } else {
+            LOG.debug("Ack timeout is already scheduled");
+        }
     }
 
     private void processAck(Acknowledge acknowledge) {
@@ -173,7 +180,8 @@ public class Collector implements Consumer.Subscriber {
 
                 this.currentTimeoutMs = getMaxTimeoutMs();
                 if (prevTimeoutMs != currentTimeoutMs) {
-                    timer.enableResponseTimeout(this.currentTimeoutMs);
+                    cancelResponseTimeoutTask();
+                    this.responseTimeoutFuture = timeoutManager.enableResponseTimeout(this.currentTimeoutMs, this);
                 }
             }
         }
@@ -262,12 +270,16 @@ public class Collector implements Consumer.Subscriber {
         return this.startedAt + messageOptions.getAckTimeout();
     }
 
-    TimerProvider initTimer() {
-        return new TimerProvider(this);
+    private void cancelResponseTimeoutTask() {
+        if (this.responseTimeoutFuture != null) {
+            responseTimeoutFuture.cancel(true);
+        }
     }
 
-    ChannelManager getChannelManager() {
-        return channelManager;
+    private void cancelAckTimeoutTask() {
+        if (this.ackTimeoutFuture != null) {
+            ackTimeoutFuture.cancel(true);
+        }
     }
 
     List<Message> getAckMessages() {

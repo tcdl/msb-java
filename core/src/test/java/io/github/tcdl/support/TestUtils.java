@@ -3,6 +3,7 @@ package io.github.tcdl.support;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.MsbContext;
+import io.github.tcdl.TimeoutManager;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Acknowledge;
@@ -13,9 +14,7 @@ import io.github.tcdl.messages.MetaMessage;
 import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.messages.Topics;
 import io.github.tcdl.messages.payload.Payload;
-import org.apache.commons.lang3.reflect.FieldUtils;
 
-import java.lang.reflect.Method;
 import java.time.Clock;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,8 +30,9 @@ public class TestUtils {
         JsonValidator validator = new JsonValidator();
         ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator);
         MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);
+        TimeoutManager timeoutManager = new TimeoutManager(1);
 
-        return new MsbContext(msbConfig, messageFactory, channelManager, clock);
+        return new MsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
     }
 
     public static MsbMessageOptions createSimpleConfig() {
