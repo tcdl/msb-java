@@ -19,8 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -29,6 +32,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class AmqpAdapterFactory implements AdapterFactory {
     private static final Logger LOG = LoggerFactory.getLogger(AmqpAdapterFactory.class);
+
+    private static final int QUEUE_SIZE_UNLIMITED = -1;
 
     private AmqpBrokerConfig amqpBrokerConfig;
     private AmqpConnectionManager connectionManager;
@@ -142,7 +147,20 @@ public class AmqpAdapterFactory implements AdapterFactory {
         BasicThreadFactory threadFactory = new BasicThreadFactory.Builder()
                 .namingPattern("amqp-consumer-thread-%d")
                 .build();
-        return Executors.newFixedThreadPool(amqpBrokerConfig.getConsumerThreadPoolSize(), threadFactory);
+        int numberOfThreads = amqpBrokerConfig.getConsumerThreadPoolSize();
+        int queueCapacity = amqpBrokerConfig.getConsumerThreadPoolQueueCapacity();
+
+        BlockingQueue<Runnable> queue;
+        if (queueCapacity == QUEUE_SIZE_UNLIMITED) {
+            queue = new LinkedBlockingQueue<>();
+        } else {
+            queue = new ArrayBlockingQueue<>(queueCapacity);
+        }
+
+        return new ThreadPoolExecutor(numberOfThreads, numberOfThreads,
+                0L, TimeUnit.MILLISECONDS,
+                queue,
+                threadFactory);
     }
 
     AmqpBrokerConfig getAmqpBrokerConfig() {
