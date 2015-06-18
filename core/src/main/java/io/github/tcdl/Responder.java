@@ -13,11 +13,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * {@link Responder} is a component which holds both original request message and response message.
+ * Is used by {@link ResponderServer} to send responses and acknowledgements
+ *
  * Created by rdro on 4/29/2015.
  */
 public class Responder {
 
-    public static final Logger LOG = LoggerFactory.getLogger(Responder.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Responder.class);
 
     private String responderId;
     private Message originalMessage;
@@ -35,6 +38,12 @@ public class Responder {
         this.messageBuilder = messageFactory.createResponseMessageBuilder(config, originalMessage);
     }
 
+    /**
+     * Send acknowledge message.
+     *
+     * @param timeoutMs
+     * @param responsesRemaining
+     */
     public void sendAck(Integer timeoutMs, Integer responsesRemaining) {
         AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.setResponderId(responderId);
@@ -45,6 +54,11 @@ public class Responder {
         sendMessage(message);
     }
 
+    /**
+     * Send payload message.
+     *
+     * @param responsePayload
+     */
     public void send(Payload responsePayload) {
         AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.setResponderId(responderId);

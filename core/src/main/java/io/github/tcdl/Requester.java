@@ -13,17 +13,13 @@ import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import org.apache.commons.lang3.Validate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Requester is a component which sends a request message to the bus and collects responses
+ * {@link Requester} is a component which sends a request message to the bus and collects responses.
  *
  * Created by rdro on 4/27/2015.
  */
 public class Requester {
-
-    public static final Logger LOG = LoggerFactory.getLogger(Requester.class);
 
     private MsbMessageOptions messageOptions;
     private MsbContext context;
@@ -34,21 +30,23 @@ public class Requester {
     EventHandlers eventHandlers;
 
     /**
-     * Creates a new instance of a requester
+     * Creates a new instance of a requester.
      *
      * @param messageOptions message options to construct a message
      * @param context context which contains MSB related beans
+     * @return instance of a requester
      */
     public static Requester create(MsbMessageOptions messageOptions, MsbContext context) {
         return new Requester(messageOptions, null, context);
     }
 
     /**
-     * Creates a new instance of a requester
+     * Creates a new instance of a requester.
      *
      * @param messageOptions message options to construct a message
      * @param originalMessage original message (to take correlation id from)
      * @param context context which contains MSB related beans
+     * @return instance of a requester
      */
     public static Requester create(MsbMessageOptions messageOptions, Message originalMessage, MsbContext context) {
         return new Requester(messageOptions, originalMessage, context);
@@ -67,7 +65,7 @@ public class Requester {
     }
 
     /**
-     * Wraps a payload with message meta and sends to the bus
+     * Wraps a payload with message meta and sends to the bus.
      *
      * @param requestPayload
      * @throws ChannelException - if an error is encountered during publishing to broker
@@ -93,7 +91,7 @@ public class Requester {
     }
 
     /**
-     * Registers a callback to be called when acknowledge message received
+     * Registers a callback to be called when acknowledge message received.
      *
      * @param acknowledgeHandler callback
      * @return requester
@@ -104,7 +102,7 @@ public class Requester {
     }
 
     /**
-     * Registers a callback to be called when response message received
+     * Registers a callback to be called when response message received.
      *
      * @param responseHandler callback
      * @return requester
@@ -115,7 +113,7 @@ public class Requester {
     }
 
     /**
-     * Registers a callback to be called when all responses collected
+     * Registers a callback to be called when all responses collected.
      *
      * @param endHandler callback
      * @return requester
@@ -126,7 +124,7 @@ public class Requester {
     }
 
     /**
-     * Registers a callback to be called if error happened while collecting responses
+     * Registers a callback to be called if error happened while collecting responses.
      *
      * @param errorHandler callback
      * @return requester

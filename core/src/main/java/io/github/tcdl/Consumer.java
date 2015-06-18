@@ -19,11 +19,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
+ * {@link Consumer} is a component responsible for consuming messages from the bus.
+ *
  * Created by rdro on 4/23/2015.
  */
 public class Consumer {
 
-    public static final Logger LOG = LoggerFactory.getLogger(Consumer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Consumer.class);
 
     private final ConsumerAdapter rawAdapter;
     private final String topic;
@@ -56,7 +58,9 @@ public class Consumer {
     }
 
     /**
-     * Adds a subscriber to call it when message received
+     * Adds a subscriber interested in message being received.
+     *
+     * @param subscriber
      */
     public void subscribe(Subscriber subscriber) {
         Validate.notNull(subscriber, "the 'subscriber' must not be null");
@@ -64,7 +68,10 @@ public class Consumer {
     }
 
     /**
-     * @return true if last subscriber removed
+     * Remove a subscriber interested in message being received.
+     *
+     * @param subscriber
+     * @return true if last subscriber removed.
      */
     public boolean unsubscribe(Subscriber subscriber) {
         Validate.notNull(subscriber, "the 'subscriber' must not be null");
@@ -72,6 +79,9 @@ public class Consumer {
         return subscribers.isEmpty();
     }
 
+    /**
+     * Stop consuming messages for specified topic
+     */
     public void end() {
         LOG.debug("Shutting down consumer for topic {}", topic);
         rawAdapter.unsubscribe();

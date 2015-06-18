@@ -13,7 +13,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 /**
- *  {@link MsbConfigurations} class provides access to configuration properties
+ * {@link MsbConfigurations} class provides access to configuration properties
  */
 public class MsbConfigurations {
 
@@ -39,7 +39,7 @@ public class MsbConfigurations {
         this.schema = readJsonSchema();
         this.brokerAdapterFactoryClass = getBrokerAdapterFactory(config);
         this.brokerConfig = config.hasPath("brokerConfig") ? config.getConfig("brokerConfig") : ConfigFactory.empty();
-        this.timerThreadPoolSize = getInt(config, "timerThreadPoolSize", 5);
+        this.timerThreadPoolSize = getInt(config, "timerThreadPoolSize");
 
         LOG.debug("MSB configuration {}", this);
     }

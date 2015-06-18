@@ -11,11 +11,13 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * {@link ResponderServer} component which listens for incoming requests and can send responses.
+ *
  * Created by rdro on 4/29/2015.
  */
 public class ResponderServer {
 
-    public static final Logger LOG = LoggerFactory.getLogger(ResponderServer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ResponderServer.class);
 
     private MsbContext msbContext;
     private MsbMessageOptions messageOptions;
@@ -27,6 +29,13 @@ public class ResponderServer {
         this.msbContext = msbContext;
     }
 
+    /**
+     * Create a new instance of a ResponderServer
+     *
+     * @param msgOptions
+     * @param msbContext
+     * @return new instance of a ResponderServer
+     */
     public static ResponderServer create(MsbMessageOptions msgOptions, MsbContext msbContext) {
         return new ResponderServer(msgOptions, msbContext);
     }
@@ -36,6 +45,9 @@ public class ResponderServer {
         return this;
     }
 
+    /**
+     * Start listening for message on specified topic.
+     */
     public ResponderServer listen() {
         String topic = messageOptions.getNamespace();
         ChannelManager channelManager = msbContext.getChannelManager();

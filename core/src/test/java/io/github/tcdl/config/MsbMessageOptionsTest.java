@@ -17,7 +17,7 @@ public class MsbMessageOptionsTest {
         MsbMessageOptions msbMessageOptions = new MsbMessageOptions();
         msbMessageOptions.setWaitForResponses(null);
 
-        assertEquals("expect 0 if MessageOptions.waitForResponses is null", 0, msbMessageOptions.getWaitForResponses());
+        assertEquals("expect 0 if MessageOptions.waitForResponses is null", Integer.valueOf(0), msbMessageOptions.getWaitForResponses());
     }
 
     @Test
@@ -25,7 +25,7 @@ public class MsbMessageOptionsTest {
         MsbMessageOptions msbMessageOptions = new MsbMessageOptions();
         msbMessageOptions.setWaitForResponses(-1);
 
-        assertEquals("expect 0 if MessageOptions.waitForResponses is -1", 0, msbMessageOptions.getWaitForResponses());
+        assertEquals("expect 0 if MessageOptions.waitForResponses is -1", Integer.valueOf(0), msbMessageOptions.getWaitForResponses());
     }
 
     @Test
@@ -33,7 +33,7 @@ public class MsbMessageOptionsTest {
         MsbMessageOptions msbMessageOptions = new MsbMessageOptions();
         msbMessageOptions.setWaitForResponses(100);
 
-        assertEquals("expect 100 if MessageOptions.waitForResponses is 100", 100, msbMessageOptions.getWaitForResponses());
+        assertEquals("expect 100 if MessageOptions.waitForResponses is 100", Integer.valueOf(100), msbMessageOptions.getWaitForResponses());
     }
 
 }

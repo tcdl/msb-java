@@ -25,7 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class ResponderIT {
 
-    public static final Logger LOG = LoggerFactory.getLogger(ResponderIT.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ResponderIT.class);
 
     private MsbContext msbContext;
     private JsonValidator validator;

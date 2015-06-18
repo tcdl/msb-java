@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory;
 /**
  * {@link  TimeoutManager} class is responsible for scheduling tasks for execution and returning scheduled future for this tasks.
  *
- * Created by ruslan on 03.06.15.
+ * Created by ruslan
  */
 public class TimeoutManager {
 
-    public static final Logger LOG = LoggerFactory.getLogger(TimeoutManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TimeoutManager.class);
 
     ScheduledExecutorService scheduledThreadPool;
 
