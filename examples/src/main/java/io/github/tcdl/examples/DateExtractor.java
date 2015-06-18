@@ -31,8 +31,7 @@ public class DateExtractor {
 
         final Pattern YEAR_PATTERN = Pattern.compile("^.*(20(\\d{2})).*$");
 
-        ResponderServer.create(options, msbContext)
-                .use(((request, responder) -> {
+        ResponderServer.create(options, msbContext, (request, responder) -> {
 
                     RequestQuery query = request.getQueryAs(RequestQuery.class);
                     String queryString = query.getQ();
@@ -66,7 +65,7 @@ public class DateExtractor {
 
                         responder.send(responsePayload);
                     }
-                }))
+                })
                 .listen();
     }
 

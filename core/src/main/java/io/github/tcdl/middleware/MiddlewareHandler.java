@@ -8,6 +8,6 @@ import io.github.tcdl.messages.payload.Payload;
  */
 public interface MiddlewareHandler {
 
-    void handle(Payload response, Responder responder, Exception error);
+    void handle(Payload response, Responder responder);
 
 }

@@ -32,8 +32,7 @@ public class MultipleRequesterResponder extends BaseExample {
 
         ExecutorService executor = Executors.newFixedThreadPool(2, threadFactory);
 
-         createResponderServer(responderNamespace)
-                .use(((request, responder) -> {
+         createResponderServer(responderNamespace, (request, responder) -> {
                     System.out.print(">>> REQUEST: " + request);
 
                     Future<String> futureRequester1 = createAndRunRequester(executor, requesterNamespace1, "requester1");
@@ -47,7 +46,7 @@ public class MultipleRequesterResponder extends BaseExample {
                     executor.shutdownNow();
 
                     respond(responder, "response from MultipleRequesterResponder:" + (result1 + result2));
-                }))
+                })
                 .listen();
     }
 

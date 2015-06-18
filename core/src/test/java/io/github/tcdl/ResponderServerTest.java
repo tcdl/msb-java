@@ -3,17 +3,17 @@ package io.github.tcdl;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
-import io.github.tcdl.middleware.Middleware;
 import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyObject;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by rdro on 4/30/2015.
@@ -30,9 +30,9 @@ public class ResponderServerTest {
     }
 
     @Test
-    public void testResponderServerAsyncProcessSuccess() throws Exception {
+    public void testResponderServerProcessSuccess() throws Exception {
 
-        Middleware middleware = (request, responder) -> {
+        ResponderServer.RequestHandler handler = (request, responder) -> {
         };
 
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
@@ -42,13 +42,9 @@ public class ResponderServerTest {
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 
         ResponderServer responderServer = ResponderServer
-                .create(messageOptions, spyMsbContext);
+                .create(messageOptions, spyMsbContext, handler);
 
-        ResponderServer spyResponderServer = spy(responderServer);
-
-        spyResponderServer
-                .use(middleware)
-                .listen();
+        ResponderServer spyResponderServer = spy(responderServer).listen();
 
         verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
 
@@ -59,30 +55,21 @@ public class ResponderServerTest {
     }
 
     @Test
-    public void testResponderServerAsyncProcessWithError() throws Exception {
+    public void testResponderServerProcessWithError() throws Exception {
 
         Exception error = new Exception();
-        Middleware middleware = (request, responder) -> { throw error; };
+        ResponderServer.RequestHandler handler = (request, responder) -> { throw error; };
 
         ResponderServer responderServer = ResponderServer
-                .create(messageOptions, msbContext)
-                .use(middleware)
+                .create(messageOptions, msbContext, handler)
                 .listen();
 
         // simulate incoming request
         ArgumentCaptor<Payload> responseCaptor = ArgumentCaptor.forClass(Payload.class);
         Responder responder = spy(new Responder(messageOptions, TestUtils.createMsbRequestMessageNoPayload(), msbContext));
-
-        CountDownLatch awaitSendResponse = new CountDownLatch(1);
-        doAnswer(invocation -> {
-                    awaitSendResponse.countDown();
-                    return awaitSendResponse;
-                }
-        ).when(responder).send(responseCaptor.capture());
-
         responderServer.onResponder(responder);
 
-        awaitSendResponse.await(2000, TimeUnit.MILLISECONDS);
+        verify(responder).send(responseCaptor.capture());
         assertEquals(500, responseCaptor.getValue().getStatusCode().intValue());
     }
 }
