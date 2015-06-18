@@ -54,7 +54,7 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
             channel.queueDeclare(queueName, durable /* durable */, false /* exclusive */, !durable /*auto-delete */, null);
             channel.queueBind(queueName, exchangeName, "");
 
-            consumerTag = channel.basicConsume(queueName, false /* autoAck */, new AmqpMsbConsumer(channel, consumerThreadPool, msgHandler));
+            consumerTag = channel.basicConsume(queueName, false /* autoAck */, new AmqpMessageConsumer(channel, consumerThreadPool, msgHandler));
         } catch (IOException e) {
             throw new ChannelException(String.format("Failed to subscribe to topic %s", topic), e);
         }

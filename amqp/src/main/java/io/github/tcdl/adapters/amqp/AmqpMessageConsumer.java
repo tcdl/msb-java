@@ -4,7 +4,6 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
-import io.github.tcdl.exception.ChannelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,17 +20,17 @@ import static io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
  * AMQP library is implemented in such way that messages that arrive into a single channel are dispatched in a synchronous loop to the consumers and hence
  * will not be processed in parallel.
  *
- * To address this issue {@link AmqpMsbConsumer} just takes incoming message, wraps it in a task and puts into a thread pool. And the actual
+ * To address this issue {@link AmqpMessageConsumer} just takes incoming message, wraps it in a task and puts into a thread pool. So the actual
  * processing is happening in the separate thread from that thread pool.
  */
-public class AmqpMsbConsumer extends DefaultConsumer {
+public class AmqpMessageConsumer extends DefaultConsumer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AmqpMsbConsumer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AmqpMessageConsumer.class);
 
     ExecutorService consumerThreadPool;
     RawMessageHandler msgHandler;
 
-    public AmqpMsbConsumer(Channel channel, ExecutorService consumerThreadPool, RawMessageHandler msgHandler) {
+    public AmqpMessageConsumer(Channel channel, ExecutorService consumerThreadPool, RawMessageHandler msgHandler) {
         super(channel);
         this.consumerThreadPool = consumerThreadPool;
         this.msgHandler = msgHandler;
@@ -42,18 +41,8 @@ public class AmqpMsbConsumer extends DefaultConsumer {
         try {
             String bodyStr = new String(body);
             LOG.debug(String.format("[consumer tag: %s] Message consumed from broker: %s", consumerTag, bodyStr));
-
-            consumerThreadPool.submit(() -> {
-                LOG.debug(String.format("[consumer tag: %s] Starting message processing: %s", consumerTag, bodyStr));
-                msgHandler.onMessage(bodyStr);
-                LOG.debug(String.format("[consumer tag: %s] Message has been processed: %s. About to send AMQP ack...", consumerTag, bodyStr));
-                try {
-                    getChannel().basicAck(envelope.getDeliveryTag(), false);
-                    LOG.debug(String.format("[consumer tag: %s] AMQP ack has been sent for message: %s", consumerTag, bodyStr));
-                } catch (IOException e) {
-                    throw new ChannelException(String.format("[consumer tag: %s] Failed to ack message %s", consumerTag, bodyStr), e);
-                }
-            });
+            consumerThreadPool.submit(new AmqpMessageProcessingTask(consumerTag, bodyStr, getChannel(), envelope.getDeliveryTag(), msgHandler));
+            LOG.debug(String.format("[consumer tag: %s] Message has been put into processing pool: %s", consumerTag, bodyStr));
         } catch (Exception e) {
             // Catch all exceptions to prevent AMQP channel to be closed
             LOG.error(String.format("[consumer tag: %s] Got exception while processing incoming message", consumerTag), e);
