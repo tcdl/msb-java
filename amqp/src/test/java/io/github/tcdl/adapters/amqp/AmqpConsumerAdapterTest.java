@@ -127,7 +127,7 @@ public class AmqpConsumerAdapterTest {
     }
 
     private AmqpConsumerAdapter createAdapter(String topic, String groupId, boolean durable) {
-        AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(), groupId, durable, 5);
+        AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(), groupId, durable, 5, 20);
         return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, mockConsumerThreadPool);
     }
 }

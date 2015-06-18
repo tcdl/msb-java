@@ -39,19 +39,24 @@ public class AmqpMsbConsumer extends DefaultConsumer {
 
     @Override
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-        String bodyStr = new String(body);
-        LOG.debug(String.format("[consumer tag: %s] Message consumed from broker: %s", consumerTag, bodyStr));
+        try {
+            String bodyStr = new String(body);
+            LOG.debug(String.format("[consumer tag: %s] Message consumed from broker: %s", consumerTag, bodyStr));
 
-        consumerThreadPool.submit(() -> {
-            LOG.debug(String.format("[consumer tag: %s] Starting message processing: %s", consumerTag, bodyStr));
-            msgHandler.onMessage(bodyStr);
-            LOG.debug(String.format("[consumer tag: %s] Message has been processed: %s. About to send AMQP ack...", consumerTag, bodyStr));
-            try {
-                getChannel().basicAck(envelope.getDeliveryTag(), false);
-                LOG.debug(String.format("[consumer tag: %s] AMQP ack has been sent for message: %s", consumerTag, bodyStr));
-            } catch (IOException e) {
-                throw new ChannelException(String.format("[consumer tag: %s] Failed to ack message %s", consumerTag, bodyStr), e);
-            }
-        });
+            consumerThreadPool.submit(() -> {
+                LOG.debug(String.format("[consumer tag: %s] Starting message processing: %s", consumerTag, bodyStr));
+                msgHandler.onMessage(bodyStr);
+                LOG.debug(String.format("[consumer tag: %s] Message has been processed: %s. About to send AMQP ack...", consumerTag, bodyStr));
+                try {
+                    getChannel().basicAck(envelope.getDeliveryTag(), false);
+                    LOG.debug(String.format("[consumer tag: %s] AMQP ack has been sent for message: %s", consumerTag, bodyStr));
+                } catch (IOException e) {
+                    throw new ChannelException(String.format("[consumer tag: %s] Failed to ack message %s", consumerTag, bodyStr), e);
+                }
+            });
+        } catch (Exception e) {
+            // Catch all exceptions to prevent AMQP channel to be closed
+            LOG.error(String.format("[consumer tag: %s] Got exception while processing incoming message", consumerTag), e);
+        }
     }
 }

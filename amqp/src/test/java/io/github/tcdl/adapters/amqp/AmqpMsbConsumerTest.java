@@ -2,14 +2,18 @@ package io.github.tcdl.adapters.amqp;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 
 import static io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,5 +55,16 @@ public class AmqpMsbConsumerTest {
 
         verify(mockMessageHandler).onMessage(messageStr);
         verify(mockChannel).basicAck(deliveryTag, false);
+    }
+
+    @Test
+    public void testMessageCannotBeSubmittedForProcessing() throws IOException {
+        doThrow(new RejectedExecutionException()).when(mockExecutorService).submit(any(Runnable.class));
+
+        try {
+            amqpMsbConsumer.handleDelivery("consumer tag", mock(Envelope.class), null, "some message".getBytes());
+        } catch (Exception e) {
+            Assert.fail();
+        }
     }
 }

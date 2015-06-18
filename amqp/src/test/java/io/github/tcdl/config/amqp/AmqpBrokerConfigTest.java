@@ -23,8 +23,9 @@ public class AmqpBrokerConfigTest {
     final String password = "pwd";
     final String virtualHost = "127.10.10.10";
     final String groupId = "msb-java";
-    final boolean durable = Boolean.valueOf(false);
+    final boolean durable = false;
     final int consumerThreadPoolSize = 5;
+    final int consumerThreadPoolQueueCapacity = 20;
 
     @Test
     public void testBuildAmqpBrokerConfig() {
@@ -37,6 +38,7 @@ public class AmqpBrokerConfigTest {
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + "}";
 
         Config amqpConfig = ConfigFactory.parseString(configStr).getConfig("config.amqp");
@@ -48,6 +50,7 @@ public class AmqpBrokerConfigTest {
         assertEquals(brokerConfig.getGroupId(), groupId);
         assertEquals(brokerConfig.isDurable(), durable);
         assertEquals(brokerConfig.getConsumerThreadPoolSize(), consumerThreadPoolSize);
+        assertEquals(brokerConfig.getConsumerThreadPoolQueueCapacity(), consumerThreadPoolQueueCapacity);
 
         assertEquals(brokerConfig.getUsername().get(), username);
         assertEquals(brokerConfig.getPassword().get(), password);
@@ -62,6 +65,7 @@ public class AmqpBrokerConfigTest {
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + "}";
 
         Config amqpConfig = ConfigFactory.parseString(configStr).getConfig("config.amqp");
@@ -85,6 +89,7 @@ public class AmqpBrokerConfigTest {
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "host");
@@ -100,6 +105,7 @@ public class AmqpBrokerConfigTest {
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "port");
@@ -115,6 +121,7 @@ public class AmqpBrokerConfigTest {
                 + " virtualHost = \"" + virtualHost + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "groupId");
@@ -130,6 +137,7 @@ public class AmqpBrokerConfigTest {
                 + " virtualHost = \"" + virtualHost + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "durable");
@@ -145,9 +153,26 @@ public class AmqpBrokerConfigTest {
                 + " virtualHost = \"" + virtualHost + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "consumerThreadPoolSize");
+    }
+
+    @Test
+    public void testConsumerThreadPoolQueueCapacityConfigurationOption() {
+        String configStr = "config.amqp {"
+                + " host = \"" + host + "\"\n"
+                + " port = \"" + port + "\"\n"
+                + " username = \"" + username + "\"\n"
+                + " password = \"" + password + "\"\n"
+                + " virtualHost = \"" + virtualHost + "\"\n"
+                + " groupId = \"" + groupId + "\"\n"
+                + " durable = " + durable + "\n"
+                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + "}";
+
+        testMandatoryConfigurationOption(configStr, "consumerThreadPoolQueueCapacity");
     }
 
     private void testMandatoryConfigurationOption(String configStr, String path) {
@@ -158,7 +183,7 @@ public class AmqpBrokerConfigTest {
 
         } catch (ConfigurationException expected) {
             assertTrue(String.format("Exception message doesn't mention '%s'?!", path),
-                    expected.getMessage().indexOf(path) >= 0);
+                    expected.getMessage().contains(path));
         }
     }
 
