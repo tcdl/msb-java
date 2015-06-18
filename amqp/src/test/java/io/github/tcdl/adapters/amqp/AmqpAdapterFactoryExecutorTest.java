@@ -1,5 +1,7 @@
 package io.github.tcdl.adapters.amqp;
 
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.config.MsbConfigurations;
@@ -14,8 +16,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 public class AmqpAdapterFactoryExecutorTest {
+
+    private static class MockAdapterFactory extends AmqpAdapterFactory {
+        @Override
+        protected Connection createConnection(ConnectionFactory connectionFactory) {
+            return mock(Connection.class);
+        }
+    }
 
     @Test
     public void testCreateConsumerThreadPoolBoundedQueue() {
@@ -29,7 +39,7 @@ public class AmqpAdapterFactoryExecutorTest {
         Config msbConfig = ConfigFactory.parseString(configStr);
         MsbConfigurations msbConfigurations = new MsbConfigurations(msbConfig);
 
-        AmqpAdapterFactory adapterFactory = new AmqpAdapterFactory();
+        AmqpAdapterFactory adapterFactory = new MockAdapterFactory();
         adapterFactory.init(msbConfigurations);
         ExecutorService consumerThreadPool = adapterFactory.createConsumerThreadPool(adapterFactory.getAmqpBrokerConfig());
 
@@ -54,7 +64,7 @@ public class AmqpAdapterFactoryExecutorTest {
         Config msbConfig = ConfigFactory.parseString(configStr);
         MsbConfigurations msbConfigurations = new MsbConfigurations(msbConfig);
 
-        AmqpAdapterFactory adapterFactory = new AmqpAdapterFactory();
+        AmqpAdapterFactory adapterFactory = new MockAdapterFactory();
         adapterFactory.init(msbConfigurations);
         ExecutorService consumerThreadPool = adapterFactory.createConsumerThreadPool(adapterFactory.getAmqpBrokerConfig());
 

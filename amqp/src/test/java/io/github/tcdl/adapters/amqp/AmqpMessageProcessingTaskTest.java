@@ -12,6 +12,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class AmqpMessageProcessingTaskTest {
 
@@ -44,6 +45,8 @@ public class AmqpMessageProcessingTaskTest {
 
         try {
             task.run();
+            // Verify that AMQP ack has not been sent
+            verifyNoMoreInteractions(mockChannel);
         } catch (Exception e) {
             fail();
         }
