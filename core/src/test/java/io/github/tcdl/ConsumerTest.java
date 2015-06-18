@@ -180,8 +180,7 @@ public class ConsumerTest {
         MsbConfigurations msbConf = new MsbConfigurations(ConfigFactory.load());
         Clock clock = Clock.systemDefaultZone();
 
-        Topics topic = new Topics.TopicsBuilder().setTo(topicTo)
-                .setResponse(topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
+        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessage.MetaMessageBuilder metaBuilder = new MetaMessage.MetaMessageBuilder(0, clock.instant(), msbConf.getServiceDetails(), clock);
         return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMetaBuilder(metaBuilder)
                 .build();
