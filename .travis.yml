@@ -1,9 +1,13 @@
 language: java
 jdk:
 - oraclejdk8
+services:
+  - rabbitmq
 # Explicitly mute "install" step. Perform all operations in the following "script" step.
 install: ""
-script: "mvn clean deploy --settings settings.xml -B -V"
+script:
+  - mvn clean deploy --settings settings.xml -B -V
+  - mvn -Dtest=io.github.tcdl.examples.* -DfailIfNoTests=false test
 after_success:
   - mvn clean test jacoco:report coveralls:report
 env:
