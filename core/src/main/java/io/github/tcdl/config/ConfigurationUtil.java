@@ -7,8 +7,7 @@ import java.util.Optional;
 import com.typesafe.config.Config;
 
 /**
- * ConfigurationUtil class provides a set of methods for convertation of configuration properties.
- * 
+ * {@link ConfigurationUtil} class provides a set of methods for managing configuration properties. *
  */
 public class ConfigurationUtil {
 

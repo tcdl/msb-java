@@ -13,30 +13,10 @@ public final class Topics {
     private final String response;
 
     @JsonCreator
-    private Topics(@JsonProperty("to") String to, @JsonProperty("response") String response) {
+    public Topics(@JsonProperty("to") String to, @JsonProperty("response") String response) {
         Validate.notNull(to, "the 'to' must not be null");
         this.to = to;
         this.response = response;
-    }
-
-    public static class TopicsBuilder {
-
-        private String to;
-        private String response;
-
-        public TopicsBuilder setTo(String to) {
-            this.to = to;
-            return this;
-        }
-
-        public TopicsBuilder setResponse(String response) {
-            this.response = response;
-            return this;
-        }
-
-        public Topics build() {
-            return new Topics(to, response);
-        }
     }
 
     public String getTo() {

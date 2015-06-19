@@ -11,6 +11,8 @@ public interface ProducerAdapter {
 
     /**
      * Publishes the message to the associated topic
+     *
+     * @param jsonMessage message to publish in JSON format
      */
     void publish(String jsonMessage);
 }

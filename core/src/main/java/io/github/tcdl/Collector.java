@@ -21,11 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
+ *
  * Created by rdro on 4/23/2015.
  */
 public class Collector implements Consumer.Subscriber {
 
-    public static final Logger LOG = LoggerFactory.getLogger(Collector.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
     private ChannelManager channelManager;
     private List<Message> ackMessages;

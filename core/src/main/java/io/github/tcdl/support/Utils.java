@@ -21,17 +21,15 @@ import java.util.regex.Pattern;
  */
 public class Utils {
 
-    public static final Logger LOG = LoggerFactory.getLogger(Utils.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
     public static final String TOPIC_ANNOUNCE = "_channels:announce";
     public static final String TOPIC_HEARTBEAT = "_channels:heartbeat";
 
-    private final static Pattern VALID_TOPIC_REGEXP = Pattern.compile("^_?([a-z0-9\\-]+\\:)+([a-z0-9\\-]+)$");
-
-    private final static JsonValidator JSON_VALIDATOR = new JsonValidator();
+    private static final Pattern VALID_TOPIC_REGEXP = Pattern.compile("^_?([a-z0-9\\-]+\\:)+([a-z0-9\\-]+)$");
 
     public static String generateId() {
-        return UUID.randomUUID().toString();// TODO
+        return UUID.randomUUID().toString();
     }
 
     public static String validateTopic(String topic) {

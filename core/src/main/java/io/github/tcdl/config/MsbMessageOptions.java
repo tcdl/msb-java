@@ -23,7 +23,7 @@ public class MsbMessageOptions {
         return responseTimeout;
     }
 
-    public int getWaitForResponses() {
+    public Integer getWaitForResponses() {
         if (waitForResponses == null || waitForResponses == -1) {
             return 0;
         }

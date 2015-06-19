@@ -20,7 +20,8 @@ import org.slf4j.LoggerFactory;
  */
 public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
 
-    public static final Logger LOG = LoggerFactory.getLogger(MockAdapter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MockAdapter.class);
+    private static final int CONSUMING_INTERVAL = 20;
 
     static Map<String, Queue<String>> messageMap = new ConcurrentHashMap<>();
 
@@ -54,7 +55,7 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
                     messageHandler.onMessage(jsonMessage);
                 } else {
                     try {
-                        Thread.sleep(20);
+                        Thread.sleep(CONSUMING_INTERVAL);
                     } catch (Exception e) {
                         LOG.debug("Finish listen for subscribed topic");
                     }

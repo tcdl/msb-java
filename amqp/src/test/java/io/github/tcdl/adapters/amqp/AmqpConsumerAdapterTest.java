@@ -3,9 +3,7 @@ package io.github.tcdl.adapters.amqp;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Consumer;
-
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -16,7 +14,6 @@ import java.util.concurrent.ExecutorService;
 
 import static io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
@@ -103,11 +100,10 @@ public class AmqpConsumerAdapterTest {
         adapter.subscribe(mockHandler);
 
         // verify that AMQP handler has been registered
-        ArgumentCaptor<Consumer> amqpConsumerCaptor = ArgumentCaptor.forClass(Consumer.class);
+        ArgumentCaptor<AmqpMessageConsumer> amqpConsumerCaptor = ArgumentCaptor.forClass(AmqpMessageConsumer.class);
         verify(mockChannel).basicConsume(eq("myTopic.myGroupId.t"), eq(false) /* autoAck */, amqpConsumerCaptor.capture());
 
-        assertTrue(amqpConsumerCaptor.getValue() instanceof AmqpMsbConsumer);
-        AmqpMsbConsumer consumer = (AmqpMsbConsumer) amqpConsumerCaptor.getValue();
+        AmqpMessageConsumer consumer = amqpConsumerCaptor.getValue();
         assertEquals(mockChannel, consumer.getChannel());
         assertEquals(mockConsumerThreadPool, consumer.consumerThreadPool);
         assertEquals(mockHandler, consumer.msgHandler);
@@ -127,7 +123,7 @@ public class AmqpConsumerAdapterTest {
     }
 
     private AmqpConsumerAdapter createAdapter(String topic, String groupId, boolean durable) {
-        AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(), groupId, durable, 5);
+        AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(), groupId, durable, 5, 20);
         return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, mockConsumerThreadPool);
     }
 }

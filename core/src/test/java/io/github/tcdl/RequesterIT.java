@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  */
 public class RequesterIT {
 
-    public static final Logger LOG = LoggerFactory.getLogger(RequesterIT.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RequesterIT.class);
 
     private MsbMessageOptions messageOptions;
     private MsbContext msbContext;

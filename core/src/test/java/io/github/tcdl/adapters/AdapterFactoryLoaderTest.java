@@ -21,7 +21,7 @@ public class AdapterFactoryLoaderTest {
 
     @Test
     public void testCreatedMockAdapterByEmptyFactoryClassName(){
-        String configStr = "msbConfig {}";
+        String configStr = "msbConfig {timerThreadPoolSize:1}";
         Config config = ConfigFactory.parseString(configStr);
         MsbConfigurations msbConfig = new MsbConfigurations(config);
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);
@@ -31,7 +31,7 @@ public class AdapterFactoryLoaderTest {
     
     @Test
     public void testCreatedMockAdapterByFactoryClassName(){
-        String configStr = "msbConfig {brokerAdapterFactory = \"io.github.tcdl.adapters.mock.MockAdapterFactory\"}";
+        String configStr = "msbConfig {brokerAdapterFactory = \"io.github.tcdl.adapters.mock.MockAdapterFactory\", timerThreadPoolSize:1}";
         Config config = ConfigFactory.parseString(configStr);
         MsbConfigurations msbConfig = new MsbConfigurations(config);
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);
@@ -43,7 +43,7 @@ public class AdapterFactoryLoaderTest {
     public void testThrowExceptionByNonexistentFactoryClassName(){
         //Define Nonexistent AdapterFactory class name
         String nonexistentAdapterFactoryClassName = "io.github.tcdl.adapters.NonexistentAdapterFactory";
-        String configStr = "msbConfig {brokerAdapterFactory = \"" + nonexistentAdapterFactoryClassName + "\"}";
+        String configStr = "msbConfig {brokerAdapterFactory = \"" + nonexistentAdapterFactoryClassName + "\", timerThreadPoolSize:1}";
         
         Config config = ConfigFactory.parseString(configStr);
         MsbConfigurations msbConfig = new MsbConfigurations(config);
@@ -61,7 +61,7 @@ public class AdapterFactoryLoaderTest {
     public void testThrowExceptionByIncorrectAdapterFactoryConstructor(){
         //Define AdapterFactory class name with a class without default constructor
         String adapterFactoryClassNameWithoutDefaultConstructor = "java.lang.Integer";
-        String configStr = "msbConfig {brokerAdapterFactory = \"" + adapterFactoryClassNameWithoutDefaultConstructor + "\"}";
+        String configStr = "msbConfig {brokerAdapterFactory = \"" + adapterFactoryClassNameWithoutDefaultConstructor + "\", timerThreadPoolSize:1}";
         Config config = ConfigFactory.parseString(configStr);
         MsbConfigurations msbConfig = new MsbConfigurations(config);
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);
@@ -78,7 +78,7 @@ public class AdapterFactoryLoaderTest {
     public void testThrowExceptionByIncorrectAdapterFactoryInterfaceImplementation(){
         //Define AdapterFactory class name with a class that doesn't implement AdapterFactory interface
         String incorrectAdapterFactoryImplementationClassName = "java.leng.StringBuilder";
-        String configStr = "msbConfig {brokerAdapterFactory = \"" + incorrectAdapterFactoryImplementationClassName + "\"}";
+        String configStr = "msbConfig {brokerAdapterFactory = \"" + incorrectAdapterFactoryImplementationClassName + "\", timerThreadPoolSize:1}";
         Config config = ConfigFactory.parseString(configStr);
         MsbConfigurations msbConfig = new MsbConfigurations(config);
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);

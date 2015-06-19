@@ -29,14 +29,14 @@ public class MessageFactory {
 
     public MessageBuilder createRequestMessageBuilder(MsbMessageOptions config, Message originalMessage) {
         MessageBuilder messageBuilder = createMessageBuilderWithMeta(config, originalMessage);
-        Topics topic = new Topics.TopicsBuilder().setTo(config.getNamespace())
-                .setResponse(config.getNamespace() + ":response:" + this.serviceDetails.getInstanceId()).build();
+        Topics topic = new Topics(config.getNamespace(), config.getNamespace() + ":response:" +
+                this.serviceDetails.getInstanceId());
         return messageBuilder.setTopics(topic);
     }
 
     public MessageBuilder createResponseMessageBuilder(MsbMessageOptions config, Message originalMessage) {
         MessageBuilder messageBuilder = createMessageBuilderWithMeta(config, originalMessage);
-        Topics topic = new Topics.TopicsBuilder().setTo(originalMessage.getTopics().getResponse()).build();
+        Topics topic = new Topics(originalMessage.getTopics().getResponse(), null);
         return messageBuilder.setTopics(topic);
     }
 
@@ -73,7 +73,7 @@ public class MessageFactory {
         MetaMessageBuilder metaBuilder = createMetaBuilder(config);
         messageBuilder.setMetaBuilder(metaBuilder);
 
-        Topics topics = new Topics.TopicsBuilder().setTo(topicTo).build();
+        Topics topics = new Topics(topicTo, null);
         messageBuilder.setTopics(topics);
         messageBuilder.setPayload(payload);
 

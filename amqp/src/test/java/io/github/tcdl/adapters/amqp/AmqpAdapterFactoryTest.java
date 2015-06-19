@@ -34,12 +34,12 @@ public class AmqpAdapterFactoryTest {
     final String password = "pwd";
     final String virtualHost = "127.10.10.10"; 
     final String groupId = "msb-java";
-    final boolean durable = Boolean.valueOf(false);
+    final boolean durable = false;
     final int consumerThreadPoolSize = 5;
+    final int consumerThreadPoolQueueCapacity = 20;
     
     AmqpBrokerConfig amqpConfig;
-    AmqpConnectionManager amqpConnectionManager;
-    AmqpAdapterFactory amqpAdapterFactory; 
+    AmqpAdapterFactory amqpAdapterFactory;
     AmqpConnectionManager mockConnectionManager;
     ConnectionFactory mockConnectionFactory;
     Connection mockConnection;
@@ -49,7 +49,7 @@ public class AmqpAdapterFactoryTest {
     @Before
     public void setUp() {
         
-        String configStr = "msbConfig {}";
+        String configStr = "msbConfig {timerThreadPoolSize:1}";
         Config msbConfig = ConfigFactory.parseString(configStr);
         msbConfigurations = new MsbConfigurations(msbConfig); 
 
@@ -66,7 +66,7 @@ public class AmqpAdapterFactoryTest {
         }
         
         amqpConfig = new AmqpBrokerConfig(host, port, 
-                Optional.of(username), Optional.of(password), Optional.of(virtualHost), groupId, durable, consumerThreadPoolSize);
+                Optional.of(username), Optional.of(password), Optional.of(virtualHost), groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
         
         amqpAdapterFactory = new AmqpAdapterFactory() {
             @Override
