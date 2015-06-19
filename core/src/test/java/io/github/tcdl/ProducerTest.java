@@ -98,8 +98,7 @@ public class ProducerTest {
         MsbConfigurations msbConf = new MsbConfigurations(ConfigFactory.load());
         Clock clock = Clock.systemDefaultZone();
 
-        Topics topic = new Topics.TopicsBuilder().setTo(topicTo)
-                .setResponse(topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId()).build();
+        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         Map<String, String> body = new HashMap<String, String>();
         body.put("body", "{\\\"x\\\" : 3} garbage");
         Payload payload = new Payload.PayloadBuilder().setBody(body).build();
