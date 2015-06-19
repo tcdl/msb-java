@@ -31,36 +31,36 @@ public class MessageFactory {
         MessageBuilder messageBuilder = createMessageBuilderWithMeta(config, originalMessage);
         Topics topic = new Topics(config.getNamespace(), config.getNamespace() + ":response:" +
                 this.serviceDetails.getInstanceId());
-        return messageBuilder.setTopics(topic);
+        return messageBuilder.withTopics(topic);
     }
 
     public MessageBuilder createResponseMessageBuilder(MsbMessageOptions config, Message originalMessage) {
         MessageBuilder messageBuilder = createMessageBuilderWithMeta(config, originalMessage);
         Topics topic = new Topics(originalMessage.getTopics().getResponse(), null);
-        return messageBuilder.setTopics(topic);
+        return messageBuilder.withTopics(topic);
     }
 
     private MessageBuilder createMessageBuilderWithMeta(MsbMessageOptions config, Message originalMessage) {
         MessageBuilder messageBuilder = createBaseMessage(originalMessage);
         MetaMessageBuilder metaBuilder = createMetaBuilder(config);
-        return messageBuilder.setMetaBuilder(metaBuilder);
+        return messageBuilder.withMetaBuilder(metaBuilder);
     }
 
     public Message createRequestMessage(MessageBuilder messageBuilder, Payload payload) {
         if (payload != null) {
-            messageBuilder.setPayload(payload);
+            messageBuilder.withPayload(payload);
         }
         return messageBuilder.build();
     }
 
     public Message createResponseMessage(MessageBuilder messageBuilder, Acknowledge ack, Payload payload) {
-        messageBuilder.setPayload(payload);
-        messageBuilder.setAck(ack);
+        messageBuilder.withPayload(payload);
+        messageBuilder.withAck(ack);
         return messageBuilder.build();
     }
 
     public AcknowledgeBuilder createAckBuilder() {
-        return new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId());
+        return new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId());
     }
 
     public MetaMessageBuilder createMetaBuilder(MsbMessageOptions config) {
@@ -71,11 +71,11 @@ public class MessageFactory {
     public MessageBuilder createBroadcastMessageBuilder(MsbMessageOptions config, String topicTo, Payload payload) {
         MessageBuilder messageBuilder = createBaseMessage(null);
         MetaMessageBuilder metaBuilder = createMetaBuilder(config);
-        messageBuilder.setMetaBuilder(metaBuilder);
+        messageBuilder.withMetaBuilder(metaBuilder);
 
         Topics topics = new Topics(topicTo, null);
-        messageBuilder.setTopics(topics);
-        messageBuilder.setPayload(payload);
+        messageBuilder.withTopics(topics);
+        messageBuilder.withPayload(payload);
 
         return messageBuilder;
     }
@@ -83,7 +83,7 @@ public class MessageFactory {
     private MessageBuilder createBaseMessage(@Nullable Message originalMessage) {
         MessageBuilder baseMessage = new Message.MessageBuilder()
                 .setId(Utils.generateId())
-                .setCorrelationId(
+                .withCorrelationId(
                         originalMessage != null && originalMessage.getCorrelationId() != null ? originalMessage
                                 .getCorrelationId() : Utils.generateId());
 

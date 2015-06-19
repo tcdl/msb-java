@@ -100,7 +100,7 @@ public class MessageFactoryTest {
     public void testCreateResponseMessageWithPayloadAndAck() {
         MessageBuilder responseMesageBuilder = TestUtils.createMesageBuilder();
         Payload responsePayload = TestUtils.createSimpleResponsePayload();
-        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(3).setTimeoutMs(100).build();
+        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(3).withTimeoutMs(100).build();
 
         Message message = messageFactory.createResponseMessage(responseMesageBuilder, ack, responsePayload);
 

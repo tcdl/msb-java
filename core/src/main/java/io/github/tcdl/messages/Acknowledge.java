@@ -28,29 +28,21 @@ public final class Acknowledge {
         private Integer responsesRemaining;
         private Integer timeoutMs;
 
-        public AcknowledgeBuilder setResponderId(String responderId) {
+        public AcknowledgeBuilder withResponderId(String responderId) {
             this.responderId = responderId;
             return this;
         }
 
-        public AcknowledgeBuilder setResponsesRemaining(Integer responsesRemaining) {
+        public AcknowledgeBuilder withResponsesRemaining(Integer responsesRemaining) {
             this.responsesRemaining = responsesRemaining;
             return this;
         }
 
-        public AcknowledgeBuilder setTimeoutMs(Integer timeoutMs) {
+        public AcknowledgeBuilder withTimeoutMs(Integer timeoutMs) {
             this.timeoutMs = timeoutMs;
             return this;
         }
-
-        public Integer getResponsesRemaining() {
-            return responsesRemaining;
-        }
-
-        public Integer getTimeoutMs() {
-            return timeoutMs;
-        }
-
+        
         public Acknowledge build() {
             return new Acknowledge(responderId, responsesRemaining, timeoutMs);
         }

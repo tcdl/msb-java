@@ -53,12 +53,12 @@ public class TestUtils {
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMetaBuilder(metaBuilder)
-                .setPayload(createSimpleRequestPayload()).build();
+        return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
+                .withPayload(createSimpleRequestPayload()).build();
     }
 
     public static Message createMsbRequestMessageWithAckNoPayloadAndTopicTo(String topicTo) {
-        Acknowledge simpleAck = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).build();
+        Acknowledge simpleAck = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).build();
         return createMsbRequestMessageWithAckNoPayloadAndTopicTo(simpleAck, topicTo, Utils.generateId());
     }
 
@@ -68,8 +68,9 @@ public class TestUtils {
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.MessageBuilder().setCorrelationId(Utils.ifNull(correlationId, Utils.generateId())).setId(Utils.generateId()).setTopics(topic).setMetaBuilder(metaBuilder)
-                .setPayload(null).setAck(ack).build();
+        return new Message.MessageBuilder().withCorrelationId(Utils.ifNull(correlationId, Utils.generateId())).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(
+                metaBuilder)
+                .withPayload(null).withAck(ack).build();
     }
 
     public static Message createMsbRequestMessageNoPayload() {
@@ -81,8 +82,8 @@ public class TestUtils {
                 msbConf.getServiceDetails().getInstanceId());
 
         MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMetaBuilder(metaBuilder)
-                .setPayload(null).build();
+        return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
+                .withPayload(null).build();
     }
 
     public static Message createMsbResponseMessage() {
@@ -93,8 +94,8 @@ public class TestUtils {
         Topics topic = new Topics(conf.getNamespace(), conf.getNamespace() + ":response:" +
                 msbConf.getServiceDetails().getInstanceId());
         MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic)
-                .setMetaBuilder(metaBuilder).setPayload(createSimpleResponsePayload()).build();
+        return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic)
+                .withMetaBuilder(metaBuilder).withPayload(createSimpleResponsePayload()).build();
     }
 
     public static MessageBuilder createMesageBuilder() {
@@ -103,7 +104,7 @@ public class TestUtils {
 
         Topics topic = new Topics("", "");
         MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMetaBuilder(metaBuilder);
+        return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder);
     }
 
     public static MsbConfigurations createMsbConfigurations() {

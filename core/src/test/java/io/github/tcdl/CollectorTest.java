@@ -366,7 +366,7 @@ public class CollectorTest {
         Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
-        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(0).setTimeoutMs(timeoutMs).build();
+        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMs).build();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ack, TOPIC, requestMessage.getCorrelationId());
 
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
@@ -394,7 +394,7 @@ public class CollectorTest {
         Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
-        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(0).setTimeoutMs(timeoutMsInAck).build();
+        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMsInAck).build();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ack, TOPIC, requestMessage.getCorrelationId());
 
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
@@ -423,8 +423,8 @@ public class CollectorTest {
         Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
-        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(responsesRemaining)
-                .setTimeoutMs(timeoutMsInAck).build();
+        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemaining)
+                .withTimeoutMs(timeoutMsInAck).build();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ack, TOPIC, requestMessage.getCorrelationId());
 
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
@@ -455,12 +455,12 @@ public class CollectorTest {
         Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
-        Acknowledge ackRespOne = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(responsesRemainingResponderOne)
-                .setTimeoutMs(timeoutMsInAckResponderOne).build();
+        Acknowledge ackRespOne = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemainingResponderOne)
+                .withTimeoutMs(timeoutMsInAckResponderOne).build();
         Message messageWithAckOne = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ackRespOne, TOPIC, requestMessage.getCorrelationId());
 
-        Acknowledge ackRespTwo = new Acknowledge.AcknowledgeBuilder().setResponderId(Utils.generateId()).setResponsesRemaining(responsesRemainingResponderTwo)
-                .setTimeoutMs(timeoutMsInAckResponderTwo).build();
+        Acknowledge ackRespTwo = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemainingResponderTwo)
+                .withTimeoutMs(timeoutMsInAckResponderTwo).build();
         Message messageWithAckTwo = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ackRespTwo, TOPIC, requestMessage.getCorrelationId());
 
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);

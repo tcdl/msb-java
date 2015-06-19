@@ -29,28 +29,6 @@ public class ConfigurationUtilTest {
     private Config config;
 
     @Test
-    public void testGetBooleanExists() {
-        String param = "parameter.boolean";
-        when(config.hasPath(param)).thenReturn(true);
-
-        ConfigurationUtil.getBoolean(config, param, true);
-        verify(config).getBoolean(eq(param));
-    }
-
-    @Test
-    public void testGetBooleanNotExists() {
-        String param = "parameter.boolean";
-        Boolean fallback = true;
-
-        when(config.hasPath(param)).thenReturn(false);
-
-        Boolean value = ConfigurationUtil.getBoolean(config, param, fallback);
-
-        verify(config, never()).getBoolean(eq(param));
-        assertEquals(fallback, value);
-    }
-
-    @Test
     public void testGetMandatoryBooleanExists() {
         String param = "parameter.boolean";
         when(config.hasPath(param)).thenReturn(true);
@@ -89,30 +67,6 @@ public class ConfigurationUtilTest {
 
         verify(config, never()).getBoolean(eq(param));
         assertFalse(value.isPresent());
-    }
-
-    @Test
-    public void testGetStringExists() {
-        String param = "parameter.string";
-        String fallback = "if-empty";
-
-        when(config.hasPath(param)).thenReturn(true);
-
-        ConfigurationUtil.getString(config, param, fallback);
-        verify(config).getString(eq(param));
-    }
-
-    @Test
-    public void testGetStringNotExists() {
-        String param = "parameter.string";
-        String fallback = "if-empty";
-
-        when(config.hasPath(param)).thenReturn(false);
-
-        String value = ConfigurationUtil.getString(config, param, fallback);
-
-        verify(config, never()).getString(eq(param));
-        assertEquals(fallback, value);
     }
 
     @Test
@@ -158,31 +112,6 @@ public class ConfigurationUtilTest {
     }
 
     @Test
-    public void testGetIntegerExists() {
-        String param = "parameter.integer";
-        Integer fallback = 0;
-
-        when(config.hasPath(param)).thenReturn(true);
-
-        ConfigurationUtil.getInt(config, param, fallback);
-
-        verify(config).getInt(eq(param));
-    }
-
-    @Test
-    public void testGetIntegerNotExists() {
-        String param = "parameter.integer";
-        Integer fallback = 0;
-
-        when(config.hasPath(param)).thenReturn(true);
-
-        Integer value = ConfigurationUtil.getInt(config, param, fallback);
-
-        verify(config).getInt(eq(param));
-        assertEquals(fallback, value);
-    }
-    
-    @Test
     public void testGetMandatoryIntegerExists() {
         String param = "parameter.integer";
 
@@ -201,6 +130,5 @@ public class ConfigurationUtilTest {
 
         ConfigurationUtil.getInt(config, param);
     }
-
 
 }
