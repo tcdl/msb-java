@@ -54,6 +54,11 @@ public class ResponderServerTest {
         verify(spyResponderServer).onResponder(anyObject());
     }
 
+    @Test(expected = NullPointerException.class)
+    public void testResponderServerProcessErrorNoHandler() throws Exception {
+        ResponderServer.create(messageOptions, msbContext, null);
+    }
+
     @Test
     public void testResponderServerProcessWithError() throws Exception {
 

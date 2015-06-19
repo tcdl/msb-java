@@ -212,7 +212,7 @@ public class RequesterResponderIT {
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
         Random randomAckValue = new Random();
         randomAckValue.ints();
-        ResponderServer.create(messageOptions, serverMsbContext,(request, response) -> {
+        ResponderServer.create(messageOptions, serverMsbContext, (request, response) -> {
                     response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
                     sentAcks.add(response.getResponseMessage());
                     ackSend.countDown();
