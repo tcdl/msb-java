@@ -19,7 +19,7 @@ import com.typesafe.config.ConfigFactory;
  */
 public class AdapterFactoryLoaderTest {
 
-    private String basicConfigWithoutAdapterFactory = "msbConfig { %s timerThreadPoolSize = 1,"
+    private String basicConfigWithoutAdapterFactory = "msbConfig { %s timerThreadPoolSize = 1, validateMessage = true, "
             + " serviceDetails = {name = \"test_msb\", version = \"1.0.1\", instanceId = \"msbd06a-ed59-4a39-9f95-811c5fb6ab87\"} }";
     
     @Test
