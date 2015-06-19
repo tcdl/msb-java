@@ -1,6 +1,5 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.MsbContext;
 import io.github.tcdl.Requester;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
@@ -13,8 +12,6 @@ import java.util.concurrent.Future;
  * Created by anstr on 6/9/2015.
  */
 public class MultipleRequesterResponder extends BaseExample {
-    private MsbContext msbContext;
-
     private String responderNamespace;
     private String requesterNamespace1;
     private String requesterNamespace2;

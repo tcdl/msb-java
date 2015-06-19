@@ -70,4 +70,8 @@ public class TimeoutManager {
                 .build();
         return Executors.newScheduledThreadPool(threadPoolSize, threadFactory);
     }
+
+    public void shutdown() {
+        scheduledThreadPool.shutdown();
+    }
 }

@@ -28,7 +28,7 @@ public class MockAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         // No-op
     }
 }

@@ -19,7 +19,9 @@ import java.util.Map;
  */
 public class BaseExample {
 
-    private MsbContext context = new MsbContext.MsbContextBuilder().build();
+    private MsbContext context = new MsbContext.MsbContextBuilder().
+            withShutdownHook(true).
+            build();
 
     public Requester createRequester(String namespace, Integer numberOfResponses) {
         return createRequester(namespace, numberOfResponses, null, null);
@@ -84,8 +86,8 @@ public class BaseExample {
         Thread.sleep(timeout);
     }
 
-    public void shutDown() {
-        context.getChannelManager().getAdapterFactory().close();
+    public void shutdown() {
+        context.shutdown();
     }
 
     public Payload createPayloadWithBodyText(String text) {

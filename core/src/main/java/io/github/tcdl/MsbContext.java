@@ -5,6 +5,8 @@ import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.support.JsonValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 
@@ -14,6 +16,8 @@ import java.time.Clock;
  * Created by rdro on 5/27/2015.
  */
 public class MsbContext {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MsbContext.class);
 
     private MsbConfigurations msbConfig;
     private MessageFactory messageFactory;
@@ -27,6 +31,10 @@ public class MsbContext {
         this.channelManager = channelManager;
         this.clock = clock;
         this.timeoutManager = timeoutManager;
+    }
+
+    public void shutdown() {
+        channelManager.shutdown();
     }
 
     public MsbConfigurations getMsbConfig() {
@@ -66,6 +74,13 @@ public class MsbContext {
     }
 
     public static class MsbContextBuilder {
+        private boolean withShutdownHook;
+
+        public MsbContextBuilder withShutdownHook(boolean withShutdownHook) {
+            this.withShutdownHook = withShutdownHook;
+            return this;
+        }
+
         public MsbContext build() {
             Clock clock = Clock.systemDefaultZone();
             Config config = ConfigFactory.load();
@@ -75,7 +90,21 @@ public class MsbContext {
             MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);
             TimeoutManager timeoutManager = new TimeoutManager(msbConfig.getTimerThreadPoolSize());
 
-            return new MsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+            MsbContext msbContext = new MsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+
+            if (withShutdownHook) {
+                Runtime.getRuntime().addShutdownHook(new Thread("MSB shutdown hook") {
+                    @Override
+                    public void run() {
+                        LOG.info("Invoking shutdown hook...");
+                        timeoutManager.shutdown();
+                        msbContext.shutdown();
+                        LOG.info("Shutdown hook has been invoked.");
+                    }
+                });
+            }
+
+            return msbContext;
         }
     }
 }

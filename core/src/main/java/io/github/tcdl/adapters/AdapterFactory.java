@@ -27,6 +27,6 @@ public interface AdapterFactory {
     /**
      * Closes all resources used by amqp producers and consumers. Should be called for graceful shutdown.
      */
-    void close();
+    void shutdown();
 
 }

@@ -49,15 +49,6 @@ public class AmqpAdapterFactory implements AdapterFactory {
         Connection connection = createConnection(connectionFactory);
         connectionManager = createConnectionManager(connection);        
         consumerThreadPool = createConsumerThreadPool(amqpBrokerConfig);
-
-        Runtime.getRuntime().addShutdownHook(new Thread("AMQP adapter shutdown hook") {
-            @Override
-            public void run() {
-                LOG.info("Invoking shutdown hook...");
-                close();
-                LOG.info("Shutdown hook has been invoked.");
-            }
-        });
     }
 
     protected AmqpBrokerConfig createAmqpBrokerConfig(MsbConfigurations msbConfig) {
@@ -131,7 +122,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public void close() {
+    public void shutdown() {
         LOG.info("Shutting down consumer thread pool...");
         consumerThreadPool.shutdown();
         try {
