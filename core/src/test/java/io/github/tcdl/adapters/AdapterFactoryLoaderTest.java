@@ -19,19 +19,12 @@ import com.typesafe.config.ConfigFactory;
  */
 public class AdapterFactoryLoaderTest {
 
-    @Test
-    public void testCreatedMockAdapterByEmptyFactoryClassName(){
-        String configStr = "msbConfig {timerThreadPoolSize:1}";
-        Config config = ConfigFactory.parseString(configStr);
-        MsbConfigurations msbConfig = new MsbConfigurations(config);
-        AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);
-        AdapterFactory adapterFactory = loader.getAdapterFactory();
-        assertThat(adapterFactory, instanceOf(MockAdapterFactory.class));
-    }
+    private String basicConfigWithoutAdapterFactory = "msbConfig { %s timerThreadPoolSize = 1, validateMessage = true, "
+            + " serviceDetails = {name = \"test_msb\", version = \"1.0.1\", instanceId = \"msbd06a-ed59-4a39-9f95-811c5fb6ab87\"} }";
     
     @Test
     public void testCreatedMockAdapterByFactoryClassName(){
-        String configStr = "msbConfig {brokerAdapterFactory = \"io.github.tcdl.adapters.mock.MockAdapterFactory\", timerThreadPoolSize:1}";
+        String configStr = String.format(basicConfigWithoutAdapterFactory, "brokerAdapterFactory = \"io.github.tcdl.adapters.mock.MockAdapterFactory\",");
         Config config = ConfigFactory.parseString(configStr);
         MsbConfigurations msbConfig = new MsbConfigurations(config);
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);
@@ -43,9 +36,8 @@ public class AdapterFactoryLoaderTest {
     public void testThrowExceptionByNonexistentFactoryClassName(){
         //Define Nonexistent AdapterFactory class name
         String nonexistentAdapterFactoryClassName = "io.github.tcdl.adapters.NonexistentAdapterFactory";
-        String configStr = "msbConfig {brokerAdapterFactory = \"" + nonexistentAdapterFactoryClassName + "\", timerThreadPoolSize:1}";
-        
-        Config config = ConfigFactory.parseString(configStr);
+        String configStr = String.format(basicConfigWithoutAdapterFactory, "brokerAdapterFactory = \"" + nonexistentAdapterFactoryClassName + "\", ");
+                Config config = ConfigFactory.parseString(configStr);
         MsbConfigurations msbConfig = new MsbConfigurations(config);
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);
         try {
@@ -61,7 +53,7 @@ public class AdapterFactoryLoaderTest {
     public void testThrowExceptionByIncorrectAdapterFactoryConstructor(){
         //Define AdapterFactory class name with a class without default constructor
         String adapterFactoryClassNameWithoutDefaultConstructor = "java.lang.Integer";
-        String configStr = "msbConfig {brokerAdapterFactory = \"" + adapterFactoryClassNameWithoutDefaultConstructor + "\", timerThreadPoolSize:1}";
+        String configStr = String.format(basicConfigWithoutAdapterFactory, "brokerAdapterFactory = \"" + adapterFactoryClassNameWithoutDefaultConstructor + "\", ");
         Config config = ConfigFactory.parseString(configStr);
         MsbConfigurations msbConfig = new MsbConfigurations(config);
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);
@@ -77,14 +69,14 @@ public class AdapterFactoryLoaderTest {
     @Test 
     public void testThrowExceptionByIncorrectAdapterFactoryInterfaceImplementation(){
         //Define AdapterFactory class name with a class that doesn't implement AdapterFactory interface
-        String incorrectAdapterFactoryImplementationClassName = "java.leng.StringBuilder";
-        String configStr = "msbConfig {brokerAdapterFactory = \"" + incorrectAdapterFactoryImplementationClassName + "\", timerThreadPoolSize:1}";
+        String incorrectAdapterFactoryImplementationClassName = "java.lang.StringBuilder";
+        String configStr = String.format(basicConfigWithoutAdapterFactory, "brokerAdapterFactory = \"" + incorrectAdapterFactoryImplementationClassName + "\", ");
         Config config = ConfigFactory.parseString(configStr);
         MsbConfigurations msbConfig = new MsbConfigurations(config);
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);
         try {
             loader.getAdapterFactory();
-            fail("Created an AdapterFactory by class that doesn't implement AdapterFActory interface!");
+            fail("Created an AdapterFactory by class that doesn't implement AdapterFactory interface!");
         } catch (RuntimeException expected) {
             assertTrue("Exception message doesn't mention" + incorrectAdapterFactoryImplementationClassName + "'?!",
                     expected.getMessage().indexOf(incorrectAdapterFactoryImplementationClassName) >= 0);

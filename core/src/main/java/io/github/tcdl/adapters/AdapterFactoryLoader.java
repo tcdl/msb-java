@@ -11,9 +11,9 @@ import io.github.tcdl.config.MsbConfigurations;
  * Broker AdapterFactory and Broker Adapter are located in the separate proper JAR.
  */
 public class AdapterFactoryLoader {
-    
+
     private final MsbConfigurations msbConfig;
-    
+
     public AdapterFactoryLoader(MsbConfigurations msbConfig) {
         this.msbConfig = msbConfig;
     }
@@ -37,6 +37,11 @@ public class AdapterFactoryLoader {
         } else {
             adapterFactory = new MockAdapterFactory();
         }
+
+        if (!(adapterFactory instanceof AdapterFactory)) {
+            throw new RuntimeException("Inconsistent Adapter Factory class: " + adapterFactoryClassName);
+        }
+
         ((AdapterFactory) adapterFactory).init(msbConfig);
         return (AdapterFactory) adapterFactory;
     }

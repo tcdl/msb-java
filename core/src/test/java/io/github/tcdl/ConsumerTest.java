@@ -27,8 +27,10 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -110,6 +112,25 @@ public class ConsumerTest {
     }
 
     @Test
+    public void testHandleRawMessageConsumeFromTopicSkipValidation() {
+        MsbConfigurations msbConf = spy(TestUtils.createMsbConfigurations());
+
+        // disable validation
+        when(msbConf.isValidateMessage()).thenReturn(false);
+
+        Consumer consumer = new Consumer(adapterMock, TOPIC, msbConf, clock, channelMonitorAgentMock, validator);
+        consumer.subscribe(subscriberMock);
+
+        // create a message with required empty namespace
+        Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo("");
+
+        consumer.handleRawMessage(Utils.toJson(message));
+
+        // should skip validation and process it
+        verify(subscriberMock).handleMessage(any(Message.class));
+    }
+
+    @Test
     public void testHandleRawMessageConsumeFromTopicValidateThrowException() {
         MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConf, clock, channelMonitorAgentMock, validator);
@@ -182,7 +203,7 @@ public class ConsumerTest {
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessage.MetaMessageBuilder metaBuilder = new MetaMessage.MetaMessageBuilder(0, clock.instant(), msbConf.getServiceDetails(), clock);
-        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMetaBuilder(metaBuilder)
+        return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
                 .build();
     }
 

@@ -48,8 +48,16 @@ public class AmqpAdapterFactoryTest {
     
     @Before
     public void setUp() {
-        
-        String configStr = "msbConfig {timerThreadPoolSize:1}";
+        String configStr = "msbConfig {"
+                + "  timerThreadPoolSize = 1\n"
+                + "  brokerAdapterFactory = \"io.github.tcdl.adapters.amqp.AmqpAdapterFactory\" \n"
+                + "  validateMessage = true\n"
+                + "  serviceDetails = {"
+                + "     name = \"test_msb\" \n"
+                + "     version = \"1.0.1\" \n"
+                + "     instanceId = \"msbd06a-ed59-4a39-9f95-811c5fb6ab87\" \n"
+                + "  } \n"
+                + "}";
         Config msbConfig = ConfigFactory.parseString(configStr);
         msbConfigurations = new MsbConfigurations(msbConfig); 
 

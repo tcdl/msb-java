@@ -1,16 +1,16 @@
 package io.github.tcdl.config;
 
-import static io.github.tcdl.config.ConfigurationUtil.getInt;
-import static io.github.tcdl.config.ConfigurationUtil.getString;
-
-import java.io.IOException;
-
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
+import java.io.IOException;
+
+import static io.github.tcdl.config.ConfigurationUtil.getBoolean;
+import static io.github.tcdl.config.ConfigurationUtil.getInt;
+import static io.github.tcdl.config.ConfigurationUtil.getString;
 
 /**
  * {@link MsbConfigurations} class provides access to configuration properties
@@ -29,6 +29,8 @@ public class MsbConfigurations {
 
     private String schema;
 
+    private boolean validateMessage;
+
     private int timerThreadPoolSize;
 
     public MsbConfigurations(Config loadedConfig) {
@@ -40,6 +42,7 @@ public class MsbConfigurations {
         this.brokerAdapterFactoryClass = getBrokerAdapterFactory(config);
         this.brokerConfig = config.hasPath("brokerConfig") ? config.getConfig("brokerConfig") : ConfigFactory.empty();
         this.timerThreadPoolSize = getInt(config, "timerThreadPoolSize");
+        this.validateMessage = getBoolean(config, "validateMessage");
 
         LOG.debug("MSB configuration {}", this);
     }
@@ -54,7 +57,7 @@ public class MsbConfigurations {
     }
 
     private String getBrokerAdapterFactory(Config config) {
-        return getString(config, "brokerAdapterFactory", "");
+        return getString(config, "brokerAdapterFactory");
     }
 
     public ServiceDetails getServiceDetails() {
@@ -63,6 +66,10 @@ public class MsbConfigurations {
 
     public String getSchema() {
         return this.schema;
+    }
+
+    public boolean isValidateMessage() {
+        return validateMessage;
     }
 
     public Config getBrokerConfig() {
@@ -79,7 +86,7 @@ public class MsbConfigurations {
 
     @Override
     public String toString() {
-        return String.format("MsbConfigurations [serviceDetails=%s, schema=%d, timerThreadPoolSize=%s, brokerAdapterFactory=%s, brokerConfig=%s]", serviceDetails, schema, timerThreadPoolSize, brokerAdapterFactoryClass, brokerConfig);
+        return String.format("MsbConfigurations [serviceDetails=%s, schema=%s, validateMessage=%b, timerThreadPoolSize=%d, brokerAdapterFactory=%s, brokerConfig=%s]", serviceDetails, schema, validateMessage, timerThreadPoolSize, brokerAdapterFactoryClass, brokerConfig);
     }
 
 }

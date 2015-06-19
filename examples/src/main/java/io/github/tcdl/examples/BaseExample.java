@@ -66,11 +66,11 @@ public class BaseExample {
         requester.publish(createPayloadWithBodyText(bodyText));
     }
 
-    public ResponderServer createResponderServer(String namespace) {
+    public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler requestHandler) {
         MsbMessageOptions options = new MsbMessageOptions();
         options.setNamespace(namespace);
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
-        return ResponderServer.create(options, context);
+        return ResponderServer.create(options, context, requestHandler);
     }
 
     public void respond(Responder responder) {

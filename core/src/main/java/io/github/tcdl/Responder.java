@@ -30,7 +30,7 @@ public class Responder {
     private Message responseMessage;
 
     public Responder(MsbMessageOptions config, Message originalMessage, MsbContext msbContext) {
-        validateRecievedMessage(originalMessage);
+        validateReceivedMessage(originalMessage);
         this.responderId = Utils.generateId();
         this.originalMessage = originalMessage;
         this.channelManager = msbContext.getChannelManager();
@@ -41,14 +41,14 @@ public class Responder {
     /**
      * Send acknowledge message.
      *
-     * @param timeoutMs
-     * @param responsesRemaining
+     * @param timeoutMs Time to wait for responsesRemaining
+     * @param responsesRemaining Expected number of responses
      */
     public void sendAck(Integer timeoutMs, Integer responsesRemaining) {
         AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
-        ackBuilder.setResponderId(responderId);
-        ackBuilder.setTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
-        ackBuilder.setResponsesRemaining(responsesRemaining == null ? 1 : responsesRemaining);
+        ackBuilder.withResponderId(responderId);
+        ackBuilder.withTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
+        ackBuilder.withResponsesRemaining(responsesRemaining == null ? 1 : responsesRemaining);
 
         Message message = this.messageFactory.createResponseMessage(this.messageBuilder, ackBuilder.build(), null);
         sendMessage(message);
@@ -56,13 +56,11 @@ public class Responder {
 
     /**
      * Send payload message.
-     *
-     * @param responsePayload
      */
     public void send(Payload responsePayload) {
         AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
-        ackBuilder.setResponderId(responderId);
-        ackBuilder.setResponsesRemaining(-1);
+        ackBuilder.withResponderId(responderId);
+        ackBuilder.withResponsesRemaining(-1);
 
         Message message = this.messageFactory.createResponseMessage(this.messageBuilder, ackBuilder.build(), responsePayload);
         sendMessage(message);
@@ -75,7 +73,7 @@ public class Responder {
         producer.publish(message);
     }
 
-    private void validateRecievedMessage(Message originalMessage) {
+    private void validateReceivedMessage(Message originalMessage) {
         Validate.notNull(originalMessage, "the 'originalMessage' must not be null");
         Validate.notNull(originalMessage.getTopics(), "the 'originalMessage.topics' must not be null");
     }

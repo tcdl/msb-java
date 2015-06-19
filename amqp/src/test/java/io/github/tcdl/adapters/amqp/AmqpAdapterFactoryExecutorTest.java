@@ -20,6 +20,20 @@ import static org.mockito.Mockito.mock;
 
 public class AmqpAdapterFactoryExecutorTest {
 
+    //private String basicConfig = "msbConfig { brokerAdapterFactory = \"io.github.tcdl.adapters.amqp.AmqpAdapterFactory\" "
+     //       + " timerThreadPoolSize = 1, serviceDetails = {name = \"test_msb\", version = \"1.0.1\", instanceId = \"msbd06a-ed59-4a39-9f95-811c5fb6ab87\"} }";
+    String basicConfig = "msbConfig {"
+            + "  timerThreadPoolSize = 1\n"
+            + "  validateMessage = true\n"
+            + "  brokerAdapterFactory = \"io.github.tcdl.adapters.amqp.AmqpAdapterFactory\" \n"
+            + "  serviceDetails = {"
+            + "     name = \"test_msb\" \n"
+            + "     version = \"1.0.1\" \n"
+            + "     instanceId = \"msbd06a-ed59-4a39-9f95-811c5fb6ab87\" \n"
+            + "  } \n"
+            + "  %s"
+            + "}";
+
     private static class MockAdapterFactory extends AmqpAdapterFactory {
         @Override
         protected Connection createConnection(ConnectionFactory connectionFactory) {
@@ -29,15 +43,13 @@ public class AmqpAdapterFactoryExecutorTest {
 
     @Test
     public void testCreateConsumerThreadPoolBoundedQueue() {
-        String configStr =
-                "msbConfig {"
-                + "  timerThreadPoolSize = 1\n"
-                + "  brokerConfig = { "
+        String brokerConf =
+                  " brokerConfig = { "
                 + "    consumerThreadPoolSize = 5\n"
                 + "    consumerThreadPoolQueueCapacity = 20\n"
-                + "  }"
-                + "}";
-        Config msbConfig = ConfigFactory.parseString(configStr);
+                + "  }";
+
+        Config msbConfig = ConfigFactory.parseString(String.format(basicConfig, brokerConf));
         MsbConfigurations msbConfigurations = new MsbConfigurations(msbConfig);
 
         AmqpAdapterFactory adapterFactory = new MockAdapterFactory();
@@ -56,14 +68,12 @@ public class AmqpAdapterFactoryExecutorTest {
 
     @Test
     public void testCreateConsumerThreadPoolUnboundedQueue() {
-        String configStr = "msbConfig {"
-                + "  timerThreadPoolSize = 1\n"
-                + "  brokerConfig = {"
-                + "    consumerThreadPoolSize = 5\n"
-                + "    consumerThreadPoolQueueCapacity = -1\n"
-                + "  }"
-                + "}";
-        Config msbConfig = ConfigFactory.parseString(configStr);
+        String brokerConf =
+                " brokerConfig = { "
+                        + "    consumerThreadPoolSize = 5\n"
+                        + "    consumerThreadPoolQueueCapacity = -1\n"
+                        + "  }";
+        Config msbConfig = ConfigFactory.parseString(String.format(basicConfig, brokerConf));
         MsbConfigurations msbConfigurations = new MsbConfigurations(msbConfig);
 
         AmqpAdapterFactory adapterFactory = new MockAdapterFactory();

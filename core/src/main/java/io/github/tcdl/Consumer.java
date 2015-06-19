@@ -92,7 +92,7 @@ public class Consumer {
         channelMonitorAgent.consumerMessageReceived(topic);
 
         try {
-            if (msbConfig.getSchema() != null && !Utils.isServiceTopic(topic)) {
+            if (msbConfig.getSchema() != null && !Utils.isServiceTopic(topic) && msbConfig.isValidateMessage()) {
                 LOG.debug("Validating schema for {}", jsonMessage);
                 validator.validate(jsonMessage, msbConfig.getSchema());
             }

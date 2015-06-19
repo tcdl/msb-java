@@ -50,10 +50,9 @@ public class RequesterResponderIT {
         Requester requester = Requester.create(messageOptions, msbContext);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
 
-        ResponderServer.create(messageOptions, msbContext)
-                .use(((request, response) -> {
+        ResponderServer.create(messageOptions, msbContext,(request, response) ->  {
                     requestReceived.countDown();
-                }))
+                })
                 .listen();
 
         requester.publish(requestPayload);
@@ -84,12 +83,11 @@ public class RequesterResponderIT {
 
         //listen for message and send ack
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
-        ResponderServer.create(messageOptions, serverMsbContext)
-                .use(((request, response) -> {
+        ResponderServer.create(messageOptions, serverMsbContext, (request, response) -> {
                     response.sendAck(100, 2);
                     sentAcks.add(response.getResponseMessage());
                     ackSend.countDown();
-                }))
+                })
                 .listen();
 
         assertTrue("Message ack was not send", ackSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
@@ -122,8 +120,7 @@ public class RequesterResponderIT {
         //listen for message and send response
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
         ResponderServer
-                .create(messageOptions, serverMsbContext)
-                .use(((request, response) -> {
+                .create(messageOptions, serverMsbContext, (request, response) -> {
                     Payload payload = new Payload.PayloadBuilder().setBody(
                             new HashMap<String, String>().put("body", "payload from test : testResponderAnswerWithResponseRequesterReceiveResponse"))
                             .setStatusCode(3333).build();
@@ -131,7 +128,7 @@ public class RequesterResponderIT {
                     sentResponses.add(payload);
                     respSend.countDown();
 
-                }))
+                })
                 .listen();
 
         assertTrue("Message response was not send", respSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
@@ -153,23 +150,21 @@ public class RequesterResponderIT {
         CountDownLatch ackReceived = new CountDownLatch(1);
 
         MsbContext serverOneMsbContext = TestUtils.createSimpleMsbContext();
-        ResponderServer.create(responderServerOneMessageOptions, serverOneMsbContext)
-                .use(((request, response) -> {
+        ResponderServer.create(responderServerOneMessageOptions, serverOneMsbContext, (request, response) -> {
 
                     //Create and send request message, wait for ack 
                     Requester requester = Requester.create(requestAwaitAckMessageOptions, msbContext);
                     Payload requestPayload = TestUtils.createSimpleRequestPayload();
                     requester.onAcknowledge((Acknowledge a) -> ackReceived.countDown());
                     requester.publish(requestPayload);
-                }))
+                })
                 .listen();
 
         MsbContext serverTwoMsbContext = TestUtils.createSimpleMsbContext();
-        ResponderServer.create(responderServerTwoMessageOptions, serverTwoMsbContext)
-                .use(((request, response) -> {
+        ResponderServer.create(responderServerTwoMessageOptions, serverTwoMsbContext, (request, response) -> {
                     response.sendAck(100, 2);
                     ackSent.countDown();
-                }))
+                })
                 .listen();
 
         MockAdapter.pushRequestMessage(TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(responderServerOneMessageOptions.getNamespace()));
@@ -217,12 +212,11 @@ public class RequesterResponderIT {
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
         Random randomAckValue = new Random();
         randomAckValue.ints();
-        ResponderServer.create(messageOptions, serverMsbContext)
-                .use(((request, response) -> {
+        ResponderServer.create(messageOptions, serverMsbContext, (request, response) -> {
                     response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
                     sentAcks.add(response.getResponseMessage());
                     ackSend.countDown();
-                }))
+                })
                 .listen();
 
         assertTrue("Message ack was not send", ackSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));

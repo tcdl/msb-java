@@ -20,13 +20,6 @@ public class ConfigurationUtil {
         throw new ConfigurationException(key);
     }
 
-    public static boolean getBoolean(Config config, String key, boolean fallback) {
-        if (config.hasPath(key)) {
-            return config.getBoolean(key);
-        }
-        return fallback;
-    }
-
     public static Optional<Boolean> getOptionalBoolean(Config config, String key) {
         if (config.hasPath(key)) {
             return Optional.of(config.getBoolean(key));

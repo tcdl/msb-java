@@ -12,12 +12,11 @@ public class SimpleResponderExample extends BaseExample {
     }
 
     public void runSimpleResponderExample() {
-        createResponderServer(namespace)
-                .use(((request, responder) -> {
+        createResponderServer(namespace,(request, responder) -> {
                     System.out.print(">>> REQUEST: " + request.getHeaders());
                     sleep(500);
                     respond(responder, namespace + ":" + "SimpleResponderExample");
-                }))
+                })
                 .listen();
     }
 }

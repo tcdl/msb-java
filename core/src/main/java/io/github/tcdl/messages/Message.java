@@ -57,27 +57,27 @@ public final class Message {
             return this;
         }
 
-        public MessageBuilder setCorrelationId(String correlationId) {
+        public MessageBuilder withCorrelationId(String correlationId) {
             this.correlationId = correlationId;
             return this;
         }
 
-        public MessageBuilder setTopics(Topics topics) {
+        public MessageBuilder withTopics(Topics topics) {
             this.topics = topics;
             return this;
         }
 
-        public MessageBuilder setMetaBuilder(MetaMessageBuilder metaBuilder) {
+        public MessageBuilder withMetaBuilder(MetaMessageBuilder metaBuilder) {
             this.metaBuilder = metaBuilder;
             return this;
         }
 
-        public MessageBuilder setAck(Acknowledge ack) {
+        public MessageBuilder withAck(Acknowledge ack) {
             this.ack = ack;
             return this;
         }
 
-        public MessageBuilder setPayload(Payload payload) {
+        public MessageBuilder withPayload(Payload payload) {
             this.payload = payload;
             return this;
         }

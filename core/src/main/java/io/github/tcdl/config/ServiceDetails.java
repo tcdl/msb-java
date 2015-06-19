@@ -1,19 +1,14 @@
 package io.github.tcdl.config;
 
 import static io.github.tcdl.config.ConfigurationUtil.getString;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.jcabi.manifests.Manifests;
-
-import io.github.tcdl.support.Utils;
 import com.typesafe.config.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class contains configuration data related to service instance *
@@ -50,14 +45,9 @@ public final class ServiceDetails {
         private long pid;
 
         public ServiceDetailsBuilder(Config config) {
-
-            name = Manifests.read("Specification-Title");
-            version = Manifests.read("Specification-Version");
-            instanceId = Utils.generateId();
-
-            name = getString(config, "name", name);
-            version = getString(config, "version", version);
-            instanceId = getString(config, "instanceId", instanceId);
+            name = getString(config, "name");
+            version = getString(config, "version");
+            instanceId = getString(config, "instanceId");
 
             hostname = getHostInfo().getHostName();
             ip = getHostInfo().getHostAddress();

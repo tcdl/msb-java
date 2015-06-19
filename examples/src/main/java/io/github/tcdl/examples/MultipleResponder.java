@@ -22,8 +22,7 @@ public class MultipleResponder {
         MsbMessageOptions options = new MsbMessageOptions();
         options.setNamespace(namespace);
 
-        ResponderServer.create(options, msbContext)
-                .use(((request, responder) -> {
+        ResponderServer.create(options, msbContext, (request, responder) -> {
                     Map requestBody = request.getBody();
                     System.out.println(">>> GOT request: " + requestBody);
 
@@ -31,7 +30,7 @@ public class MultipleResponder {
                     SearchResponse response = new SearchResponse(requestId, "response");
                     System.out.println(">>> SENDING response in request to " + requestId);
                     responder.send(new Payload.PayloadBuilder().setBody(response).build());
-                }))
+                })
                 .listen();
     }
 
