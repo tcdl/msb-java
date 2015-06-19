@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ProducerAdapter;
-import io.github.tcdl.exception.ChannelException;
 import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.support.Utils;
@@ -32,7 +31,7 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
     }
 
     @Override
-    public void publish(String jsonMessage) throws ChannelException {
+    public void publish(String jsonMessage) {
         LOG.debug("Received request {}", jsonMessage);
         try {
             Message incomingMessage = Utils.fromJson(jsonMessage, Message.class);

@@ -1,5 +1,6 @@
 package io.github.tcdl.adapters;
 
+import io.github.tcdl.exception.MsbException;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.tcdl.adapters.mock.MockAdapterFactory;
@@ -20,13 +21,21 @@ public class AdapterFactoryLoader {
     public AdapterFactory getAdapterFactory() {
         Object adapterFactory;
         String adapterFactoryClassName = msbConfig.getBrokerAdapterFactory();
-        try {
-            Class clazz = Class.forName(adapterFactoryClassName);
-            adapterFactory = clazz.newInstance();
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("The required MSB Adapter Factory '" + adapterFactoryClassName + "' is not supported.", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create Adapter Factory: " + adapterFactoryClassName, e);
+        if (!StringUtils.isEmpty(adapterFactoryClassName)) {
+            try {
+                Class clazz = Class.forName(adapterFactoryClassName);
+                adapterFactory = clazz.newInstance();
+            } catch (ClassNotFoundException e) {
+                throw new MsbException("The required MSB Adapter Factory '" + adapterFactoryClassName + "' is not supported.", e);
+            } catch (ReflectiveOperationException e) {
+                throw new MsbException("Failed to create Adapter Factory: " + adapterFactoryClassName, e);
+            }
+
+            if (!(adapterFactory instanceof AdapterFactory)) {
+                throw new MsbException("Inconsistent Adapter Factory class: " + adapterFactoryClassName);
+            }
+        } else {
+            adapterFactory = new MockAdapterFactory();
         }
 
         if (!(adapterFactory instanceof AdapterFactory)) {
