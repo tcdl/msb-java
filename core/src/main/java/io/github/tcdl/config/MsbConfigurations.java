@@ -79,7 +79,7 @@ public class MsbConfigurations {
 
     @Override
     public String toString() {
-        return String.format("MsbConfigurations [serviceDetails=%s, schema=%d, timerThreadPoolSize=%s, brokerAdapterFactory=%s, brokerConfig=%s]", serviceDetails, schema, timerThreadPoolSize, brokerAdapterFactoryClass, brokerConfig);
+        return String.format("MsbConfigurations [serviceDetails=%s, schema=%s, timerThreadPoolSize=%d, brokerAdapterFactory=%s, brokerConfig=%s]", serviceDetails, schema, timerThreadPoolSize, brokerAdapterFactoryClass, brokerConfig);
     }
 
 }
