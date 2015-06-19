@@ -56,8 +56,6 @@ public class ResponderServer {
                     @Override
                     public void handleError(Exception exception) {
                         LOG.debug("Received exception {}", exception);
-                        Responder responder = new Responder(messageOptions, null, msbContext);
-                        errorHandler(null, responder, exception);
                     }
                 }
         );
