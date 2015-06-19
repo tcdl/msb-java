@@ -175,7 +175,7 @@ public class Collector implements Consumer.Subscriber {
         if (acknowledge == null)
             return;
 
-        if (acknowledge.getTimeoutMs() != null) {
+        if (acknowledge.getTimeoutMs() != null && acknowledge.getResponderId()!= null) {
             Integer newTimeoutMs = setTimeoutMsForResponderId(acknowledge.getResponderId(), acknowledge.getTimeoutMs());
             if (newTimeoutMs != null) {
                 int prevTimeoutMs = this.currentTimeoutMs;

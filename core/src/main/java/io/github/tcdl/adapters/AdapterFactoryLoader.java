@@ -10,9 +10,9 @@ import io.github.tcdl.config.MsbConfigurations;
  * Broker AdapterFactory and Broker Adapter are located in the separate proper JAR.
  */
 public class AdapterFactoryLoader {
-    
+
     private final MsbConfigurations msbConfig;
-    
+
     public AdapterFactoryLoader(MsbConfigurations msbConfig) {
         this.msbConfig = msbConfig;
     }
@@ -20,22 +20,19 @@ public class AdapterFactoryLoader {
     public AdapterFactory getAdapterFactory() {
         Object adapterFactory;
         String adapterFactoryClassName = msbConfig.getBrokerAdapterFactory();
-        if (!StringUtils.isEmpty(adapterFactoryClassName)) {
-            try {
-                Class clazz = Class.forName(adapterFactoryClassName);
-                adapterFactory = clazz.newInstance();
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException("The required MSB Adapter Factory '" + adapterFactoryClassName + "' is not supported.", e);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to create Adapter Factory: " + adapterFactoryClassName, e);
-            }
-
-            if (!(adapterFactory instanceof AdapterFactory)) {
-                throw new RuntimeException("Inconsistent Adapter Factory class: " + adapterFactoryClassName);
-            }
-        } else {
-            adapterFactory = new MockAdapterFactory();
+        try {
+            Class clazz = Class.forName(adapterFactoryClassName);
+            adapterFactory = clazz.newInstance();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("The required MSB Adapter Factory '" + adapterFactoryClassName + "' is not supported.", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create Adapter Factory: " + adapterFactoryClassName, e);
         }
+
+        if (!(adapterFactory instanceof AdapterFactory)) {
+            throw new RuntimeException("Inconsistent Adapter Factory class: " + adapterFactoryClassName);
+        }
+
         ((AdapterFactory) adapterFactory).init(msbConfig);
         return (AdapterFactory) adapterFactory;
     }

@@ -54,7 +54,7 @@ public class MsbConfigurations {
     }
 
     private String getBrokerAdapterFactory(Config config) {
-        return getString(config, "brokerAdapterFactory", "");
+        return getString(config, "brokerAdapterFactory");
     }
 
     public ServiceDetails getServiceDetails() {

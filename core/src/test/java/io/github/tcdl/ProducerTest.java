@@ -103,8 +103,8 @@ public class ProducerTest {
         body.put("body", "{\\\"x\\\" : 3} garbage");
         Payload payload = new Payload.PayloadBuilder().setBody(body).build();
         MetaMessage.MetaMessageBuilder metaBuilder = new MetaMessage.MetaMessageBuilder(null,  clock.instant(), msbConf.getServiceDetails(), clock);
-        return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMetaBuilder(
-                metaBuilder).setPayload(payload)
+        return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(
+                metaBuilder).withPayload(payload)
                 .build();
     }
 }
