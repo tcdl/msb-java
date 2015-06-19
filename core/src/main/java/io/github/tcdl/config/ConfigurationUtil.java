@@ -10,8 +10,10 @@ import com.typesafe.config.Config;
  * {@link ConfigurationUtil} class provides a set of methods for managing configuration properties. *
  */
 public class ConfigurationUtil {
-
-    public static boolean getBoolean(Config config, String key) throws ConfigurationException {
+    /**
+     * @throws ConfigurationException if the path expression is invalid
+     */
+    public static boolean getBoolean(Config config, String key) {
         if (config.hasPath(key)) {
             return config.getBoolean(key);
         }
@@ -39,7 +41,10 @@ public class ConfigurationUtil {
         return fallback;
     }
 
-    public static String getString(Config config, String key) throws ConfigurationException {
+    /**
+     * @throws ConfigurationException if the path expression is invalid
+     */
+    public static String getString(Config config, String key) {
         if (config.hasPath(key)) {
             return config.getString(key);
         }
@@ -60,7 +65,10 @@ public class ConfigurationUtil {
         return fallback;
     }
 
-    public static int getInt(Config config, String key) throws ConfigurationException {
+    /**
+     * @throws ConfigurationException if the path expression is invalid
+     */
+    public static int getInt(Config config, String key)  {
         if (config.hasPath(key)) {
             return config.getInt(key);
         }

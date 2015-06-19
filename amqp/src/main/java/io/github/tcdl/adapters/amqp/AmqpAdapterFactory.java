@@ -11,7 +11,6 @@ import io.github.tcdl.adapters.ProducerAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
 import io.github.tcdl.exception.ChannelException;
-import io.github.tcdl.exception.ConfigurationException;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
@@ -39,7 +38,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
     private AmqpConnectionManager connectionManager;
     private ExecutorService consumerThreadPool;
 
-    public void init(MsbConfigurations msbConfig) throws ConfigurationException, ChannelException {
+    public void init(MsbConfigurations msbConfig) {
         amqpBrokerConfig = createAmqpBrokerConfig(msbConfig);
         ConnectionFactory connectionFactory = createConnectionFactory(amqpBrokerConfig);
         Connection connection = createConnection(connectionFactory);
@@ -110,7 +109,10 @@ public class AmqpAdapterFactory implements AdapterFactory {
     protected AmqpConnectionManager createConnectionManager(Connection connection) {
         return new AmqpConnectionManager(connection);
     }
-    
+
+    /**
+     * @throws ChannelException if some problems during connecting to Broker were occurred
+     */
     protected Connection createConnection(ConnectionFactory connectionFactory) {
         try {
             LOG.info(String.format("Opening AMQP connection to host = %s, port = %s, username = %s, password = xxx, virtualHost = %s...",

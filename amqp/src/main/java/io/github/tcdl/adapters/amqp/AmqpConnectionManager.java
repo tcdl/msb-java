@@ -1,7 +1,5 @@
 package io.github.tcdl.adapters.amqp;
 
-import io.github.tcdl.exception.ChannelException;
-
 import java.io.IOException;
 
 import org.slf4j.Logger;
@@ -18,7 +16,7 @@ public class AmqpConnectionManager {
 
     private Connection connection;
 
-    public AmqpConnectionManager(Connection connection) throws ChannelException {
+    public AmqpConnectionManager(Connection connection) {
         this.connection = connection;
     }
 
