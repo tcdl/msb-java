@@ -51,7 +51,7 @@ public class TestUtils {
         MsbConfigurations msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
-        Topics topic = new Topics(topicTo,topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
+        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
         return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic).setMetaBuilder(metaBuilder)
                 .setPayload(createSimpleRequestPayload()).build();
@@ -90,7 +90,7 @@ public class TestUtils {
         MsbConfigurations msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
-        Topics topic = new Topics(conf.getNamespace(),conf.getNamespace() + ":response:" +
+        Topics topic = new Topics(conf.getNamespace(), conf.getNamespace() + ":response:" +
                 msbConf.getServiceDetails().getInstanceId());
         MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
         return new Message.MessageBuilder().setCorrelationId(Utils.generateId()).setId(Utils.generateId()).setTopics(topic)

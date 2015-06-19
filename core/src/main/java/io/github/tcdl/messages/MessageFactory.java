@@ -73,7 +73,7 @@ public class MessageFactory {
         MetaMessageBuilder metaBuilder = createMetaBuilder(config);
         messageBuilder.setMetaBuilder(metaBuilder);
 
-        Topics topics = new Topics(topicTo,null);
+        Topics topics = new Topics(topicTo, null);
         messageBuilder.setTopics(topics);
         messageBuilder.setPayload(payload);
 
