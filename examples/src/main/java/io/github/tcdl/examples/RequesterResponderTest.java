@@ -17,11 +17,10 @@ public class RequesterResponderTest extends BaseExample {
 
     public void runRequesterResponder() throws Exception {
         // running responder server
-        createResponderServer(NAMESPACE)
-                .use(((request, responder) -> {
+        createResponderServer(NAMESPACE,(request, responder) -> {
                     responder.sendAck(1000, 1);
                     respond(responder);
-                }))
+                })
                 .listen();
 
         // sending a request
