@@ -27,8 +27,10 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -107,6 +109,25 @@ public class ConsumerTest {
 
         verify(subscriberMock1, never()).handleMessage(any(Message.class));
         verify(subscriberMock2, never()).handleMessage(any(Message.class));
+    }
+
+    @Test
+    public void testHandleRawMessageConsumeFromTopicSkipValidation() {
+        MsbConfigurations msbConf = spy(TestUtils.createMsbConfigurations());
+
+        // disable validation
+        when(msbConf.isValidateMessage()).thenReturn(false);
+
+        Consumer consumer = new Consumer(adapterMock, TOPIC, msbConf, clock, channelMonitorAgentMock, validator);
+        consumer.subscribe(subscriberMock);
+
+        // create a message with required empty namespace
+        Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo("");
+
+        consumer.handleRawMessage(Utils.toJson(message));
+
+        // should skip validation and process it
+        verify(subscriberMock).handleMessage(any(Message.class));
     }
 
     @Test

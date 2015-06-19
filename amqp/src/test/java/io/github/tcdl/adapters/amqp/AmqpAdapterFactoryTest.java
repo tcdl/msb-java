@@ -51,6 +51,7 @@ public class AmqpAdapterFactoryTest {
         String configStr = "msbConfig {"
                 + "  timerThreadPoolSize = 1\n"
                 + "  brokerAdapterFactory = \"io.github.tcdl.adapters.amqp.AmqpAdapterFactory\" \n"
+                + "  validateMessage = true\n"
                 + "  serviceDetails = {"
                 + "     name = \"test_msb\" \n"
                 + "     version = \"1.0.1\" \n"

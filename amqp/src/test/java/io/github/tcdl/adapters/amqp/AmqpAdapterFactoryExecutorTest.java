@@ -24,6 +24,7 @@ public class AmqpAdapterFactoryExecutorTest {
      //       + " timerThreadPoolSize = 1, serviceDetails = {name = \"test_msb\", version = \"1.0.1\", instanceId = \"msbd06a-ed59-4a39-9f95-811c5fb6ab87\"} }";
     String basicConfig = "msbConfig {"
             + "  timerThreadPoolSize = 1\n"
+            + "  validateMessage = true\n"
             + "  brokerAdapterFactory = \"io.github.tcdl.adapters.amqp.AmqpAdapterFactory\" \n"
             + "  serviceDetails = {"
             + "     name = \"test_msb\" \n"
