@@ -31,6 +31,7 @@ public class AmqpAdapterFactoryExecutorTest {
     public void testCreateConsumerThreadPoolBoundedQueue() {
         String configStr =
                 "msbConfig {"
+                + "  timerThreadPoolSize = 1\n"
                 + "  brokerConfig = { "
                 + "    consumerThreadPoolSize = 5\n"
                 + "    consumerThreadPoolQueueCapacity = 20\n"
@@ -56,6 +57,7 @@ public class AmqpAdapterFactoryExecutorTest {
     @Test
     public void testCreateConsumerThreadPoolUnboundedQueue() {
         String configStr = "msbConfig {"
+                + "  timerThreadPoolSize = 1\n"
                 + "  brokerConfig = {"
                 + "    consumerThreadPoolSize = 5\n"
                 + "    consumerThreadPoolQueueCapacity = -1\n"

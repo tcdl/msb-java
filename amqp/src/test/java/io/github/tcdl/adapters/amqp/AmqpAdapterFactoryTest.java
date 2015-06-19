@@ -49,7 +49,7 @@ public class AmqpAdapterFactoryTest {
     @Before
     public void setUp() {
         
-        String configStr = "msbConfig {}";
+        String configStr = "msbConfig {timerThreadPoolSize:1}";
         Config msbConfig = ConfigFactory.parseString(configStr);
         msbConfigurations = new MsbConfigurations(msbConfig); 
 

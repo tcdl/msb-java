@@ -24,6 +24,8 @@ public interface ConsumerAdapter {
     interface RawMessageHandler {
         /**
          * Is called once a message arrives on the topic.
+         *
+         * @param jsonMessage incomming JSON message
          */
         void onMessage(String jsonMessage);
     }

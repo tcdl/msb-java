@@ -17,7 +17,7 @@ import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
 
 /**
- * ChannelManager creates consumers or producers on demand
+ * {@link ChannelManager} creates consumers or producers on demand
  */
 public class ChannelManager {
     

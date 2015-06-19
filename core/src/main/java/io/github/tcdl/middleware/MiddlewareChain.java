@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class MiddlewareChain {
 
-    public static final Logger LOG = LoggerFactory.getLogger(MiddlewareChain.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MiddlewareChain.class);
 
     private List<Middleware> middlewareList = new LinkedList<>();
     private Iterator<Middleware> iterator;
