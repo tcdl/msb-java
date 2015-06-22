@@ -45,22 +45,13 @@ public class ResponderServer {
         String topic = messageOptions.getNamespace();
         ChannelManager channelManager = msbContext.getChannelManager();
 
-        channelManager.subscribe(topic, new Consumer.Subscriber() {
-                    @Override
-                    public void handleMessage(Message message) {
+        channelManager.subscribe(topic,
+                message -> {
                         LOG.debug("Received message with id {} from topic {}", message.getId(), topic);
                         Responder responder = new Responder(messageOptions, message, msbContext);
                         onResponder(responder);
-                    }
 
-                    @Override
-                    public void handleError(Exception exception) {
-                        LOG.debug("Received exception {}", exception);
-                        Responder responder = new Responder(messageOptions, null, msbContext);
-                        errorHandler(null, responder, exception);
-                    }
-                }
-        );
+                });
 
         return this;
     }

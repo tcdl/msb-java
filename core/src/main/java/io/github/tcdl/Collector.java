@@ -1,6 +1,13 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.support.Utils.ifNull;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.events.EventHandlers;
+import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.payload.Payload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -12,13 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.EventHandlers;
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.payload.Payload;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static io.github.tcdl.support.Utils.ifNull;
 
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
@@ -52,7 +53,6 @@ public class Collector implements Consumer.Subscriber {
 
     private Optional<Callback<Payload>> onResponse = Optional.empty();
     private Optional<Callback<Acknowledge>> onAcknowledge = Optional.empty();
-    private Optional<Callback<Exception>> onError = Optional.empty();
     private Optional<Callback<List<Message>>> onEnd = Optional.empty();
 
     private  ScheduledFuture ackTimeoutFuture;
@@ -81,7 +81,6 @@ public class Collector implements Consumer.Subscriber {
         if (eventHandlers != null) {
             onResponse = Optional.ofNullable(eventHandlers.onResponse());
             onAcknowledge = Optional.ofNullable(eventHandlers.onAcknowledge());
-            onError = Optional.ofNullable(eventHandlers.onError());
             onEnd = Optional.ofNullable(eventHandlers.onEnd());
         }
     }
@@ -134,12 +133,6 @@ public class Collector implements Consumer.Subscriber {
         }
 
         end();
-    }
-
-    @Override
-    public void handleError(Exception exception) {
-        LOG.debug("Received error [{}]", exception.getMessage());
-        onError.ifPresent(handler -> handler.call(exception));
     }
 
     protected boolean acceptMessage(Message message) {

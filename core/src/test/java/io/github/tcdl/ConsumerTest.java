@@ -5,7 +5,6 @@ import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.exception.JsonConversionException;
-import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MetaMessage;
 import io.github.tcdl.messages.Topics;
@@ -25,10 +24,9 @@ import java.time.Clock;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -89,8 +87,6 @@ public class ConsumerTest {
 
         verify(subscriberMock1).handleMessage(any(Message.class));
         verify(subscriberMock2).handleMessage(any(Message.class));
-        verify(subscriberMock1, never()).handleError(any(Exception.class));
-        verify(subscriberMock1, never()).handleError(any(Exception.class));
     }
 
     @Test
@@ -103,9 +99,6 @@ public class ConsumerTest {
         consumer.subscribe(subscriberMock2);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
-
-        verify(subscriberMock1).handleError(isA(JsonConversionException.class));
-        verify(subscriberMock2).handleError(isA(JsonConversionException.class));
 
         verify(subscriberMock1, never()).handleMessage(any(Message.class));
         verify(subscriberMock2, never()).handleMessage(any(Message.class));
@@ -137,8 +130,7 @@ public class ConsumerTest {
         consumer.subscribe(subscriberMock);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
-        verify(subscriberMock).handleError(isA(JsonSchemaValidationException.class));
-        verify(subscriberMock, never()).handleMessage(any(Message.class));
+        verify(subscriberMock, never()).handleMessage(any(Message.class)); // no processing
     }
 
     @Test
@@ -149,8 +141,7 @@ public class ConsumerTest {
         consumer.subscribe(subscriberMock);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
-        verify(subscriberMock).handleError(isA(JsonConversionException.class));
-        verify(subscriberMock, never()).handleMessage(any(Message.class));
+        verify(subscriberMock, never()).handleMessage(any(Message.class)); // no processing
     }
 
     @Test
@@ -161,7 +152,6 @@ public class ConsumerTest {
 
         consumer.handleRawMessage(Utils.toJson(originalMessage));
         verify(subscriberMock).handleMessage(any(Message.class));
-        verify(subscriberMock, never()).handleError(isA(JsonConversionException.class));
     }
 
     @Test
@@ -172,7 +162,6 @@ public class ConsumerTest {
 
         consumer.handleRawMessage(Utils.toJson(expiredMessage));
         verify(subscriberMock, never()).handleMessage(any(Message.class));
-        verify(subscriberMock, never()).handleError(any(Exception.class));
     }
 
     @Test
@@ -210,8 +199,5 @@ public class ConsumerTest {
     private static class NoopSubscriber implements Consumer.Subscriber {
         @Override
         public void handleMessage(Message message) {}
-
-        @Override
-        public void handleError(Exception exception) {}
     }
 }

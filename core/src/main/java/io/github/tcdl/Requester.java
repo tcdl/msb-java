@@ -123,17 +123,6 @@ public class Requester {
         return this;
     }
 
-    /**
-     * Registers a callback to be called if error happened while collecting responses.
-     *
-     * @param errorHandler callback
-     * @return requester
-     */
-    public Requester onError(Callback<Exception> errorHandler) {
-        eventHandlers.onError(errorHandler);
-        return this;
-    }
-
     protected Message getMessage() {
         return message;
     }
