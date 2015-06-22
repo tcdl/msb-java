@@ -7,6 +7,9 @@ import java.time.Clock;
 
 import com.googlecode.junittoolbox.MultithreadingTester;
 import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.events.EventHandlers;
+import io.github.tcdl.messages.Message;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
@@ -20,7 +23,7 @@ public class ChannelManagerConcurrentTest {
 
     private ChannelManager channelManager;
     private ChannelMonitorAgent mockChannelMonitorAgent;
-    private Consumer.Subscriber subscriberMock;
+    private Subscriber subscriberMock;
 
     @Before
     public void setUp() {
@@ -31,7 +34,7 @@ public class ChannelManagerConcurrentTest {
 
         mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
         channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);
-        subscriberMock = mock(Consumer.Subscriber.class);
+        subscriberMock = mock(Subscriber.class);
     }
 
     @Test
@@ -59,10 +62,14 @@ public class ChannelManagerConcurrentTest {
     public void testRemoveConsumerMultithreadInteraction() {
         String topic = "topic:test-remove-consumer-multithreaded";
 
-        channelManager.subscribe(topic, subscriberMock); // force creation of the consumer
+        Collector collector =new Collector(mock(MsbMessageOptions.class),  TestUtils.createSimpleMsbContext(), mock(EventHandlers.class));
+        Message requestMessage = TestUtils.createMsbRequestMessageNoPayload();
+        collector.listenForResponses(topic, requestMessage);
+
+        channelManager.subscribe(topic, collector);
 
         new MultithreadingTester().add(() -> {
-            channelManager.unsubscribe(topic, subscriberMock);
+            channelManager.unsubscribe(topic, requestMessage.getCorrelationId());
             verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
         }).run();
     }
