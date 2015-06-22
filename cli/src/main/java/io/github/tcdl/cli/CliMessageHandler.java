@@ -3,6 +3,7 @@ package io.github.tcdl.cli;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import io.github.tcdl.exception.JsonConversionException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -26,6 +27,9 @@ class CliMessageHandler implements RawMessageHandler {
         this.prettyOutput = prettyOutput;
     }
 
+    /**
+     * @throws JsonConversionException if some problems during parsing JSON
+     */
     @Override
     public void onMessage(String jsonMessage) {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -57,7 +61,7 @@ class CliMessageHandler implements RawMessageHandler {
             Object tmpObject = objectMapper.readValue(jsonMessage, Object.class);
             System.out.println(objectMapper.writeValueAsString(tmpObject));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new JsonConversionException(e.getMessage());
         }
     }
 }

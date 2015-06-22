@@ -33,7 +33,10 @@ public class JsonValidator {
         this.jsonReader = jsonReader;
     }
 
-    public void validate(String json, String schema) throws JsonSchemaValidationException {
+    /**
+     * @throws JsonSchemaValidationException if some problems during validation
+     */
+    public void validate(String json, String schema) {
 
         Validate.notNull(json, "field 'json' is null");
         Validate.notNull(schema, "field 'schema' is null");

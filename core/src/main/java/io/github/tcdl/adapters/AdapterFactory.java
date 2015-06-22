@@ -14,7 +14,7 @@ public interface AdapterFactory {
      * @param msbConfig - MsbConfigurations object 
      * @throws ConfigurationException if provided configuration is broken
      */
-    void init(MsbConfigurations msbConfig) throws ConfigurationException;
+    void init(MsbConfigurations msbConfig);
 
     /**
      * @param topic - topic name

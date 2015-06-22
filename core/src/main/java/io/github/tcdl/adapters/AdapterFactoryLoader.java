@@ -1,8 +1,7 @@
 package io.github.tcdl.adapters;
 
-import org.apache.commons.lang3.StringUtils;
+import io.github.tcdl.exception.AdapterInitializationException;
 
-import io.github.tcdl.adapters.mock.MockAdapterFactory;
 import io.github.tcdl.config.MsbConfigurations;
 
 /**
@@ -17,24 +16,25 @@ public class AdapterFactoryLoader {
         this.msbConfig = msbConfig;
     }
 
+    /**
+     * @throws AdapterInitializationException if some problems during creation Adapter Factory object were occurred
+     */
     public AdapterFactory getAdapterFactory() {
-        Object adapterFactory;
+        AdapterFactory adapterFactory;
         String adapterFactoryClassName = msbConfig.getBrokerAdapterFactory();
         try {
             Class clazz = Class.forName(adapterFactoryClassName);
-            adapterFactory = clazz.newInstance();
+            adapterFactory = (AdapterFactory) clazz.newInstance();
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("The required MSB Adapter Factory '" + adapterFactoryClassName + "' is not supported.", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create Adapter Factory: " + adapterFactoryClassName, e);
+            throw new AdapterInitializationException("The required MSB Adapter Factory '" + adapterFactoryClassName + "' is not supported.", e);
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new AdapterInitializationException("Failed to create Adapter Factory: " + adapterFactoryClassName, e);
+        } catch (ClassCastException e) {
+            throw new AdapterInitializationException("Inconsistent Adapter Factory class: " + adapterFactoryClassName);
         }
 
-        if (!(adapterFactory instanceof AdapterFactory)) {
-            throw new RuntimeException("Inconsistent Adapter Factory class: " + adapterFactoryClassName);
-        }
+        adapterFactory.init(msbConfig);
 
-        ((AdapterFactory) adapterFactory).init(msbConfig);
-        return (AdapterFactory) adapterFactory;
+        return adapterFactory;
     }
-
 }

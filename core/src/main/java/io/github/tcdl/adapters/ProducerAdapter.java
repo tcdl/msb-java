@@ -13,6 +13,7 @@ public interface ProducerAdapter {
      * Publishes the message to the associated topic
      *
      * @param jsonMessage message to publish in JSON format
+     * @throws ChannelException if some problems during publishing message to Broker were occurred
      */
     void publish(String jsonMessage);
 }
