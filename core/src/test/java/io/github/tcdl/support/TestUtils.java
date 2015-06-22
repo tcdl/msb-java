@@ -2,6 +2,7 @@ package io.github.tcdl.support;
 
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.ChannelManager;
+import io.github.tcdl.CollectorSubscriber;
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.TimeoutManager;
 import io.github.tcdl.config.MessageTemplate;
@@ -32,8 +33,9 @@ public class TestUtils {
         ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator);
         MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);
         TimeoutManager timeoutManager = new TimeoutManager(1);
+        CollectorSubscriber collectorSubscriber = new CollectorSubscriber(channelManager);
 
-        return new MsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+        return new MsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager, collectorSubscriber);
     }
 
     public static String getSimpleNamespace() {
@@ -78,7 +80,6 @@ public class TestUtils {
     }
 
     public static Message createMsbRequestMessageNoPayload(String namespace) {
-        MessageTemplate conf = createSimpleMessageTemplate();
         MsbConfigurations msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
@@ -91,7 +92,6 @@ public class TestUtils {
     }
 
     public static Message createMsbResponseMessage(String namespace) {
-        MessageTemplate conf = createSimpleMessageTemplate();
         MsbConfigurations msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 

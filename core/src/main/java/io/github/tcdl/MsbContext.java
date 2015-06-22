@@ -25,12 +25,16 @@ public class MsbContext {
     private Clock clock;
     private TimeoutManager timeoutManager;
 
-    public MsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory, ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
+    private CollectorSubscriber collectorSubscriber;
+
+    public MsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory, ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager,
+            CollectorSubscriber collectorSubscriber) {
         this.msbConfig = msbConfig;
         this.messageFactory = messageFactory;
         this.channelManager = channelManager;
         this.clock = clock;
         this.timeoutManager = timeoutManager;
+        this.collectorSubscriber = collectorSubscriber;
     }
 
     /**
@@ -80,6 +84,10 @@ public class MsbContext {
         return timeoutManager;
     }
 
+    public CollectorSubscriber getCollectorSubscriber() {
+        return collectorSubscriber;
+    }
+
     public static class MsbContextBuilder {
         private boolean withShutdownHook;
 
@@ -96,8 +104,9 @@ public class MsbContext {
             ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator);
             MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);
             TimeoutManager timeoutManager = new TimeoutManager(msbConfig.getTimerThreadPoolSize());
+            CollectorSubscriber collectorSubscriber = new CollectorSubscriber(channelManager);
 
-            MsbContext msbContext = new MsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+            MsbContext msbContext = new MsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager, collectorSubscriber);
 
             if (withShutdownHook) {
                 Runtime.getRuntime().addShutdownHook(new Thread("MSB shutdown hook") {

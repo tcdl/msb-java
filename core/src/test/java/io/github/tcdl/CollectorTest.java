@@ -1,5 +1,22 @@
 package io.github.tcdl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import java.io.IOException;
+import java.time.Clock;
+import java.util.List;
+
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.events.EventHandlers;
@@ -15,24 +32,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.io.IOException;
-import java.time.Clock;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Created by rdro on 4/27/2015.
@@ -68,7 +67,9 @@ public class CollectorTest {
 
     @Before
     public void setUp() throws IOException {
-        msbContext = new MsbContext(msbConfigurationsMock, messageFactoryMock, channelManagerMock, Clock.systemDefaultZone(), timeoutManagerMock);
+        CollectorSubscriber collectorSubscriber = new CollectorSubscriber(channelManagerMock);
+        msbContext = new MsbContext(msbConfigurationsMock, messageFactoryMock, channelManagerMock, Clock.systemDefaultZone(), timeoutManagerMock,
+                collectorSubscriber);
     }
 
     @Test(expected = NullPointerException.class)
@@ -112,7 +113,7 @@ public class CollectorTest {
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
         subscriberCaptor.getValue().handleMessage(originalMessageWithPayload);
 
@@ -129,7 +130,7 @@ public class CollectorTest {
         when(collector.acceptMessage(originalMessageWithPayload)).thenReturn(true);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
         subscriberCaptor.getValue().handleMessage(originalMessageWithPayload);
 
@@ -147,7 +148,7 @@ public class CollectorTest {
         when(collector.acceptMessage(originalMessageWithPayload)).thenReturn(false);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
         subscriberCaptor.getValue().handleMessage(originalMessageWithPayload);
 
@@ -165,7 +166,7 @@ public class CollectorTest {
         when(collector.acceptMessage(originalMessageWithPayload)).thenReturn(true);
         collector.listenForResponses(TOPIC, originalMessageWithAck);
 
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
         subscriberCaptor.getValue().handleMessage(originalMessageWithAck);
 
@@ -184,9 +185,7 @@ public class CollectorTest {
         when(collector.acceptMessage(originalMessageWithPayload)).thenReturn(true);
         collector.listenForResponses(TOPIC, originalMessageWithAck);
 
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
-        verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
-        subscriberCaptor.getValue().handleMessage(originalMessageWithAck);
+        msbContext.getCollectorSubscriber().handleMessage(originalMessageWithAck);
 
         verify(onEnd).call(anyList());
     }
@@ -209,7 +208,7 @@ public class CollectorTest {
         Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
         subscriberCaptor.getValue().handleMessage(originalMessageWithPayload);
 
@@ -236,7 +235,7 @@ public class CollectorTest {
 
         Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
 
         //send first response
@@ -269,7 +268,7 @@ public class CollectorTest {
 
         Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
 
         //send payload response
@@ -296,7 +295,7 @@ public class CollectorTest {
 
         Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
 
         //send payload response
@@ -323,7 +322,7 @@ public class CollectorTest {
 
         Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
 
         //send payload response
@@ -352,7 +351,7 @@ public class CollectorTest {
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMs).build();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ack, TOPIC, requestMessage.getCorrelationId());
 
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
         subscriberCaptor.getValue().handleMessage(messageWithAck);
 
@@ -377,10 +376,11 @@ public class CollectorTest {
         Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
-        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMsInAck).build();
+        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMsInAck)
+                .build();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ack, TOPIC, requestMessage.getCorrelationId());
 
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
         subscriberCaptor.getValue().handleMessage(messageWithAck);
 
@@ -410,7 +410,7 @@ public class CollectorTest {
                 .withTimeoutMs(timeoutMsInAck).build();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ack, TOPIC, requestMessage.getCorrelationId());
 
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
         subscriberCaptor.getValue().handleMessage(messageWithAck);
 
@@ -446,7 +446,7 @@ public class CollectorTest {
                 .withTimeoutMs(timeoutMsInAckResponderTwo).build();
         Message messageWithAckTwo = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ackRespTwo, TOPIC, requestMessage.getCorrelationId());
 
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
 
         subscriberCaptor.getValue().handleMessage(messageWithAckOne);
@@ -478,7 +478,7 @@ public class CollectorTest {
 
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
 
         assertEquals(responsesRemaining, collector.getResponsesRemaining());

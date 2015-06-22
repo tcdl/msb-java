@@ -20,7 +20,7 @@ import org.apache.commons.lang3.Validate;
  * {@link ChannelManager} creates consumers or producers on demand and manages them.
  */
 public class ChannelManager {
-    
+
     private MsbConfigurations msbConfig;
     private Clock clock;
     private JsonValidator validator;
@@ -52,15 +52,12 @@ public class ChannelManager {
         return producer;
     }
 
-    public synchronized void subscribe(final String topic, final Consumer.Subscriber subscriber) {
-        Consumer consumer = findOrCreateConsumer(topic);
-        consumer.subscribe(subscriber);
-    }
-
-    private Consumer findOrCreateConsumer(final String topic) {
+    public Consumer subscribe(String topic, Subscriber subscriber) {
         Validate.notNull(topic, "field 'topic' is null");
+        Validate.notNull(subscriber, "field 'subscriber' is null");
         Consumer consumer = consumersByTopic.computeIfAbsent(topic, key -> {
             Consumer newConsumer = createConsumer(key);
+            newConsumer.subscribe(subscriber);
             channelMonitorAgent.consumerTopicCreated(key);
             return newConsumer;
         });
@@ -68,16 +65,10 @@ public class ChannelManager {
         return consumer;
     }
 
-    public synchronized void unsubscribe(String topic, Consumer.Subscriber subscriber) {
-        if (topic == null || !consumersByTopic.containsKey(topic))
-            return;
-
-        Consumer consumer = consumersByTopic.get(topic);
-        boolean isLast = consumer.unsubscribe(subscriber);
-
-        if (isLast) {
+    public synchronized void unsubscribe(String topic) {
+        Consumer consumer = consumersByTopic.remove(topic);
+        if (consumer != null) {
             consumer.end();
-            consumersByTopic.remove(topic);
             channelMonitorAgent.consumerTopicRemoved(topic);
         }
     }
