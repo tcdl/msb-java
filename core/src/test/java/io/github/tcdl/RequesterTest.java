@@ -1,6 +1,7 @@
 package io.github.tcdl;
 
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.MessageTemplate;
+import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
@@ -29,9 +30,6 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RequesterTest {
-
-    @Mock
-    private MsbMessageOptions messageOptionsMock;
 
     @Mock
     private EventHandlers eventHandlerMock;
@@ -144,23 +142,25 @@ public class RequesterTest {
     }
 
     private Requester initRequesterForResponsesWithTimeout(int numberOfResponses) throws Exception {
-        MsbMessageOptions messageOptionsMock = mock(MsbMessageOptions.class);
-        when(messageOptionsMock.getNamespace()).thenReturn("test:requester");
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(numberOfResponses);
-        when(messageOptionsMock.isWaitForResponses()).thenReturn(numberOfResponses>0 ? true : false);
-        when(messageOptionsMock.getResponseTimeout()).thenReturn(100);
+        RequestOptions requestOptionsMock = mock(RequestOptions.class);
+        MessageTemplate messageTemplateMock = mock(MessageTemplate.class);
+
+        when(requestOptionsMock.getMessageTemplate()).thenReturn(messageTemplateMock);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(numberOfResponses);
+        when(requestOptionsMock.isWaitForResponses()).thenReturn(numberOfResponses > 0 ? true : false);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(100);
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
 
         MsbContext msbContext = TestUtils.createSimpleMsbContext();
         msbContext.setChannelManager(channelManagerMock);
 
-        Requester requester = spy(Requester.create(messageOptionsMock, null, msbContext));
+        Requester requester = spy(Requester.create("test:requester", requestOptionsMock, null, msbContext));
 
-        collectorMock = spy(new Collector(messageOptionsMock, msbContext, eventHandlerMock));
+        collectorMock = spy(new Collector(requestOptionsMock, msbContext, eventHandlerMock));
 
         doReturn(collectorMock)
                 .when(requester)
-                .createCollector(any(MsbMessageOptions.class), any(MsbContext.class), any(EventHandlers.class));
+                .createCollector(any(RequestOptions.class), any(MsbContext.class), any(EventHandlers.class));
 
         return requester;
     }

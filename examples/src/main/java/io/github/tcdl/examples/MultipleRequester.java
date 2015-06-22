@@ -2,7 +2,7 @@ package io.github.tcdl.examples;
 
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.Requester;
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.messages.payload.Payload;
 
 import java.util.Map;
@@ -41,8 +41,7 @@ public class MultipleRequester {
 
     public static void runRequester(String namespace, String requestId, String queryString, MsbContext msbContext, Consumer<Map> callback) {
 
-        MsbMessageOptions options = new MsbMessageOptions();
-        options.setNamespace(namespace);
+        RequestOptions options = new RequestOptions();
         options.setWaitForResponses(1);
         options.setAckTimeout(10000);
         options.setResponseTimeout(10000);
@@ -51,7 +50,7 @@ public class MultipleRequester {
         Payload requestPayload = new Payload.PayloadBuilder().setBody(request).build();
 
         CompletableFuture.supplyAsync(() -> {
-            Requester.create(options, msbContext)
+            Requester.create(namespace, options, msbContext)
                 .onAcknowledge(acknowledge ->
                     System.out.println(">>> ACK timeout: " + acknowledge.getTimeoutMs())
                 )

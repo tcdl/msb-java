@@ -1,6 +1,6 @@
 package io.github.tcdl.messages;
 
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.MessageTemplate;
 import io.github.tcdl.config.ServiceDetails;
 import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
 import io.github.tcdl.messages.Message.MessageBuilder;
@@ -27,20 +27,20 @@ public class MessageFactory {
         this.clock = clock;
     }
 
-    public MessageBuilder createRequestMessageBuilder(MsbMessageOptions config, Message originalMessage) {
-        MessageBuilder messageBuilder = createMessageBuilderWithMeta(config, originalMessage);
-        Topics topic = new Topics(config.getNamespace(), config.getNamespace() + ":response:" +
+    public MessageBuilder createRequestMessageBuilder(String namespace, MessageTemplate messageTemplate, Message originalMessage) {
+        MessageBuilder messageBuilder = createMessageBuilderWithMeta(messageTemplate, originalMessage);
+        Topics topic = new Topics(namespace, namespace + ":response:" +
                 this.serviceDetails.getInstanceId());
         return messageBuilder.withTopics(topic);
     }
 
-    public MessageBuilder createResponseMessageBuilder(MsbMessageOptions config, Message originalMessage) {
-        MessageBuilder messageBuilder = createMessageBuilderWithMeta(config, originalMessage);
+    public MessageBuilder createResponseMessageBuilder(MessageTemplate messageTemplate, Message originalMessage) {
+        MessageBuilder messageBuilder = createMessageBuilderWithMeta(messageTemplate, originalMessage);
         Topics topic = new Topics(originalMessage.getTopics().getResponse(), null);
         return messageBuilder.withTopics(topic);
     }
 
-    private MessageBuilder createMessageBuilderWithMeta(MsbMessageOptions config, Message originalMessage) {
+    private MessageBuilder createMessageBuilderWithMeta(MessageTemplate config, Message originalMessage) {
         MessageBuilder messageBuilder = createBaseMessage(originalMessage);
         MetaMessageBuilder metaBuilder = createMetaBuilder(config);
         return messageBuilder.withMetaBuilder(metaBuilder);
@@ -63,12 +63,12 @@ public class MessageFactory {
         return new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId());
     }
 
-    public MetaMessageBuilder createMetaBuilder(MsbMessageOptions config) {
+    public MetaMessageBuilder createMetaBuilder(MessageTemplate config) {
         Integer ttl = config == null ? null : config.getTtl();
         return new MetaMessage.MetaMessageBuilder(ttl, clock.instant(), this.serviceDetails, clock);
     }
 
-    public MessageBuilder createBroadcastMessageBuilder(MsbMessageOptions config, String topicTo, Payload payload) {
+    public MessageBuilder createBroadcastMessageBuilder(MessageTemplate config, String topicTo, Payload payload) {
         MessageBuilder messageBuilder = createBaseMessage(null);
         MetaMessageBuilder metaBuilder = createMetaBuilder(config);
         messageBuilder.withMetaBuilder(metaBuilder);

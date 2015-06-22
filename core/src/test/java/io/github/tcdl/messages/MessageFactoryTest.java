@@ -1,7 +1,7 @@
 package io.github.tcdl.messages;
 
+import io.github.tcdl.config.MessageTemplate;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.config.ServiceDetails;
 import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.payload.Payload;
@@ -33,7 +33,7 @@ public class MessageFactoryTest {
     private final Clock FIXED_CLOCK = Clock.fixed(FIXED_CLOCK_INSTANT, ZoneId.systemDefault());
 
     @Mock
-    private MsbMessageOptions messageOptions;
+    private MessageTemplate messageOptions;
 
     @Mock
     private MsbConfigurations msbConf;
@@ -44,14 +44,14 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateRequestMessageHasBasicFieldsSet() {
-        when(messageOptions.getNamespace()).thenReturn("test:request-basic-fields");
-        Message originalMessage = TestUtils.createMsbResponseMessage();
-        MessageBuilder requestMesageBuilder = messageFactory.createRequestMessageBuilder(messageOptions, originalMessage);
+        String namespace = "test:request-basic-fields";
+        Message originalMessage = TestUtils.createMsbResponseMessage(namespace);
+        MessageBuilder requestMesageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageOptions, originalMessage);
 
         Message message = requestMesageBuilder.build();
 
         assertThat(message.getCorrelationId(), is(originalMessage.getCorrelationId()));
-        assertThat(message.getTopics().getTo(), is(messageOptions.getNamespace()));
+        assertThat(message.getTopics().getTo(), is(namespace));
         assertThat(message.getTopics().getResponse(), notNullValue());
     }
 
@@ -62,20 +62,20 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateResponseMessageHasBasicFieldsSet() {
-        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload();
+        String namespace = "test:request-basic-fields";
+        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload(namespace);
         MessageBuilder responseMesageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
 
         Message message = responseMesageBuilder.build();
 
         assertThat(message.getCorrelationId(), is(originalMessage.getCorrelationId()));
-        assertThat(message.getTopics().getTo(), not(messageOptions.getNamespace()));
+        assertThat(message.getTopics().getTo(), not(namespace));
         assertThat(message.getTopics().getTo(), not(originalMessage.getTopics().getTo()));
         assertThat(message.getTopics().getTo(), is(originalMessage.getTopics().getResponse()));
     }
 
     @Test
     public void testCreateRequestMessageWithPayload() {
-        when(messageOptions.getNamespace()).thenReturn("test:request-with-payload");
         Payload requestPayload = TestUtils.createSimpleResponsePayload();
         MessageBuilder requestMesageBuilder = TestUtils.createMesageBuilder();
 
@@ -87,7 +87,6 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateRequestMessageWithoutPayload() {
-        when(messageOptions.getNamespace()).thenReturn("test:request-without-payload");
         MessageBuilder requestMesageBuilder = TestUtils.createMesageBuilder();
 
         Message message = messageFactory.createRequestMessage(requestMesageBuilder, null);
@@ -127,9 +126,8 @@ public class MessageFactoryTest {
     @Test
     public void testCreateMessageBuilderMetaFromMsgOptions() throws Exception {
         Integer ttl = 123;
-        when(messageOptions.getNamespace()).thenReturn("test:meta-set");
         when(messageOptions.getTtl()).thenReturn(ttl);
-        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload();
+        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload("test:meta-set");
         MessageBuilder mesageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
 
         Message message = mesageBuilder.build();
@@ -141,7 +139,6 @@ public class MessageFactoryTest {
 
     @Test
     public void testDurationMsIsSet() throws Exception {
-        when(messageOptions.getNamespace()).thenReturn("test:durationMs");
         MessageBuilder requestMesageBuilder = TestUtils.createMesageBuilder();
         Payload requestPayload = TestUtils.createSimpleResponsePayload();
 

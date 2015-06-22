@@ -1,6 +1,6 @@
 package io.github.tcdl;
 
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
@@ -58,7 +58,7 @@ public class Collector implements Consumer.Subscriber {
     private  ScheduledFuture ackTimeoutFuture;
     private  ScheduledFuture responseTimeoutFuture;
 
-    public Collector(MsbMessageOptions messageOptions, MsbContext msbContext, EventHandlers eventHandlers) {
+    public Collector(RequestOptions requestOptions, MsbContext msbContext, EventHandlers eventHandlers) {
         this.channelManager = msbContext.getChannelManager();
         this.clock = msbContext.getClock();
 
@@ -69,11 +69,11 @@ public class Collector implements Consumer.Subscriber {
         this.timeoutMsById = new HashMap<>();
         this.responsesRemainingById = new HashMap<>();
 
-        this.timeoutMs = getResponseTimeoutFromConfigs(messageOptions);
+        this.timeoutMs = getResponseTimeoutFromConfigs(requestOptions);
         this.currentTimeoutMs = timeoutMs;
 
-        this.waitForAcksUntil = getWaitForAckUntilFromConfigs(messageOptions);
-        this.waitForResponses = messageOptions.getWaitForResponses();
+        this.waitForAcksUntil = getWaitForAckUntilFromConfigs(requestOptions);
+        this.waitForResponses = requestOptions.getWaitForResponses();
         this.responsesRemaining = waitForResponses;
 
         this.timeoutManager = msbContext.getTimeoutManager();
@@ -251,18 +251,18 @@ public class Collector implements Consumer.Subscriber {
         return responsesRemainingById.get(responderId);
     }
 
-    private int getResponseTimeoutFromConfigs(MsbMessageOptions messageOptions) {
-        if (messageOptions.getResponseTimeout() == null) {
+    private int getResponseTimeoutFromConfigs(RequestOptions requestOptions) {
+        if (requestOptions.getResponseTimeout() == null) {
             return 3000;
         }
-        return messageOptions.getResponseTimeout();
+        return requestOptions.getResponseTimeout();
     }
 
-    private long getWaitForAckUntilFromConfigs(MsbMessageOptions messageOptions) {
-        if (messageOptions.getAckTimeout() == null) {
+    private long getWaitForAckUntilFromConfigs(RequestOptions requestOptions) {
+        if (requestOptions.getAckTimeout() == null) {
             return 0;
         }
-        return this.startedAt + messageOptions.getAckTimeout();
+        return this.startedAt + requestOptions.getAckTimeout();
     }
 
     private void cancelResponseTimeoutTask() {

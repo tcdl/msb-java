@@ -5,7 +5,8 @@ import io.github.tcdl.MsbContext;
 import io.github.tcdl.Requester;
 import io.github.tcdl.Responder;
 import io.github.tcdl.ResponderServer;
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.MessageTemplate;
+import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.Utils;
@@ -29,13 +30,12 @@ public class BaseExample {
     }
 
     public Requester createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout) {
-        MsbMessageOptions options = new MsbMessageOptions();
-        options.setNamespace(namespace);
+        RequestOptions options = new RequestOptions();
         options.setWaitForResponses(numberOfResponses);
         options.setAckTimeout(Utils.ifNull(ackTimeout, 3000));
         options.setResponseTimeout(Utils.ifNull(responseTimeout, 10000));
 
-        return Requester.create(options, context);
+        return Requester.create(namespace, options, context);
     }
 
     public void sendRequest(Requester requester, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
@@ -67,10 +67,9 @@ public class BaseExample {
     }
 
     public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler requestHandler) {
-        MsbMessageOptions options = new MsbMessageOptions();
-        options.setNamespace(namespace);
+        MessageTemplate options = new MessageTemplate();
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
-        return ResponderServer.create(options, context, requestHandler);
+        return ResponderServer.create(namespace, options, context, requestHandler);
     }
 
     public void respond(Responder responder) {

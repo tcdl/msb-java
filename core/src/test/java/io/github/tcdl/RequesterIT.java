@@ -1,13 +1,8 @@
 package io.github.tcdl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.tcdl.adapters.mock.MockAdapter;
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
@@ -21,6 +16,11 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  * @author ruk
  * 
@@ -28,29 +28,31 @@ import org.slf4j.LoggerFactory;
  */
 public class RequesterIT {
 
+    private final static String NAMESPACE = "test:requester";
     private static final Logger LOG = LoggerFactory.getLogger(RequesterIT.class);
 
-    private MsbMessageOptions messageOptions;
+    private RequestOptions requestOptions;
     private MsbContext msbContext;
     private JsonValidator validator;
 
     @Before
     public void setUp() throws Exception {
-        this.messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester");
+        this.requestOptions = TestUtils.createSimpleRequestOptions();
         this.msbContext = TestUtils.createSimpleMsbContext();
         this.validator = new JsonValidator();
     }
 
     @Test
     public void testRequestMessage() throws Exception {
+        String namespace = "test:requester";
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = Requester.create(messageOptions, msbContext);
+        Requester requester = Requester.create(namespace, requestOptions, msbContext);
         requester.publish(requestPayload);
         Message message = requester.getMessage();
 
         assertEquals("Message payload not match sent", requestPayload, message.getPayload());
 
-        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(messageOptions.getNamespace());
+        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
         assertRequestMessage(adapterJsonMessage, message);
     }
 
@@ -71,8 +73,8 @@ public class RequesterIT {
                     .getJSONObject("payload").get("headers").toString());
 
             //topics
-            assertJsonContains(jsonObject.getJSONObject("topics"), "to", messageOptions.getNamespace());
-            assertJsonContains(jsonObject.getJSONObject("topics"), "response", messageOptions.getNamespace() + ":response:"
+            assertJsonContains(jsonObject.getJSONObject("topics"), "to", NAMESPACE);
+            assertJsonContains(jsonObject.getJSONObject("topics"), "response", NAMESPACE + ":response:"
                     + this.msbContext.getMsbConfig().getServiceDetails().getInstanceId());
 
         } catch (JsonSchemaValidationException | JsonProcessingException | JSONException e) {

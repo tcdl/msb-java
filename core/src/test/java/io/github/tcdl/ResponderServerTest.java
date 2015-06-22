@@ -1,6 +1,7 @@
 package io.github.tcdl;
 
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.MessageTemplate;
+import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
@@ -8,30 +9,34 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyObject;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by rdro on 4/30/2015.
  */
 public class ResponderServerTest {
-    private MsbMessageOptions messageOptions;
+
+    private RequestOptions requestOptions;
+    private MessageTemplate messageTemplate;
 
     private MsbContext msbContext = TestUtils.createSimpleMsbContext();
 
     @Before
     public void setUp() {
-        messageOptions = TestUtils.createSimpleConfig();
+        requestOptions = TestUtils.createSimpleRequestOptions();
+        messageTemplate = TestUtils.createSimpleMessageTemplate();
         msbContext = TestUtils.createSimpleMsbContext();
     }
 
     @Test
     public void testResponderServerProcessSuccess() throws Exception {
 
+        String namespace = TestUtils.getSimpleNamespace();
         ResponderServer.RequestHandler handler = (request, responder) -> {
         };
 
@@ -42,13 +47,13 @@ public class ResponderServerTest {
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 
         ResponderServer responderServer = ResponderServer
-                .create(messageOptions, spyMsbContext, handler);
+                .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler);
 
         ResponderServer spyResponderServer = spy(responderServer).listen();
 
         verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
 
-        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(messageOptions.getNamespace());
+        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
         subscriberCaptor.getValue().handleMessage(originalMessage);
 
         verify(spyResponderServer).onResponder(anyObject());
@@ -56,7 +61,7 @@ public class ResponderServerTest {
 
     @Test(expected = NullPointerException.class)
     public void testResponderServerProcessErrorNoHandler() throws Exception {
-        ResponderServer.create(messageOptions, msbContext, null);
+        ResponderServer.create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, null);
     }
 
     @Test
@@ -66,12 +71,12 @@ public class ResponderServerTest {
         ResponderServer.RequestHandler handler = (request, responder) -> { throw error; };
 
         ResponderServer responderServer = ResponderServer
-                .create(messageOptions, msbContext, handler)
+                .create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, handler)
                 .listen();
 
         // simulate incoming request
         ArgumentCaptor<Payload> responseCaptor = ArgumentCaptor.forClass(Payload.class);
-        Responder responder = spy(new Responder(messageOptions, TestUtils.createMsbRequestMessageNoPayload(), msbContext));
+        Responder responder = spy(new Responder(messageTemplate, TestUtils.createMsbRequestMessageNoPayload(TestUtils.getSimpleNamespace()), msbContext));
         responderServer.onResponder(responder);
 
         verify(responder).send(responseCaptor.capture());

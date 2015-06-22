@@ -1,6 +1,6 @@
 package io.github.tcdl;
 
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.MessageTemplate;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import org.apache.commons.lang3.Validate;
@@ -14,12 +14,14 @@ public class ResponderServer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServer.class);
 
+    private String namespace;
     private MsbContext msbContext;
-    private MsbMessageOptions messageOptions;
+    private MessageTemplate messageTemplate;
     private RequestHandler requestHandler;
 
-    private ResponderServer(MsbMessageOptions messageOptions, MsbContext msbContext, RequestHandler requestHandler) {
-        this.messageOptions = messageOptions;
+    private ResponderServer(String namespace, MessageTemplate messageTemplate, MsbContext msbContext, RequestHandler requestHandler) {
+        this.namespace = namespace;
+        this.messageTemplate = messageTemplate;
         this.msbContext = msbContext;
         this.requestHandler = requestHandler;
         Validate.notNull(requestHandler, "requestHandler must not be null");
@@ -28,27 +30,27 @@ public class ResponderServer {
     /**
      * Create a new instance of a ResponderServer
      *
-     * @param msgOptions
+     * @param namespace topic to listen for requests
+     * @param messageTemplate
      * @param msbContext
      * @param requestHandler handler to be process the request
      * @return new instance of a ResponderServer
      */
 
-    public static ResponderServer create(MsbMessageOptions msgOptions, MsbContext msbContext, RequestHandler requestHandler) {
-        return new ResponderServer(msgOptions, msbContext, requestHandler);
+    public static ResponderServer create(String namespace,  MessageTemplate messageTemplate, MsbContext msbContext, RequestHandler requestHandler) {
+        return new ResponderServer(namespace, messageTemplate, msbContext, requestHandler);
     }
 
     /**
      * Start listening for message on specified topic.
      */
     public ResponderServer listen() {
-        String topic = messageOptions.getNamespace();
         ChannelManager channelManager = msbContext.getChannelManager();
 
-        channelManager.subscribe(topic,
+        channelManager.subscribe(namespace,
                 message -> {
-                        LOG.debug("Received message with id {} from topic {}", message.getId(), topic);
-                        Responder responder = new Responder(messageOptions, message, msbContext);
+                        LOG.debug("Received message with id {} from topic {}", message.getId(), namespace);
+                        Responder responder = new Responder(messageTemplate, message, msbContext);
                         onResponder(responder);
 
                 });
