@@ -23,7 +23,9 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
      * @param topic - a topic name associated with the adapter
      * @param consumerThreadPool contains incoming messages wrapped as tasks for further processing. Parameters of this thread pool determine degree of
      *                           parallelism of incoming message processing
+     * @throws ChannelException if some problems during setup channel from ActiveMQ connection were occurred
      */
+
     public AmqpConsumerAdapter(String topic, AmqpBrokerConfig amqpBrokerConfig, AmqpConnectionManager connectionManager, ExecutorService consumerThreadPool) {
         Validate.notNull(topic, "the 'topic' must not be null");
 

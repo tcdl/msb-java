@@ -55,7 +55,10 @@ public class Utils {
                 .registerModule(new JSR310Module());
     }
 
-    public static String toJson(Object object) throws JsonConversionException {
+    /**
+     * @throws JsonConversionException if some problems during parsing to JSON
+     */
+    public static String toJson(Object object) {
         ObjectMapper mapper = getMsbJsonObjectMapper();
         try {
             return mapper.writeValueAsString(object);
@@ -65,7 +68,10 @@ public class Utils {
         }
     }
 
-    public static <T> T fromJson(String json, Class<T> clazz) throws JsonConversionException {
+    /**
+     * @throws JsonConversionException if some problems during parsing JSON
+     */
+    public static <T> T fromJson(String json, Class<T> clazz) {
         if (json == null) return null;
         ObjectMapper mapper = getMsbJsonObjectMapper();
         try {

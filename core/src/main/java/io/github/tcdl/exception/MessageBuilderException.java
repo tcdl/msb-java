@@ -5,7 +5,7 @@ package io.github.tcdl.exception;
  *
  * Created by rdro on 5/21/2015.
  */
-public class MessageBuilderException extends RuntimeException {
+public class MessageBuilderException extends MsbException {
 
     public MessageBuilderException(String message) {
         super(message);

@@ -46,7 +46,10 @@ public class AmqpBrokerConfig {
         private int consumerThreadPoolSize;
         private int consumerThreadPoolQueueCapacity;
 
-        public AmqpBrokerConfigBuilder(Config config) throws ConfigurationException {
+        /**
+         * @throws ConfigurationException if provided configuration is broken
+         */
+        public AmqpBrokerConfigBuilder(Config config) {
             
             this.host = ConfigurationUtil.getString(config, "host");
             this.port = ConfigurationUtil.getInt(config, "port");
@@ -61,7 +64,10 @@ public class AmqpBrokerConfig {
             this.consumerThreadPoolQueueCapacity = ConfigurationUtil.getInt(config, "consumerThreadPoolQueueCapacity");
        }
 
-        public AmqpBrokerConfig build() throws ConfigurationException {
+        /**
+         * @throws ConfigurationException if provided configuration is broken
+         */
+        public AmqpBrokerConfig build() {
             return new AmqpBrokerConfig(host, port, username, password, virtualHost,
                     groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
         }

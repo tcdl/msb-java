@@ -39,7 +39,11 @@ public class AmqpAdapterFactory implements AdapterFactory {
     private AmqpConnectionManager connectionManager;
     private ExecutorService consumerThreadPool;
 
-    public void init(MsbConfigurations msbConfig) throws ConfigurationException, ChannelException {
+    /**
+     * @throws ChannelException if an error is encountered during connecting to broker
+     * @throws ConfigurationException if provided configuration is broken
+     */
+    public void init(MsbConfigurations msbConfig) {
         amqpBrokerConfig = createAmqpBrokerConfig(msbConfig);
         ConnectionFactory connectionFactory = createConnectionFactory(amqpBrokerConfig);
         Connection connection = createConnection(connectionFactory);
@@ -110,7 +114,10 @@ public class AmqpAdapterFactory implements AdapterFactory {
     protected AmqpConnectionManager createConnectionManager(Connection connection) {
         return new AmqpConnectionManager(connection);
     }
-    
+
+    /**
+     * @throws ChannelException if some problems during connecting to Broker were occurred
+     */
     protected Connection createConnection(ConnectionFactory connectionFactory) {
         try {
             LOG.info(String.format("Opening AMQP connection to host = %s, port = %s, username = %s, password = xxx, virtualHost = %s...",

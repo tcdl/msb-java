@@ -1,8 +1,9 @@
 package io.github.tcdl.adapters;
 
-import org.apache.commons.lang3.StringUtils;
+import io.github.tcdl.exception.AdapterFactoryNotSupportedException;
+import io.github.tcdl.exception.FailedToCreateAdapterFactoryException;
+import io.github.tcdl.exception.InconsistentAdapterFactoryException;
 
-import io.github.tcdl.adapters.mock.MockAdapterFactory;
 import io.github.tcdl.config.MsbConfigurations;
 
 /**
@@ -17,6 +18,11 @@ public class AdapterFactoryLoader {
         this.msbConfig = msbConfig;
     }
 
+    /**
+     * @throws AdapterFactoryNotSupportedException if not supported Adapter Factory class
+     * @throws FailedToCreateAdapterFactoryException if some problems during creation Adapter Factory object were occurred
+     * @throws InconsistentAdapterFactoryException if inconsistent Adapter Factory class
+     */
     public AdapterFactory getAdapterFactory() {
         Object adapterFactory;
         String adapterFactoryClassName = msbConfig.getBrokerAdapterFactory();
@@ -24,13 +30,13 @@ public class AdapterFactoryLoader {
             Class clazz = Class.forName(adapterFactoryClassName);
             adapterFactory = clazz.newInstance();
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("The required MSB Adapter Factory '" + adapterFactoryClassName + "' is not supported.", e);
+            throw new AdapterFactoryNotSupportedException("The required MSB Adapter Factory '" + adapterFactoryClassName + "' is not supported.", e);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create Adapter Factory: " + adapterFactoryClassName, e);
+            throw new FailedToCreateAdapterFactoryException("Failed to create Adapter Factory: " + adapterFactoryClassName, e);
         }
 
         if (!(adapterFactory instanceof AdapterFactory)) {
-            throw new RuntimeException("Inconsistent Adapter Factory class: " + adapterFactoryClassName);
+            throw new InconsistentAdapterFactoryException("Inconsistent Adapter Factory class: " + adapterFactoryClassName);
         }
 
         ((AdapterFactory) adapterFactory).init(msbConfig);
