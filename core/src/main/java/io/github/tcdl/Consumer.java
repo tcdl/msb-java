@@ -1,9 +1,5 @@
 package io.github.tcdl;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.exception.JsonConversionException;
@@ -16,6 +12,11 @@ import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * {@link Consumer} is a component responsible for consuming messages from the bus.
@@ -32,7 +33,7 @@ public class Consumer {
     private ChannelMonitorAgent channelMonitorAgent;
     private Clock clock;
 
-    private Subscriber messageHandler;
+    private ConcurrentLinkedQueue<Subscriber> subscribers;
     private JsonValidator validator;
 
     public Consumer(ConsumerAdapter rawAdapter, String topic, MsbConfigurations msbConfig,
@@ -52,17 +53,30 @@ public class Consumer {
         this.msbConfig = msbConfig;
         this.clock = clock;
         this.channelMonitorAgent = channelMonitorAgent;
+        this.subscribers = new ConcurrentLinkedQueue<>();
         this.validator = validator;
     }
 
     /**
-     * Adds a handler that invoked when message being received.
+     * Adds a subscriber interested in message being received.
      *
-     * @param subscriberMessageHandler
+     * @param subscriber
      */
-    public void subscribe(Subscriber subscriberMessageHandler) {
-        Validate.notNull(subscriberMessageHandler, "the 'subscriberMessageHandler' must not be null");
-        messageHandler = subscriberMessageHandler;
+    public void subscribe(Subscriber subscriber) {
+        Validate.notNull(subscriber, "the 'subscriber' must not be null");
+        subscribers.add(subscriber);
+    }
+
+    /**
+     * Remove a subscriber interested in message being received.
+     *
+     * @param subscriber
+     * @return true if last subscriber removed.
+     */
+    public boolean unsubscribe(Subscriber subscriber) {
+        Validate.notNull(subscriber, "the 'subscriber' must not be null");
+        subscribers.remove(subscriber);
+        return subscribers.isEmpty();
     }
 
     /**
@@ -87,7 +101,7 @@ public class Consumer {
             LOG.debug("Message has been successfully parsed {}", jsonMessage);
 
             if (!isMessageExpired(message)) {
-                messageHandler.handleMessage(message);
+                subscribers.forEach(subscriber -> subscriber.handleMessage(message));
             } else {
                 LOG.warn("Expired message: {}", jsonMessage);
             }
@@ -107,5 +121,12 @@ public class Consumer {
         Instant now = clock.instant();
 
         return expiryTime.isBefore(now);
+    }
+
+    public interface Subscriber {
+        /**
+         * Invoked when a message is successfully parsed and is ready for processing
+         */
+        void handleMessage(Message message);
     }
 }

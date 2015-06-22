@@ -1,13 +1,5 @@
 package io.github.tcdl;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.time.Clock;
-
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
@@ -26,6 +18,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.time.Clock;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -48,7 +51,7 @@ public class ConsumerTest {
     private ArgumentCaptor<RawMessageHandler> messageHandlerCaptor;
 
     @Mock
-    private Subscriber subscriberMock;
+    private Consumer.Subscriber subscriberMock;
 
     private Clock clock = Clock.systemDefaultZone();
 
@@ -70,24 +73,27 @@ public class ConsumerTest {
     }
 
     @Test
-    public void testValidMessageProcessedBySubscriber() throws JsonConversionException {
+    public void testValidMessageProcessedByAllSubscribers() throws JsonConversionException {
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
 
-        Subscriber subscriberMock = mock(Subscriber.class);
+        Consumer.Subscriber subscriberMock1 = mock(Consumer.Subscriber.class);
+        Consumer.Subscriber subscriberMock2 = mock(Consumer.Subscriber.class);
 
-        consumer.subscribe(subscriberMock);
+        consumer.subscribe(subscriberMock1);
+        consumer.subscribe(subscriberMock2);
 
         consumer.handleRawMessage(Utils.toJson(originalMessage));
 
-        verify(subscriberMock).handleMessage(any(Message.class));
+        verify(subscriberMock1).handleMessage(any(Message.class));
+        verify(subscriberMock2).handleMessage(any(Message.class));
     }
 
     @Test
     public void testExceptionWhileMessageConvertingProcessedByAllSubscribers() throws JsonConversionException {
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
-        Subscriber subscriberMock1 = mock(Subscriber.class);
-        Subscriber subscriberMock2 = mock(Subscriber.class);
+        Consumer.Subscriber subscriberMock1 = mock(Consumer.Subscriber.class);
+        Consumer.Subscriber subscriberMock2 = mock(Consumer.Subscriber.class);
 
         consumer.subscribe(subscriberMock1);
         consumer.subscribe(subscriberMock2);
@@ -158,6 +164,28 @@ public class ConsumerTest {
         verify(subscriberMock, never()).handleMessage(any(Message.class));
     }
 
+    @Test
+    public void testSubscribeUnsubscribeOne() {
+        Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
+        Consumer.Subscriber subscriber = new NoopSubscriber();
+        consumer.subscribe(subscriber);
+
+        assertTrue(consumer.unsubscribe(subscriber));
+    }
+
+    @Test
+    public void testSubscribeUnsubscribeMultiple() {
+        Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
+        Consumer.Subscriber subscriber1 = new NoopSubscriber();
+        Consumer.Subscriber subscriber2 = new NoopSubscriber();
+
+        consumer.subscribe(subscriber1);
+        consumer.subscribe(subscriber2);
+
+        assertFalse(consumer.unsubscribe(subscriber1));
+        assertTrue(consumer.unsubscribe(subscriber2));
+    }
+
     private  Message createExpiredMsbRequestMessageWithTopicTo(String topicTo) {
         MsbConfigurations msbConf = new MsbConfigurations(ConfigFactory.load());
         Clock clock = Clock.systemDefaultZone();
@@ -166,5 +194,10 @@ public class ConsumerTest {
         MetaMessage.MetaMessageBuilder metaBuilder = new MetaMessage.MetaMessageBuilder(0, clock.instant(), msbConf.getServiceDetails(), clock);
         return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
                 .build();
+    }
+
+    private static class NoopSubscriber implements Consumer.Subscriber {
+        @Override
+        public void handleMessage(Message message) {}
     }
 }

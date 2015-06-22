@@ -1,6 +1,13 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.support.Utils.ifNull;
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.events.EventHandlers;
+import io.github.tcdl.messages.Acknowledge;
+import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.payload.Payload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -12,20 +19,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.EventHandlers;
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.payload.Payload;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static io.github.tcdl.support.Utils.ifNull;
 
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
  *
  * Created by rdro on 4/23/2015.
  */
-public class Collector implements Subscriber {
+public class Collector implements Consumer.Subscriber {
 
     private static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
@@ -48,7 +49,7 @@ public class Collector implements Subscriber {
     private Clock clock;
 
     private String topic;
-    Message requestMessage;
+    private Message requestMessage;
 
     private Optional<Callback<Payload>> onResponse = Optional.empty();
     private Optional<Callback<Acknowledge>> onAcknowledge = Optional.empty();
@@ -101,7 +102,7 @@ public class Collector implements Subscriber {
     @Override
     public void handleMessage(Message message) {
         if (!acceptMessage(message)) {
-            LOG.warn("Rejected {}", message);
+            LOG.debug("Rejected {}", message);
             return;
         }
 
@@ -144,7 +145,7 @@ public class Collector implements Subscriber {
         cancelAckTimeoutTask();
         cancelResponseTimeoutTask();
 
-        channelManager.unsubscribe(topic, requestMessage.getCorrelationId());
+        channelManager.unsubscribe(topic, this);
         onEnd.ifPresent(handler -> handler.call(payloadMessages));
     }
 
@@ -275,8 +276,6 @@ public class Collector implements Subscriber {
             ackTimeoutFuture.cancel(true);
         }
     }
-
-
 
     List<Message> getAckMessages() {
         return ackMessages;

@@ -13,8 +13,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.support.JsonValidator;
@@ -30,7 +28,7 @@ public class ChannelManagerTest {
 
     private ChannelManager channelManager;
     private ChannelMonitorAgent mockChannelMonitorAgent;
-    private Subscriber subscriberMock;
+    private Consumer.Subscriber subscriberMock;
 
     @Before
     public void setUp() {
@@ -41,7 +39,7 @@ public class ChannelManagerTest {
 
         mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
         channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);
-        subscriberMock = mock(Subscriber.class);
+        subscriberMock = mock(Consumer.Subscriber.class);
     }
 
     @Test
@@ -74,6 +72,18 @@ public class ChannelManagerTest {
     }
 
     @Test
+    public void testUnsubscribe() {
+        String topic = "topic:test-consumer-unsubscribe";
+
+        channelManager.unsubscribe(topic, subscriberMock);
+        verify(mockChannelMonitorAgent, never()).consumerTopicRemoved(topic);
+
+        channelManager.subscribe(topic, subscriberMock); // force creation of the consumer
+        channelManager.unsubscribe(topic, subscriberMock);
+        verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
+    }
+
+    @Test
     public void testPublishMessageInvokesAgent() {
         String topic = "topic:test-agent-publish";
 
@@ -103,59 +113,4 @@ public class ChannelManagerTest {
         verify(mockChannelMonitorAgent).consumerMessageReceived(topic);
         assertNotNull(messageEvent.value);
     }
-
-
-    @Test
-    public void testSubscribeUnsubscribeOne() {
-        String topic = "topic:test-unsubscribe-once";
-        Collector collector =new Collector(mock(MsbMessageOptions.class),  TestUtils.createSimpleMsbContext(), mock(EventHandlers.class));
-        Message requestMessage = TestUtils.createMsbRequestMessageNoPayload();
-        collector.listenForResponses(topic, requestMessage);
-
-        channelManager.subscribe(topic, collector);
-        channelManager.unsubscribe(topic, requestMessage.getCorrelationId());
-
-        verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
-    }
-
-    @Test
-    public void testSubscribeUnsubscribeMultiple() {
-        String topic = "topic:test-unsubscribe-multi";
-        Collector collector1 =new Collector(mock(MsbMessageOptions.class), TestUtils.createSimpleMsbContext(), mock(EventHandlers.class));
-        Message requestMessage1 = TestUtils.createMsbRequestMessageNoPayload();
-        collector1.listenForResponses(topic, requestMessage1);
-
-        Collector collector2 =new Collector(mock(MsbMessageOptions.class), TestUtils.createSimpleMsbContext(), mock(EventHandlers.class));
-        Message requestMessage2 = TestUtils.createMsbRequestMessageNoPayload();
-        collector2.listenForResponses(topic, requestMessage2);
-
-        channelManager.subscribe(topic, collector1);
-        channelManager.subscribe(topic, collector2);
-
-        channelManager.unsubscribe(topic, requestMessage1.getCorrelationId());
-        verify(mockChannelMonitorAgent,  never()).consumerTopicRemoved(topic);
-
-        channelManager.unsubscribe(topic, requestMessage2.getCorrelationId());
-        verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
-    }
-
-    @Test
-    public void testSubscribeUnsubscribeSeparateTopics() {
-        String topic1 = "topic:test-unsubscribe-try-first";
-        Collector collector1 =new Collector(mock(MsbMessageOptions.class), TestUtils.createSimpleMsbContext(), mock(EventHandlers.class));
-        Message requestMessage1 = TestUtils.createMsbRequestMessageNoPayload();
-        collector1.listenForResponses(topic1, requestMessage1);
-
-        String topic2 = "topic:test-unsubscribe-try-other";
-        Collector collector2 =new Collector(mock(MsbMessageOptions.class), TestUtils.createSimpleMsbContext(), mock(EventHandlers.class));
-        Message requestMessage2 = TestUtils.createMsbRequestMessageNoPayload();
-        collector2.listenForResponses(topic2, requestMessage2);
-
-        channelManager.subscribe(topic1, collector1);
-        channelManager.subscribe(topic2, collector2);
-
-        channelManager.unsubscribe(topic1, requestMessage1.getCorrelationId());
-        verify(mockChannelMonitorAgent).consumerTopicRemoved(topic1);
-    }
-
 }
