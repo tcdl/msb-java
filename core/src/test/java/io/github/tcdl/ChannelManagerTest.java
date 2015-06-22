@@ -104,15 +104,9 @@ public class ChannelManagerTest {
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
         channelManager.findOrCreateProducer(topic).publish(message);
         channelManager.subscribe(topic,
-                new Consumer.Subscriber() {
-                    @Override
-                    public void handleMessage(Message message) {
-                        messageEvent.value = message;
+               msg ->  {
+                        messageEvent.value = msg;
                         awaitReceiveEvents.countDown();
-                    }
-
-                    @Override
-                    public void handleError(Exception exception) {}
                 });
 
         assertTrue(awaitReceiveEvents.await(4000, TimeUnit.MILLISECONDS));

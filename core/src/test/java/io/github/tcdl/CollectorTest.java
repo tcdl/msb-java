@@ -1,22 +1,5 @@
 package io.github.tcdl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.io.IOException;
-import java.time.Clock;
-import java.util.List;
-
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.events.EventHandlers;
@@ -33,6 +16,24 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.io.IOException;
+import java.time.Clock;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by rdro on 4/27/2015.
@@ -172,23 +173,6 @@ public class CollectorTest {
         verify(collector).acceptMessage(eq(originalMessageWithAck));
         verify(onAck).call(originalMessageWithAck.getAck());
         assertTrue(collector.getAckMessages().contains(originalMessageWithAck));
-    }
-
-    @Test
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public void testListenForResponsesHandleError() {
-        Callback<Exception> onError = mock(Callback.class);
-        when(eventHandlers.onError()).thenReturn(onError);
-        JsonConversionException error = new JsonConversionException("Json invalid");
-        Collector collector = spy(new Collector(messageOptionsMock, msbContext, eventHandlers));
-        when(collector.acceptMessage(originalMessageWithPayload)).thenReturn(true);
-        collector.listenForResponses(TOPIC, originalMessageWithPayload);
-
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
-        verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
-        subscriberCaptor.getValue().handleError(error);
-
-        verify(onError).call(error);
     }
 
     @Test

@@ -106,8 +106,7 @@ public class Consumer {
                 LOG.warn("Expired message: {}", jsonMessage);
             }
         } catch (JsonConversionException | JsonSchemaValidationException e) {
-            LOG.error("Got error while parsing message {}, {}", jsonMessage, e);
-            subscribers.forEach(subscriber -> subscriber.handleError(e));
+            LOG.error("Got error while parsing message {}", jsonMessage, e);
         }
     }
 
@@ -129,10 +128,5 @@ public class Consumer {
          * Invoked when a message is successfully parsed and is ready for processing
          */
         void handleMessage(Message message);
-
-        /**
-         * Invoked when some error happens during message parsing
-         */
-        void handleError(Exception exception);
     }
 }

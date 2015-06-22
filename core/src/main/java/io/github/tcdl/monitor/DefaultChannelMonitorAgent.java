@@ -57,20 +57,12 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
      */
     public DefaultChannelMonitorAgent start() {
         channelManager.subscribe(TOPIC_HEARTBEAT, // Launch listener for heartbeat topic
-                new Consumer.Subscriber() {
-                    @Override
-                    public void handleMessage(Message message) {
+                message -> {
                         Responder responder = new Responder(null, message, msbContext);
                         Payload payload = new Payload.PayloadBuilder()
                                 .setBody(topicInfoMap)
                                 .build();
-
                         responder.send(payload);
-
-                    }
-
-                    @Override
-                    public void handleError(Exception exception) {}
                 });
 
         channelManager.setChannelMonitorAgent(this); // Inject itself in channel manager

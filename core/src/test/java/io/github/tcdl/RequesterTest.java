@@ -1,5 +1,16 @@
 package io.github.tcdl;
 
+import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.events.EventHandlers;
+import io.github.tcdl.messages.Message;
+import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.support.TestUtils;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertNotNull;
@@ -12,17 +23,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import io.github.tcdl.config.MsbMessageOptions;
-import io.github.tcdl.events.EventHandlers;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.payload.Payload;
-import io.github.tcdl.support.TestUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  * Created by rdro on 4/27/2015.
@@ -90,7 +90,6 @@ public class RequesterTest {
 
         assertThat(requester.eventHandlers.onAcknowledge(), is(onAckMock));
         assertThat(requester.eventHandlers.onResponse(), not(onAckMock));
-        assertThat(requester.eventHandlers.onError(), not(onAckMock));
         assertThat(requester.eventHandlers.onEnd(), not(onAckMock));
     }
 
@@ -104,22 +103,7 @@ public class RequesterTest {
 
         assertThat(requester.eventHandlers.onAcknowledge(), not(onResponseMock));
         assertThat(requester.eventHandlers.onResponse(), is(onResponseMock));
-        assertThat(requester.eventHandlers.onError(), not(onResponseMock));
         assertThat(requester.eventHandlers.onEnd(), not(onResponseMock));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testErrorEventHandlerIsAdded() throws Exception {
-        Callback onErrorMock = mock(Callback.class);
-        Requester requester = initRequesterForResponsesWithTimeout(1);
-
-        requester.onError(onErrorMock);
-
-        assertThat(requester.eventHandlers.onAcknowledge(), not(onErrorMock));
-        assertThat(requester.eventHandlers.onResponse(), not(onErrorMock));
-        assertThat(requester.eventHandlers.onError(), is(onErrorMock));
-        assertThat(requester.eventHandlers.onEnd(), not(onErrorMock));
     }
 
     @Test
@@ -132,7 +116,6 @@ public class RequesterTest {
 
         assertThat(requester.eventHandlers.onAcknowledge(), not(onEndMock));
         assertThat(requester.eventHandlers.onResponse(), not(onEndMock));
-        assertThat(requester.eventHandlers.onError(), not(onEndMock));
         assertThat(requester.eventHandlers.onEnd(), is(onEndMock));
     }
 
@@ -144,7 +127,6 @@ public class RequesterTest {
 
         assertThat(requester.eventHandlers.onAcknowledge(), not(onEndMock));
         assertThat(requester.eventHandlers.onResponse(), not(onEndMock));
-        assertThat(requester.eventHandlers.onError(), not(onEndMock));
         assertThat(requester.eventHandlers.onEnd(), not(onEndMock));
     }
 

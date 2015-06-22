@@ -17,7 +17,6 @@ public class EventHandlers {
     private Callback<Acknowledge> onAcknowledge = acknowledge -> {};
     private Callback<Payload> onResponse = response -> {};
     private Callback<List<Message>> onEnd = messages -> {};
-    private Callback<Exception> onError = error -> {};
 
     /**
      * Return callback registered for Acknowledge event.
@@ -73,25 +72,6 @@ public class EventHandlers {
      */
     public EventHandlers onEnd(Callback<List<Message>> onEnd) {
         this.onEnd = onEnd;
-        return this;
-    }
-
-    /**
-     * Return callback registered for Error event.
-     *
-     * @return error callback
-     */
-    public Callback<Exception> onError() {
-        return onError;
-    }
-
-    /**
-     * Registered callback for Error event.
-     *
-     * @param error callback
-     */
-    public EventHandlers onError(Callback<Exception> onError) {
-        this.onError = onError;
         return this;
     }
 }
