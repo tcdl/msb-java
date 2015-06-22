@@ -2,7 +2,7 @@ package io.github.tcdl.examples;
 
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.ResponderServer;
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.MessageTemplate;
 import io.github.tcdl.messages.payload.Payload;
 
 import java.util.Map;
@@ -18,11 +18,8 @@ public class MultipleResponder {
     }
 
     public static void runResponder(String namespace, MsbContext msbContext) {
-
-        MsbMessageOptions options = new MsbMessageOptions();
-        options.setNamespace(namespace);
-
-        ResponderServer.create(options, msbContext, (request, responder) -> {
+        MessageTemplate options = new MessageTemplate();
+        ResponderServer.create(namespace, options, msbContext, (request, responder) -> {
                     Map requestBody = request.getBody();
                     System.out.println(">>> GOT request: " + requestBody);
 

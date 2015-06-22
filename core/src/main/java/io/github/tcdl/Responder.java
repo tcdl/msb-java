@@ -1,12 +1,11 @@
 package io.github.tcdl;
 
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.MessageTemplate;
 import io.github.tcdl.messages.Acknowledge.AcknowledgeBuilder;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
-
 import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -29,7 +28,7 @@ public class Responder {
     private MessageBuilder messageBuilder;
     private Message responseMessage;
 
-    public Responder(MsbMessageOptions config, Message originalMessage, MsbContext msbContext) {
+    public Responder(MessageTemplate config, Message originalMessage, MsbContext msbContext) {
         validateReceivedMessage(originalMessage);
         this.responderId = Utils.generateId();
         this.originalMessage = originalMessage;

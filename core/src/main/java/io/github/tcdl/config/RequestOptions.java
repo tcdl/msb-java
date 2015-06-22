@@ -1,19 +1,16 @@
 package io.github.tcdl.config;
 
 /**
- * Created by rdro on 4/22/2015.
+ * Options to configure a requester to wait for acknowledges or responses
+ *
+ * Created by rdrozdov-tc on 6/22/15.
  */
-public class MsbMessageOptions {
+public class RequestOptions {
 
-    private String namespace;
     private Integer ackTimeout;
     private Integer responseTimeout;
     private Integer waitForResponses;
-    private Integer ttl;
-
-    public String getNamespace() {
-        return namespace;
-    }
+    private MessageTemplate messageTemplate;
 
     public Integer getAckTimeout() {
         return ackTimeout;
@@ -30,16 +27,8 @@ public class MsbMessageOptions {
         return waitForResponses;
     }
 
-    public Integer getTtl() {
-        return ttl;
-    }
-
     public boolean isWaitForResponses() {
         return getWaitForResponses() != 0;
-    }
-
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
     }
 
     public void setAckTimeout(Integer ackTimeout) {
@@ -54,15 +43,20 @@ public class MsbMessageOptions {
         this.waitForResponses = waitForResponses;
     }
 
-    public void setTtl(Integer ttl) {
-        this.ttl = ttl;
+    public MessageTemplate getMessageTemplate() {
+        return messageTemplate;
+    }
+
+    public void setMessageTemplate(MessageTemplate messageTemplate) {
+        this.messageTemplate = messageTemplate;
     }
 
     @Override
     public String toString() {
-        return "MsbMessageOptions [namespace=" + namespace + ", ackTimeout="
-                + ackTimeout + ", responseTimeout=" + responseTimeout
-                + ", waitForResponses=" + waitForResponses + ", ttl=" + ttl
+        return "RequestOptions [ackTimeout=" + ackTimeout
+                + ", responseTimeout=" + responseTimeout
+                + ", waitForResponses=" + waitForResponses
+                + (messageTemplate != null ? messageTemplate : "")
                 + "]";
     }
 

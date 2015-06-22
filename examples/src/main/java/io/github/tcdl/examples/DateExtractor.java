@@ -2,7 +2,7 @@ package io.github.tcdl.examples;
 
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.ResponderServer;
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.MessageTemplate;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.monitor.DefaultChannelMonitorAgent;
 
@@ -26,12 +26,12 @@ public class DateExtractor {
         MsbContext msbContext = new MsbContext.MsbContextBuilder().build();
         DefaultChannelMonitorAgent.start(msbContext);
 
-        MsbMessageOptions options = new MsbMessageOptions();
-        options.setNamespace("search:parsers:facets:v1");
+        MessageTemplate options = new MessageTemplate();
+        final String namespace = "search:parsers:facets:v1";
 
         final Pattern YEAR_PATTERN = Pattern.compile("^.*(20(\\d{2})).*$");
 
-        ResponderServer.create(options, msbContext, (request, responder) -> {
+        ResponderServer.create(namespace, options, msbContext, (request, responder) -> {
 
                     RequestQuery query = request.getQueryAs(RequestQuery.class);
                     String queryString = query.getQ();

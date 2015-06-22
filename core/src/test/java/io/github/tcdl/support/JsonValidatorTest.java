@@ -37,7 +37,8 @@ public class JsonValidatorTest {
 
     @Test
     public void testValidateSuccess() throws Exception {
-        String jsonMessage = Utils.toJson(TestUtils.createMsbRequestMessageNoPayload());
+        String namespace = TestUtils.getSimpleNamespace();
+        String jsonMessage = Utils.toJson(TestUtils.createMsbRequestMessageNoPayload(namespace));
 
         try {
             validator.validate(jsonMessage, schema);
@@ -48,7 +49,8 @@ public class JsonValidatorTest {
 
     @Test
     public void testCachingJsonSchema() throws Exception {
-        String jsonMessage = Utils.toJson(TestUtils.createMsbRequestMessageNoPayload());
+        String namespace = TestUtils.getSimpleNamespace();
+        String jsonMessage = Utils.toJson(TestUtils.createMsbRequestMessageNoPayload(namespace));
 
         // validate first time. 2 calls for message and schema
         validator.validate(jsonMessage, schema);
@@ -67,7 +69,8 @@ public class JsonValidatorTest {
 
     @Test(expected = NullPointerException.class)
     public void testValidateNullJsonSchemaFail() throws Exception {
-        String jsonMessage = Utils.toJson(TestUtils.createMsbRequestMessageNoPayload());
+        String namespace = TestUtils.getSimpleNamespace();
+        String jsonMessage = Utils.toJson(TestUtils.createMsbRequestMessageNoPayload(namespace));
         validator.validate(jsonMessage, null);
     }
 

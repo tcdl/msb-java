@@ -1,9 +1,8 @@
 package io.github.tcdl;
 
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.events.EventHandlers;
-import io.github.tcdl.exception.JsonConversionException;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MessageFactory;
@@ -51,7 +50,7 @@ public class CollectorTest {
     private MessageFactory messageFactoryMock;
 
     @Mock
-    private MsbMessageOptions messageOptionsMock;
+    private RequestOptions requestOptionsMock;
 
     @Mock
     private ChannelManager channelManagerMock;
@@ -79,29 +78,29 @@ public class CollectorTest {
 
     @Test
     public void testGetWaitForResponsesConfigsReturnFalse() {
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(0);
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         assertFalse("expect false if MessageOptions.waitForResponses equals 0", collector.isAwaitingResponses());
     }
 
     @Test
     public void testGetWaitForResponsesConfigsReturnTrue() {
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(100);
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(100);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         assertTrue("expect true if MessageOptions.waitForResponses equals 100", collector.isAwaitingResponses());
     }
 
     @Test
     public void testIsAwaitingAcksConfigsNotSetAckTimeoutReturnFalse() {
-        when(messageOptionsMock.getAckTimeout()).thenReturn(null);
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        when(requestOptionsMock.getAckTimeout()).thenReturn(null);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         assertFalse("expect false if MessageOptions.ackTimeout null", collector.isAwaitingAcks());
     }
 
     @Test
     public void testIsAwaitingAcksReturnTrue() {
-        when(messageOptionsMock.getAckTimeout()).thenReturn(200);
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        when(requestOptionsMock.getAckTimeout()).thenReturn(200);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         assertTrue("expect true if MessageOptions.ackTimeout equals 200", collector.isAwaitingAcks());
     }
 
@@ -110,7 +109,7 @@ public class CollectorTest {
     public void testListenForResponsesFilterNull() {
         Callback<Payload> onResponse = mock(Callback.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
-        Collector collector = spy(new Collector(messageOptionsMock, msbContext, eventHandlers));
+        Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
@@ -126,7 +125,7 @@ public class CollectorTest {
     public void testListenForResponsesFilterReturnTrue() {
         Callback<Payload> onResponse = mock(Callback.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
-        Collector collector = spy(new Collector(messageOptionsMock, msbContext, eventHandlers));
+        Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
         when(collector.acceptMessage(originalMessageWithPayload)).thenReturn(true);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
@@ -144,7 +143,7 @@ public class CollectorTest {
     public void testListenForResponsesFilterReturnFalse() {
         Callback<Payload> onResponse = mock(Callback.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
-        Collector collector = spy(new Collector(messageOptionsMock, msbContext, eventHandlers));
+        Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
         when(collector.acceptMessage(originalMessageWithPayload)).thenReturn(false);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
@@ -162,7 +161,7 @@ public class CollectorTest {
     public void testListenForResponsesFilterReturnTrueReceivedAck() {
         Callback<Acknowledge> onAck = mock(Callback.class);
         when(eventHandlers.onAcknowledge()).thenReturn(onAck);
-        Collector collector = spy(new Collector(messageOptionsMock, msbContext, eventHandlers));
+        Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
         when(collector.acceptMessage(originalMessageWithPayload)).thenReturn(true);
         collector.listenForResponses(TOPIC, originalMessageWithAck);
 
@@ -181,7 +180,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = spy(new Collector(messageOptionsMock, msbContext, eventHandlers));
+        Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
         when(collector.acceptMessage(originalMessageWithPayload)).thenReturn(true);
         collector.listenForResponses(TOPIC, originalMessageWithAck);
 
@@ -198,16 +197,16 @@ public class CollectorTest {
         /*ackTimeout = 0, responseTimeout=200; waitForResponses = 1
         */
         int responseTimeout = 200;
-        when(messageOptionsMock.getAckTimeout()).thenReturn(0);
-        when(messageOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(1);
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(1);
 
         Callback<Payload> onResponse = mock(Callback.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
@@ -226,16 +225,16 @@ public class CollectorTest {
         /*ackTimeout = 0, responseTimeout=200; waitForResponses = 2
         */
         int responseTimeout = 200;
-        when(messageOptionsMock.getAckTimeout()).thenReturn(0);
-        when(messageOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(2);
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(2);
 
         Callback<Payload> onResponse = mock(Callback.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
@@ -259,16 +258,16 @@ public class CollectorTest {
         /*ackTimeout = 100, responseTimeout=0; waitForResponses = 0
         */
         int ackTimeoutMs = 100;
-        when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
-        when(messageOptionsMock.getResponseTimeout()).thenReturn(0);
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(0);
+        when(requestOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(0);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
 
         Callback<Acknowledge> onAck = mock(Callback.class);
         when(eventHandlers.onAcknowledge()).thenReturn(onAck);
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
@@ -286,16 +285,16 @@ public class CollectorTest {
         /*ackTimeout = 100, responseTimeout=0; waitForResponses = 1
         */
         int ackTimeoutMs = 100;
-        when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
-        when(messageOptionsMock.getResponseTimeout()).thenReturn(0);
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(1);
+        when(requestOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(0);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(1);
 
         Callback<Acknowledge> onAck = mock(Callback.class);
         when(eventHandlers.onAcknowledge()).thenReturn(onAck);
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
@@ -313,16 +312,16 @@ public class CollectorTest {
         /*ackTimeout = 0, responseTimeout=0; waitForResponses = 0
         */
         int ackTimeoutMs = 0;
-        when(messageOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
-        when(messageOptionsMock.getResponseTimeout()).thenReturn(0);
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(0);
+        when(requestOptionsMock.getAckTimeout()).thenReturn(ackTimeoutMs);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(0);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
 
         Callback<Acknowledge> onAck = mock(Callback.class);
         when(eventHandlers.onAcknowledge()).thenReturn(onAck);
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());
@@ -340,14 +339,14 @@ public class CollectorTest {
          /*ackTimeout = 0, responseTimeout= 50; waitForResponses = 0
         */
         int timeoutMs = 50;
-        when(messageOptionsMock.getAckTimeout()).thenReturn(0);
-        when(messageOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(0);
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
 
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMs).build();
@@ -368,14 +367,14 @@ public class CollectorTest {
         */
         int timeoutMs = 50;
         int timeoutMsInAck = 100;
-        when(messageOptionsMock.getAckTimeout()).thenReturn(0);
-        when(messageOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(0);
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
 
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMsInAck).build();
@@ -397,14 +396,14 @@ public class CollectorTest {
         int timeoutMs = 50;
         int timeoutMsInAck = 100;
         int responsesRemaining = 2;
-        when(messageOptionsMock.getAckTimeout()).thenReturn(0);
-        when(messageOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(0);
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
 
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemaining)
@@ -429,14 +428,14 @@ public class CollectorTest {
         int responsesRemainingResponderOne = 5;
         int timeoutMsInAckResponderTwo = 222;
         int responsesRemainingResponderTwo = 7;
-        when(messageOptionsMock.getAckTimeout()).thenReturn(0);
-        when(messageOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(0);
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
 
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(messageOptionsMock, msbContext, eventHandlers);
+        Collector collector = new Collector(requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses(TOPIC, requestMessage);
 
         Acknowledge ackRespOne = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemainingResponderOne)
@@ -468,16 +467,16 @@ public class CollectorTest {
         */
         int responseTimeout = 200;
         int responsesRemaining = 2;
-        when(messageOptionsMock.getAckTimeout()).thenReturn(0);
-        when(messageOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
-        when(messageOptionsMock.getWaitForResponses()).thenReturn(responsesRemaining);
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(responsesRemaining);
 
         Callback<Payload> onResponse = mock(Callback.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = spy(new Collector(messageOptionsMock, msbContext, eventHandlers));
+        Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
         ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
         verify(channelManagerMock).subscribe(anyString(), subscriberCaptor.capture());

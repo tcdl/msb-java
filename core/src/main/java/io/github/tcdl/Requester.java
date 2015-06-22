@@ -1,9 +1,6 @@
 package io.github.tcdl;
 
-import javax.annotation.Nullable;
-import java.util.List;
-
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.exception.ChannelException;
 import io.github.tcdl.exception.JsonConversionException;
@@ -14,6 +11,9 @@ import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import org.apache.commons.lang3.Validate;
 
+import javax.annotation.Nullable;
+import java.util.List;
+
 /**
  * {@link Requester} is a component which sends a request message to the bus and collects responses.
  *
@@ -21,7 +21,7 @@ import org.apache.commons.lang3.Validate;
  */
 public class Requester {
 
-    private MsbMessageOptions messageOptions;
+    private RequestOptions requestOptions;
     private MsbContext context;
 
     private Message message;
@@ -32,36 +32,39 @@ public class Requester {
     /**
      * Creates a new instance of a requester.
      *
-     * @param messageOptions message options to construct a message
+     * @param namespace topic name to send a request to
+     * @param requestOptions options to configure a requester
      * @param context context which contains MSB related beans
      * @return instance of a requester
      */
-    public static Requester create(MsbMessageOptions messageOptions, MsbContext context) {
-        return new Requester(messageOptions, null, context);
+    public static Requester create(String namespace, RequestOptions requestOptions, MsbContext context) {
+        return new Requester(namespace, requestOptions, null, context);
     }
 
     /**
      * Creates a new instance of a requester.
      *
-     * @param messageOptions message options to construct a message
+     * @param namespace topic name to send a request to
+     * @param requestOptions options to configure a requester
      * @param originalMessage original message (to take correlation id from)
      * @param context context which contains MSB related beans
      * @return instance of a requester
      */
-    public static Requester create(MsbMessageOptions messageOptions, Message originalMessage, MsbContext context) {
-        return new Requester(messageOptions, originalMessage, context);
+    public static Requester create(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContext context) {
+        return new Requester(namespace, requestOptions, originalMessage, context);
     }
 
-    private Requester(MsbMessageOptions messageOptions, Message originalMessage, MsbContext context) {
-        Validate.notNull(messageOptions, "the 'messageOptions' must not be null");
+    private Requester(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContext context) {
+        Validate.notNull(namespace, "the 'namespace' must not be null");
+        Validate.notNull(requestOptions, "the 'messageOptions' must not be null");
         Validate.notNull(context, "the 'context' must not be null");
 
-        this.messageOptions = messageOptions;
+        this.requestOptions = requestOptions;
         this.context = context;
 
         this.eventHandlers = new EventHandlers();
         this.messageFactory = context.getMessageFactory();
-        this.messageBuilder = messageFactory.createRequestMessageBuilder(messageOptions, originalMessage);
+        this.messageBuilder = messageFactory.createRequestMessageBuilder(namespace, requestOptions.getMessageTemplate(), originalMessage);
     }
 
     /**
@@ -75,8 +78,8 @@ public class Requester {
         this.message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
         //use Collector instance to handle expected responses/acks
-        if (messageOptions.isWaitForResponses()) {
-            Collector collector = createCollector(messageOptions, context, eventHandlers);
+        if (requestOptions.isWaitForResponses()) {
+            Collector collector = createCollector(requestOptions, context, eventHandlers);
             String topic = message.getTopics().getResponse();
             collector.listenForResponses(topic, this.message);
 
@@ -131,7 +134,7 @@ public class Requester {
         return context.getChannelManager();
     }
 
-    Collector createCollector(MsbMessageOptions messageOptions, MsbContext context, EventHandlers eventHandlers) {
-        return new Collector(messageOptions, context, eventHandlers);
+    Collector createCollector(RequestOptions requestOptions, MsbContext context, EventHandlers eventHandlers) {
+        return new Collector(requestOptions, context, eventHandlers);
     }
 }

@@ -1,30 +1,33 @@
 package io.github.tcdl;
 
-import static junit.framework.TestCase.assertEquals;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
-
+import io.github.tcdl.config.MessageTemplate;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.MsbMessageOptions;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.TestUtils;
-
-import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 
+import static junit.framework.TestCase.assertEquals;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 /**
  * Created by anstr on 5/26/2015.
  */
 public class ResponderTest {
 
-    private MsbMessageOptions config;
+    private MessageTemplate config;
     private MsbConfigurations msbConf;
     private static final String TOPIC = "test:responder";
 
@@ -36,7 +39,7 @@ public class ResponderTest {
 
     @Before
     public void setUp() {
-        config = TestUtils.createSimpleConfig();
+        config = TestUtils.createSimpleMessageTemplate();
 
         msbConf = TestUtils.createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();

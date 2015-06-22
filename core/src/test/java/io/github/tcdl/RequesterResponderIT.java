@@ -1,7 +1,8 @@
 package io.github.tcdl;
 
 import io.github.tcdl.adapters.mock.MockAdapter;
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.MessageTemplate;
+import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
@@ -43,14 +44,15 @@ public class RequesterResponderIT {
 
     @Test
     public void testResponderServerReceiveMessageSendByRequester() throws Exception {
-        MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-test-request-received");
+        String namespace = "test:requester-responder-test-request-received";
+        RequestOptions requestOptions = TestUtils.createSimpleRequestOptions();
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester requester = Requester.create(messageOptions, msbContext);
+        Requester requester = Requester.create(namespace, requestOptions, msbContext);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
 
-        ResponderServer.create(messageOptions, msbContext,(request, response) ->  {
+        ResponderServer.create(namespace, requestOptions.getMessageTemplate(), msbContext,(request, response) ->  {
                     requestReceived.countDown();
                 })
                 .listen();
@@ -62,9 +64,11 @@ public class RequesterResponderIT {
 
     @Test
     public void testResponderAnswerWithAckRequesterReceiveAck() throws Exception {
-        MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-test-get-ack");
-        messageOptions.setAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME);
-        messageOptions.setWaitForResponses(1);
+        String namespace = "test:requester-responder-test-get-ack";
+        MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
+        RequestOptions requestOptions = TestUtils.createSimpleRequestOptions();
+        requestOptions.setAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME);
+        requestOptions.setWaitForResponses(1);
 
         CountDownLatch ackSend = new CountDownLatch(1);
         CountDownLatch ackResponseReceived = new CountDownLatch(1);
@@ -74,7 +78,7 @@ public class RequesterResponderIT {
 
         //Create and send request message directly to broker, wait for ack  
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester.create(messageOptions, msbContext).
+        Requester.create(namespace, requestOptions, msbContext).
                 onAcknowledge((Acknowledge ack) -> {
                     receivedResponseAcks.add(ack);
                     ackResponseReceived.countDown();
@@ -83,7 +87,7 @@ public class RequesterResponderIT {
 
         //listen for message and send ack
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
-        ResponderServer.create(messageOptions, serverMsbContext, (request, response) -> {
+        ResponderServer.create(namespace, messageTemplate, serverMsbContext, (request, response) -> {
                     response.sendAck(100, 2);
                     sentAcks.add(response.getResponseMessage());
                     ackSend.countDown();
@@ -98,9 +102,11 @@ public class RequesterResponderIT {
 
     @Test
     public void testResponderAnswerWithResponseRequesterReceiveResponse() throws Exception {
-        MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-test-get-resp");
-        messageOptions.setResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME);
-        messageOptions.setWaitForResponses(1);
+        String namespace = "test:requester-responder-test-get-resp";
+        MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
+        RequestOptions requestOptions = TestUtils.createSimpleRequestOptions();
+        requestOptions.setResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME);
+        requestOptions.setWaitForResponses(1);
 
         CountDownLatch respSend = new CountDownLatch(1);
         CountDownLatch respReceived = new CountDownLatch(1);
@@ -110,7 +116,7 @@ public class RequesterResponderIT {
 
         //Create and send request message directly to broker, wait for response
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester.create(messageOptions, msbContext)
+        Requester.create(namespace, requestOptions, msbContext)
                 .onResponse(payload -> {
                     receivedResponses.add(payload);
                     respReceived.countDown();
@@ -120,7 +126,7 @@ public class RequesterResponderIT {
         //listen for message and send response
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
         ResponderServer
-                .create(messageOptions, serverMsbContext, (request, response) -> {
+                .create(namespace, messageTemplate, serverMsbContext, (request, response) -> {
                     Payload payload = new Payload.PayloadBuilder().setBody(
                             new HashMap<String, String>().put("body", "payload from test : testResponderAnswerWithResponseRequesterReceiveResponse"))
                             .setStatusCode(3333).build();
@@ -139,10 +145,12 @@ public class RequesterResponderIT {
 
     @Test
     public void testResponderCommunicationWithAck () throws Exception {
-        MsbMessageOptions responderServerOneMessageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-server-one");
-        MsbMessageOptions responderServerTwoMessageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-server-two");
+        String namespace1 = "test:requester-responder-server-one";
+        String namespace2 = "test:requester-responder-server-two";
+        MessageTemplate responderServerOneMessageOptions = TestUtils.createSimpleMessageTemplate();
+        MessageTemplate responderServerTwoMessageOptions = TestUtils.createSimpleMessageTemplate();
 
-        MsbMessageOptions requestAwaitAckMessageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-server-two");
+        RequestOptions requestAwaitAckMessageOptions = TestUtils.createSimpleRequestOptions();
         requestAwaitAckMessageOptions.setAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME);
         requestAwaitAckMessageOptions.setWaitForResponses(1);
 
@@ -150,10 +158,10 @@ public class RequesterResponderIT {
         CountDownLatch ackReceived = new CountDownLatch(1);
 
         MsbContext serverOneMsbContext = TestUtils.createSimpleMsbContext();
-        ResponderServer.create(responderServerOneMessageOptions, serverOneMsbContext, (request, response) -> {
+        ResponderServer.create(namespace1, responderServerOneMessageOptions, serverOneMsbContext, (request, response) -> {
 
                     //Create and send request message, wait for ack 
-                    Requester requester = Requester.create(requestAwaitAckMessageOptions, msbContext);
+                    Requester requester = Requester.create(namespace2, requestAwaitAckMessageOptions, msbContext);
                     Payload requestPayload = TestUtils.createSimpleRequestPayload();
                     requester.onAcknowledge((Acknowledge a) -> ackReceived.countDown());
                     requester.publish(requestPayload);
@@ -161,13 +169,13 @@ public class RequesterResponderIT {
                 .listen();
 
         MsbContext serverTwoMsbContext = TestUtils.createSimpleMsbContext();
-        ResponderServer.create(responderServerTwoMessageOptions, serverTwoMsbContext, (request, response) -> {
+        ResponderServer.create(namespace2, responderServerTwoMessageOptions, serverTwoMsbContext, (request, response) -> {
                     response.sendAck(100, 2);
                     ackSent.countDown();
                 })
                 .listen();
 
-        MockAdapter.pushRequestMessage(TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(responderServerOneMessageOptions.getNamespace()));
+        MockAdapter.pushRequestMessage(TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace1));
 
         assertTrue("Message ack was not send", ackSent.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         assertTrue("Message ack was not received", ackReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
@@ -175,10 +183,11 @@ public class RequesterResponderIT {
 
     @Test
     public void testMultipleRequesterListenForAcks() throws Exception {
-        MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:requester-responder-test-send-multiple-requests-get-ack");
-        messageOptions.setAckTimeout(100);
-        messageOptions.setResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME);
-        messageOptions.setWaitForResponses(1);
+        String namespace = "test:requester-responder-test-send-multiple-requests-get-ack";
+        RequestOptions requestOptions = TestUtils.createSimpleRequestOptions();
+        requestOptions.setAckTimeout(100);
+        requestOptions.setResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME);
+        requestOptions.setWaitForResponses(1);
 
         int requestsToSendDuringTest = 5;
 
@@ -195,7 +204,7 @@ public class RequesterResponderIT {
         Thread publishingThread= new Thread(() -> {
             while (messagesToSend.get() > 0) {
 
-                Requester.create(messageOptions, msbContext).
+                Requester.create(namespace, requestOptions, msbContext).
                         onAcknowledge((Acknowledge ack) -> {
                             receivedResponseAcks.add(ack);
                             ackResponseReceived.countDown();
@@ -212,7 +221,7 @@ public class RequesterResponderIT {
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
         Random randomAckValue = new Random();
         randomAckValue.ints();
-        ResponderServer.create(messageOptions, serverMsbContext, (request, response) -> {
+        ResponderServer.create(namespace, requestOptions.getMessageTemplate(), serverMsbContext, (request, response) -> {
                     response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
                     sentAcks.add(response.getResponseMessage());
                     ackSend.countDown();

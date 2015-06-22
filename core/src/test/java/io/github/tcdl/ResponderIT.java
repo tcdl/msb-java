@@ -1,19 +1,14 @@
 package io.github.tcdl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.tcdl.adapters.mock.MockAdapter;
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.MessageTemplate;
 import io.github.tcdl.exception.JsonSchemaValidationException;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -21,7 +16,11 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ResponderIT {
 
@@ -38,8 +37,9 @@ public class ResponderIT {
 
     @Test
     public void testCreateAckMessage() throws Exception {
-        MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:responder-ack");
-        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(messageOptions.getNamespace());
+        String namespace = "test:responder-ack";
+        MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
+        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
 
         Responder responder = new Responder(messageOptions, originalMessage, msbContext);
 
@@ -83,8 +83,9 @@ public class ResponderIT {
 
     @Test
     public void testCreateResponseMessage() throws Exception {
-        MsbMessageOptions messageOptions = TestUtils.createSimpleConfigSetNamespace("test:responder-response");
-        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(messageOptions.getNamespace());
+        String namespace = "test:responder-response";
+        MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
+        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
 
         Responder responder = new Responder(messageOptions, originalMessage, msbContext);
         Payload responsePayload = TestUtils.createSimpleResponsePayload();

@@ -4,8 +4,9 @@ import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.TimeoutManager;
+import io.github.tcdl.config.MessageTemplate;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.MsbMessageOptions;
+import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.Message.MessageBuilder;
@@ -35,16 +36,19 @@ public class TestUtils {
         return new MsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
     }
 
-    public static MsbMessageOptions createSimpleConfig() {
-        MsbMessageOptions conf = new MsbMessageOptions();
-        conf.setNamespace("test:general");
+    public static String getSimpleNamespace() {
+        return "test:general";
+    }
+
+    public static RequestOptions createSimpleRequestOptions() {
+        RequestOptions conf = new RequestOptions();
+        conf.setMessageTemplate(createSimpleMessageTemplate());
         return conf;
     }
 
-    public static MsbMessageOptions createSimpleConfigSetNamespace(String namespace) {
-        MsbMessageOptions conf = new MsbMessageOptions();
-        conf.setNamespace(namespace);
-        return conf;
+    public static MessageTemplate createSimpleMessageTemplate() {
+        MessageTemplate messageTemplate = new MessageTemplate();
+        return messageTemplate;
     }
 
     public static Message createMsbRequestMessageWithPayloadAndTopicTo(String topicTo) {
@@ -73,12 +77,12 @@ public class TestUtils {
                 .withPayload(null).withAck(ack).build();
     }
 
-    public static Message createMsbRequestMessageNoPayload() {
-        MsbMessageOptions conf = createSimpleConfig();
+    public static Message createMsbRequestMessageNoPayload(String namespace) {
+        MessageTemplate conf = createSimpleMessageTemplate();
         MsbConfigurations msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
-        Topics topic = new Topics(conf.getNamespace(), conf.getNamespace() + ":response:" +
+        Topics topic = new Topics(namespace, namespace + ":response:" +
                 msbConf.getServiceDetails().getInstanceId());
 
         MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
@@ -86,12 +90,12 @@ public class TestUtils {
                 .withPayload(null).build();
     }
 
-    public static Message createMsbResponseMessage() {
-        MsbMessageOptions conf = createSimpleConfig();
+    public static Message createMsbResponseMessage(String namespace) {
+        MessageTemplate conf = createSimpleMessageTemplate();
         MsbConfigurations msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
-        Topics topic = new Topics(conf.getNamespace(), conf.getNamespace() + ":response:" +
+        Topics topic = new Topics(namespace, namespace + ":response:" +
                 msbConf.getServiceDetails().getInstanceId());
         MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
         return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic)
