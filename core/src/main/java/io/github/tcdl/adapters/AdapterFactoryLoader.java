@@ -1,8 +1,6 @@
 package io.github.tcdl.adapters;
 
-import io.github.tcdl.exception.AdapterFactoryNotSupportedException;
-import io.github.tcdl.exception.FailedToCreateAdapterFactoryException;
-import io.github.tcdl.exception.InconsistentAdapterFactoryException;
+import io.github.tcdl.exception.AdapterInitializationException;
 
 import io.github.tcdl.config.MsbConfigurations;
 
@@ -19,28 +17,24 @@ public class AdapterFactoryLoader {
     }
 
     /**
-     * @throws AdapterFactoryNotSupportedException if not supported Adapter Factory class
-     * @throws FailedToCreateAdapterFactoryException if some problems during creation Adapter Factory object were occurred
-     * @throws InconsistentAdapterFactoryException if inconsistent Adapter Factory class
+     * @throws AdapterInitializationException if some problems during creation Adapter Factory object were occurred
      */
     public AdapterFactory getAdapterFactory() {
-        Object adapterFactory;
+        AdapterFactory adapterFactory;
         String adapterFactoryClassName = msbConfig.getBrokerAdapterFactory();
         try {
             Class clazz = Class.forName(adapterFactoryClassName);
-            adapterFactory = clazz.newInstance();
+            adapterFactory = (AdapterFactory) clazz.newInstance();
         } catch (ClassNotFoundException e) {
-            throw new AdapterFactoryNotSupportedException("The required MSB Adapter Factory '" + adapterFactoryClassName + "' is not supported.", e);
-        } catch (Exception e) {
-            throw new FailedToCreateAdapterFactoryException("Failed to create Adapter Factory: " + adapterFactoryClassName, e);
+            throw new AdapterInitializationException("The required MSB Adapter Factory '" + adapterFactoryClassName + "' is not supported.", e);
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new AdapterInitializationException("Failed to create Adapter Factory: " + adapterFactoryClassName, e);
+        } catch (ClassCastException e) {
+            throw new AdapterInitializationException("Inconsistent Adapter Factory class: " + adapterFactoryClassName);
         }
 
-        if (!(adapterFactory instanceof AdapterFactory)) {
-            throw new InconsistentAdapterFactoryException("Inconsistent Adapter Factory class: " + adapterFactoryClassName);
-        }
+        adapterFactory.init(msbConfig);
 
-        ((AdapterFactory) adapterFactory).init(msbConfig);
-        return (AdapterFactory) adapterFactory;
+        return adapterFactory;
     }
-
 }

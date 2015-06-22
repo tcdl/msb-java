@@ -15,7 +15,7 @@ public class AmqpProducerAdapter implements ProducerAdapter {
     /**
      * The constructor.
      * @param topic - a topic name associated with the adapter
-     * @throws ChannelException if some problems during setup channel from ActiveMQ connection were occurred
+     * @throws ChannelException if some problems during setup channel from RabbitMQ connection were occurred
      */
     public AmqpProducerAdapter(String topic, AmqpConnectionManager connectionManager) {
         Validate.notNull(topic, "the 'topic' must not be null");
