@@ -3,6 +3,7 @@ package io.github.tcdl;
 import java.time.Clock;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.adapters.AdapterFactoryLoader;
@@ -19,7 +20,7 @@ import org.apache.commons.lang3.Validate;
 /**
  * {@link ChannelManager} creates consumers or producers on demand
  */
-public class ChannelManager {
+public class ChannelManager implements Subscriber {
     
     private MsbConfigurations msbConfig;
     private Clock clock;
@@ -29,6 +30,8 @@ public class ChannelManager {
 
     private Map<String, Producer> producersByTopic;
     private Map<String, Consumer> consumersByTopic;
+    private Map<String, Subscriber> collectorsByCorrelationId;
+    private Map<String, AtomicInteger> collectorsByTopic;
 
     public ChannelManager(MsbConfigurations msbConfig, Clock clock, JsonValidator validator) {
         this.msbConfig = msbConfig;
@@ -37,6 +40,8 @@ public class ChannelManager {
         this.adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
         this.producersByTopic = new ConcurrentHashMap<>();
         this.consumersByTopic = new ConcurrentHashMap<>();
+        this.collectorsByCorrelationId = new ConcurrentHashMap<>();
+        this.collectorsByTopic = new ConcurrentHashMap<>();
 
         channelMonitorAgent = new NoopChannelMonitorAgent();
     }
@@ -52,9 +57,16 @@ public class ChannelManager {
         return producer;
     }
 
-    public synchronized void subscribe(final String topic, final Consumer.Subscriber subscriber) {
+    public void subscribe(final String topic, final Subscriber subscriber) {
         Consumer consumer = findOrCreateConsumer(topic);
-        consumer.subscribe(subscriber);
+        if (subscriber instanceof Collector) {
+            collectorsByCorrelationId.putIfAbsent(((Collector) subscriber).requestMessage.getCorrelationId(), subscriber);
+            AtomicInteger activeCollectorsForTopic = collectorsByTopic.computeIfAbsent(topic, s -> {return  new AtomicInteger();});
+            activeCollectorsForTopic.incrementAndGet();
+            consumer.subscribe(this);
+        } else {
+            consumer.subscribe(subscriber);
+        }
     }
 
     private Consumer findOrCreateConsumer(final String topic) {
@@ -68,17 +80,20 @@ public class ChannelManager {
         return consumer;
     }
 
-    public synchronized void unsubscribe(String topic, Consumer.Subscriber subscriber) {
+    public synchronized void unsubscribe(String topic, String correlationId) {
         if (topic == null || !consumersByTopic.containsKey(topic))
             return;
 
         Consumer consumer = consumersByTopic.get(topic);
-        boolean isLast = consumer.unsubscribe(subscriber);
-
-        if (isLast) {
-            consumer.end();
-            consumersByTopic.remove(topic);
-            channelMonitorAgent.consumerTopicRemoved(topic);
+        collectorsByCorrelationId.remove(correlationId);
+        AtomicInteger activeCollectorsForTopic = collectorsByTopic.get(topic);
+        if (activeCollectorsForTopic != null) {
+            if (activeCollectorsForTopic.decrementAndGet() <= 0)
+            {
+                consumer.end();
+                consumersByTopic.remove(topic);
+                channelMonitorAgent.consumerTopicRemoved(topic);
+            }
         }
     }
 
@@ -104,5 +119,13 @@ public class ChannelManager {
 
     public void setChannelMonitorAgent(ChannelMonitorAgent channelMonitorAgent) {
         this.channelMonitorAgent = channelMonitorAgent;
+    }
+
+    @Override
+    public void handleMessage(Message message) {
+        Subscriber collectorSubscriber = collectorsByCorrelationId.get(message.getCorrelationId());
+        if (collectorSubscriber != null) {
+            collectorSubscriber.handleMessage(message);
+        }
     }
 }
