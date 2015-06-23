@@ -66,9 +66,10 @@ public class RequesterResponderIT {
     public void testResponderAnswerWithAckRequesterReceiveAck() throws Exception {
         String namespace = "test:requester-responder-test-get-ack";
         MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
-        RequestOptions requestOptions = TestUtils.createSimpleRequestOptions();
-        requestOptions.setAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME);
-        requestOptions.setWaitForResponses(1);
+        RequestOptions requestOptions = new RequestOptions.Builder()
+            .withAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
+            .withWaitForResponses(1)
+            .build();
 
         CountDownLatch ackSend = new CountDownLatch(1);
         CountDownLatch ackResponseReceived = new CountDownLatch(1);
@@ -104,9 +105,10 @@ public class RequesterResponderIT {
     public void testResponderAnswerWithResponseRequesterReceiveResponse() throws Exception {
         String namespace = "test:requester-responder-test-get-resp";
         MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
-        RequestOptions requestOptions = TestUtils.createSimpleRequestOptions();
-        requestOptions.setResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME);
-        requestOptions.setWaitForResponses(1);
+        RequestOptions requestOptions =  new RequestOptions.Builder()
+            .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
+            .withWaitForResponses(1)
+            .build();
 
         CountDownLatch respSend = new CountDownLatch(1);
         CountDownLatch respReceived = new CountDownLatch(1);
@@ -150,9 +152,10 @@ public class RequesterResponderIT {
         MessageTemplate responderServerOneMessageOptions = TestUtils.createSimpleMessageTemplate();
         MessageTemplate responderServerTwoMessageOptions = TestUtils.createSimpleMessageTemplate();
 
-        RequestOptions requestAwaitAckMessageOptions = TestUtils.createSimpleRequestOptions();
-        requestAwaitAckMessageOptions.setAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME);
-        requestAwaitAckMessageOptions.setWaitForResponses(1);
+        RequestOptions requestAwaitAckMessageOptions = new RequestOptions.Builder()
+            .withAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
+            .withWaitForResponses(1)
+            .build();
 
         CountDownLatch ackSent = new CountDownLatch(1);
         CountDownLatch ackReceived = new CountDownLatch(1);
@@ -184,10 +187,11 @@ public class RequesterResponderIT {
     @Test
     public void testMultipleRequesterListenForAcks() throws Exception {
         String namespace = "test:requester-responder-test-send-multiple-requests-get-ack";
-        RequestOptions requestOptions = TestUtils.createSimpleRequestOptions();
-        requestOptions.setAckTimeout(100);
-        requestOptions.setResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME);
-        requestOptions.setWaitForResponses(1);
+        RequestOptions requestOptions = new RequestOptions.Builder()
+            .withAckTimeout(100)
+            .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
+            .withWaitForResponses(1)
+            .build();
 
         int requestsToSendDuringTest = 5;
 

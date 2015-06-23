@@ -12,6 +12,13 @@ public class RequestOptions {
     private Integer waitForResponses;
     private MessageTemplate messageTemplate;
 
+    private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, MessageTemplate messageTemplate) {
+        this.ackTimeout = ackTimeout;
+        this.responseTimeout = responseTimeout;
+        this.waitForResponses = waitForResponses;
+        this.messageTemplate = messageTemplate;
+    }
+
     public Integer getAckTimeout() {
         return ackTimeout;
     }
@@ -31,24 +38,8 @@ public class RequestOptions {
         return getWaitForResponses() != 0;
     }
 
-    public void setAckTimeout(Integer ackTimeout) {
-        this.ackTimeout = ackTimeout;
-    }
-
-    public void setResponseTimeout(Integer responseTimeout) {
-        this.responseTimeout = responseTimeout;
-    }
-
-    public void setWaitForResponses(Integer waitForResponses) {
-        this.waitForResponses = waitForResponses;
-    }
-
     public MessageTemplate getMessageTemplate() {
         return messageTemplate;
-    }
-
-    public void setMessageTemplate(MessageTemplate messageTemplate) {
-        this.messageTemplate = messageTemplate;
     }
 
     @Override
@@ -60,4 +51,35 @@ public class RequestOptions {
                 + "]";
     }
 
+    public static class Builder {
+
+        private Integer ackTimeout;
+        private Integer responseTimeout;
+        private Integer waitForResponses;
+        private MessageTemplate messageTemplate;
+
+        public Builder withAckTimeout(Integer ackTimeout) {
+            this.ackTimeout = ackTimeout;
+            return this;
+        }
+
+        public Builder withResponseTimeout(Integer responseTimeout) {
+            this.responseTimeout = responseTimeout;
+            return this;
+        }
+
+        public Builder withWaitForResponses(Integer waitForResponses) {
+            this.waitForResponses = waitForResponses;
+            return this;
+        }
+
+        public Builder withMessageTemplate(MessageTemplate messageTemplate) {
+            this.messageTemplate = messageTemplate;
+            return this;
+        }
+
+        public RequestOptions build() {
+            return new RequestOptions(ackTimeout, responseTimeout, waitForResponses, messageTemplate);
+        }
+    }
 }

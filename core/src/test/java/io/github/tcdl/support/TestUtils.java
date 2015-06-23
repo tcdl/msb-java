@@ -41,9 +41,9 @@ public class TestUtils {
     }
 
     public static RequestOptions createSimpleRequestOptions() {
-        RequestOptions conf = new RequestOptions();
-        conf.setMessageTemplate(createSimpleMessageTemplate());
-        return conf;
+       return new RequestOptions.Builder()
+            .withMessageTemplate(createSimpleMessageTemplate())
+            .build();
     }
 
     public static MessageTemplate createSimpleMessageTemplate() {

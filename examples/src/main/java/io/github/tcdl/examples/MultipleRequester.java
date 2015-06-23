@@ -41,10 +41,11 @@ public class MultipleRequester {
 
     public static void runRequester(String namespace, String requestId, String queryString, MsbContext msbContext, Consumer<Map> callback) {
 
-        RequestOptions options = new RequestOptions();
-        options.setWaitForResponses(1);
-        options.setAckTimeout(10000);
-        options.setResponseTimeout(10000);
+        RequestOptions options = new RequestOptions.Builder()
+            .withWaitForResponses(1)
+            .withAckTimeout(10000)
+            .withResponseTimeout(10000)
+            .build();
 
         SearchRequest request = new SearchRequest(requestId, queryString);
         Payload requestPayload = new Payload.PayloadBuilder().setBody(request).build();
