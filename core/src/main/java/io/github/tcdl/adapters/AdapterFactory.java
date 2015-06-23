@@ -12,21 +12,26 @@ public interface AdapterFactory {
     /**
      * Initialize AdapterFactory. The method should be called only once from AdapterFactoryLoader.
      * @param msbConfig - MsbConfigurations object 
-     * @throws ConfigurationException if provided configuration is broken
+     * @throws {@link ConfigurationException} if provided configuration is broken
      */
     void init(MsbConfigurations msbConfig);
 
     /**
      * @param topic - topic name
-     * @return producer adapter associated with a topic
+     * @return Producer Adapter associated with a topic
+     * @throws {@link ChannelException} if some problems during creation were occurred
      */
     ProducerAdapter createProducerAdapter(String topic);
 
+    /**
+     * @param topic - topic name
+     * @return Consumer Adapter associated with a topic
+     * @throws {@link ChannelException} if some problems during creation were occurred
+     */
     ConsumerAdapter createConsumerAdapter(String topic);
 
     /**
      * Closes all resources used by amqp producers and consumers. Should be called for graceful shutdown.
      */
     void shutdown();
-
 }
