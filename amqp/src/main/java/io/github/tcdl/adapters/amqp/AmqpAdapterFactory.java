@@ -13,6 +13,7 @@ import io.github.tcdl.config.amqp.AmqpBrokerConfig;
 import io.github.tcdl.exception.ChannelException;
 import io.github.tcdl.exception.ConfigurationException;
 
+import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,16 +124,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
 
     @Override
     public void shutdown() {
-        LOG.info("Shutting down consumer thread pool...");
-        consumerThreadPool.shutdown();
-        try {
-            while (!consumerThreadPool.awaitTermination(10, TimeUnit.SECONDS)) {
-                LOG.info("Consumer thread pool has still some work to do. Waiting...");
-            }
-        } catch (InterruptedException e) {
-            LOG.warn("Interrupted while waiting for termination", e);
-        }
-        LOG.info("Consumer thread pool has been shut down.");
+        Utils.gracefulShutdown(consumerThreadPool, "consumer");
 
         try {
             connectionManager.close();

@@ -33,8 +33,15 @@ public class MsbContext {
         this.timeoutManager = timeoutManager;
     }
 
+    /**
+     * Gracefully shuts down the current context.
+     * This methods is not guaranteed to be THREAD-SAFE and is not intended to be executed in parallel from different threads
+     */
     public void shutdown() {
+        LOG.info("Shutting down MSB context...");
+        timeoutManager.shutdown();
         channelManager.shutdown();
+        LOG.info("MSB context has been shut down.");
     }
 
     public MsbConfigurations getMsbConfig() {
@@ -97,9 +104,8 @@ public class MsbContext {
                     @Override
                     public void run() {
                         LOG.info("Invoking shutdown hook...");
-                        timeoutManager.shutdown();
                         msbContext.shutdown();
-                        LOG.info("Shutdown hook has been invoked.");
+                        LOG.info("Shutdown hook has completed.");
                     }
                 });
             }
