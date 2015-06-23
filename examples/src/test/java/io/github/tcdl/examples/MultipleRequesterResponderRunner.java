@@ -33,10 +33,10 @@ public class MultipleRequesterResponderRunner {
 
         TimeUnit.SECONDS.sleep(TIMEOUT_IN_SECONDS);
 
-        responderExample1.shutDown();
-        responderExample2.shutDown();
-        multipleRequesterResponder.shutDown();
-        requesterExample.shutDown();
+        responderExample1.shutdown();
+        responderExample2.shutdown();
+        multipleRequesterResponder.shutdown();
+        requesterExample.shutdown();
 
         assertTrue(requesterExample.isPassed());
     }

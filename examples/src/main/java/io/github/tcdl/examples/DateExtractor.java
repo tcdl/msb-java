@@ -23,7 +23,9 @@ public class DateExtractor {
 
     public static void main(String... args) {
 
-        MsbContext msbContext = new MsbContext.MsbContextBuilder().build();
+        MsbContext msbContext = new MsbContext.MsbContextBuilder().
+                withShutdownHook(true).
+                build();
         DefaultChannelMonitorAgent.start(msbContext);
 
         MessageTemplate options = new MessageTemplate();

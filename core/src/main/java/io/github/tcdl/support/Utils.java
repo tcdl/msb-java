@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -84,5 +86,23 @@ public class Utils {
 
     public static boolean isServiceTopic(String topic) {
         return topic.charAt(0) == '_';
+    }
+
+    /**
+     * Shuts down given executor service and waits for all its tasks to complete.
+     */
+    public static void gracefulShutdown(ExecutorService executorService, String executorServiceName) {
+        int pollingTimeout = 10;
+
+        LOG.info(String.format("[thread pool '%s'] Shutting down...", executorServiceName));
+        executorService.shutdown();
+        try {
+            while (!executorService.awaitTermination(pollingTimeout, TimeUnit.SECONDS)) {
+                LOG.info(String.format("[thread pool '%s'] Still has some tasks to complete. Waiting...", executorServiceName));
+            }
+        } catch (InterruptedException e) {
+            LOG.warn(String.format("[thread pool '%s'] Interrupted while waiting for termination", executorServiceName), e);
+        }
+        LOG.info(String.format("[thread pool '%s'] Shut down complete.", executorServiceName));
     }
 }

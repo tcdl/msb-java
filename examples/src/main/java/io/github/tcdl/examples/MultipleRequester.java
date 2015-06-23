@@ -18,7 +18,9 @@ import java.util.function.Consumer;
 public class MultipleRequester {
 
     public static void main(String... args) throws Exception {
-        MsbContext msbContext = new MsbContext.MsbContextBuilder().build();
+        MsbContext msbContext = new MsbContext.MsbContextBuilder().
+                withShutdownHook(true).
+                build();
 
         int numberOfRequesters = 5;
         CountDownLatch countDownLatch = new CountDownLatch(numberOfRequesters);

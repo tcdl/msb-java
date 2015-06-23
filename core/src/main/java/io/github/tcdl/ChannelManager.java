@@ -17,7 +17,7 @@ import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
 
 /**
- * {@link ChannelManager} creates consumers or producers on demand
+ * {@link ChannelManager} creates consumers or producers on demand and manages them.
  */
 public class ChannelManager {
     
@@ -96,6 +96,10 @@ public class ChannelManager {
         ConsumerAdapter adapter = getAdapterFactory().createConsumerAdapter(topic);
 
         return new Consumer(adapter, topic, msbConfig, clock, channelMonitorAgent, validator);
+    }
+
+    public void shutdown() {
+        adapterFactory.shutdown();
     }
 
     public AdapterFactory getAdapterFactory() {
