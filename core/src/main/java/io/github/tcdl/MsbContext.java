@@ -88,6 +88,10 @@ public class MsbContext {
             return this;
         }
 
+        /**
+         * Create MsbConect and initialize it with Config from reference.conf
+         * @throws MsbException if an error happens during initialization  
+         */
         public MsbContext build() {
             Clock clock = Clock.systemDefaultZone();
             Config config = ConfigFactory.load();

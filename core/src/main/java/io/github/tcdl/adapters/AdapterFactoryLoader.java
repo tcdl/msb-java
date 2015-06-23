@@ -1,7 +1,7 @@
 package io.github.tcdl.adapters;
 
 import io.github.tcdl.exception.AdapterInitializationException;
-
+import io.github.tcdl.exception.ConfigurationException;
 import io.github.tcdl.config.MsbConfigurations;
 
 /**
@@ -17,7 +17,11 @@ public class AdapterFactoryLoader {
     }
 
     /**
-     * @throws AdapterInitializationException if some problems during creation of {@link AdapterFactory} object were occurred
+     * Create and return Adapter factory instasnce
+     * @return AdapterFactory
+     * @throws {@link AdapterInitializationException} if some problems during creation of {@link AdapterFactory} were happened 
+     * @throws {@link ConfigurationException} if reading AMQP adapter configuration errors were happened
+     * @throws {@link ChannelException} if some problems during initialization of {@link AdapterFactory} object were occurred
      */
     public AdapterFactory getAdapterFactory() {
         AdapterFactory adapterFactory;

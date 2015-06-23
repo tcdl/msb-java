@@ -60,7 +60,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
                 .withFallback(amqpApplicationConfig)
                 .withFallback(amqpLibConfig);
 
-        AmqpBrokerConfig brokerConfig = new AmqpBrokerConfig.AmqpBrokerConfigBuilder(commonConfig).build();
+        AmqpBrokerConfig brokerConfig = new AmqpBrokerConfig.AmqpBrokerConfigBuilder().withConfig(commonConfig).build();
         if (brokerConfig != null && brokerConfig.getGroupId() == null) {
             brokerConfig.setGroupId(msbConfig.getServiceDetails().getName());
         }    

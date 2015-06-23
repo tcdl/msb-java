@@ -42,8 +42,8 @@ public class AmqpBrokerConfigTest {
                 + "}";
 
         Config amqpConfig = ConfigFactory.parseString(configStr).getConfig("config.amqp");
-        AmqpBrokerConfigBuilder brokerConfigBuilder = new AmqpBrokerConfigBuilder(amqpConfig);
-        AmqpBrokerConfig brokerConfig = brokerConfigBuilder.build();
+        AmqpBrokerConfigBuilder brokerConfigBuilder = new AmqpBrokerConfigBuilder();
+        AmqpBrokerConfig brokerConfig = brokerConfigBuilder.withConfig(amqpConfig).build();
 
         assertEquals(brokerConfig.getHost(), host);
         assertEquals(brokerConfig.getPort(), port);
@@ -70,8 +70,8 @@ public class AmqpBrokerConfigTest {
 
         Config amqpConfig = ConfigFactory.parseString(configStr).getConfig("config.amqp");
         
-        AmqpBrokerConfigBuilder brokerConfigBuilder = new AmqpBrokerConfigBuilder(amqpConfig);
-        AmqpBrokerConfig brokerConfig = brokerConfigBuilder.build();
+        AmqpBrokerConfigBuilder brokerConfigBuilder = new AmqpBrokerConfigBuilder();
+        AmqpBrokerConfig brokerConfig = brokerConfigBuilder.withConfig(amqpConfig).build();
 
         //Verify empty optional values
         assertFalse(brokerConfig.getUsername().isPresent());
@@ -189,7 +189,7 @@ public class AmqpBrokerConfigTest {
 
     private AmqpBrokerConfigBuilder createConfigBuilder(String configStr) {
         Config amqpConfig = ConfigFactory.parseString(configStr).getConfig("config.amqp");
-        return new AmqpBrokerConfigBuilder(amqpConfig);
+        return new AmqpBrokerConfigBuilder().withConfig(amqpConfig);
     }
 
 }
