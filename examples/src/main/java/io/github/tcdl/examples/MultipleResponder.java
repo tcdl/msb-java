@@ -13,7 +13,9 @@ import java.util.Map;
 public class MultipleResponder {
 
     public static void main(String... args) {
-        MsbContext msbContext = new MsbContext.MsbContextBuilder().build();
+        MsbContext msbContext = new MsbContext.MsbContextBuilder().
+                withShutdownHook(true).
+                build();
         runResponder("test:aggregator", msbContext);
     }
 

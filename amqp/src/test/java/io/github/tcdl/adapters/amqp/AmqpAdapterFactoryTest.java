@@ -133,9 +133,9 @@ public class AmqpAdapterFactoryTest {
     }
 
     @Test
-    public void testClose() {
+    public void testShutdown() {
         amqpAdapterFactory.init(msbConfigurations);
-        amqpAdapterFactory.close();
+        amqpAdapterFactory.shutdown();
         verify(mockConsumerThreadPool).shutdown();
         try {
             verify(mockConnectionManager).close();
