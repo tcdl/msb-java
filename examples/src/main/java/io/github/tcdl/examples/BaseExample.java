@@ -30,10 +30,11 @@ public class BaseExample {
     }
 
     public Requester createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout) {
-        RequestOptions options = new RequestOptions();
-        options.setWaitForResponses(numberOfResponses);
-        options.setAckTimeout(Utils.ifNull(ackTimeout, 3000));
-        options.setResponseTimeout(Utils.ifNull(responseTimeout, 10000));
+        RequestOptions options = new RequestOptions.Builder()
+            .withWaitForResponses(numberOfResponses)
+            .withAckTimeout(Utils.ifNull(ackTimeout, 3000))
+            .withResponseTimeout(Utils.ifNull(responseTimeout, 10000))
+            .build();
 
         return Requester.create(namespace, options, context);
     }
