@@ -18,6 +18,7 @@ public class AdapterFactoryLoader {
 
     /**
      * @throws AdapterInitializationException if some problems during creation of {@link AdapterFactory} object were occurred
+     * @return {@link AdapterFactory}
      */
     public AdapterFactory getAdapterFactory() {
         AdapterFactory adapterFactory;
