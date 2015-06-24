@@ -16,6 +16,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -108,7 +110,7 @@ public class ResponderIT {
             assertTrue("Message not contain 'headers' filed", jsonObject.getJSONObject("payload").has("headers"));
 
             // payload fields match sended 
-            assertEquals("Message 'body' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(originalResponseMsg.getPayload().getBody()),
+            assertEquals("Message 'body' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(originalResponseMsg.getPayload().getBodyAs(Map.class)),
                     jsonObject.getJSONObject("payload").get("body").toString());
             assertEquals("Message 'headers' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(originalResponseMsg.getPayload().getHeaders()),
                     jsonObject

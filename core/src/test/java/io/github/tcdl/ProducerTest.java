@@ -24,7 +24,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import java.time.Clock;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -101,7 +100,7 @@ public class ProducerTest {
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         Map<String, String> body = new HashMap<String, String>();
         body.put("body", "{\\\"x\\\" : 3} garbage");
-        Payload payload = new Payload.PayloadBuilder().setBody(body).build();
+        Payload payload = new Payload.PayloadBuilder().withBody(body).build();
         MetaMessage.MetaMessageBuilder metaBuilder = new MetaMessage.MetaMessageBuilder(null,  clock.instant(), msbConf.getServiceDetails(), clock);
         return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(
                 metaBuilder).withPayload(payload)

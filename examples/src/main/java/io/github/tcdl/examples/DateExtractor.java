@@ -62,8 +62,8 @@ public class DateExtractor {
                         ResponseBody responseBody = new ResponseBody();
                         responseBody.setResults(Arrays.asList(result));
                         Payload responsePayload = new Payload.PayloadBuilder()
-                                .setStatusCode(200)
-                                .setBody(responseBody).build();
+                                .withStatusCode(200)
+                                .withBody(responseBody).build();
 
                         responder.send(responsePayload);
                     }

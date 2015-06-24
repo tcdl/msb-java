@@ -122,7 +122,7 @@ public class TestUtils {
 
         body.put("body", "someRequestBody created at " + Clock.systemDefaultZone().millis());
 
-        return new Payload.PayloadBuilder().setBody(body).setHeaders(headers).build();
+        return new Payload.PayloadBuilder().withBody(body).withHeaders(headers).build();
     }
 
     public static Payload createSimpleBroadcastPayload() {
@@ -137,7 +137,7 @@ public class TestUtils {
         Map<String, String> body = new HashMap<String, String>();
         body.put("body", "someResponseBody");
 
-        return new Payload.PayloadBuilder().setBody(body).setHeaders(headers).build();
+        return new Payload.PayloadBuilder().withBody(body).withHeaders(headers).build();
     }
 
     public static MetaMessageBuilder createSimpleMetaBuilder(MsbConfigurations msbConf, Clock clock) {

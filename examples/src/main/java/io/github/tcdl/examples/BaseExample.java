@@ -94,6 +94,6 @@ public class BaseExample {
     public Payload createPayloadWithBodyText(String text) {
         Map<String, String> body = new HashMap<>();
         body.put("text", text);
-        return new Payload.PayloadBuilder().setBody(body).build();
+        return new Payload.PayloadBuilder().withBody(body).build();
     }
 }
