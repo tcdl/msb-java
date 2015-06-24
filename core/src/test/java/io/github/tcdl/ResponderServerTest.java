@@ -40,7 +40,7 @@ public class ResponderServerTest {
         ResponderServer.RequestHandler handler = (request, responder) -> {
         };
 
-        ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
+        ArgumentCaptor<MessageHandler> subscriberCaptor = ArgumentCaptor.forClass(MessageHandler.class);
         ChannelManager spyChannelManager = spy(msbContext.getChannelManager());
         MsbContext spyMsbContext = spy(msbContext);
 

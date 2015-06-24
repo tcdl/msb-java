@@ -60,6 +60,8 @@ public class RequesterTest {
     public void testPublishWaitForResponses() throws Exception {
         Requester requester = initRequesterForResponsesWithTimeout(1);
 
+        doReturn(mock(CollectorManager.class)).when(collectorMock).findOrCreateCollectorManager(anyString());
+
         requester.publish(TestUtils.createSimpleRequestPayload());
 
         verify(collectorMock).listenForResponses(anyString(), any(Message.class));

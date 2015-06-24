@@ -48,7 +48,7 @@ public class ConsumerTest {
     private ArgumentCaptor<RawMessageHandler> messageHandlerCaptor;
 
     @Mock
-    private Subscriber subscriberMock;
+    private MessageHandler messageHandlerMock;
 
     private Clock clock = Clock.systemDefaultZone();
 
@@ -74,28 +74,28 @@ public class ConsumerTest {
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
 
-        Subscriber subscriberMock = mock(Subscriber.class);
+        MessageHandler messageHandlerMock = mock(MessageHandler.class);
 
-        consumer.subscribe(subscriberMock);
+        consumer.subscribe(messageHandlerMock);
 
         consumer.handleRawMessage(Utils.toJson(originalMessage));
 
-        verify(subscriberMock).handleMessage(any(Message.class));
+        verify(messageHandlerMock).handleMessage(any(Message.class));
     }
 
     @Test
     public void testExceptionWhileMessageConvertingProcessedByAllSubscribers() throws JsonConversionException {
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
-        Subscriber subscriberMock1 = mock(Subscriber.class);
-        Subscriber subscriberMock2 = mock(Subscriber.class);
+        MessageHandler messageHandlerMock1 = mock(MessageHandler.class);
+        MessageHandler messageHandlerMock2 = mock(MessageHandler.class);
 
-        consumer.subscribe(subscriberMock1);
-        consumer.subscribe(subscriberMock2);
+        consumer.subscribe(messageHandlerMock1);
+        consumer.subscribe(messageHandlerMock2);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
 
-        verify(subscriberMock1, never()).handleMessage(any(Message.class));
-        verify(subscriberMock2, never()).handleMessage(any(Message.class));
+        verify(messageHandlerMock1, never()).handleMessage(any(Message.class));
+        verify(messageHandlerMock2, never()).handleMessage(any(Message.class));
     }
 
     @Test
@@ -106,7 +106,7 @@ public class ConsumerTest {
         when(msbConf.isValidateMessage()).thenReturn(false);
 
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConf, clock, channelMonitorAgentMock, validator);
-        consumer.subscribe(subscriberMock);
+        consumer.subscribe(messageHandlerMock);
 
         // create a message with required empty namespace
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo("");
@@ -114,17 +114,17 @@ public class ConsumerTest {
         consumer.handleRawMessage(Utils.toJson(message));
 
         // should skip validation and process it
-        verify(subscriberMock).handleMessage(any(Message.class));
+        verify(messageHandlerMock).handleMessage(any(Message.class));
     }
 
     @Test
     public void testHandleRawMessageConsumeFromTopicValidateThrowException() {
         MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConf, clock, channelMonitorAgentMock, validator);
-        consumer.subscribe(subscriberMock);
+        consumer.subscribe(messageHandlerMock);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
-        verify(subscriberMock, never()).handleMessage(any(Message.class)); // no processing
+        verify(messageHandlerMock, never()).handleMessage(any(Message.class)); // no processing
     }
 
     @Test
@@ -132,30 +132,30 @@ public class ConsumerTest {
         String service_topic = "_service:topic";
         MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
         Consumer consumer = new Consumer(adapterMock, service_topic, msbConf, clock, channelMonitorAgentMock, validator);
-        consumer.subscribe(subscriberMock);
+        consumer.subscribe(messageHandlerMock);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
-        verify(subscriberMock, never()).handleMessage(any(Message.class)); // no processing
+        verify(messageHandlerMock, never()).handleMessage(any(Message.class)); // no processing
     }
 
     @Test
     public void testHandleRawMessageConsumeFromTopic() throws JsonConversionException {
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
-        consumer.subscribe(subscriberMock);
+        consumer.subscribe(messageHandlerMock);
 
         consumer.handleRawMessage(Utils.toJson(originalMessage));
-        verify(subscriberMock).handleMessage(any(Message.class));
+        verify(messageHandlerMock).handleMessage(any(Message.class));
     }
 
     @Test
     public void testHandleRawMessageConsumeFromTopicExpiredMessage() throws JsonConversionException {
         Message expiredMessage = createExpiredMsbRequestMessageWithTopicTo(TOPIC);
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConfMock, clock, channelMonitorAgentMock, validator);
-        consumer.subscribe(subscriberMock);
+        consumer.subscribe(messageHandlerMock);
 
         consumer.handleRawMessage(Utils.toJson(expiredMessage));
-        verify(subscriberMock, never()).handleMessage(any(Message.class));
+        verify(messageHandlerMock, never()).handleMessage(any(Message.class));
     }
 
     private  Message createExpiredMsbRequestMessageWithTopicTo(String topicTo) {

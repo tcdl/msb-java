@@ -52,17 +52,22 @@ public class ChannelManager {
         return producer;
     }
 
-    public Consumer subscribe(String topic, Subscriber subscriber) {
+    public Consumer findOrCreateConsumer(final String topic) {
         Validate.notNull(topic, "field 'topic' is null");
-        Validate.notNull(subscriber, "field 'subscriber' is null");
         Consumer consumer = consumersByTopic.computeIfAbsent(topic, key -> {
             Consumer newConsumer = createConsumer(key);
-            newConsumer.subscribe(subscriber);
             channelMonitorAgent.consumerTopicCreated(key);
             return newConsumer;
         });
 
         return consumer;
+    }
+
+    public void subscribe(String topic, MessageHandler messageHandler) {
+        Validate.notNull(topic, "field 'topic' is null");
+        Validate.notNull(messageHandler, "field 'messageHandler' is null");
+        Consumer consumer = findOrCreateConsumer(topic);
+        consumer.subscribe(messageHandler);
     }
 
     public synchronized void unsubscribe(String topic) {

@@ -32,7 +32,7 @@ public class Consumer {
     private ChannelMonitorAgent channelMonitorAgent;
     private Clock clock;
 
-    private Subscriber messageHandler;
+    private MessageHandler messageHandler;
     private JsonValidator validator;
 
     public Consumer(ConsumerAdapter rawAdapter, String topic, MsbConfigurations msbConfig,
@@ -57,12 +57,10 @@ public class Consumer {
 
     /**
      * Adds a handler that invoked when message being received.
-     *
-     * @param subscriberMessageHandler
      */
-    public void subscribe(Subscriber subscriberMessageHandler) {
-        Validate.notNull(subscriberMessageHandler, "the 'subscriberMessageHandler' must not be null");
-        messageHandler = subscriberMessageHandler;
+    public void subscribe(MessageHandler messageHandler) {
+        Validate.notNull(messageHandler, "the 'messageHandler' must not be null");
+        this.messageHandler = messageHandler;
     }
 
     /**
@@ -107,5 +105,9 @@ public class Consumer {
         Instant now = clock.instant();
 
         return expiryTime.isBefore(now);
+    }
+
+    public MessageHandler getMessageHandler() {
+        return messageHandler;
     }
 }

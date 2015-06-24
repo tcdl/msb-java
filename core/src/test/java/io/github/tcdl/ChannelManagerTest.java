@@ -28,7 +28,7 @@ public class ChannelManagerTest {
 
     private ChannelManager channelManager;
     private ChannelMonitorAgent mockChannelMonitorAgent;
-    private Subscriber subscriberMock;
+    private MessageHandler messageHandlerMock;
 
     @Before
     public void setUp() {
@@ -39,7 +39,7 @@ public class ChannelManagerTest {
 
         mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
         channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);
-        subscriberMock = mock(Subscriber.class);
+        messageHandlerMock = mock(MessageHandler.class);
     }
 
     @Test
@@ -63,11 +63,11 @@ public class ChannelManagerTest {
         String topic = "topic:test-consumer-cached";
 
         // Consumer was created and monitor agent notified
-        channelManager.subscribe(topic, subscriberMock);
+        channelManager.subscribe(topic, messageHandlerMock);
         verify(mockChannelMonitorAgent).consumerTopicCreated(topic);
 
         // Cached consumer was returned and monitor agent wasn't notified
-        channelManager.subscribe(topic, subscriberMock);
+        channelManager.subscribe(topic, messageHandlerMock);
         verifyNoMoreInteractions(mockChannelMonitorAgent);
     }
 
@@ -102,40 +102,26 @@ public class ChannelManagerTest {
         assertNotNull(messageEvent.value);
     }
 
-
-    @Test
-    public void testSubscribeSubscribeMultiple() {
-        String topic = "topic:test-unsubscribe-multi";
-        CollectorSubscriber collectorSubscriber1 = new CollectorSubscriber(channelManager);
-        CollectorSubscriber collectorSubscriber2 = new CollectorSubscriber(channelManager);
-
-        Consumer consumer1 = channelManager.subscribe(topic, collectorSubscriber1);
-        Consumer consumer2 = channelManager.subscribe(topic, collectorSubscriber2);
-
-        assertTrue(consumer1.equals(consumer2));
-    }
-
-
     @Test
     public void testSubscribeUnsubscribe() {
         String topic = "topic:test-unsubscribe-once";
-        CollectorSubscriber collectorSubscriber = new CollectorSubscriber(channelManager);
+        CollectorManager collectorManager = new CollectorManager(topic, channelManager);
 
-        channelManager.subscribe(topic, collectorSubscriber);
+        channelManager.subscribe(topic, collectorManager);
         channelManager.unsubscribe(topic);
 
         verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
     }
 
-
     @Test
     public void testSubscribeUnsubscribeSeparateTopics() {
         String topic1 = "topic:test-unsubscribe-try-first";
         String topic2 = "topic:test-unsubscribe-try-other";
-        CollectorSubscriber collectorSubscriber = new CollectorSubscriber(channelManager);
+        CollectorManager collectorManager1 = new CollectorManager(topic1, channelManager);
+        CollectorManager collectorManager2 = new CollectorManager(topic2, channelManager);
 
-        channelManager.subscribe(topic1,collectorSubscriber);
-        channelManager.subscribe(topic2, collectorSubscriber);
+        channelManager.subscribe(topic1, collectorManager1);
+        channelManager.subscribe(topic2, collectorManager2);
 
         channelManager.unsubscribe(topic1);
         verify(mockChannelMonitorAgent).consumerTopicRemoved(topic1);

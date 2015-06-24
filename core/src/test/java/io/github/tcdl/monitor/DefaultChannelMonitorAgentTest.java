@@ -19,7 +19,7 @@ import java.time.ZoneId;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.Producer;
-import io.github.tcdl.Subscriber;
+import io.github.tcdl.MessageHandler;
 import io.github.tcdl.TimeoutManager;
 import io.github.tcdl.config.ServiceDetails;
 import io.github.tcdl.messages.Message;
@@ -42,7 +42,7 @@ public class DefaultChannelMonitorAgentTest {
         ServiceDetails serviceDetails = new ServiceDetails.ServiceDetailsBuilder().build();
         MessageFactory messageFactory = new MessageFactory(serviceDetails, clock);
         TimeoutManager mockTimeoutManager = mock(TimeoutManager.class);
-        channelMonitorAgent = new DefaultChannelMonitorAgent(new MsbContext(null, messageFactory, mockChannelManager, clock, mockTimeoutManager, null));
+        channelMonitorAgent = new DefaultChannelMonitorAgent(new MsbContext(null, messageFactory, mockChannelManager, clock, mockTimeoutManager));
     }
 
     @Test
@@ -72,7 +72,7 @@ public class DefaultChannelMonitorAgentTest {
     @Test
     public void testAnnounceConsumerForServiceTopic() {
         channelMonitorAgent.consumerTopicCreated(TOPIC_ANNOUNCE);
-        verify(mockChannelManager, never()).subscribe(anyString(), Mockito.any(Subscriber.class));
+        verify(mockChannelManager, never()).subscribe(anyString(), Mockito.any(MessageHandler.class));
     }
 
     @Test
@@ -131,7 +131,7 @@ public class DefaultChannelMonitorAgentTest {
         ChannelMonitorAgent startedAgent = channelMonitorAgent.start();
 
         assertSame(channelMonitorAgent, startedAgent);
-        verify(mockChannelManager).subscribe(Mockito.eq(TOPIC_HEARTBEAT), Mockito.any(Subscriber.class));
+        verify(mockChannelManager).subscribe(Mockito.eq(TOPIC_HEARTBEAT), Mockito.any(MessageHandler.class));
     }
 
     private Message verifyProducerInvokedAndReturnMessage(Producer mockProducer) {

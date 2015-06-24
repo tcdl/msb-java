@@ -1,20 +1,18 @@
 package io.github.tcdl;
 
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import java.time.Clock;
-
 import com.googlecode.junittoolbox.MultithreadingTester;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.RequestOptions;
-import io.github.tcdl.events.EventHandlers;
-import io.github.tcdl.messages.Message;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.time.Clock;
+
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * Created by ruslan on 10.06.15.
@@ -23,7 +21,7 @@ public class ChannelManagerConcurrentTest {
 
     private ChannelManager channelManager;
     private ChannelMonitorAgent mockChannelMonitorAgent;
-    private Subscriber subscriberMock;
+    private MessageHandler messageHandlerMock;
 
     @Before
     public void setUp() {
@@ -34,7 +32,7 @@ public class ChannelManagerConcurrentTest {
 
         mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
         channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);
-        subscriberMock = mock(Subscriber.class);
+        messageHandlerMock = mock(MessageHandler.class);
     }
 
     @Test
@@ -53,7 +51,7 @@ public class ChannelManagerConcurrentTest {
         String topic = "topic:test-consumer-cached-multithreaded";
 
         new MultithreadingTester().add(() -> {
-            channelManager.subscribe(topic, subscriberMock);
+            channelManager.subscribe(topic, messageHandlerMock);
             verify(mockChannelMonitorAgent).consumerTopicCreated(topic);
         }).run();
     }
@@ -62,8 +60,8 @@ public class ChannelManagerConcurrentTest {
     public void testUnsubscribeMultithreadInteraction() {
         String topic = "topic:test-remove-consumer-multithreaded";
 
-        CollectorSubscriber collectorSubscriber = new CollectorSubscriber(channelManager);
-        channelManager.subscribe(topic, collectorSubscriber);
+        CollectorManager collectorManager = new CollectorManager(topic, channelManager);
+        channelManager.subscribe(topic, collectorManager);
 
         new MultithreadingTester().add(() -> {
             channelManager.unsubscribe(topic);

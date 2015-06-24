@@ -1,31 +1,24 @@
 package io.github.tcdl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.time.Clock;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.messages.Message;
-import io.github.tcdl.monitor.ChannelMonitorAgent;
-import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by ruslan on 23.06.15.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class CollectorSubscriberTest {
+public class CollectorManagerTest {
 
     private static final String TOPIC = "collector-subscriber";
 
@@ -44,9 +37,9 @@ public class CollectorSubscriberTest {
     public void testHandleMessageRegisteredCollectorForTopic() {
         Message originalAndReceivedMessage = TestUtils.createMsbResponseMessage(TOPIC);
         when(collectorMock.getRequestMessage()).thenReturn(originalAndReceivedMessage);
-        CollectorSubscriber collectorSubscriber = new CollectorSubscriber(channelManagerMock);
-        collectorSubscriber.registerCollector(TOPIC, collectorMock);
-        collectorSubscriber.handleMessage(originalAndReceivedMessage);
+        CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
+        collectorManager.registerCollector(collectorMock);
+        collectorManager.handleMessage(originalAndReceivedMessage);
 
         verify(collectorMock).handleMessage(originalAndReceivedMessage);
     }
@@ -54,9 +47,9 @@ public class CollectorSubscriberTest {
     @Test
     public void testHandleMessageRegisteredCollectorForTopicUnexpectedCorrelationId() {
         Message receivedMessage = TestUtils.createMsbResponseMessage(TOPIC);
-        CollectorSubscriber collectorSubscriber = new CollectorSubscriber(channelManagerMock);
-        collectorSubscriber.registerCollector(TOPIC, collectorMock);
-        collectorSubscriber.handleMessage(receivedMessage);
+        CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
+        collectorManager.registerCollector(collectorMock);
+        collectorManager.handleMessage(receivedMessage);
 
         verify(collectorMock, never()).handleMessage(receivedMessage);
     }
@@ -66,9 +59,9 @@ public class CollectorSubscriberTest {
         String topic = "test-handlemessage-collector-not";
         Message receivedMessage = TestUtils.createMsbResponseMessage(topic);
 
-        CollectorSubscriber collectorSubscriber = new CollectorSubscriber(channelManagerMock);
-        collectorSubscriber.registerCollector("some-other-topic", collectorMock);
-        collectorSubscriber.handleMessage(receivedMessage);
+        CollectorManager collectorManager = new CollectorManager("some-other-topic", channelManagerMock);
+        collectorManager.registerCollector(collectorMock);
+        collectorManager.handleMessage(receivedMessage);
 
         verify(collectorMock, never()).handleMessage(receivedMessage);
     }
@@ -78,12 +71,11 @@ public class CollectorSubscriberTest {
         Collector secondCollectorMock = mock(Collector.class);
         when(secondCollectorMock.getRequestMessage()).thenReturn(TestUtils.createMsbResponseMessage(TOPIC));
 
-        CollectorSubscriber collectorSubscriber = new CollectorSubscriber(channelManagerMock);
-        collectorSubscriber.registerCollector(TOPIC, collectorMock);
-        collectorSubscriber.registerCollector(TOPIC, secondCollectorMock);
+        CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
+        collectorManager.registerCollector(collectorMock);
+        collectorManager.registerCollector(secondCollectorMock);
 
-        assertEquals(2, collectorSubscriber.collectorsByTopic.get(TOPIC).get());
-        assertEquals(2, collectorSubscriber.collectorsByCorrelationId.size());
+        assertEquals(2, collectorManager.collectorsByCorrelationId.size());
     }
 
     @Test
@@ -91,11 +83,11 @@ public class CollectorSubscriberTest {
         Collector secondCollectorMock = mock(Collector.class);
         when(secondCollectorMock.getRequestMessage()).thenReturn(TestUtils.createMsbResponseMessage(TOPIC));
 
-        CollectorSubscriber collectorSubscriber = new CollectorSubscriber(channelManagerMock);
-        collectorSubscriber.registerCollector(TOPIC, collectorMock);
-        collectorSubscriber.registerCollector(TOPIC, secondCollectorMock);
+        CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
+        collectorManager.registerCollector(collectorMock);
+        collectorManager.registerCollector(secondCollectorMock);
 
-        collectorSubscriber.unsubscribe(TOPIC, collectorMock);
+        collectorManager.unsubscribe(collectorMock);
 
         verify(channelManagerMock, never()).unsubscribe(TOPIC);
     }
@@ -105,12 +97,12 @@ public class CollectorSubscriberTest {
         Collector secondCollectorMock = mock(Collector.class);
         when(secondCollectorMock.getRequestMessage()).thenReturn(TestUtils.createMsbResponseMessage(TOPIC));
 
-        CollectorSubscriber collectorSubscriber = new CollectorSubscriber(channelManagerMock);
-        collectorSubscriber.registerCollector(TOPIC, collectorMock);
-        collectorSubscriber.registerCollector(TOPIC, secondCollectorMock);
+        CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
+        collectorManager.registerCollector(collectorMock);
+        collectorManager.registerCollector(secondCollectorMock);
 
-        collectorSubscriber.unsubscribe(TOPIC, collectorMock);
-        collectorSubscriber.unsubscribe(TOPIC, secondCollectorMock);
+        collectorManager.unsubscribe(collectorMock);
+        collectorManager.unsubscribe(secondCollectorMock);
 
         verify(channelManagerMock).unsubscribe(TOPIC);
     }

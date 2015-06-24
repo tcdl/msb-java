@@ -1,17 +1,5 @@
 package io.github.tcdl;
 
-import static io.github.tcdl.support.Utils.ifNull;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ScheduledFuture;
-
 import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.messages.Acknowledge;
@@ -19,6 +7,18 @@ import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.payload.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ScheduledFuture;
+
+import static io.github.tcdl.support.Utils.ifNull;
 
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
@@ -47,7 +47,6 @@ public class Collector {
 
     private Clock clock;
 
-    private String topic;
     private Message requestMessage;
 
     private Optional<Callback<Payload>> onResponse = Optional.empty();
@@ -56,7 +55,7 @@ public class Collector {
 
     private  ScheduledFuture ackTimeoutFuture;
     private  ScheduledFuture responseTimeoutFuture;
-    private  CollectorSubscriber collectorSubscriber;
+    private CollectorManager collectorManager;
 
     public Collector(RequestOptions requestOptions, MsbContext msbContext, EventHandlers eventHandlers) {
         this.channelManager = msbContext.getChannelManager();
@@ -77,7 +76,6 @@ public class Collector {
         this.responsesRemaining = waitForResponses;
 
         this.timeoutManager = msbContext.getTimeoutManager();
-        this.collectorSubscriber = msbContext.getCollectorSubscriber();
 
         if (eventHandlers != null) {
             onResponse = Optional.ofNullable(eventHandlers.onResponse());
@@ -95,18 +93,13 @@ public class Collector {
     }
 
     public void listenForResponses(String topic, Message requestMessage) {
-        this.topic = topic;
         this.requestMessage = requestMessage;
-        collectorSubscriber.registerCollector(topic, this);
-        channelManager.subscribe(this.topic, collectorSubscriber);
+
+        collectorManager = findOrCreateCollectorManager(topic);
+        collectorManager.registerCollector(this);
     }
 
     public void handleMessage(Message message) {
-        if (!acceptMessage(message)) {
-            LOG.warn("Rejected {}", message);
-            return;
-        }
-
         LOG.debug("Received {}", message);
 
         if (message.getPayload() != null) {
@@ -136,20 +129,13 @@ public class Collector {
         end();
     }
 
-    protected boolean acceptMessage(Message message) {
-        return requestMessage != null && Objects.equals(requestMessage.getCorrelationId(), message.getCorrelationId());
-    }
-
     protected void end() {
         LOG.debug("Stop response processing");
 
         cancelAckTimeoutTask();
         cancelResponseTimeoutTask();
 
-        boolean isLast = collectorSubscriber.unsubscribe(topic, this);
-        if(isLast) {
-            LOG.debug("Stopped last collector on topic [{}]. Consumer for topic is shutdown." , topic);
-        }
+        collectorManager.unsubscribe(this);
         onEnd.ifPresent(handler -> handler.call(payloadMessages));
     }
 
@@ -293,4 +279,13 @@ public class Collector {
         return requestMessage;
     }
 
+    CollectorManager findOrCreateCollectorManager(String topic) {
+        Consumer consumer = channelManager.findOrCreateConsumer(topic);
+        synchronized (consumer) {
+            if (consumer.getMessageHandler() == null) {
+                consumer.subscribe(new CollectorManager(topic, channelManager));
+            }
+        }
+        return (CollectorManager) consumer.getMessageHandler();
+    }
 }
