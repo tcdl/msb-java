@@ -1,5 +1,12 @@
 package io.github.tcdl;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.anyObject;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import io.github.tcdl.config.MessageTemplate;
 import io.github.tcdl.config.RequestOptions;
 import io.github.tcdl.messages.Message;
@@ -8,13 +15,6 @@ import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.anyObject;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Created by rdro on 4/30/2015.
@@ -40,7 +40,7 @@ public class ResponderServerTest {
         ResponderServer.RequestHandler handler = (request, responder) -> {
         };
 
-        ArgumentCaptor<Consumer.Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Consumer.Subscriber.class);
+        ArgumentCaptor<MessageHandler> subscriberCaptor = ArgumentCaptor.forClass(MessageHandler.class);
         ChannelManager spyChannelManager = spy(msbContext.getChannelManager());
         MsbContext spyMsbContext = spy(msbContext);
 

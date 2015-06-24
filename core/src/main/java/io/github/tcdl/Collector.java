@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 
@@ -26,7 +25,7 @@ import static io.github.tcdl.support.Utils.ifNull;
  *
  * Created by rdro on 4/23/2015.
  */
-public class Collector implements Consumer.Subscriber {
+public class Collector {
 
     private static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
@@ -48,7 +47,6 @@ public class Collector implements Consumer.Subscriber {
 
     private Clock clock;
 
-    private String topic;
     private Message requestMessage;
 
     private Optional<Callback<Payload>> onResponse = Optional.empty();
@@ -57,6 +55,7 @@ public class Collector implements Consumer.Subscriber {
 
     private  ScheduledFuture ackTimeoutFuture;
     private  ScheduledFuture responseTimeoutFuture;
+    private CollectorManager collectorManager;
 
     public Collector(RequestOptions requestOptions, MsbContext msbContext, EventHandlers eventHandlers) {
         this.channelManager = msbContext.getChannelManager();
@@ -94,18 +93,13 @@ public class Collector implements Consumer.Subscriber {
     }
 
     public void listenForResponses(String topic, Message requestMessage) {
-        this.topic = topic;
         this.requestMessage = requestMessage;
-        channelManager.subscribe(this.topic, this);
+
+        collectorManager = findOrCreateCollectorManager(topic);
+        collectorManager.registerCollector(this);
     }
 
-    @Override
     public void handleMessage(Message message) {
-        if (!acceptMessage(message)) {
-            LOG.debug("Rejected {}", message);
-            return;
-        }
-
         LOG.debug("Received {}", message);
 
         if (message.getPayload() != null) {
@@ -135,17 +129,13 @@ public class Collector implements Consumer.Subscriber {
         end();
     }
 
-    protected boolean acceptMessage(Message message) {
-        return requestMessage != null && Objects.equals(requestMessage.getCorrelationId(), message.getCorrelationId());
-    }
-
     protected void end() {
         LOG.debug("Stop response processing");
 
         cancelAckTimeoutTask();
         cancelResponseTimeoutTask();
 
-        channelManager.unsubscribe(topic, this);
+        collectorManager.unsubscribe(this);
         onEnd.ifPresent(handler -> handler.call(payloadMessages));
     }
 
@@ -283,5 +273,19 @@ public class Collector implements Consumer.Subscriber {
 
     List<Message> getPayloadMessages() {
         return payloadMessages;
+    }
+
+    Message getRequestMessage() {
+        return requestMessage;
+    }
+
+    CollectorManager findOrCreateCollectorManager(String topic) {
+        Consumer consumer = channelManager.findOrCreateConsumer(topic);
+        synchronized (consumer) {
+            if (consumer.getMessageHandler() == null) {
+                consumer.subscribe(new CollectorManager(topic, channelManager));
+            }
+        }
+        return (CollectorManager) consumer.getMessageHandler();
     }
 }

@@ -78,7 +78,6 @@ public class TestUtils {
     }
 
     public static Message createMsbRequestMessageNoPayload(String namespace) {
-        MessageTemplate conf = createSimpleMessageTemplate();
         MsbConfigurations msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
@@ -91,7 +90,6 @@ public class TestUtils {
     }
 
     public static Message createMsbResponseMessage(String namespace) {
-        MessageTemplate conf = createSimpleMessageTemplate();
         MsbConfigurations msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
