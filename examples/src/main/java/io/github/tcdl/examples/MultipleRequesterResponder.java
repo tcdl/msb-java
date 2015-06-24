@@ -12,6 +12,8 @@ import java.util.concurrent.Future;
  * Created by anstr on 6/9/2015.
  */
 public class MultipleRequesterResponder extends BaseExample {
+    private static final Integer NUMBER_OF_RESPONSES = 1;
+
     private String responderNamespace;
     private String requesterNamespace1;
     private String requesterNamespace2;
@@ -48,13 +50,13 @@ public class MultipleRequesterResponder extends BaseExample {
     }
 
     private Future<String> createAndRunRequester(ExecutorService executor, String namespace, String bodyText) {
-        Requester requester = createRequester(namespace, 1, null, 5000);
+        Requester requester = createRequester(namespace, NUMBER_OF_RESPONSES, null, 5000);
         Future<String> future = executor.submit(new Callable<String>() {
             String result = null;
 
             @Override
             public String call() throws Exception {
-                sendRequest(requester, 1, response -> {
+                sendRequest(requester, NUMBER_OF_RESPONSES, response -> {
                     System.out.println(">>> RESPONSE body: " + response.getBody());
                     result = response.getBody().toString();
                     synchronized (this) {
