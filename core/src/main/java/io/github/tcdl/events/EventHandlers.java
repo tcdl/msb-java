@@ -8,7 +8,7 @@ import io.github.tcdl.messages.payload.Payload;
 import java.util.List;
 
 /**
- * {@link EventHandlers} is a component that allows to register custom event handlers for {@link io.github.tcdl.Requester} specific events .
+ * {@link EventHandlers} is a component that allows to register custom event handlers for {@link io.github.tcdl.Requester} specific events.
  * Created by rdrozdov-tc on 6/2/15.
  */
 public class EventHandlers {
@@ -20,7 +20,7 @@ public class EventHandlers {
     /**
      * Return callback registered for Acknowledge event.
      *
-     * @return acknowledge callback
+     * @return acknowledge callback which will be run after Ack message received
      */
     public Callback<Acknowledge> onAcknowledge() {
         return onAcknowledge;
@@ -29,7 +29,7 @@ public class EventHandlers {
     /**
      * Registered callback for Acknowledge event.
      *
-     * @param onAcknowledge callback
+     * @param onAcknowledge callback which will be run after Ack message received
      */
     public EventHandlers onAcknowledge(Callback<Acknowledge> onAcknowledge) {
         this.onAcknowledge = onAcknowledge;
@@ -39,7 +39,7 @@ public class EventHandlers {
     /**
      * Return callback registered for Response event.
      *
-     * @return response callback
+     * @return response callback which will be run after Response message received
      */
     public Callback<Payload> onResponse() {
         return onResponse;
@@ -48,7 +48,7 @@ public class EventHandlers {
     /**
      * Registered callback for Response event.
      *
-     * @param onResponse callback
+     * @param onResponse callback which will be run after Response message received
      */
     public EventHandlers onResponse(Callback<Payload> onResponse) {
         this.onResponse = onResponse;
@@ -58,7 +58,7 @@ public class EventHandlers {
     /**
      * Return callback registered for End event.
      *
-     * @return end event callback
+     * @return end event callback which will be run after last message received
      */
     public Callback<List<Message>> onEnd() {
         return onEnd;
@@ -67,7 +67,7 @@ public class EventHandlers {
     /**
      * Registered callback for End event.
      *
-     * @param onEnd callback
+     * @param onEnd callback which will be run after last message received
      */
     public EventHandlers onEnd(Callback<List<Message>> onEnd) {
         this.onEnd = onEnd;
