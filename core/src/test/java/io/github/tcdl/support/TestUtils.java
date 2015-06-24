@@ -33,7 +33,12 @@ public class TestUtils {
         MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);
         TimeoutManager timeoutManager = new TimeoutManager(1);
 
-        return new MsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+        return new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+    }
+
+    public static MsbContext createMsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory, 
+            ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
+        return new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
     }
 
     public static String getSimpleNamespace() {
@@ -145,5 +150,13 @@ public class TestUtils {
     public static MetaMessageBuilder createSimpleMetaBuilder(MsbConfigurations msbConf, Clock clock) {
         return new MetaMessage.MetaMessageBuilder(null, clock.instant(), msbConf.getServiceDetails(), clock);
     }
+    
+    private static class TestMsbContext extends MsbContext {
+        TestMsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory, 
+                ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
+            super(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+        }
+    }
+
 
 }

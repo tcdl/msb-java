@@ -2,9 +2,12 @@ package io.github.tcdl;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.messages.MessageFactory;
+import io.github.tcdl.monitor.DefaultChannelMonitorAgent;
 import io.github.tcdl.support.JsonValidator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.github.tcdl.exception.MsbException;
@@ -26,7 +29,7 @@ public class MsbContext {
     private Clock clock;
     private TimeoutManager timeoutManager;
 
-    public MsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory, ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
+    protected MsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory, ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
         this.msbConfig = msbConfig;
         this.messageFactory = messageFactory;
         this.channelManager = channelManager;
@@ -49,32 +52,16 @@ public class MsbContext {
         return msbConfig;
     }
 
-    public void setMsbConfig(MsbConfigurations msbConfig) {
-        this.msbConfig = msbConfig;
-    }
-
     public MessageFactory getMessageFactory() {
         return messageFactory;
-    }
-
-    public void setMessageFactory(MessageFactory messageFactory) {
-        this.messageFactory = messageFactory;
     }
 
     public ChannelManager getChannelManager() {
         return channelManager;
     }
 
-    public void setChannelManager(ChannelManager channelManager) {
-        this.channelManager = channelManager;
-    }
-
     public Clock getClock() {
         return clock;
-    }
-
-    public void setClock(Clock clock) {
-        this.clock = clock;
     }
 
     public TimeoutManager getTimeoutManager() {
@@ -83,12 +70,18 @@ public class MsbContext {
 
     public static class MsbContextBuilder {
         private boolean withShutdownHook;
+        private boolean withDefaultChannelMonitorAgent;
 
         public MsbContextBuilder withShutdownHook(boolean withShutdownHook) {
             this.withShutdownHook = withShutdownHook;
             return this;
         }
 
+        public MsbContextBuilder withDefaultChannelMonitorAgent(boolean withDefaultChannelMonitorAgent) {
+            this.withDefaultChannelMonitorAgent = withDefaultChannelMonitorAgent;
+            return this;
+        }
+        
         /**
          * Create MsbContext and initialize it with Config from reference.conf
          * @throws MsbException if an error happens during initialization  
@@ -104,6 +97,10 @@ public class MsbContext {
 
             MsbContext msbContext = new MsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
 
+            if (withDefaultChannelMonitorAgent) {
+                DefaultChannelMonitorAgent.start(msbContext);
+            }
+            
             if (withShutdownHook) {
                 Runtime.getRuntime().addShutdownHook(new Thread("MSB shutdown hook") {
                     @Override

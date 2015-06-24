@@ -152,7 +152,8 @@ public class RequesterTest {
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
 
         MsbContext msbContext = TestUtils.createSimpleMsbContext();
-        msbContext.setChannelManager(channelManagerMock);
+        msbContext = TestUtils.createMsbContext(msbContext.getMsbConfig(), msbContext.getMessageFactory(), 
+                channelManagerMock, msbContext.getClock(), msbContext.getTimeoutManager());
 
         Requester requester = spy(Requester.create("test:requester", requestOptionsMock, null, msbContext));
 

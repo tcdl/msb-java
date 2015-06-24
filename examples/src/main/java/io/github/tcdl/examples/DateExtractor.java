@@ -24,9 +24,9 @@ public class DateExtractor {
     public static void main(String... args) {
 
         MsbContext msbContext = new MsbContext.MsbContextBuilder().
+                withDefaultChannelMonitorAgent(true).
                 withShutdownHook(true).
                 build();
-        DefaultChannelMonitorAgent.start(msbContext);
 
         MessageTemplate options = new MessageTemplate();
         final String namespace = "search:parsers:facets:v1";
