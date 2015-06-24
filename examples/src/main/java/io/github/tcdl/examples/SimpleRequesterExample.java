@@ -3,14 +3,13 @@ package io.github.tcdl.examples;
 import io.github.tcdl.Requester;
 import org.apache.commons.lang3.ArrayUtils;
 
-import java.util.Arrays;
-
 import static org.junit.Assert.assertTrue;
 
 /**
  * Created by anstr on 6/9/2015.
  */
 public class SimpleRequesterExample extends BaseExample {
+    private static final Integer NUMBER_OF_RESPONSES = 1;
 
     private boolean passed;
 
@@ -25,11 +24,11 @@ public class SimpleRequesterExample extends BaseExample {
     }
 
     public void runSimpleRequesterExample(String... expectedResponses) throws Exception {
-        Requester requester = createRequester(namespace, 1);
+        Requester requester = createRequester(namespace, NUMBER_OF_RESPONSES);
 
         passed = ArrayUtils.isEmpty(expectedResponses);
 
-        sendRequest(requester, 1, response -> {
+        sendRequest(requester, NUMBER_OF_RESPONSES, response -> {
             String body = response.getBody().toString();
             for (String bodyFragment : expectedResponses) {
                 if (body.contains(bodyFragment)) {
