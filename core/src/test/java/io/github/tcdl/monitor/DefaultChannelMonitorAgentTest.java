@@ -16,6 +16,7 @@ import org.mockito.Mockito;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Map;
 
 import static io.github.tcdl.support.Utils.TOPIC_ANNOUNCE;
 import static io.github.tcdl.support.Utils.TOPIC_HEARTBEAT;
@@ -138,6 +139,6 @@ public class DefaultChannelMonitorAgentTest {
     private void verifyMessageContainsTopic(Message message, String topicName) {
         assertNotNull(message.getPayload());
         assertNotNull(message.getPayload().getBody());
-        assertTrue(message.getPayload().getBody().containsKey(topicName));
+        assertTrue(((Map) message.getPayload().getBody()).containsKey(topicName));
     }
 }

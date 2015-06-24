@@ -2,9 +2,6 @@ package io.github.tcdl.messages.payload;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.github.tcdl.exception.JsonConversionException;
-import io.github.tcdl.exception.MessageBuilderException;
-import io.github.tcdl.support.Utils;
 
 import java.util.Map;
 
@@ -16,20 +13,20 @@ public final class Payload {
     private Integer statusCode;
     private String statusMessage;
     private final Map<String, String> headers;
-    private final Map<?, ?> query;
-    private final Map<?, ?> params;
-    private final Map<?, ?> body;
-    private final Map<?, ?> bodyBuffer;
+    private Object query;
+    private Object params;
+    private Object body;
+    private Object bodyBuffer;
 
     @JsonCreator
     private Payload(
             @JsonProperty("statusCode") Integer statusCode,
             @JsonProperty("statusMessage") String statusMessage,
             @JsonProperty("headers") Map<String, String> headers,
-            @JsonProperty("query") Map<?, ?> query,
-            @JsonProperty("params") Map<?, ?> params,
-            @JsonProperty("body") Map<?, ?> body,
-            @JsonProperty("bodyBuffer") Map<?, ?> bodyBuffer) {
+            @JsonProperty("query") Object query,
+            @JsonProperty("params") Object params,
+            @JsonProperty("body") Object body,
+            @JsonProperty("bodyBuffer") Object bodyBuffer) {
         this.statusMessage = statusMessage;
         this.statusCode = statusCode;
         this.headers = headers;
@@ -85,15 +82,7 @@ public final class Payload {
         }
 
         public Payload build() {
-            try {
-                Map queryMap = Utils.fromJson(Utils.toJson(query), Map.class);
-                Map paramsMap = Utils.fromJson(Utils.toJson(params), Map.class);
-                Map bodyMap = Utils.fromJson(Utils.toJson(body), Map.class);
-                Map bodyBufferMap = Utils.fromJson(Utils.toJson(bodyBuffer), Map.class);
-                return new Payload(statusCode, statusMessage, headers, queryMap, paramsMap, bodyMap, bodyBufferMap);
-            } catch(JsonConversionException e) {
-                throw new MessageBuilderException(e.getMessage());
-            }
+            return new Payload(statusCode, statusMessage, headers, query, params, body, bodyBuffer);
         }
     }
 
@@ -105,56 +94,28 @@ public final class Payload {
         return statusMessage;
     }
 
-    public Map<?, ?> getHeaders() {
+    public Map<String, String> getHeaders() {
         return headers;
     }
 
-    public Map<?, ?> getQuery() {
-        return query;
+    @SuppressWarnings("unchecked")
+    public <T> T getQuery() {
+        return (T)query;
     }
 
-    public <T> T getQueryAs(Class<T> clazz) {
-        try {
-            return Utils.fromJson(Utils.toJson(query), clazz);
-        } catch(JsonConversionException e) {
-            throw new MessageBuilderException(e.getMessage());
-        }
+    @SuppressWarnings("unchecked")
+    public <T> T getParams() {
+        return (T)params;
     }
 
-    public Map<?, ?> getParams() {
-        return params;
+    @SuppressWarnings("unchecked")
+    public <T> T getBody() {
+        return (T)body;
     }
 
-    public <T> T getParamsAs(Class<T> clazz) {
-        try {
-            return Utils.fromJson(Utils.toJson(params), clazz);
-        } catch(JsonConversionException e) {
-            throw new MessageBuilderException(e.getMessage());
-        }
-    }
-
-    public Map<?, ?> getBody() {
-        return body;
-    }
-
-    public <T> T getBodyAs(Class<T> clazz) {
-        try {
-            return Utils.fromJson(Utils.toJson(body), clazz);
-        } catch(JsonConversionException e) {
-            throw new MessageBuilderException(e.getMessage());
-        }
-    }
-
-    public Map<?, ?> getBodyBuffer() {
-        return bodyBuffer;
-    }
-
-    public <T> T getBodyBufferAs(Class<T> clazz) {
-        try {
-            return Utils.fromJson(Utils.toJson(bodyBuffer), clazz);
-        } catch(JsonConversionException e) {
-            throw new MessageBuilderException(e.getMessage());
-        }
+    @SuppressWarnings("unchecked")
+    public <T> T getBodyBuffer() {
+        return (T)bodyBuffer;
     }
 
     @Override
