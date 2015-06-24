@@ -78,8 +78,8 @@ public class ResponderServer {
         Message originalMessage = responder.getOriginalMessage();
         LOG.error("Handling error for message with id {}", originalMessage.getId());
         Payload responsePayload = new Payload.PayloadBuilder()
-                .setStatusCode(500)
-                .setStatusMessage(exception.getMessage()).build();
+                .withStatusCode(500)
+                .withStatusMessage(exception.getMessage()).build();
         responder.send(responsePayload);
     }
 }

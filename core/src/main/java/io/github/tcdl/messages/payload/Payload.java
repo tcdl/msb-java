@@ -16,20 +16,20 @@ public final class Payload {
     private Integer statusCode;
     private String statusMessage;
     private final Map<String, String> headers;
-    private final Map<?, ?> query;
-    private final Map<?, ?> params;
-    private final Map<?, ?> body;
-    private final Map<?, ?> bodyBuffer;
+    private Object query;
+    private Object params;
+    private Object body;
+    private Object bodyBuffer;
 
     @JsonCreator
     private Payload(
             @JsonProperty("statusCode") Integer statusCode,
             @JsonProperty("statusMessage") String statusMessage,
             @JsonProperty("headers") Map<String, String> headers,
-            @JsonProperty("query") Map<?, ?> query,
-            @JsonProperty("params") Map<?, ?> params,
-            @JsonProperty("body") Map<?, ?> body,
-            @JsonProperty("bodyBuffer") Map<?, ?> bodyBuffer) {
+            @JsonProperty("query") Object query,
+            @JsonProperty("params") Object params,
+            @JsonProperty("body") Object body,
+            @JsonProperty("bodyBuffer") Object bodyBuffer) {
         this.statusMessage = statusMessage;
         this.statusCode = statusCode;
         this.headers = headers;
@@ -49,51 +49,43 @@ public final class Payload {
         private Object body;
         private Object bodyBuffer;
 
-        public PayloadBuilder setStatusCode(Integer statusCode) {
+        public PayloadBuilder withStatusCode(Integer statusCode) {
             this.statusCode = statusCode;
             return this;
         }
 
-        public PayloadBuilder setStatusMessage(String statusMessage) {
+        public PayloadBuilder withStatusMessage(String statusMessage) {
             this.statusMessage = statusMessage;
             return this;
         }
 
-        public PayloadBuilder setHeaders(Map<String, String> headers) {
+        public PayloadBuilder withHeaders(Map<String, String> headers) {
             this.headers = headers;
             return this;
         }
 
-        public PayloadBuilder setQuery(Object query) {
+        public PayloadBuilder withQuery(Object query) {
             this.query = query;
             return this;
         }
 
-        public PayloadBuilder setParams(Object params) {
+        public PayloadBuilder withParams(Object params) {
             this.params = params;
             return this;
         }
 
-        public PayloadBuilder setBody(Object body) {
+        public PayloadBuilder withBody(Object body) {
             this.body = body;
             return this;
         }
 
-        public PayloadBuilder setBodyBuffer(Object bodyBuffer) {
+        public PayloadBuilder withBodyBuffer(Object bodyBuffer) {
             this.bodyBuffer = bodyBuffer;
             return this;
         }
 
         public Payload build() {
-            try {
-                Map queryMap = Utils.fromJson(Utils.toJson(query), Map.class);
-                Map paramsMap = Utils.fromJson(Utils.toJson(params), Map.class);
-                Map bodyMap = Utils.fromJson(Utils.toJson(body), Map.class);
-                Map bodyBufferMap = Utils.fromJson(Utils.toJson(bodyBuffer), Map.class);
-                return new Payload(statusCode, statusMessage, headers, queryMap, paramsMap, bodyMap, bodyBufferMap);
-            } catch(JsonConversionException e) {
-                throw new MessageBuilderException(e.getMessage());
-            }
+            return new Payload(statusCode, statusMessage, headers, query, params, body, bodyBuffer);
         }
     }
 
@@ -105,12 +97,24 @@ public final class Payload {
         return statusMessage;
     }
 
-    public Map<?, ?> getHeaders() {
+    public Map<String, String> getHeaders() {
         return headers;
     }
 
-    public Map<?, ?> getQuery() {
+    public Object getQuery() {
         return query;
+    }
+
+    public Object getParams() {
+        return params;
+    }
+
+    public Object getBody() {
+        return body;
+    }
+
+    public Object getBodyBuffer() {
+        return bodyBuffer;
     }
 
     public <T> T getQueryAs(Class<T> clazz) {
@@ -121,10 +125,6 @@ public final class Payload {
         }
     }
 
-    public Map<?, ?> getParams() {
-        return params;
-    }
-
     public <T> T getParamsAs(Class<T> clazz) {
         try {
             return Utils.fromJson(Utils.toJson(params), clazz);
@@ -133,20 +133,12 @@ public final class Payload {
         }
     }
 
-    public Map<?, ?> getBody() {
-        return body;
-    }
-
     public <T> T getBodyAs(Class<T> clazz) {
         try {
             return Utils.fromJson(Utils.toJson(body), clazz);
         } catch(JsonConversionException e) {
             throw new MessageBuilderException(e.getMessage());
         }
-    }
-
-    public Map<?, ?> getBodyBuffer() {
-        return bodyBuffer;
     }
 
     public <T> T getBodyBufferAs(Class<T> clazz) {

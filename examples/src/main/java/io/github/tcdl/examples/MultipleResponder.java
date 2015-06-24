@@ -22,13 +22,13 @@ public class MultipleResponder {
     public static void runResponder(String namespace, MsbContext msbContext) {
         MessageTemplate options = new MessageTemplate();
         ResponderServer.create(namespace, options, msbContext, (request, responder) -> {
-                    Map requestBody = request.getBody();
+                    Map requestBody = request.getBodyAs(Map.class);
                     System.out.println(">>> GOT request: " + requestBody);
 
                     String requestId = (String)requestBody.get("requestId");
                     SearchResponse response = new SearchResponse(requestId, "response");
                     System.out.println(">>> SENDING response in request to " + requestId);
-                    responder.send(new Payload.PayloadBuilder().setBody(response).build());
+                    responder.send(new Payload.PayloadBuilder().withBody(response).build());
                 })
                 .listen();
     }

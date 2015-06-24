@@ -63,7 +63,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
                 message -> {
                         Responder responder = new Responder(null, message, msbContext);
                         Payload payload = new Payload.PayloadBuilder()
-                                .setBody(topicInfoMap)
+                                .withBody(topicInfoMap)
                                 .build();
                         responder.send(payload);
                 });
@@ -147,7 +147,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
      */
     private void doAnnounce() {
         Payload payload = new Payload.PayloadBuilder()
-                .setBody(topicInfoMap)
+                .withBody(topicInfoMap)
                 .build();
 
         Producer producer = channelManager.findOrCreateProducer(TOPIC_ANNOUNCE);

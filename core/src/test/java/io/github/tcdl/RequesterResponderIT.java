@@ -129,9 +129,9 @@ public class RequesterResponderIT {
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
         ResponderServer
                 .create(namespace, messageTemplate, serverMsbContext, (request, response) -> {
-                    Payload payload = new Payload.PayloadBuilder().setBody(
+                    Payload payload = new Payload.PayloadBuilder().withBody(
                             new HashMap<String, String>().put("body", "payload from test : testResponderAnswerWithResponseRequesterReceiveResponse"))
-                            .setStatusCode(3333).build();
+                            .withStatusCode(3333).build();
                     response.send(payload);
                     sentResponses.add(payload);
                     respSend.countDown();

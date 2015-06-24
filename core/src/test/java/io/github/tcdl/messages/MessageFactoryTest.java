@@ -16,7 +16,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -24,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageFactoryTest {
@@ -121,30 +119,6 @@ public class MessageFactoryTest {
     public void testCreateAckBuilder() throws Exception {
         Acknowledge ack = messageFactory.createAckBuilder().build();
         assertNotNull("ack responderId not set", ack.getResponderId());
-    }
-
-    @Test
-    public void testCreateMessageBuilderMetaFromMsgOptions() throws Exception {
-        Integer ttl = 123;
-        when(messageOptions.getTtl()).thenReturn(ttl);
-        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload("test:meta-set");
-        MessageBuilder mesageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
-
-        Message message = mesageBuilder.build();
-        assertEquals("Message ttl is not set correctly", ttl, message.getMeta().getTtl());
-        assertEquals("Message create_at is not equals now", FIXED_CLOCK_INSTANT, message.getMeta().getCreatedAt());
-
-        assertThat(message.getMeta().getDurationMs().intValue(), equalTo(0));
-    }
-
-    @Test
-    public void testDurationMsIsSet() throws Exception {
-        MessageBuilder requestMesageBuilder = TestUtils.createMesageBuilder();
-        Payload requestPayload = TestUtils.createSimpleResponsePayload();
-
-        Message message = messageFactory.createRequestMessage(requestMesageBuilder, requestPayload);
-
-        assertThat(message.getMeta().getDurationMs().intValue(), not(0));
     }
 
     @Test
