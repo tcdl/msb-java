@@ -35,7 +35,7 @@ public class DateExtractor {
 
         ResponderServer.create(namespace, options, msbContext, (request, responder) -> {
 
-                    RequestQuery query = request.getQueryAs(RequestQuery.class);
+                    RequestQuery query = request.getQuery();
                     String queryString = query.getQ();
                     Matcher matcher = YEAR_PATTERN.matcher(queryString);
 
