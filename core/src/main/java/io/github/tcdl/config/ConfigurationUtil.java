@@ -28,9 +28,9 @@ public class ConfigurationUtil {
     /**
      * Get optional Boolean value from Config for a specified key.
      * Return empty Optional is the key is not present  
-     * @param config is Config
-     * @param key is a specified key
-     * @return Optional<Boolean>
+     * @param config configuration for MSB library
+     * @param key specified key in configuration
+     * @return optional that represents the Boolean value
      */
     public static Optional<Boolean> getOptionalBoolean(Config config, String key) {
         if (config.hasPath(key)) {
@@ -41,9 +41,9 @@ public class ConfigurationUtil {
 
     /**
      * Get mandatory String value from Config for a specified key  
-     * @param config is Config
-     * @param key is a specified key
-     * @return String
+     * @param config configuration for MSB library
+     * @param key specified key in configuration
+     * @return value for specified key
      * @throws ConfigurationException if specified key is not present in the Config
      */
     public static String getString(Config config, String key) {
@@ -56,9 +56,9 @@ public class ConfigurationUtil {
     /**
      * Get optional String value from Config for a specified key. 
      * Return empty Optional is the key is not present. 
-     * @param config is Config
-     * @param key is a specified key
-     * @return Optional<String>
+     * @param config configuration for MSB library
+     * @param key specified key in configuration
+     * @return optional that represents the Boolean value
      */
     public static Optional<String> getOptionalString(Config config, String key) {
         if (config.hasPath(key)) {
@@ -69,10 +69,10 @@ public class ConfigurationUtil {
 
     /**
      * Get mandatory int value from Config for a specified key  
-     * @param config is Config
-     * @param key is a specified key
-     * @return int
-     * @throws ConfigurationException if specified key is not present in the Config
+     * @param config configuration for MSB library
+     * @param key specified key in configuration
+     * @return value for specified key
+     * @throws ConfigurationException if specified key is not present in the configuration
      */
     public static int getInt(Config config, String key) {
         if (config.hasPath(key)) {
