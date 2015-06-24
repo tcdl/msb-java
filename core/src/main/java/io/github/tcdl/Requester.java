@@ -70,9 +70,9 @@ public class Requester {
     /**
      * Wraps a payload with message meta and sends to the bus.
      *
-     * @param requestPayload
-     * @throws {@link ChannelException} if an error is encountered during publishing to broker
-     * @throws {@link JsonConversionException} if unable to parse message to JSON before sending to broker
+     * @param requestPayload payload which will be sent to Broker
+     * @throws ChannelException if an error is encountered during publishing to broker
+     * @throws JsonConversionException if unable to parse message to JSON before sending to broker
      */
     public void publish(@Nullable Payload requestPayload) {
         this.message = messageFactory.createRequestMessage(messageBuilder, requestPayload);

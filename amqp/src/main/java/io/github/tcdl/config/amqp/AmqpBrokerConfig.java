@@ -48,7 +48,7 @@ public class AmqpBrokerConfig {
 
         /**
          * Initialize Builder with Config
-         * @param Config is a row broker configuration 
+         * @param config is a row broker configuration
          * @throws ConfigurationException if provided configuration is broken
          */
         public AmqpBrokerConfigBuilder withConfig(Config config) {

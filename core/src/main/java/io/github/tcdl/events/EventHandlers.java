@@ -9,7 +9,6 @@ import java.util.List;
 
 /**
  * {@link EventHandlers} is a component that allows to register custom event handlers for {@link io.github.tcdl.Requester} specific events .
- * <p/>
  * Created by rdrozdov-tc on 6/2/15.
  */
 public class EventHandlers {
@@ -30,7 +29,7 @@ public class EventHandlers {
     /**
      * Registered callback for Acknowledge event.
      *
-     * @param acknowledge callback
+     * @param onAcknowledge callback
      */
     public EventHandlers onAcknowledge(Callback<Acknowledge> onAcknowledge) {
         this.onAcknowledge = onAcknowledge;
@@ -49,7 +48,7 @@ public class EventHandlers {
     /**
      * Registered callback for Response event.
      *
-     * @param response callback
+     * @param onResponse callback
      */
     public EventHandlers onResponse(Callback<Payload> onResponse) {
         this.onResponse = onResponse;
@@ -68,7 +67,7 @@ public class EventHandlers {
     /**
      * Registered callback for End event.
      *
-     * @param end callback
+     * @param onEnd callback
      */
     public EventHandlers onEnd(Callback<List<Message>> onEnd) {
         this.onEnd = onEnd;

@@ -7,6 +7,7 @@ import io.github.tcdl.messages.MessageFactory;
 import io.github.tcdl.support.JsonValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.github.tcdl.exception.MsbException;
 
 import java.time.Clock;
 
@@ -89,7 +90,7 @@ public class MsbContext {
         }
 
         /**
-         * Create MsbConect and initialize it with Config from reference.conf
+         * Create MsbContext and initialize it with Config from reference.conf
          * @throws MsbException if an error happens during initialization  
          */
         public MsbContext build() {
