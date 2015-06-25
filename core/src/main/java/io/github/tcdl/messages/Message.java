@@ -11,7 +11,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Created by rdro on 4/22/2015.
+ * {@link Message} contains protocol information used by Msb and also provided Acknowledgement (if message {@link Acknowledge}  property is set)
+ * and Payload (if message {@link Payload}  property is set).
  */
 public final class Message {
 

@@ -12,9 +12,7 @@ import io.github.tcdl.exception.MsbException;
 import java.time.Clock;
 
 /**
- * {@link  MsbContext} class contains all singleton beans required for MSB
- *
- * Created by rdro on 5/27/2015.
+ * {@link  MsbContext} specifies the context of the MSB message processing. Creates singleton beans required for MSB. *
  */
 public class MsbContext {
 
