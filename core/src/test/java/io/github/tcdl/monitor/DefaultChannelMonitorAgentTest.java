@@ -22,9 +22,12 @@ import io.github.tcdl.MsbContext;
 import io.github.tcdl.Producer;
 import io.github.tcdl.MessageHandler;
 import io.github.tcdl.TimeoutManager;
+import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.ServiceDetails;
 import io.github.tcdl.messages.Message;
 import io.github.tcdl.messages.MessageFactory;
+import io.github.tcdl.support.TestUtils;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,7 +46,13 @@ public class DefaultChannelMonitorAgentTest {
         ServiceDetails serviceDetails = new ServiceDetails.ServiceDetailsBuilder().build();
         MessageFactory messageFactory = new MessageFactory(serviceDetails, clock);
         TimeoutManager mockTimeoutManager = mock(TimeoutManager.class);
-        channelMonitorAgent = new DefaultChannelMonitorAgent(new MsbContext(null, messageFactory, mockChannelManager, clock, mockTimeoutManager));
+        MsbContext msbContext = TestUtils.createMsbContextBuilder()
+                .withMessageFactory(messageFactory)
+                .withChannelManager(mockChannelManager)
+                .withClock(clock)
+                .withTimeoutManager(mockTimeoutManager)
+                .build();
+        channelMonitorAgent = new DefaultChannelMonitorAgent(msbContext);
     }
 
     @Test
