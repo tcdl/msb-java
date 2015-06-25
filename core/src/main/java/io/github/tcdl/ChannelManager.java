@@ -20,7 +20,7 @@ import org.apache.commons.lang3.Validate;
  * {@link ChannelManager} creates consumers or producers on demand and manages them.
  */
 public class ChannelManager {
-    
+
     private MsbConfigurations msbConfig;
     private Clock clock;
     private JsonValidator validator;
@@ -52,12 +52,7 @@ public class ChannelManager {
         return producer;
     }
 
-    public synchronized void subscribe(final String topic, final Consumer.Subscriber subscriber) {
-        Consumer consumer = findOrCreateConsumer(topic);
-        consumer.subscribe(subscriber);
-    }
-
-    private Consumer findOrCreateConsumer(final String topic) {
+    public Consumer findOrCreateConsumer(final String topic) {
         Validate.notNull(topic, "field 'topic' is null");
         Consumer consumer = consumersByTopic.computeIfAbsent(topic, key -> {
             Consumer newConsumer = createConsumer(key);
@@ -68,16 +63,17 @@ public class ChannelManager {
         return consumer;
     }
 
-    public synchronized void unsubscribe(String topic, Consumer.Subscriber subscriber) {
-        if (topic == null || !consumersByTopic.containsKey(topic))
-            return;
+    public void subscribe(String topic, MessageHandler messageHandler) {
+        Validate.notNull(topic, "field 'topic' is null");
+        Validate.notNull(messageHandler, "field 'messageHandler' is null");
+        Consumer consumer = findOrCreateConsumer(topic);
+        consumer.subscribe(messageHandler);
+    }
 
-        Consumer consumer = consumersByTopic.get(topic);
-        boolean isLast = consumer.unsubscribe(subscriber);
-
-        if (isLast) {
+    public synchronized void unsubscribe(String topic) {
+        Consumer consumer = consumersByTopic.remove(topic);
+        if (consumer != null) {
             consumer.end();
-            consumersByTopic.remove(topic);
             channelMonitorAgent.consumerTopicRemoved(topic);
         }
     }

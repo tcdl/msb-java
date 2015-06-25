@@ -50,7 +50,7 @@ public class MultipleRequester {
             .build();
 
         SearchRequest request = new SearchRequest(requestId, queryString);
-        Payload requestPayload = new Payload.PayloadBuilder().setBody(request).build();
+        Payload requestPayload = new Payload.PayloadBuilder().withBody(request).build();
 
         CompletableFuture.supplyAsync(() -> {
             Requester.create(namespace, options, msbContext)
@@ -59,7 +59,7 @@ public class MultipleRequester {
                 )
                 .onResponse(payload -> {
                     System.out.println(">>> RESPONSE body: " + payload.getBody());
-                    callback.accept(payload.getBody());
+                    callback.accept(payload.getBodyAs(Map.class));
                 })
                 .publish(requestPayload);
             return null;

@@ -1,9 +1,26 @@
 package io.github.tcdl.monitor;
 
+import static io.github.tcdl.support.Utils.TOPIC_ANNOUNCE;
+import static io.github.tcdl.support.Utils.TOPIC_HEARTBEAT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Map;
+
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.Consumer;
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.Producer;
+import io.github.tcdl.MessageHandler;
 import io.github.tcdl.TimeoutManager;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.ServiceDetails;
@@ -15,16 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
-
-import static io.github.tcdl.support.Utils.TOPIC_ANNOUNCE;
-import static io.github.tcdl.support.Utils.TOPIC_HEARTBEAT;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
 
 public class DefaultChannelMonitorAgentTest {
     private static final Instant CLOCK_INSTANT = Instant.parse("2007-12-03T10:15:30.00Z");
@@ -75,7 +82,7 @@ public class DefaultChannelMonitorAgentTest {
     @Test
     public void testAnnounceConsumerForServiceTopic() {
         channelMonitorAgent.consumerTopicCreated(TOPIC_ANNOUNCE);
-        verify(mockChannelManager, never()).subscribe(anyString(), Mockito.any(Consumer.Subscriber.class));
+        verify(mockChannelManager, never()).subscribe(anyString(), Mockito.any(MessageHandler.class));
     }
 
     @Test
@@ -134,7 +141,7 @@ public class DefaultChannelMonitorAgentTest {
         ChannelMonitorAgent startedAgent = channelMonitorAgent.start();
 
         assertSame(channelMonitorAgent, startedAgent);
-        verify(mockChannelManager).subscribe(Mockito.eq(TOPIC_HEARTBEAT), Mockito.any(Consumer.Subscriber.class));
+        verify(mockChannelManager).subscribe(Mockito.eq(TOPIC_HEARTBEAT), Mockito.any(MessageHandler.class));
     }
 
     private Message verifyProducerInvokedAndReturnMessage(Producer mockProducer) {
@@ -147,6 +154,6 @@ public class DefaultChannelMonitorAgentTest {
     private void verifyMessageContainsTopic(Message message, String topicName) {
         assertNotNull(message.getPayload());
         assertNotNull(message.getPayload().getBody());
-        assertTrue(message.getPayload().getBody().containsKey(topicName));
+        assertTrue(message.getPayload().getBodyAs(Map.class).containsKey(topicName));
     }
 }

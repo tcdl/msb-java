@@ -28,7 +28,7 @@ public class ChannelManagerTest {
 
     private ChannelManager channelManager;
     private ChannelMonitorAgent mockChannelMonitorAgent;
-    private Consumer.Subscriber subscriberMock;
+    private MessageHandler messageHandlerMock;
 
     @Before
     public void setUp() {
@@ -39,7 +39,7 @@ public class ChannelManagerTest {
 
         mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
         channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);
-        subscriberMock = mock(Consumer.Subscriber.class);
+        messageHandlerMock = mock(MessageHandler.class);
     }
 
     @Test
@@ -63,24 +63,12 @@ public class ChannelManagerTest {
         String topic = "topic:test-consumer-cached";
 
         // Consumer was created and monitor agent notified
-        channelManager.subscribe(topic, subscriberMock);
+        channelManager.subscribe(topic, messageHandlerMock);
         verify(mockChannelMonitorAgent).consumerTopicCreated(topic);
 
         // Cached consumer was returned and monitor agent wasn't notified
-        channelManager.subscribe(topic, subscriberMock);
+        channelManager.subscribe(topic, messageHandlerMock);
         verifyNoMoreInteractions(mockChannelMonitorAgent);
-    }
-
-    @Test
-    public void testUnsubscribe() {
-        String topic = "topic:test-consumer-unsubscribe";
-
-        channelManager.unsubscribe(topic, subscriberMock);
-        verify(mockChannelMonitorAgent, never()).consumerTopicRemoved(topic);
-
-        channelManager.subscribe(topic, subscriberMock); // force creation of the consumer
-        channelManager.unsubscribe(topic, subscriberMock);
-        verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
     }
 
     @Test
@@ -104,13 +92,40 @@ public class ChannelManagerTest {
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
         channelManager.findOrCreateProducer(topic).publish(message);
         channelManager.subscribe(topic,
-               msg ->  {
-                        messageEvent.value = msg;
-                        awaitReceiveEvents.countDown();
+                msg ->  {
+                    messageEvent.value = msg;
+                    awaitReceiveEvents.countDown();
                 });
 
         assertTrue(awaitReceiveEvents.await(4000, TimeUnit.MILLISECONDS));
         verify(mockChannelMonitorAgent).consumerMessageReceived(topic);
         assertNotNull(messageEvent.value);
     }
+
+    @Test
+    public void testSubscribeUnsubscribe() {
+        String topic = "topic:test-unsubscribe-once";
+        CollectorManager collectorManager = new CollectorManager(topic, channelManager);
+
+        channelManager.subscribe(topic, collectorManager);
+        channelManager.unsubscribe(topic);
+
+        verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
+    }
+
+    @Test
+    public void testSubscribeUnsubscribeSeparateTopics() {
+        String topic1 = "topic:test-unsubscribe-try-first";
+        String topic2 = "topic:test-unsubscribe-try-other";
+        CollectorManager collectorManager1 = new CollectorManager(topic1, channelManager);
+        CollectorManager collectorManager2 = new CollectorManager(topic2, channelManager);
+
+        channelManager.subscribe(topic1, collectorManager1);
+        channelManager.subscribe(topic2, collectorManager2);
+
+        channelManager.unsubscribe(topic1);
+        verify(mockChannelMonitorAgent).consumerTopicRemoved(topic1);
+        verify(mockChannelMonitorAgent, never()).consumerTopicRemoved(topic2);
+    }
+
 }
