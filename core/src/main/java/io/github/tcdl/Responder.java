@@ -12,10 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link Responder} is a component which holds both original request message and response message.
- * Is used by {@link ResponderServer} to send responses and acknowledgements
+ * {@link Responder} is a component which holds original request message and create response base on it.
+ * Is used by {@link ResponderServer} to send responses and acknowledgements.
  *
- * Created by rdro on 4/29/2015.
+ * @author Roman Drozdov
  */
 public class Responder {
 
@@ -26,7 +26,6 @@ public class Responder {
     private ChannelManager channelManager;
     private MessageFactory messageFactory;
     private MessageBuilder messageBuilder;
-    private Message responseMessage;
 
     public Responder(MessageTemplate config, Message originalMessage, MsbContext msbContext) {
         validateReceivedMessage(originalMessage);
@@ -40,10 +39,10 @@ public class Responder {
     /**
      * Send acknowledge message.
      *
-     * @param timeoutMs Time to wait for responsesRemaining
-     * @param responsesRemaining Expected number of responses
+     * @param timeoutMs time to wait for remaining responses
+     * @param responsesRemaining expected number of responses
      */
-    public void sendAck(Integer timeoutMs, Integer responsesRemaining) {
+    public Message sendAck(Integer timeoutMs, Integer responsesRemaining) {
         AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.withResponderId(responderId);
         ackBuilder.withTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
@@ -51,22 +50,27 @@ public class Responder {
 
         Message message = this.messageFactory.createResponseMessage(this.messageBuilder, ackBuilder.build(), null);
         sendMessage(message);
+
+        return message;
     }
 
     /**
      * Send payload message.
+     * @param responsePayload payload which will be used to create response message
+     * @return response message which was sent
      */
-    public void send(Payload responsePayload) {
+    public Message send(Payload responsePayload) {
         AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.withResponderId(responderId);
         ackBuilder.withResponsesRemaining(-1);
 
         Message message = this.messageFactory.createResponseMessage(this.messageBuilder, ackBuilder.build(), responsePayload);
         sendMessage(message);
+
+        return message;
     }
 
     private void sendMessage(Message message) {
-        this.responseMessage = message;
         Producer producer = channelManager.findOrCreateProducer(message.getTopics().getTo());
         LOG.debug("Publishing message to topic : {}", message.getTopics().getTo());
         producer.publish(message);
@@ -77,12 +81,11 @@ public class Responder {
         Validate.notNull(originalMessage.getTopics(), "the 'originalMessage.topics' must not be null");
     }
 
+    /**
+     *
+     * @return original message which was received
+     */
     public Message getOriginalMessage() {
         return this.originalMessage;
     }
-
-    Message getResponseMessage() {
-        return responseMessage;
-    }
-
 }

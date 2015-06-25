@@ -45,8 +45,7 @@ public class ResponderIT {
 
         Responder responder = new Responder(messageOptions, originalMessage, msbContext);
 
-        responder.sendAck(1000, 2);
-        Message ackMessage = responder.getResponseMessage();
+        Message ackMessage = responder.sendAck(1000, 2);
 
         assertNull("Message payload shouldn't be set", ackMessage.getPayload());
 
@@ -91,8 +90,7 @@ public class ResponderIT {
 
         Responder responder = new Responder(messageOptions, originalMessage, msbContext);
         Payload responsePayload = TestUtils.createSimpleResponsePayload();
-        responder.send(responsePayload);
-        Message responseMessage = responder.getResponseMessage();
+        Message responseMessage = responder.send(responsePayload);
 
         assertEquals("Message payload not match sended", responsePayload, responseMessage.getPayload());
 
