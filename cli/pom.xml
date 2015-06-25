@@ -26,5 +26,27 @@
             <groupId>io.github.tcdl</groupId>
             <artifactId>msb-java-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.github.tcdl</groupId>
+            <artifactId>msb-java-amqp</artifactId>
+        </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>io.github.tcdl.cli.CliTool</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
