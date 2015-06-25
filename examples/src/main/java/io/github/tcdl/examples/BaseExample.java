@@ -11,7 +11,6 @@ import io.github.tcdl.messages.Acknowledge;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.Utils;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -19,9 +18,15 @@ import java.util.Map;
  */
 public class BaseExample {
 
-    private MsbContext context = new MsbContext.MsbContextBuilder().
-            withShutdownHook(true).
-            build();
+    MsbContext context;
+
+    public BaseExample() {
+        init();
+    }
+
+    public void init() {
+        context = new MsbContext.MsbContextBuilder().withShutdownHook(true).build();
+    }
 
     public Requester createRequester(String namespace, Integer numberOfResponses) {
         return createRequester(namespace, numberOfResponses, null, null);
@@ -42,15 +47,14 @@ public class BaseExample {
     }
 
     public void sendRequest(Requester requester, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
-        sendRequest(requester, "REQUEST", true, waitForResponses, null, responseCallback);
+        sendRequest(requester, "QUERY", null, true, waitForResponses, null, responseCallback);
     }
 
-    public void sendRequest(Requester requester, String bodyText, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
-        sendRequest(requester, bodyText, true, waitForResponses, null, responseCallback);
+    public void sendRequest(Requester requester, String body, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
+        sendRequest(requester, null, body, false, waitForResponses, null, responseCallback);
     }
 
-
-    public void sendRequest(Requester requester, String bodyText,  boolean waitForAck, Integer waitForResponses,
+    public void sendRequest(Requester requester, String query, String body, boolean waitForAck, Integer waitForResponses,
             Callback<Acknowledge> ackCallback,
             Callback<Payload> responseCallback) throws Exception {
 
@@ -66,7 +70,7 @@ public class BaseExample {
                 }
             });
 
-        requester.publish(createPayloadWithBodyText(bodyText));
+        requester.publish(createPayload(query, body));
     }
 
     public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler requestHandler) {
@@ -76,11 +80,11 @@ public class BaseExample {
     }
 
     public void respond(Responder responder) {
-        responder.send(createPayloadWithBodyText("RESPONSE"));
+        responder.send(createPayload(null, "RESPONSE"));
     }
 
     public void respond(Responder responder, String text) {
-        responder.send(createPayloadWithBodyText(text));
+        responder.send(createPayload(null, text));
     }
 
     public void sleep(int timeout) throws InterruptedException {
@@ -91,9 +95,10 @@ public class BaseExample {
         context.shutdown();
     }
 
-    public Payload createPayloadWithBodyText(String text) {
-        Map<String, String> body = new HashMap<>();
-        body.put("text", text);
-        return new Payload.PayloadBuilder().withBody(body).build();
+    public Payload createPayload(String query, String body) {
+        return new Payload.PayloadBuilder()
+                .withQuery(Utils.fromJson("{\"q\": \"" + query + "\"}", Map.class))
+                .withBody(Utils.fromJson("{\"body\": \"" + body + "\"}", Map.class))
+                .build();
     }
 }

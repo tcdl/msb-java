@@ -72,6 +72,7 @@ public class DateExtractor {
     }
 
     private static class RequestQuery {
+
         private String q;
 
         public String getQ() {
