@@ -1,6 +1,5 @@
 package io.github.tcdl.support;
 
-import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.MsbContext;
 import io.github.tcdl.TimeoutManager;
@@ -19,6 +18,9 @@ import io.github.tcdl.messages.payload.Payload;
 import java.time.Clock;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
+import com.typesafe.config.ConfigFactory;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -26,19 +28,11 @@ import java.util.Map;
 public class TestUtils {
 
     public static MsbContext createSimpleMsbContext() {
-        MsbConfigurations msbConfig = TestUtils.createMsbConfigurations();
-        Clock clock = Clock.systemDefaultZone();
-        JsonValidator validator = new JsonValidator();
-        ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator);
-        MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);
-        TimeoutManager timeoutManager = new TimeoutManager(1);
-
-        return new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+        return new TestMsbContextBuilder().build();
     }
 
-    public static MsbContext createMsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory, 
-            ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
-        return new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+    public static TestMsbContextBuilder createMsbContextBuilder() {
+        return new TestMsbContextBuilder();
     }
 
     public static String getSimpleNamespace() {
@@ -151,12 +145,54 @@ public class TestUtils {
         return new MetaMessage.MetaMessageBuilder(null, clock.instant(), msbConf.getServiceDetails(), clock);
     }
     
-    private static class TestMsbContext extends MsbContext {
-        TestMsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory, 
-                ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
-            super(msbConfig, messageFactory, channelManager, clock, timeoutManager);
-        }
-    }
+    public static class TestMsbContextBuilder {
+        private Optional<MsbConfigurations> msbConfigOp = Optional.empty();
+        private Optional<MessageFactory> messageFactoryOp = Optional.empty(); 
+        private Optional<ChannelManager> channelManagerOp = Optional.empty(); 
+        private Optional<Clock> clockOp = Optional.empty();
+        private Optional<TimeoutManager> timeoutManagerOp = Optional.empty();
 
+        public TestMsbContextBuilder withMsbConfigurations(MsbConfigurations msbConfig) {
+            this.msbConfigOp = Optional.ofNullable(msbConfig);
+            return this;
+        }
+
+        public TestMsbContextBuilder withMessageFactory(MessageFactory messageFactory) {
+            this.messageFactoryOp = Optional.ofNullable(messageFactory);
+            return this;
+        }
+
+        public TestMsbContextBuilder withChannelManager(ChannelManager channelManager) {
+            this.channelManagerOp = Optional.ofNullable(channelManager);
+            return this;
+        }
+
+        public TestMsbContextBuilder withClock(Clock clock) {
+            this.clockOp = Optional.ofNullable(clock);
+            return this;
+        }
+
+        public TestMsbContextBuilder withTimeoutManager(TimeoutManager timeoutManager) {
+            this.timeoutManagerOp = Optional.ofNullable(timeoutManager);
+            return this;
+        }
+
+        public MsbContext build() {
+            MsbConfigurations msbConfig = msbConfigOp.orElse(TestUtils.createMsbConfigurations());
+            Clock clock = clockOp.orElse(Clock.systemDefaultZone());
+            ChannelManager channelManager = channelManagerOp.orElse(new ChannelManager(msbConfig, clock, new JsonValidator()));
+            MessageFactory messageFactory = messageFactoryOp.orElse(new MessageFactory(msbConfig.getServiceDetails(), clock));
+            TimeoutManager timeoutManager = timeoutManagerOp.orElse(new TimeoutManager(1));
+            return new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+        }
+
+        private static class TestMsbContext extends MsbContext {
+            TestMsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory,
+                    ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
+                super(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+            }
+        }
+
+    }
 
 }
