@@ -2,8 +2,6 @@ package io.github.tcdl.config;
 
 /**
  * A message template to be used to construct a request/response message
- *
- * Created by rdro on 4/22/2015.
  */
 public class MessageTemplate {
 

@@ -71,7 +71,7 @@ public class MsbContext {
         private boolean withDefaultChannelMonitorAgent;
 
         /**
-         * Specifies if to shutdown current context during JVM exit. Is set to true will shutdown context regardless of
+         * Specifies if to shutdown current context during JVM exit. If set to true will shutdown context regardless of
          * user will make a call to MsbContext.shutdown() from within client code.
          */
         public MsbContextBuilder withShutdownHook(boolean withShutdownHook) {
@@ -80,7 +80,7 @@ public class MsbContext {
         }
 
         /**
-         * Specifies if monitoring is enabled.
+         * Specifies if monitoring agent is enabled.
          *
          */
         public MsbContextBuilder withDefaultChannelMonitorAgent(boolean withDefaultChannelMonitorAgent) {
