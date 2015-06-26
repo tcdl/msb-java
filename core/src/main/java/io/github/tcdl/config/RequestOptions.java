@@ -1,9 +1,10 @@
 package io.github.tcdl.config;
 
 /**
- * Options to configure a requester to wait for acknowledges or responses
- *
- * Created by rdrozdov-tc on 6/22/15.
+ * Options used while constructing {@link io.github.tcdl.Requester} that specify number and time to wait for acknowledgements or responses.
+ * Not all combinations make sense for this object.
+ * e.g: - setting {@literal waitForResponses<=0} will not activate timeout tasks
+ *      - {@literal responseTimeout > ackTimeout} will not activate ackTimeout task
  */
 public class RequestOptions {
 

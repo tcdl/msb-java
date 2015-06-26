@@ -15,9 +15,16 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * {@link Requester} is a component which sends a request message to the bus and collects responses.
+ * {@link Requester} enable user send message to bus and process responses for this messages if any expected.
  *
- * Created by rdro on 4/27/2015.
+ * Expected responses are matched by correlationId from original request.
+ *
+ * Expected number of messages and response timeouts is defined by {@link RequestOptions} during instance creation but can be updated by so called Acknowledgement
+ * response mechanism in case we create Requester with {@literal RequestOptions.waitForResponses => 0} and received Acknowledgement response
+ * before RequestOptions.ackTimeout or RequestOptions.responseTimeout (takes max of two).
+ *
+ * Please note: RequestOptions.waitForResponses represent number of response messages  with {@link io.github.tcdl.messages.payload.Payload} set and in case we received
+ * all expected before RequestOptions.responseTimeout we don't wait for Acknowledgement response and RequestOptions.ackTimeout is not used.
  */
 public class Requester {
 
@@ -34,7 +41,7 @@ public class Requester {
      *
      * @param namespace topic name to send a request to
      * @param requestOptions options to configure a requester
-     * @param context context which contains MSB related beans
+     * @param context shared by all Requester instances
      * @return instance of a requester
      */
     public static Requester create(String namespace, RequestOptions requestOptions, MsbContext context) {
@@ -42,12 +49,12 @@ public class Requester {
     }
 
     /**
-     * Creates a new instance of a requester.
+     * Creates a new instance of a requester with originalMessage.
      *
      * @param namespace topic name to send a request to
      * @param requestOptions options to configure a requester
      * @param originalMessage original message (to take correlation id from)
-     * @param context context which contains MSB related beans
+     * @param context shared by all Requester instances
      * @return instance of a requester
      */
     public static Requester create(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContext context) {
@@ -68,11 +75,12 @@ public class Requester {
     }
 
     /**
-     * Wraps a payload with message meta and sends to the bus.
+     * Wraps a payload with protocol information and sends to bus.
+     * In case Requester created with expectation for responses then process them.
      *
-     * @param requestPayload payload which will be sent to Broker
-     * @throws ChannelException if an error is encountered during publishing to broker
-     * @throws JsonConversionException if unable to parse message to JSON before sending to broker
+     * @param requestPayload payload which will be sent to bus
+     * @throws ChannelException if an error is encountered during publishing to bus
+     * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
     public void publish(@Nullable Payload requestPayload) {
         this.message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
@@ -94,9 +102,9 @@ public class Requester {
     }
 
     /**
-     * Registers a callback to be called when acknowledge message received.
+     * Registers a callback to be called when {@link Message} with {@link Acknowledge} property set is received.
      *
-     * @param acknowledgeHandler callback
+     * @param acknowledgeHandler callback to be called
      * @return requester
      */
     public Requester onAcknowledge(Callback<Acknowledge> acknowledgeHandler) {
@@ -105,9 +113,9 @@ public class Requester {
     }
 
     /**
-     * Registers a callback to be called when response message received.
+     * Registers a callback to be called when response {@link Message} with {@link Payload} property set is received.
      *
-     * @param responseHandler callback
+     * @param responseHandler callback to be called
      * @return requester
      */
     public Requester onResponse(Callback<Payload> responseHandler) {
@@ -116,9 +124,9 @@ public class Requester {
     }
 
     /**
-     * Registers a callback to be called when all responses collected.
+     * Registers a callback to be called when all expected responses for request message are processes or awaiting timeout for responses occurred.
      *
-     * @param endHandler callback
+     * @param endHandler callback to be called
      * @return requester
      */
     public Requester onEnd(Callback<List<Message>> endHandler) {

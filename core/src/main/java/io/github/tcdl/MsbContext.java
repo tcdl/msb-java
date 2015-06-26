@@ -15,9 +15,7 @@ import io.github.tcdl.exception.MsbException;
 import java.time.Clock;
 
 /**
- * {@link  MsbContext} class contains all singleton beans required for MSB
- *
- * Created by rdro on 5/27/2015.
+ * {@link  MsbContext} specifies the context of the MSB message processing. Creates singleton beans required for MSB.
  */
 public class MsbContext {
 
@@ -72,11 +70,19 @@ public class MsbContext {
         private boolean withShutdownHook;
         private boolean withDefaultChannelMonitorAgent;
 
+        /**
+         * Specifies if to shutdown current context during JVM exit. Is set to true will shutdown context regardless of
+         * user will make a call to MsbContext.shutdown() from within client code.
+         */
         public MsbContextBuilder withShutdownHook(boolean withShutdownHook) {
             this.withShutdownHook = withShutdownHook;
             return this;
         }
 
+        /**
+         * Specifies if monitoring is enabled.
+         *
+         */
         public MsbContextBuilder withDefaultChannelMonitorAgent(boolean withDefaultChannelMonitorAgent) {
             this.withDefaultChannelMonitorAgent = withDefaultChannelMonitorAgent;
             return this;

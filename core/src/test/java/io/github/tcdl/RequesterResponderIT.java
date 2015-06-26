@@ -89,8 +89,8 @@ public class RequesterResponderIT {
         //listen for message and send ack
         MsbContext serverMsbContext = TestUtils.createSimpleMsbContext();
         ResponderServer.create(namespace, messageTemplate, serverMsbContext, (request, response) -> {
-                    response.sendAck(100, 2);
-                    sentAcks.add(response.getResponseMessage());
+                    Message message = response.sendAck(100, 2);
+                    sentAcks.add(message);
                     ackSend.countDown();
                 })
                 .listen();
@@ -226,8 +226,8 @@ public class RequesterResponderIT {
         Random randomAckValue = new Random();
         randomAckValue.ints();
         ResponderServer.create(namespace, requestOptions.getMessageTemplate(), serverMsbContext, (request, response) -> {
-                    response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
-                    sentAcks.add(response.getResponseMessage());
+                    Message message = response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
+                    sentAcks.add(message);
                     ackSend.countDown();
                 })
                 .listen();
