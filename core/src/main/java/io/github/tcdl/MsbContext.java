@@ -15,7 +15,10 @@ import io.github.tcdl.exception.MsbException;
 import java.time.Clock;
 
 /**
- * {@link  MsbContext} specifies the context of the MSB message processing. Creates singleton beans required for MSB.
+ * Specifies the context of the MSB message processing.
+ * Method {@link MsbContextBuilder#withShutdownHook} is used for specifying shutdown hook during JVM exit.
+ * Method {@link MsbContextBuilder#withDefaultChannelMonitorAgent} is used for enable or disable monitoring agent.
+ * Method {@link #shutdown} is used for shut down context.
  */
 public class MsbContext {
 
@@ -46,22 +49,42 @@ public class MsbContext {
         LOG.info("MSB context has been shut down.");
     }
 
+    /**
+     *
+     * @return msb configuration ({@link MsbConfigurations})
+     */
     public MsbConfigurations getMsbConfig() {
         return msbConfig;
     }
 
+    /**
+     *
+     * @return message factory ({@link MessageFactory}) for incoming and outgoing messages
+     */
     public MessageFactory getMessageFactory() {
         return messageFactory;
     }
 
+    /**
+     *
+     * @return factory ({@link ChannelManager}) for creating producers and consumers
+     */
     public ChannelManager getChannelManager() {
         return channelManager;
     }
 
+    /**
+     *
+     * @return object of class {@link Clock} which MUST be used to obtain current time
+     */
     public Clock getClock() {
         return clock;
     }
 
+    /**
+     *
+     * @return object of class {@link TimeoutManager} which will be used for scheduling tasks
+     */
     public TimeoutManager getTimeoutManager() {
         return timeoutManager;
     }
@@ -89,8 +112,12 @@ public class MsbContext {
         }
         
         /**
-         * Create MsbContext and initialize it with Config from reference.conf
-         * @throws MsbException if an error happens during initialization  
+         * Create {@link MsbContext} and initialize it with configuration from reference.conf(property file inside MSB library)
+         * or application.conf, which will override library properties
+         * This is environment where microservice will be run, it holds all necessary information such as
+         * bus configuration, service details, schema for incoming and outgoing messages, factory for building requests
+         * and responses etc.
+         * @throws MsbException if an error happens during initialization
          */
         public MsbContext build() {
             Clock clock = Clock.systemDefaultZone();
