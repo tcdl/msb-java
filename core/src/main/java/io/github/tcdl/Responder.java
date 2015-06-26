@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 /**
  * {@link Responder} is a component which holds original request message and create response base on it.
  * Is used by {@link ResponderServer} to send responses and acknowledgements.
- *
- * @author Roman Drozdov
  */
 public class Responder {
 

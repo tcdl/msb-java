@@ -16,8 +16,6 @@ import org.slf4j.LoggerFactory;
  * Method {@link #listen} is used to listen incoming messages.
  * And also it's needed to implement interface {@link RequestHandler}.Implementation of this interface will be
  * business logic of microservice.Inside this login {@link Responder} can be used for sending response.
- *
- * @author Roman Drozdov
  */
 public class ResponderServer {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServer.class);
