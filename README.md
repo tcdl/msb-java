@@ -60,11 +60,11 @@ Class: Requester
 Enable user send message to bus and process responses for this messages if any expected.
 
 #### create(namespace, requestOptions, [originalMessage], msbContext)
-String namespace, RequestOptions requestOptions, MsbContext context
 Factory method to create a new instance of a requester
 
 - **namespace** topic name to listen on for requests
 - **requestOptions** specify number and time to wait for acknowledgements or responses [options](#request-options)
+- **originalMessage** original message (to take correlation id from)
 - **msbContext** MSB application [context](#msb-context)
 
 #### publish(request)
@@ -79,7 +79,7 @@ Assign a handler on acknowledge message
 Assign a handler on response message
  
 #### onEnd(Callback handler) 
-Assign a handler on event when all responses were received
+Assign a handler on event when all responses were received or timeout happened
 
 Class: ResponderServer
 ---------------------------------------------------
