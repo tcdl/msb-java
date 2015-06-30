@@ -25,13 +25,13 @@ public class Responder {
     private MessageFactory messageFactory;
     private MessageBuilder messageBuilder;
 
-    public Responder(MessageTemplate config, Message originalMessage, MsbContext msbContext) {
+    public Responder(MessageTemplate messageTemplate, Message originalMessage, MsbContext msbContext) {
         validateReceivedMessage(originalMessage);
         this.responderId = Utils.generateId();
         this.originalMessage = originalMessage;
         this.channelManager = msbContext.getChannelManager();
         this.messageFactory = msbContext.getMessageFactory();
-        this.messageBuilder = messageFactory.createResponseMessageBuilder(config, originalMessage);
+        this.messageBuilder = messageFactory.createResponseMessageBuilder(messageTemplate, originalMessage);
     }
 
     /**
