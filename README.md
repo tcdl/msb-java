@@ -38,28 +38,33 @@ For this you'll need to add a `server` to the `servers` section of your settings
 
 Class: MsbContext <a name="msb-context"/>
 ---------------------------------------------------
-MSB application context which contains configuration and other beans required for MSB
+Specifies the context of the MSB message processing.
+This is environment where microservice will be run, it holds all necessary information such as
+bus configuration, service details, schema for incoming and outgoing messages, factory for building requests
+and responses etc.
  
 #### new MsbContext.MsbContextBuilder.build()
-Creates a default context
+Create context and initialize it with configuration from reference.conf(property file inside MSB library)
+or application.conf, which will override library properties.
 
-Class: MsbMessageOptions <a name="message-options"/>
+Class: RequestOptions <a name="request-options"/>
 ---------------------------------------------------
-Represents message options to override default configuration
+Options used while constructing Requester that specify number and time to wait for acknowledgements or responses.
 
-- **namespace** topic name to listen on for requests
 - **ackTimeout** period of time in milliseconds to wait for acknowledge to increase timeout or number of responses to expect
 - **responseTimeout** period of time in milliseconds before ending request
 - **waitForResponses** number of expected responses before ending or timing out
 
 Class: Requester
 ---------------------------------------------------
-A component which can send requests into the message bus and listen for responses
+Enable user send message to bus and process responses for this messages if any expected.
 
-#### create(messageOptions, [originalMessage], msbContext)
+#### create(namespace, requestOptions, [originalMessage], msbContext)
+String namespace, RequestOptions requestOptions, MsbContext context
 Factory method to create a new instance of a requester
 
-- **messageOptions** message [options](#message-options)  
+- **namespace** topic name to listen on for requests
+- **requestOptions** specify number and time to wait for acknowledgements or responses [options](#request-options)
 - **msbContext** MSB application [context](#msb-context)
 
 #### publish(request)
@@ -74,43 +79,33 @@ Assign a handler on acknowledge message
 Assign a handler on response message
  
 #### onEnd(Callback handler) 
-Assign a handler on event when all responses were received 
-
-#### onError(Callback handler) 
-Assign a handler on error 
+Assign a handler on event when all responses were received
 
 Class: ResponderServer
 ---------------------------------------------------
-A component which listens for incoming requests and can send responses
+Component for creating microservices which will listen for incoming requests, execute business logic
+and respond.
 
-#### create(messageOptions, msbContext)
-Factory method to create a new instance of a responder
+#### create(namespace, messageTemplate, msbContext, requestHandler)
+Factory method to create a new instance of a responder server
 
-- **messageOptions** message [options](#message-options)
+- **namespace** topic name to listen on for requests
+- **messageTemplate** template which is used to construct a request/response message
 - **msbContext** MSB application [context](#msb-context)
-
-#### use(middleware)
-Submit a handler or a list of handlers
-
-- **middleware** callback or array of request handlers with 
-
-signature `handler(request, responder)`
-
-- **request** payload of the incoming message
-- **responder** [responder](#responder) object
+- **requestHandler** handler for processing the request
 
 #### listen()
 start listening for incoming requests
 
-
-Class: Responder <a name="responder"/>
+Class: Responder
 ---------------------------------------------------
-Sends acknowledge and response messages
+Component which holds original request message and create response base on it.
+Is used by ResponderServer to send responses and acknowledgements.
 
-#### new Responder(messageOptions, originalMessage, msbContext) 
+#### new Responder(messageTemplate, originalMessage, msbContext)
 Creates a new instance of a responder
 
-- **messageOptions** message [options](#message-options) 
+- **messageTemplate** template which is used to construct response message
 - **msbContext** MSB application [context](#msb-context)
 
 #### sendAck([timeoutMs], [responsesRemaining])
