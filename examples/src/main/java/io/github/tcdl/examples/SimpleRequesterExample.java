@@ -3,8 +3,6 @@ package io.github.tcdl.examples;
 import io.github.tcdl.Requester;
 import org.apache.commons.lang3.ArrayUtils;
 
-import static org.junit.Assert.assertTrue;
-
 /**
  * Created by anstr on 6/9/2015.
  */

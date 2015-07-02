@@ -27,6 +27,6 @@ public class RequesterResponderTest extends BaseExample {
 
         // sending a request
         Requester requester = createRequester(NAMESPACE, NUMBER_OF_RESPONSES);
-        sendRequest(requester, "RequesterResponderTest:request", true, NUMBER_OF_RESPONSES, null, payload -> passed = true);
+        sendRequest(requester, NUMBER_OF_RESPONSES, payload -> passed = true);
     }
 }

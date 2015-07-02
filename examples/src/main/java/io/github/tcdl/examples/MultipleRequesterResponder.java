@@ -34,8 +34,8 @@ public class MultipleRequesterResponder extends BaseExample {
          createResponderServer(responderNamespace, (request, responder) -> {
                     System.out.print(">>> REQUEST: " + request);
 
-                    Future<String> futureRequester1 = createAndRunRequester(executor, requesterNamespace1, "requester1");
-                    Future<String> futureRequester2 = createAndRunRequester(executor, requesterNamespace2, "requester2");
+                    Future<String> futureRequester1 = createAndRunRequester(executor, requesterNamespace1);
+                    Future<String> futureRequester2 = createAndRunRequester(executor, requesterNamespace2);
 
                     sleep(500);
 
@@ -49,7 +49,7 @@ public class MultipleRequesterResponder extends BaseExample {
                 .listen();
     }
 
-    private Future<String> createAndRunRequester(ExecutorService executor, String namespace, String bodyText) {
+    private Future<String> createAndRunRequester(ExecutorService executor, String namespace) {
         Requester requester = createRequester(namespace, NUMBER_OF_RESPONSES, null, 5000);
         Future<String> future = executor.submit(new Callable<String>() {
             String result = null;

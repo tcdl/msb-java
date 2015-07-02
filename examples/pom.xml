@@ -23,6 +23,7 @@
         <name>tcdl</name>
         <url>https://github.com/tcdl</url>
     </organization>
+
     <dependencies>
         <dependency>
             <groupId>io.github.tcdl</groupId>
@@ -33,8 +34,10 @@
             <artifactId>msb-java-amqp</artifactId>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.jbehave</groupId>
+            <artifactId>jbehave-core</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
+
 </project>
