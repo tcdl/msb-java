@@ -35,4 +35,9 @@ public class SimpleRequesterExample extends BaseExample {
             }
         });
     }
+
+    public static void main(String[] args) throws Exception {
+        SimpleRequesterExample requesterExample = new SimpleRequesterExample("test:simple-queue1");
+        requesterExample.runSimpleRequesterExample(null);
+    }
 }

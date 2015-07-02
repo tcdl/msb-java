@@ -105,9 +105,9 @@ public class ChannelManagerTest {
     @Test
     public void testSubscribeUnsubscribe() {
         String topic = "topic:test-unsubscribe-once";
-        CollectorManager collectorManager = new CollectorManager(topic, channelManager);
+//        CollectorManager collectorManager = new CollectorManager(topic, channelManager);
 
-        channelManager.subscribe(topic, collectorManager);
+//        channelManager.subscribe(topic, collectorManager);
         channelManager.unsubscribe(topic);
 
         verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
@@ -117,11 +117,11 @@ public class ChannelManagerTest {
     public void testSubscribeUnsubscribeSeparateTopics() {
         String topic1 = "topic:test-unsubscribe-try-first";
         String topic2 = "topic:test-unsubscribe-try-other";
-        CollectorManager collectorManager1 = new CollectorManager(topic1, channelManager);
-        CollectorManager collectorManager2 = new CollectorManager(topic2, channelManager);
+//        CollectorManager collectorManager1 = new CollectorManager(topic1, channelManager);
+//        CollectorManager collectorManager2 = new CollectorManager(topic2, channelManager);
 
-        channelManager.subscribe(topic1, collectorManager1);
-        channelManager.subscribe(topic2, collectorManager2);
+//        channelManager.subscribe(topic1, collectorManager1);
+//        channelManager.subscribe(topic2, collectorManager2);
 
         channelManager.unsubscribe(topic1);
         verify(mockChannelMonitorAgent).consumerTopicRemoved(topic1);
