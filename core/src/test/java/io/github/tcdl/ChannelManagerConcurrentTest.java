@@ -60,8 +60,8 @@ public class ChannelManagerConcurrentTest {
     public void testUnsubscribeMultithreadInteraction() {
         String topic = "topic:test-remove-consumer-multithreaded";
 
-        CollectorManager collectorManager = new CollectorManager(topic, channelManager);
-        channelManager.subscribe(topic, collectorManager);
+//        CollectorManager collectorManager = new CollectorManager(topic, channelManager);
+//        channelManager.subscribe(topic, collectorManager);
 
         new MultithreadingTester().add(() -> {
             channelManager.unsubscribe(topic);

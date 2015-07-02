@@ -3,6 +3,8 @@ package io.github.tcdl;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.config.MsbConfigurations;
@@ -33,6 +35,9 @@ public class Consumer {
     private Clock clock;
 
     private MessageHandler messageHandler;
+
+    private Map<String, MessageHandler> messageHandlersByCorrelationId;
+
     private JsonValidator validator;
 
     public Consumer(ConsumerAdapter rawAdapter, String topic, MsbConfigurations msbConfig,
@@ -53,6 +58,7 @@ public class Consumer {
         this.clock = clock;
         this.channelMonitorAgent = channelMonitorAgent;
         this.validator = validator;
+        messageHandlersByCorrelationId = new ConcurrentHashMap<>();
     }
 
     /**
@@ -61,6 +67,14 @@ public class Consumer {
     public void subscribe(MessageHandler messageHandler) {
         Validate.notNull(messageHandler, "the 'messageHandler' must not be null");
         this.messageHandler = messageHandler;
+    }
+
+    public void addSubscriber(String correlationId, MessageHandler messageHandler) {
+        messageHandlersByCorrelationId.put(correlationId, messageHandler);
+    }
+
+    public void removeSubscriber(String correlationId) {
+        messageHandlersByCorrelationId.remove(correlationId, messageHandler);
     }
 
     /**
@@ -85,7 +99,15 @@ public class Consumer {
             LOG.debug("Message has been successfully parsed {}", jsonMessage);
 
             if (!isMessageExpired(message)) {
-                messageHandler.handleMessage(message);
+                MessageHandler handler = messageHandlersByCorrelationId.get(message.getCorrelationId());
+                if (handler != null) {
+                    handler.handleMessage(message);
+                }
+
+                if (messageHandler != null) {
+                    messageHandler.handleMessage(message);
+                }
+
             } else {
                 LOG.warn("Expired message: {}", jsonMessage);
             }
@@ -107,7 +129,7 @@ public class Consumer {
         return expiryTime.isBefore(now);
     }
 
-    public MessageHandler getMessageHandler() {
-        return messageHandler;
+    public Map<String, MessageHandler> getMessageHandlersByCorrelationId() {
+        return messageHandlersByCorrelationId;
     }
 }

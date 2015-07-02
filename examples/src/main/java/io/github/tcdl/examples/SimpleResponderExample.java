@@ -19,4 +19,9 @@ public class SimpleResponderExample extends BaseExample {
                 })
                 .listen();
     }
+
+    public static void main(String[] args) {
+        SimpleResponderExample simpleResponderExample = new SimpleResponderExample("test:simple-queue1");
+        simpleResponderExample.runSimpleResponderExample();
+    }
 }
