@@ -22,7 +22,9 @@ public class ScenarioRunner extends JUnitStories {
     public Configuration configuration() {
         return new MostUsefulConfiguration()
                 .useStoryLoader(new LoadFromURL())
-                .useStoryReporterBuilder(new StoryReporterBuilder().withDefaultFormats().withFormats(Format.CONSOLE, Format.HTML));
+                .useStoryReporterBuilder(new StoryReporterBuilder()
+                        .withDefaultFormats().withFormats(Format.CONSOLE, Format.HTML)
+                        .withFailureTrace(true));
     }
 
     @Override
