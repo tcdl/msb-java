@@ -5,7 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig.AmqpBrokerConfigBuilder;
-import io.github.tcdl.exception.ConfigurationException;
+import io.github.tcdl.api.exception.ConfigurationException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

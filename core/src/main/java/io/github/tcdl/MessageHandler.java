@@ -1,6 +1,6 @@
 package io.github.tcdl;
 
-import io.github.tcdl.messages.Message;
+import io.github.tcdl.api.message.Message;
 
 public interface MessageHandler {
 

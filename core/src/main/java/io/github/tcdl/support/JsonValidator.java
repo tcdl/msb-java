@@ -6,7 +6,7 @@ import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import io.github.tcdl.exception.JsonSchemaValidationException;
+import io.github.tcdl.api.exception.JsonSchemaValidationException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.Validate;
 

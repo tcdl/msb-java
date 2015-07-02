@@ -1,14 +1,14 @@
 package io.github.tcdl.monitor;
 
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.MsbContext;
+import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.Producer;
-import io.github.tcdl.Responder;
-import io.github.tcdl.config.MessageTemplate;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.Message.MessageBuilder;
-import io.github.tcdl.messages.MessageFactory;
-import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.api.Responder;
+import io.github.tcdl.api.MessageTemplate;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.api.message.Message.MessageBuilder;
+import io.github.tcdl.message.MessageFactory;
+import io.github.tcdl.api.message.payload.Payload;
 
 import java.time.Clock;
 import java.time.Instant;

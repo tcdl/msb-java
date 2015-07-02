@@ -1,10 +1,8 @@
 package io.github.tcdl.adapters.mock;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
@@ -13,9 +11,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ProducerAdapter;
-import io.github.tcdl.exception.ChannelException;
-import io.github.tcdl.exception.JsonConversionException;
-import io.github.tcdl.messages.Message;
+import io.github.tcdl.api.exception.ChannelException;
+import io.github.tcdl.api.exception.JsonConversionException;
+import io.github.tcdl.api.message.Message;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
 import org.junit.Test;

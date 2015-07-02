@@ -1,9 +1,10 @@
 package io.github.tcdl;
 
 import io.github.tcdl.adapters.ProducerAdapter;
-import io.github.tcdl.exception.ChannelException;
-import io.github.tcdl.exception.JsonConversionException;
-import io.github.tcdl.messages.Message;
+import io.github.tcdl.api.Callback;
+import io.github.tcdl.api.exception.ChannelException;
+import io.github.tcdl.api.exception.JsonConversionException;
+import io.github.tcdl.api.message.Message;
 import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;

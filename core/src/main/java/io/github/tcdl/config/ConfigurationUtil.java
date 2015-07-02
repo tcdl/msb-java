@@ -1,6 +1,6 @@
 package io.github.tcdl.config;
 
-import io.github.tcdl.exception.ConfigurationException;
+import io.github.tcdl.api.exception.ConfigurationException;
 
 import java.util.Optional;
 

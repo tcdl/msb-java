@@ -1,6 +1,6 @@
 package io.github.tcdl.support;
 
-import io.github.tcdl.exception.JsonConversionException;
+import io.github.tcdl.api.exception.JsonConversionException;
 import org.junit.Assert;
 import org.junit.Test;
 

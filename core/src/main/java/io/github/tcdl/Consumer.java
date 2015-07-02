@@ -6,10 +6,10 @@ import java.time.temporal.ChronoUnit;
 
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.exception.JsonConversionException;
-import io.github.tcdl.exception.JsonSchemaValidationException;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.MetaMessage;
+import io.github.tcdl.api.exception.JsonConversionException;
+import io.github.tcdl.api.exception.JsonSchemaValidationException;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.api.message.MetaMessage;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.Utils;

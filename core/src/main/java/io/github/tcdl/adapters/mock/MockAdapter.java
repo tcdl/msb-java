@@ -7,8 +7,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ProducerAdapter;
-import io.github.tcdl.exception.JsonConversionException;
-import io.github.tcdl.messages.Message;
+import io.github.tcdl.api.exception.JsonConversionException;
+import io.github.tcdl.api.message.Message;
 import io.github.tcdl.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

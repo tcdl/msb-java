@@ -3,7 +3,7 @@ package io.github.tcdl.adapters.amqp;
 import com.rabbitmq.client.Channel;
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
-import io.github.tcdl.exception.ChannelException;
+import io.github.tcdl.api.exception.ChannelException;
 import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;

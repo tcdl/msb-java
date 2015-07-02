@@ -1,6 +1,6 @@
 package io.github.tcdl.adapters;
 
-import io.github.tcdl.exception.ChannelException;
+import io.github.tcdl.api.exception.ChannelException;
 
 /**
  * {@link ProducerAdapter} allows to produce messages to message bus. One adapter instance is associated with specific topic.
