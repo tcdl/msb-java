@@ -1,19 +1,19 @@
 package io.github.tcdl.support;
 
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.MsbContext;
+import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.TimeoutManager;
-import io.github.tcdl.config.MessageTemplate;
+import io.github.tcdl.api.MessageTemplate;
+import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.RequestOptions;
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.Message.MessageBuilder;
-import io.github.tcdl.messages.MessageFactory;
-import io.github.tcdl.messages.MetaMessage;
-import io.github.tcdl.messages.MetaMessage.MetaMessageBuilder;
-import io.github.tcdl.messages.Topics;
-import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.api.RequestOptions;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.api.message.Message.MessageBuilder;
+import io.github.tcdl.message.MessageFactory;
+import io.github.tcdl.api.message.MetaMessage;
+import io.github.tcdl.api.message.MetaMessage.MetaMessageBuilder;
+import io.github.tcdl.api.message.Topics;
+import io.github.tcdl.api.message.payload.Payload;
 
 import java.time.Clock;
 import java.util.HashMap;
@@ -178,9 +178,9 @@ public class TestUtils {
         public MsbContext build() {
             MsbConfigurations msbConfig = msbConfigOp.orElse(TestUtils.createMsbConfigurations());
             Clock clock = clockOp.orElse(Clock.systemDefaultZone());
-            ChannelManager channelManager = channelManagerOp.orElse(new ChannelManager(msbConfig, clock, new JsonValidator()));
-            MessageFactory messageFactory = messageFactoryOp.orElse(new MessageFactory(msbConfig.getServiceDetails(), clock));
-            TimeoutManager timeoutManager = timeoutManagerOp.orElse(new TimeoutManager(1));
+            ChannelManager channelManager = channelManagerOp.orElseGet(() -> new ChannelManager(msbConfig, clock, new JsonValidator()));
+            MessageFactory messageFactory = messageFactoryOp.orElseGet(() -> new MessageFactory(msbConfig.getServiceDetails(), clock));
+            TimeoutManager timeoutManager = timeoutManagerOp.orElseGet(() -> new TimeoutManager(1));
             return new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
         }
 

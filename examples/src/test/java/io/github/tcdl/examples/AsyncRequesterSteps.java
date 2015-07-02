@@ -1,6 +1,6 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.Requester;
+import io.github.tcdl.api.Requester;
 
 import java.util.List;
 

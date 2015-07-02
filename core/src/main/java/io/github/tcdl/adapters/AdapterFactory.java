@@ -1,8 +1,8 @@
 package io.github.tcdl.adapters;
 
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.exception.ChannelException;
-import io.github.tcdl.exception.ConfigurationException;
+import io.github.tcdl.api.exception.ChannelException;
+import io.github.tcdl.api.exception.ConfigurationException;
 
 /**
  * MSBAdapterFactory interface represents a common way for creation a particular AdapterFactory

@@ -1,6 +1,6 @@
 package io.github.tcdl;
 
-import io.github.tcdl.messages.Message;
+import io.github.tcdl.api.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

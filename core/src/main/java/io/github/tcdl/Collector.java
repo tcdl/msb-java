@@ -1,10 +1,12 @@
 package io.github.tcdl;
 
-import io.github.tcdl.config.RequestOptions;
+import io.github.tcdl.api.Callback;
+import io.github.tcdl.api.MsbContext;
+import io.github.tcdl.api.RequestOptions;
+import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.events.EventHandlers;
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.api.message.payload.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,7 +141,7 @@ public class Collector {
         onEnd.ifPresent(handler -> handler.call(payloadMessages));
     }
 
-    protected void waitForResponses() {
+    public void waitForResponses() {
         LOG.debug("Waiting for responses until {}.", clock.instant().plus(currentTimeoutMs, ChronoUnit.MILLIS));
         this.responseTimeoutFuture = timeoutManager.enableResponseTimeout(this.currentTimeoutMs, this);
     }
@@ -279,7 +281,7 @@ public class Collector {
         return requestMessage;
     }
 
-    CollectorManager findOrCreateCollectorManager(String topic) {
+    public CollectorManager findOrCreateCollectorManager(String topic) {
         Consumer consumer = channelManager.findOrCreateConsumer(topic);
         synchronized (consumer) {
             if (consumer.getMessageHandler() == null) {

@@ -13,7 +13,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.messages.Message;
+import io.github.tcdl.api.message.Message;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;

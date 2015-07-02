@@ -1,6 +1,6 @@
 package io.github.tcdl;
 
-import io.github.tcdl.messages.Message;
+import io.github.tcdl.api.message.Message;
 import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;

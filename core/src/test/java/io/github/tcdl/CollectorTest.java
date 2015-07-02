@@ -1,12 +1,14 @@
 package io.github.tcdl;
 
+import io.github.tcdl.api.Callback;
+import io.github.tcdl.api.MsbContext;
+import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.config.RequestOptions;
+import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.events.EventHandlers;
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.MessageFactory;
-import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.message.MessageFactory;
+import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
 import org.junit.Before;
@@ -67,7 +69,13 @@ public class CollectorTest {
 
     @Before
     public void setUp() throws IOException {
-        msbContext = new MsbContext(msbConfigurationsMock, messageFactoryMock, channelManagerMock, Clock.systemDefaultZone(), timeoutManagerMock);
+        msbContext = TestUtils.createMsbContextBuilder()
+                .withMsbConfigurations(msbConfigurationsMock)
+                .withMessageFactory(messageFactoryMock)
+                .withChannelManager(channelManagerMock)
+                .withClock(Clock.systemDefaultZone())
+                .withTimeoutManager(timeoutManagerMock)
+                .build();
     }
 
     @Test(expected = NullPointerException.class)

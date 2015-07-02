@@ -1,8 +1,8 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.Requester;
-import io.github.tcdl.ResponderServer;
-import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.api.Requester;
+import io.github.tcdl.api.ResponderServer;
+import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.Utils;
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;

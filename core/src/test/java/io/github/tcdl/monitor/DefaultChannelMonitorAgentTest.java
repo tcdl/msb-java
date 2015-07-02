@@ -18,14 +18,13 @@ import java.time.ZoneId;
 import java.util.Map;
 
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.MsbContext;
+import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.Producer;
 import io.github.tcdl.MessageHandler;
 import io.github.tcdl.TimeoutManager;
-import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.ServiceDetails;
-import io.github.tcdl.messages.Message;
-import io.github.tcdl.messages.MessageFactory;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.message.MessageFactory;
 import io.github.tcdl.support.TestUtils;
 
 import org.junit.Before;

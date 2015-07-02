@@ -1,9 +1,9 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.MsbContext;
-import io.github.tcdl.Requester;
-import io.github.tcdl.config.RequestOptions;
-import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.api.MsbContext;
+import io.github.tcdl.api.Requester;
+import io.github.tcdl.api.RequestOptions;
+import io.github.tcdl.api.message.payload.Payload;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

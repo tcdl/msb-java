@@ -1,14 +1,14 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.Callback;
-import io.github.tcdl.MsbContext;
-import io.github.tcdl.Requester;
-import io.github.tcdl.Responder;
-import io.github.tcdl.ResponderServer;
-import io.github.tcdl.config.MessageTemplate;
-import io.github.tcdl.config.RequestOptions;
-import io.github.tcdl.messages.Acknowledge;
-import io.github.tcdl.messages.payload.Payload;
+import io.github.tcdl.api.Callback;
+import io.github.tcdl.api.MsbContext;
+import io.github.tcdl.api.Requester;
+import io.github.tcdl.api.Responder;
+import io.github.tcdl.api.ResponderServer;
+import io.github.tcdl.api.MessageTemplate;
+import io.github.tcdl.api.RequestOptions;
+import io.github.tcdl.api.message.Acknowledge;
+import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.Utils;
 
 import java.util.Map;

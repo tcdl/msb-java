@@ -3,7 +3,7 @@ package io.github.tcdl.cli;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import io.github.tcdl.exception.JsonConversionException;
+import io.github.tcdl.api.exception.JsonConversionException;
 import org.json.JSONObject;
 
 import java.io.IOException;

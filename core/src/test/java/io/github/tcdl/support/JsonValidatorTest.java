@@ -1,13 +1,12 @@
 package io.github.tcdl.support;
 
-import io.github.tcdl.exception.JsonSchemaValidationException;
+import io.github.tcdl.api.exception.JsonSchemaValidationException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;

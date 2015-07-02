@@ -7,7 +7,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import io.github.tcdl.exception.ConfigurationException;
+import io.github.tcdl.api.exception.ConfigurationException;
 
 import java.util.Optional;
 

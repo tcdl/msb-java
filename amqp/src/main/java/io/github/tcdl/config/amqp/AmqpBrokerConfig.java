@@ -3,7 +3,7 @@ package io.github.tcdl.config.amqp;
 import java.util.Optional;
 
 import io.github.tcdl.config.ConfigurationUtil;
-import io.github.tcdl.exception.ConfigurationException;
+import io.github.tcdl.api.exception.ConfigurationException;
 
 import com.typesafe.config.Config;
 

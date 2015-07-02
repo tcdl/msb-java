@@ -10,8 +10,8 @@ import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ProducerAdapter;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
-import io.github.tcdl.exception.ChannelException;
-import io.github.tcdl.exception.ConfigurationException;
+import io.github.tcdl.api.exception.ChannelException;
+import io.github.tcdl.api.exception.ConfigurationException;
 
 import io.github.tcdl.support.Utils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
