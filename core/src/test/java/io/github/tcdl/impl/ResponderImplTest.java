@@ -1,17 +1,4 @@
-package io.github.tcdl.api;
-
-import io.github.tcdl.ChannelManager;
-import io.github.tcdl.Producer;
-import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.api.message.Message;
-import io.github.tcdl.message.MessageFactory;
-import io.github.tcdl.api.message.payload.Payload;
-import io.github.tcdl.support.TestUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
-import java.time.Clock;
+package io.github.tcdl.impl;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.mockito.Matchers.anyObject;
@@ -22,11 +9,26 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.time.Clock;
+
+import io.github.tcdl.ChannelManager;
+import io.github.tcdl.Producer;
+import io.github.tcdl.api.MessageTemplate;
+import io.github.tcdl.api.MsbContext;
+import io.github.tcdl.api.Responder;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.message.MessageFactory;
+import io.github.tcdl.support.TestUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * Created by anstr on 5/26/2015.
  */
-public class ResponderTest {
+public class ResponderImplTest {
 
     private MessageTemplate config;
     private MsbConfigurations msbConf;
@@ -59,14 +61,14 @@ public class ResponderTest {
         when(msbContextSpy.getMessageFactory()).thenReturn(spyMessageFactory);
         when(mockChannelManager.findOrCreateProducer(anyString())).thenReturn(mockProducer);
 
-        responder = new Responder(config, originalMessage, msbContextSpy);
+        responder = new ResponderImpl(config, originalMessage, msbContextSpy);
     }
 
     @Test
     public void testResponderConstructorOk() {
         MsbContext context = new MsbContext.MsbContextBuilder().build();
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
-        new Responder(config, originalMessage, context);
+        new ResponderImpl(config, originalMessage, context);
     }
 
     @Test
