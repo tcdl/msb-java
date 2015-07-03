@@ -50,14 +50,14 @@ public class Collector {
     private Clock clock;
 
     private Message requestMessage;
+    private String topic;
 
     private Optional<Callback<Payload>> onResponse = Optional.empty();
     private Optional<Callback<Acknowledge>> onAcknowledge = Optional.empty();
     private Optional<Callback<List<Message>>> onEnd = Optional.empty();
 
-    private  ScheduledFuture ackTimeoutFuture;
-    private  ScheduledFuture responseTimeoutFuture;
-    private CollectorManager collectorManager;
+    private ScheduledFuture ackTimeoutFuture;
+    private ScheduledFuture responseTimeoutFuture;
 
     public Collector(RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers eventHandlers) {
         this.channelManager = msbContext.getChannelManager();
@@ -96,9 +96,10 @@ public class Collector {
 
     public void listenForResponses(String topic, Message requestMessage) {
         this.requestMessage = requestMessage;
+        this.topic = topic;
 
-        collectorManager = findOrCreateCollectorManager(topic);
-        collectorManager.registerCollector(this);
+        Consumer consumer = channelManager.findOrCreateConsumer(topic);
+        consumer.registerCollector(this);
     }
 
     public void handleMessage(Message message) {
@@ -137,7 +138,9 @@ public class Collector {
         cancelAckTimeoutTask();
         cancelResponseTimeoutTask();
 
-        collectorManager.unsubscribe(this);
+        Consumer consumer = channelManager.findOrCreateConsumer(topic);
+        consumer.getCollectorManager().unsubscribe(this);
+
         onEnd.ifPresent(handler -> handler.call(payloadMessages));
     }
 
@@ -279,15 +282,5 @@ public class Collector {
 
     Message getRequestMessage() {
         return requestMessage;
-    }
-
-    public CollectorManager findOrCreateCollectorManager(String topic) {
-        Consumer consumer = channelManager.findOrCreateConsumer(topic);
-        synchronized (consumer) {
-            if (consumer.getMessageHandler() == null) {
-                consumer.subscribe(new CollectorManager(topic, channelManager));
-            }
-        }
-        return (CollectorManager) consumer.getMessageHandler();
     }
 }
