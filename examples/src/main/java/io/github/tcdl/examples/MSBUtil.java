@@ -14,14 +14,24 @@ import io.github.tcdl.support.Utils;
 import java.util.Map;
 
 /**
- * Created by rdrozdov-tc on 6/15/15.
+ * Utility to simplify using requester and responder server
  */
-public class BaseExample {
+public class MSBUtil {
 
-    MsbContext context;
+    private static MSBUtil instance;
 
-    public BaseExample() {
-        init();
+    static {
+        instance = new MSBUtil();
+    }
+
+    private MsbContext context;
+
+    private MSBUtil() {
+    }
+
+    public static MSBUtil getInstance() {
+        instance.init();
+        return instance;
     }
 
     public void init() {

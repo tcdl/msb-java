@@ -11,8 +11,11 @@ import java.util.concurrent.Future;
 /**
  * Created by anstr on 6/9/2015.
  */
-public class MultipleRequesterResponder extends BaseExample {
+public class MultipleRequesterResponder {
+
     private static final Integer NUMBER_OF_RESPONSES = 1;
+
+    private MSBUtil util = MSBUtil.getInstance();
 
     private String responderNamespace;
     private String requesterNamespace1;
@@ -31,32 +34,36 @@ public class MultipleRequesterResponder extends BaseExample {
 
         ExecutorService executor = Executors.newFixedThreadPool(2, threadFactory);
 
-         createResponderServer(responderNamespace, (request, responder) -> {
-                    System.out.print(">>> REQUEST: " + request);
+        util.createResponderServer(responderNamespace, (request, responder) -> {
+            System.out.print(">>> REQUEST: " + request);
 
-                    Future<String> futureRequester1 = createAndRunRequester(executor, requesterNamespace1);
-                    Future<String> futureRequester2 = createAndRunRequester(executor, requesterNamespace2);
+            Future<String> futureRequester1 = createAndRunRequester(executor, requesterNamespace1);
+            Future<String> futureRequester2 = createAndRunRequester(executor, requesterNamespace2);
 
-                    sleep(500);
+            util.sleep(500);
 
-                    String result1 = futureRequester1.get();
-                    String result2 = futureRequester2.get();
+            String result1 = futureRequester1.get();
+            String result2 = futureRequester2.get();
 
-                    executor.shutdownNow();
+            executor.shutdownNow();
 
-                    respond(responder, "response from MultipleRequesterResponder:" + (result1 + result2));
-                })
-                .listen();
+            util.respond(responder, "response from MultipleRequesterResponder:" + (result1 + result2));
+        })
+        .listen();
+    }
+
+    public void shutdown() {
+        util.shutdown();
     }
 
     private Future<String> createAndRunRequester(ExecutorService executor, String namespace) {
-        Requester requester = createRequester(namespace, NUMBER_OF_RESPONSES, null, 5000);
+        Requester requester = util.createRequester(namespace, NUMBER_OF_RESPONSES, null, 5000);
         Future<String> future = executor.submit(new Callable<String>() {
             String result = null;
 
             @Override
             public String call() throws Exception {
-                sendRequest(requester, NUMBER_OF_RESPONSES, response -> {
+                util.sendRequest(requester, NUMBER_OF_RESPONSES, response -> {
                     System.out.println(">>> RESPONSE body: " + response.getBody());
                     result = response.getBody().toString();
                     synchronized (this) {

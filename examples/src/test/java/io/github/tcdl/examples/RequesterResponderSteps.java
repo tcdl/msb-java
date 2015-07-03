@@ -1,7 +1,6 @@
 package io.github.tcdl.examples;
 
 import io.github.tcdl.Requester;
-import io.github.tcdl.ResponderServer;
 import io.github.tcdl.messages.payload.Payload;
 import io.github.tcdl.support.Utils;
 import org.hamcrest.Matchers;
@@ -16,32 +15,38 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
- * Created by rdrozdov-tc on 6/25/15.
+ * Steps to send requests and respond with predifined responses
  */
-public class RequesterResponderSteps extends BaseExample {
+public class RequesterResponderSteps {
 
     private final static String MICROSERVICE_PACKAGE = "io.github.tcdl.examples";
 
+    private MSBUtil util = MSBUtil.getInstance();
+
     private Requester requester;
-    private ResponderServer responderServer;
     private String responseBody;
     private Map<String, Object> receivedResponse;
 
     @Given("init")
     public void initMSB() {
-        init();
+        util.init();
+    }
+
+    @Given("shutdown")
+    public void shutdownMSB() {
+        util.shutdown();
     }
 
     // responder steps
     @Given("responder server listens on namespace $namespace")
     public void createResponderServer(String namespace) {
-        responderServer = createResponderServer(namespace, (request, responder) -> {
+        util.createResponderServer(namespace, (request, responder) -> {
             if (responseBody != null) {
                 Payload payload = new Payload.PayloadBuilder().withBody(Utils.fromJson(responseBody, Map.class)).build();
                 responder.send(payload);
             }
-        });
-        responderServer.listen();
+        })
+        .listen();
     }
 
     @Given("responder server responds with '$body'")
@@ -52,22 +57,22 @@ public class RequesterResponderSteps extends BaseExample {
     // requester steps
     @Given("requester sends requests to namespace $namespace")
     public void createRequester(String namespace) {
-        requester = createRequester(namespace, 1);
+        requester = util.createRequester(namespace, 1);
     }
 
     @When("requester sends a request")
     public void sendRequest() throws Exception {
-        sendRequest(requester, 1, this::onResponse);
+        util.sendRequest(requester, 1, this::onResponse);
     }
 
     @When("requester sends a request with query '$query'")
     public void sendRequestWithQuery(String query) throws Exception {
-        sendRequest(requester, query, null, true, 1, null, this::onResponse);
+        util.sendRequest(requester, query, null, true, 1, null, this::onResponse);
     }
 
     @When("requester sends a request with body '$body'")
     public void sendRequestWithBody(String body) throws Exception {
-        sendRequest(requester, null, body, true, 1, null, this::onResponse);
+        util.sendRequest(requester, null, body, true, 1, null, this::onResponse);
     }
 
     private void onResponse(Payload payload) {
@@ -76,7 +81,7 @@ public class RequesterResponderSteps extends BaseExample {
         }
     }
 
-    @Then("requester gets response in $timeout")
+    @Then("requester gets response in $timeout ms")
     public void waitForResponse(long timeout) throws Exception {
         Thread.sleep(timeout);
         Assert.assertNotNull("Response has not been received", receivedResponse);
@@ -112,10 +117,5 @@ public class RequesterResponderSteps extends BaseExample {
         Class microserviceClass = getClass().getClassLoader().loadClass(MICROSERVICE_PACKAGE + "." + microservice);
         Method mainMethod = microserviceClass.getMethod("main", String[].class);
         mainMethod.invoke(null, (Object)null);
-    }
-
-    @Given("shutdown")
-    public void shutdown() {
-        this.context.shutdown();
     }
 }
