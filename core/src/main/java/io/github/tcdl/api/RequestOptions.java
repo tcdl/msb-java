@@ -1,9 +1,7 @@
 package io.github.tcdl.api;
 
-import io.github.tcdl.RequesterImpl;
-
 /**
- * Options used while constructing {@link RequesterImpl} that specify number and time to wait for acknowledgements or responses.
+ * Options used while constructing {@link Requester} that specify number and time to wait for acknowledgements or responses.
  * Not all combinations make sense for this object.
  * e.g: - setting {@literal waitForResponses <= 0} will not activate await for responses
  */

@@ -3,7 +3,7 @@ package io.github.tcdl.api;
 import io.github.tcdl.api.message.Message;
 
 /**
- * Create objects which start message communications through message bus 
+ * Provides methods for creation {@link Requester} and {@link ResponderServer}.
  */
 public interface ObjectFactory {
     /**
@@ -12,7 +12,7 @@ public interface ObjectFactory {
      * @param requestOptions options to configure a requester
      * @return instance of a requester
      */
-    public Requester createRequester(String namespace, RequestOptions requestOptions);
+    Requester createRequester(String namespace, RequestOptions requestOptions);
 
     /**
      * Creates a new instance of a requester with originalMessage.
@@ -21,6 +21,6 @@ public interface ObjectFactory {
      * @param originalMessage original message (to take correlation id from)
      * @return instance of a requester
      */
-    public Requester createRequester(String namespace, RequestOptions requestOptions, Message originalMessage);
+    Requester createRequester(String namespace, RequestOptions requestOptions, Message originalMessage);
     
 }

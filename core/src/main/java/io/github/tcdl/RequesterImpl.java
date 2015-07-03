@@ -4,17 +4,12 @@ import io.github.tcdl.api.Callback;
 import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.Requester;
 import io.github.tcdl.api.message.Acknowledge;
-import io.github.tcdl.events.EventHandlers;
-import io.github.tcdl.api.exception.ChannelException;
-import io.github.tcdl.api.exception.JsonConversionException;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.Message.MessageBuilder;
-import io.github.tcdl.message.MessageFactory;
 import io.github.tcdl.api.message.payload.Payload;
-
+import io.github.tcdl.events.EventHandlers;
+import io.github.tcdl.message.MessageFactory;
 import org.apache.commons.lang3.Validate;
-
-import javax.annotation.Nullable;
 
 import java.util.List;
 
@@ -96,7 +91,7 @@ public class RequesterImpl implements Requester {
      * {@inheritDoc}
      */
     @Override
-    public RequesterImpl onAcknowledge(Callback<Acknowledge> acknowledgeHandler) {
+    public Requester onAcknowledge(Callback<Acknowledge> acknowledgeHandler) {
         eventHandlers.onAcknowledge(acknowledgeHandler);
         return this;
     }
@@ -105,7 +100,7 @@ public class RequesterImpl implements Requester {
      * {@inheritDoc}
      */
     @Override
-    public RequesterImpl onResponse(Callback<Payload> responseHandler) {
+    public Requester onResponse(Callback<Payload> responseHandler) {
         eventHandlers.onResponse(responseHandler);
         return this;
     }
@@ -114,7 +109,7 @@ public class RequesterImpl implements Requester {
      * {@inheritDoc}
      */
     @Override
-    public RequesterImpl onEnd(Callback<List<Message>> endHandler) {
+    public Requester onEnd(Callback<List<Message>> endHandler) {
         eventHandlers.onEnd(endHandler);
         return this;
     }

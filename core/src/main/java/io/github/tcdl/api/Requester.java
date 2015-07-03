@@ -1,6 +1,5 @@
 package io.github.tcdl.api;
 
-import io.github.tcdl.RequesterImpl;
 import io.github.tcdl.api.exception.ChannelException;
 import io.github.tcdl.api.exception.JsonConversionException;
 import io.github.tcdl.api.message.Acknowledge;
@@ -10,7 +9,7 @@ import io.github.tcdl.api.message.payload.Payload;
 import java.util.List;
 
 /**
- * {@link RequesterImpl} enable user send message to bus and process responses for this messages if any expected.
+ * {@link Requester} enable user send message to bus and process responses for this messages if any expected.
  *
  * Expected responses are matched by correlationId from original request.
  *
@@ -39,7 +38,7 @@ public interface Requester {
      * @param acknowledgeHandler callback to be called
      * @return requester
      */
-    RequesterImpl onAcknowledge(Callback<Acknowledge> acknowledgeHandler);
+    Requester onAcknowledge(Callback<Acknowledge> acknowledgeHandler);
 
     /**
      * Registers a callback to be called when response {@link Message} with {@link Payload} property set is received.
@@ -47,7 +46,7 @@ public interface Requester {
      * @param responseHandler callback to be called
      * @return requester
      */
-    RequesterImpl onResponse(Callback<Payload> responseHandler);
+    Requester onResponse(Callback<Payload> responseHandler);
     
     /**
      * Registers a callback to be called when all expected responses for request message are processes or awaiting timeout for responses occurred.
@@ -55,5 +54,5 @@ public interface Requester {
      * @param endHandler callback to be called
      * @return requester
      */
-    RequesterImpl onEnd(Callback<List<Message>> endHandler);
+    Requester onEnd(Callback<List<Message>> endHandler);
 }

@@ -3,10 +3,11 @@ package io.github.tcdl;
 import io.github.tcdl.api.ObjectFactory;
 import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.Requester;
+import io.github.tcdl.api.ResponderServer;
 import io.github.tcdl.api.message.Message;
 
 /**
- * Provides methods for creation Requester and ResponderServer
+ * Provides methods for creation {@link Requester} and {@link ResponderServer}.
  */
 public class ObjectFactoryImpl implements ObjectFactory {
     private MsbContextImpl msbContext;
