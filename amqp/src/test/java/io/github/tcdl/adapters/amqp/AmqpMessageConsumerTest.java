@@ -33,7 +33,7 @@ public class AmqpMessageConsumerTest {
         mockExecutorService = mock(ExecutorService.class);
         mockMessageHandler = mock(RawMessageHandler.class);
 
-        amqpMessageConsumer = new AmqpMessageConsumer(mockChannel, mockExecutorService, mockMessageHandler);
+        amqpMessageConsumer = new AmqpMessageConsumer(mockChannel, mockExecutorService, mockMessageHandler, "UTF-8");
     }
 
     @Test
@@ -70,4 +70,21 @@ public class AmqpMessageConsumerTest {
             fail();
         }
     }
+
+    @Test
+    public void testProperCharsetUsed() throws IOException {
+        byte[] encodedMessage = new byte[] { -10 }; // In ISO-8859-1 ö is mapped to 246 (which is equal to -10 during int -> byte conversion)
+        String expectedDecodedMessage = "ö";
+
+        Envelope envelope = mock(Envelope.class);
+        when(envelope.getDeliveryTag()).thenReturn(1234L);
+
+        AmqpMessageConsumer consumer = new AmqpMessageConsumer(mockChannel, mockExecutorService, mockMessageHandler, "ISO-8859-1");
+        consumer.handleDelivery("some tag", envelope, null, encodedMessage);
+
+        ArgumentCaptor<AmqpMessageProcessingTask> taskCaptor = ArgumentCaptor.forClass(AmqpMessageProcessingTask.class);
+        verify(mockExecutorService).submit(taskCaptor.capture());
+        assertEquals(expectedDecodedMessage, taskCaptor.getValue().body);
+    }
+
 }

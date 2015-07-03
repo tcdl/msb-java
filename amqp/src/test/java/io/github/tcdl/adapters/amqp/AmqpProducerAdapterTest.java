@@ -1,11 +1,14 @@
 package io.github.tcdl.adapters.amqp;
 
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.MessageProperties;
 import io.github.tcdl.api.exception.ChannelException;
+import io.github.tcdl.config.amqp.AmqpBrokerConfig;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.AdditionalMatchers;
 
 import java.io.IOException;
 
@@ -19,11 +22,15 @@ import static org.mockito.Mockito.when;
 public class AmqpProducerAdapterTest {
     private Channel mockChannel;
     private AmqpConnectionManager mockAmqpConnectionManager;
+    private AmqpBrokerConfig mockAmqpBrokerConfig;
 
     @Before
     public void setUp() throws IOException {
         Connection mockConnection = mock(Connection.class);
         mockChannel = mock(Channel.class);
+        mockAmqpBrokerConfig = mock(AmqpBrokerConfig.class);
+        when(mockAmqpBrokerConfig.getCharsetName()).thenReturn("UTF-8");
+
         mockAmqpConnectionManager = mock(AmqpConnectionManager.class);
 
         when(mockAmqpConnectionManager.obtainConnection()).thenReturn(mockConnection);
@@ -34,7 +41,7 @@ public class AmqpProducerAdapterTest {
     public void testExchangeCreated() throws IOException {
         String topicName = "myTopic";
 
-        new AmqpProducerAdapter(topicName, mockAmqpConnectionManager);
+        new AmqpProducerAdapter(topicName, mockAmqpBrokerConfig, mockAmqpConnectionManager);
 
         verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
     }
@@ -42,18 +49,30 @@ public class AmqpProducerAdapterTest {
     @Test(expected = RuntimeException.class)
     public void testInitializationError() throws IOException {
         when(mockChannel.exchangeDeclare(anyString(), anyString(), anyBoolean(), anyBoolean(), any())).thenThrow(new IOException());
-        new AmqpProducerAdapter("myTopic", mockAmqpConnectionManager);
+        new AmqpProducerAdapter("myTopic", mockAmqpBrokerConfig, mockAmqpConnectionManager);
     }
 
     @Test
     public void testPublish() throws ChannelException, IOException {
         String topicName = "myTopic";
         String message = "message";
-        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter(topicName, mockAmqpConnectionManager);
+        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter(topicName, mockAmqpBrokerConfig, mockAmqpConnectionManager);
 
         producerAdapter.publish(message);
 
         verify(mockChannel).basicPublish(topicName, "" /* routing key */, MessageProperties.PERSISTENT_BASIC, message.getBytes());
     }
 
+    @Test
+    public void testProperCharsetUsed() throws IOException {
+        when(mockAmqpBrokerConfig.getCharsetName()).thenReturn("ISO-8859-1");
+
+        String message = "ö";
+        byte[] expectedEncodedMessage = new byte[] { -10 }; // In ISO-8859-1 ö is mapped to 246 (which is equal to -10 during int -> byte conversion)
+        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter("myTopic", mockAmqpBrokerConfig, mockAmqpConnectionManager);
+
+        producerAdapter.publish(message);
+
+        verify(mockChannel).basicPublish(anyString(), anyString(), any(AMQP.BasicProperties.class), AdditionalMatchers.aryEq(expectedEncodedMessage));
+    }
 }

@@ -8,7 +8,9 @@ import io.github.tcdl.api.exception.ConfigurationException;
 import com.typesafe.config.Config;
 
 public class AmqpBrokerConfig {
-    
+
+    private String charsetName;
+
     private final int port;
     private final String host;
     private Optional<String> username;
@@ -20,10 +22,11 @@ public class AmqpBrokerConfig {
     private final int consumerThreadPoolSize;
     private final int consumerThreadPoolQueueCapacity;
 
-    public AmqpBrokerConfig(String host, int port,
+    public AmqpBrokerConfig(String charsetName, String host, int port,
             Optional<String> username, Optional<String> password, Optional<String> virtualHost,
             String groupId, boolean durable,
             int consumerThreadPoolSize, int consumerThreadPoolQueueCapacity) {
+        this.charsetName = charsetName;
         this.port = port;
         this.host = host;
         this.username = username;
@@ -36,6 +39,7 @@ public class AmqpBrokerConfig {
     }
 
     public static class AmqpBrokerConfigBuilder {
+        private String charsetName;
         private int port;
         private String host;
         private Optional<String> username;
@@ -52,28 +56,33 @@ public class AmqpBrokerConfig {
          * @throws ConfigurationException if provided configuration is broken
          */
         public AmqpBrokerConfigBuilder withConfig(Config config) {
-            
+            this.charsetName = ConfigurationUtil.getString(config, "charsetName");
+
             this.host = ConfigurationUtil.getString(config, "host");
             this.port = ConfigurationUtil.getInt(config, "port");
 
             this.username = ConfigurationUtil.getOptionalString(config, "username");
             this.password = ConfigurationUtil.getOptionalString(config, "password");
             this.virtualHost = ConfigurationUtil.getOptionalString(config, "virtualHost");
-            
+
             this.groupId = ConfigurationUtil.getString(config, "groupId");
             this.durable = ConfigurationUtil.getBoolean(config, "durable");
             this.consumerThreadPoolSize = ConfigurationUtil.getInt(config, "consumerThreadPoolSize");
             this.consumerThreadPoolQueueCapacity = ConfigurationUtil.getInt(config, "consumerThreadPoolQueueCapacity");
             return this;
-       }
+        }
 
         /**
          * @throws ConfigurationException if provided configuration is broken
          */
         public AmqpBrokerConfig build() {
-            return new AmqpBrokerConfig(host, port, username, password, virtualHost,
+            return new AmqpBrokerConfig(charsetName, host, port, username, password, virtualHost,
                     groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
         }
+    }
+
+    public String getCharsetName() {
+        return charsetName;
     }
 
     public String getHost() {
@@ -118,8 +127,8 @@ public class AmqpBrokerConfig {
 
     @Override
     public String toString() {
-        return String.format("AmqpBrokerConfig [host=%s, port=%d, username=%s, password=xxx, virtualHost=%s, groupId=%s, durable=%s, consumerThreadPoolSize=%s, consumerThreadPoolQueueCapacity=%s]", 
-                host, port, username, virtualHost, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
+        return String.format("AmqpBrokerConfig [charsetName=%s, host=%s, port=%d, username=%s, password=xxx, virtualHost=%s, groupId=%s, durable=%s, consumerThreadPoolSize=%s, consumerThreadPoolQueueCapacity=%s]",
+                charsetName, host, port, username, virtualHost, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
     }
 
 }

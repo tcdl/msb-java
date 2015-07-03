@@ -1,22 +1,19 @@
 package io.github.tcdl.config.amqp;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import io.github.tcdl.api.exception.ConfigurationException;
+import io.github.tcdl.config.amqp.AmqpBrokerConfig.AmqpBrokerConfigBuilder;
+import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import io.github.tcdl.config.amqp.AmqpBrokerConfig.AmqpBrokerConfigBuilder;
-import io.github.tcdl.api.exception.ConfigurationException;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-
-@RunWith(MockitoJUnitRunner.class)
 public class AmqpBrokerConfigTest {
 
+    final String charsetName = "UTF-8";
     final String host = "127.0.0.1";
     final int port = 5672;
     final String username = "user";
@@ -30,6 +27,7 @@ public class AmqpBrokerConfigTest {
     @Test
     public void testBuildAmqpBrokerConfig() {
         String configStr = "config.amqp {"
+                + " charsetName = \"" + charsetName + "\"\n"
                 + " host = \"" + host + "\"\n"
                 + " port = \"" + port + "\"\n"
                 + " username = \"" + username + "\"\n"
@@ -45,6 +43,7 @@ public class AmqpBrokerConfigTest {
         AmqpBrokerConfigBuilder brokerConfigBuilder = new AmqpBrokerConfigBuilder();
         AmqpBrokerConfig brokerConfig = brokerConfigBuilder.withConfig(amqpConfig).build();
 
+        assertEquals(brokerConfig.getCharsetName(), charsetName);
         assertEquals(brokerConfig.getHost(), host);
         assertEquals(brokerConfig.getPort(), port);
         assertEquals(brokerConfig.getGroupId(), groupId);
@@ -60,6 +59,7 @@ public class AmqpBrokerConfigTest {
     @Test
     public void testOptionalConfigurationOptions() {
         String configStr = "config.amqp {"
+                + " charsetName = \"" + charsetName + "\"\n"
                 + " host = \"" + host + "\"\n"
                 + " port = \"" + port + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
@@ -82,6 +82,7 @@ public class AmqpBrokerConfigTest {
     @Test
     public void testHostConfigurationOption() {
         String configStr = "config.amqp {"
+                + " charsetName = \"" + charsetName + "\"\n"
                 + " port = \"" + port + "\"\n"
                 + " username = \"" + username + "\"\n"
                 + " password = \"" + password + "\"\n"
@@ -98,6 +99,7 @@ public class AmqpBrokerConfigTest {
     @Test
     public void testPortConfigurationOption() {
         String configStr = "config.amqp {"
+                + " charsetName = \"" + charsetName + "\"\n"
                 + " host = \"" + host + "\"\n"
                 + " username = \"" + username + "\"\n"
                 + " password = \"" + password + "\"\n"
@@ -114,6 +116,7 @@ public class AmqpBrokerConfigTest {
     @Test
     public void testGroupIdConfigurationOption() {
         String configStr = "config.amqp {"
+                + " charsetName = \"" + charsetName + "\"\n"
                 + " host = \"" + host + "\"\n"
                 + " port = \"" + port + "\"\n"
                 + " username = \"" + username + "\"\n"
@@ -130,6 +133,7 @@ public class AmqpBrokerConfigTest {
     @Test
     public void testDurableConfigurationOption() {
         String configStr = "config.amqp {"
+                + " charsetName = \"" + charsetName + "\"\n"
                 + " host = \"" + host + "\"\n"
                 + " port = \"" + port + "\"\n"
                 + " username = \"" + username + "\"\n"
@@ -146,6 +150,7 @@ public class AmqpBrokerConfigTest {
     @Test
     public void testConsumerThreadPoolSizeConfigurationOption() {
         String configStr = "config.amqp {"
+                + " charsetName = \"" + charsetName + "\"\n"
                 + " host = \"" + host + "\"\n"
                 + " port = \"" + port + "\"\n"
                 + " username = \"" + username + "\"\n"
@@ -162,6 +167,7 @@ public class AmqpBrokerConfigTest {
     @Test
     public void testConsumerThreadPoolQueueCapacityConfigurationOption() {
         String configStr = "config.amqp {"
+                + " charsetName = \"" + charsetName + "\"\n"
                 + " host = \"" + host + "\"\n"
                 + " port = \"" + port + "\"\n"
                 + " username = \"" + username + "\"\n"
@@ -173,6 +179,23 @@ public class AmqpBrokerConfigTest {
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "consumerThreadPoolQueueCapacity");
+    }
+
+    @Test
+    public void testCharsetConfigurationOption() {
+        String configStr = "config.amqp {"
+                + " host = \"" + host + "\"\n"
+                + " port = \"" + port + "\"\n"
+                + " username = \"" + username + "\"\n"
+                + " password = \"" + password + "\"\n"
+                + " virtualHost = \"" + virtualHost + "\"\n"
+                + " groupId = \"" + groupId + "\"\n"
+                + " durable = " + durable + "\n"
+                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + "}";
+
+        testMandatoryConfigurationOption(configStr, "charsetName");
     }
 
     private void testMandatoryConfigurationOption(String configStr, String path) {

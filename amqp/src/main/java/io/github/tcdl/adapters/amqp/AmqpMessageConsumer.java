@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 
 import static io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
@@ -29,17 +30,19 @@ public class AmqpMessageConsumer extends DefaultConsumer {
 
     ExecutorService consumerThreadPool;
     RawMessageHandler msgHandler;
+    private String charsetName;
 
-    public AmqpMessageConsumer(Channel channel, ExecutorService consumerThreadPool, RawMessageHandler msgHandler) {
+    public AmqpMessageConsumer(Channel channel, ExecutorService consumerThreadPool, RawMessageHandler msgHandler, String charsetName) {
         super(channel);
         this.consumerThreadPool = consumerThreadPool;
         this.msgHandler = msgHandler;
+        this.charsetName = charsetName;
     }
 
     @Override
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
         try {
-            String bodyStr = new String(body);
+            String bodyStr = new String(body, Charset.forName(charsetName));
             LOG.debug(String.format("[consumer tag: %s] Message consumed from broker: %s", consumerTag, bodyStr));
             consumerThreadPool.submit(new AmqpMessageProcessingTask(consumerTag, bodyStr, getChannel(), envelope.getDeliveryTag(), msgHandler));
             LOG.debug(String.format("[consumer tag: %s] Message has been put into processing pool: %s", consumerTag, bodyStr));

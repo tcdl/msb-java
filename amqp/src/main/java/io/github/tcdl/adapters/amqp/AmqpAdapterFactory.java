@@ -69,7 +69,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
     
     @Override
     public ProducerAdapter createProducerAdapter(String topic) {
-        return new AmqpProducerAdapter(topic, connectionManager);
+        return new AmqpProducerAdapter(topic, amqpBrokerConfig, connectionManager);
     }
 
     @Override
