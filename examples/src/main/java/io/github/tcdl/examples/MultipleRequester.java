@@ -1,7 +1,8 @@
 package io.github.tcdl.examples;
 
+import io.github.tcdl.MsbContextImpl;
+import io.github.tcdl.RequesterImpl;
 import io.github.tcdl.api.MsbContext;
-import io.github.tcdl.api.Requester;
 import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.message.payload.Payload;
 
@@ -18,7 +19,7 @@ import java.util.function.Consumer;
 public class MultipleRequester {
 
     public static void main(String... args) throws Exception {
-        MsbContext msbContext = new MsbContext.MsbContextBuilder().
+        MsbContext msbContext = new MsbContextImpl.MsbContextBuilder().
                 withShutdownHook(true).
                 build();
 
@@ -53,7 +54,7 @@ public class MultipleRequester {
         Payload requestPayload = new Payload.PayloadBuilder().withBody(request).build();
 
         CompletableFuture.supplyAsync(() -> {
-            Requester.create(namespace, options, msbContext)
+            msbContext.getObjectFactory().createRequester(namespace, options)
                 .onAcknowledge(acknowledge ->
                     System.out.println(">>> ACK timeout: " + acknowledge.getTimeoutMs())
                 )

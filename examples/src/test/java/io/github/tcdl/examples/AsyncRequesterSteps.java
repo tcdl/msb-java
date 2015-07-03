@@ -1,12 +1,12 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.api.Requester;
+import io.github.tcdl.RequesterImpl;
 
 import java.util.List;
 
 public class AsyncRequesterSteps extends BaseExample {
 
-    private List<Requester> requesters;
+    private List<RequesterImpl> requesters;
 
 
 

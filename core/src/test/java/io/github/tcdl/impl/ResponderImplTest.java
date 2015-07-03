@@ -1,20 +1,9 @@
 package io.github.tcdl.impl;
 
-import static junit.framework.TestCase.assertEquals;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.time.Clock;
-
 import io.github.tcdl.ChannelManager;
+import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.Producer;
 import io.github.tcdl.api.MessageTemplate;
-import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.api.Responder;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
@@ -24,6 +13,18 @@ import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.time.Clock;
+
+import static junit.framework.TestCase.assertEquals;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by anstr on 5/26/2015.
@@ -50,8 +51,8 @@ public class ResponderImplTest {
         MessageFactory messageFactory = new MessageFactory(msbConf.getServiceDetails(), clock);
         MessageFactory spyMessageFactory = spy(messageFactory);
 
-        MsbContext msbContext = TestUtils.createSimpleMsbContext();
-        MsbContext msbContextSpy = spy(msbContext);
+        MsbContextImpl msbContext = TestUtils.createSimpleMsbContext();
+        MsbContextImpl msbContextSpy = spy(msbContext);
         mockChannelManager = mock(ChannelManager.class);
         mockProducer = mock(Producer.class);
         payload = new Payload.PayloadBuilder().build();
@@ -66,7 +67,7 @@ public class ResponderImplTest {
 
     @Test
     public void testResponderConstructorOk() {
-        MsbContext context = new MsbContext.MsbContextBuilder().build();
+        MsbContextImpl context = (MsbContextImpl) new MsbContextImpl.MsbContextBuilder().build();
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
         new ResponderImpl(config, originalMessage, context);
     }

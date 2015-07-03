@@ -3,6 +3,7 @@ package io.github.tcdl.impl;
 import static io.github.tcdl.api.message.Acknowledge.AcknowledgeBuilder;
 
 import io.github.tcdl.ChannelManager;
+import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.Producer;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.MsbContext;
@@ -26,7 +27,7 @@ public class ResponderImpl implements Responder {
     private MessageFactory messageFactory;
     private MessageBuilder messageBuilder;
 
-    public ResponderImpl(MessageTemplate messageTemplate, Message originalMessage, MsbContext msbContext) {
+    public ResponderImpl(MessageTemplate messageTemplate, Message originalMessage, MsbContextImpl msbContext) {
         validateReceivedMessage(originalMessage);
         this.responderId = Utils.generateId();
         this.originalMessage = originalMessage;

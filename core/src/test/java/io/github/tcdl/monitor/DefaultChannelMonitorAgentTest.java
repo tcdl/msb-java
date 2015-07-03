@@ -12,13 +12,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Map;
 
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.api.MsbContext;
+import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.Producer;
 import io.github.tcdl.MessageHandler;
 import io.github.tcdl.TimeoutManager;
@@ -45,7 +46,7 @@ public class DefaultChannelMonitorAgentTest {
         ServiceDetails serviceDetails = new ServiceDetails.ServiceDetailsBuilder().build();
         MessageFactory messageFactory = new MessageFactory(serviceDetails, clock);
         TimeoutManager mockTimeoutManager = mock(TimeoutManager.class);
-        MsbContext msbContext = TestUtils.createMsbContextBuilder()
+        MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
                 .withMessageFactory(messageFactory)
                 .withChannelManager(mockChannelManager)
                 .withClock(clock)

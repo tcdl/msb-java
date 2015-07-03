@@ -1,13 +1,17 @@
-package io.github.tcdl.api;
+package io.github.tcdl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import io.github.tcdl.RequesterImpl;
 import io.github.tcdl.adapters.mock.MockAdapter;
+import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -33,7 +37,7 @@ public class RequesterIT {
     private static final Logger LOG = LoggerFactory.getLogger(RequesterIT.class);
 
     private RequestOptions requestOptions;
-    private MsbContext msbContext;
+    private MsbContextImpl msbContext;
     private JsonValidator validator;
 
     @Before
@@ -47,7 +51,7 @@ public class RequesterIT {
     public void testRequestMessage() throws Exception {
         String namespace = "test:requester";
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = Requester.create(namespace, requestOptions, msbContext);
+        RequesterImpl requester = RequesterImpl.create(namespace, requestOptions, msbContext);
         requester.publish(requestPayload);
         Message message = requester.getMessage();
 

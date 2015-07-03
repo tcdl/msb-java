@@ -1,0 +1,128 @@
+package io.github.tcdl;
+
+import io.github.tcdl.api.Callback;
+import io.github.tcdl.api.RequestOptions;
+import io.github.tcdl.api.Requester;
+import io.github.tcdl.api.message.Acknowledge;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.api.message.Message.MessageBuilder;
+import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.events.EventHandlers;
+import io.github.tcdl.message.MessageFactory;
+import org.apache.commons.lang3.Validate;
+
+import java.util.List;
+
+/**
+ * Internal implementations of Requester interface 
+ */
+public class RequesterImpl implements Requester {
+
+    private RequestOptions requestOptions;
+    private MsbContextImpl context;
+
+    private Message message;
+    private MessageFactory messageFactory;
+    private MessageBuilder messageBuilder;
+    EventHandlers eventHandlers;
+
+    /**
+     * Creates a new instance of a requester.
+     *
+     * @param namespace topic name to send a request to
+     * @param requestOptions options to configure a requester
+     * @param context shared by all Requester instances
+     * @return instance of a requester
+     */
+    public static RequesterImpl create(String namespace, RequestOptions requestOptions, MsbContextImpl context) {
+        return new RequesterImpl(namespace, requestOptions, null, context);
+    }
+
+    /**
+     * Creates a new instance of a requester with originalMessage.
+     *
+     * @param namespace topic name to send a request to
+     * @param requestOptions options to configure a requester
+     * @param originalMessage original message (to take correlation id from)
+     * @param context shared by all Requester instances
+     * @return instance of a requester
+     */
+    public static RequesterImpl create(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContextImpl context) {
+        return new RequesterImpl(namespace, requestOptions, originalMessage, context);
+    }
+
+    private RequesterImpl(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContextImpl context) {
+        Validate.notNull(namespace, "the 'namespace' must not be null");
+        Validate.notNull(requestOptions, "the 'messageOptions' must not be null");
+        Validate.notNull(context, "the 'context' must not be null");
+
+        this.requestOptions = requestOptions;
+        this.context = context;
+
+        this.eventHandlers = new EventHandlers();
+        this.messageFactory = context.getMessageFactory();
+        this.messageBuilder = messageFactory.createRequestMessageBuilder(namespace, requestOptions.getMessageTemplate(), originalMessage);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void publish(Payload requestPayload) {
+        this.message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
+
+        //use Collector instance to handle expected responses/acks
+        if (requestOptions.isWaitForResponses()) {
+            Collector collector = createCollector(requestOptions, context, eventHandlers);
+            String topic = message.getTopics().getResponse();
+            collector.listenForResponses(topic, this.message);
+
+            getChannelManager().findOrCreateProducer(this.message.getTopics().getTo())
+                    .publish(this.message);
+
+            collector.waitForResponses();
+        } else {
+            getChannelManager().findOrCreateProducer(this.message.getTopics().getTo())
+                    .publish(this.message);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Requester onAcknowledge(Callback<Acknowledge> acknowledgeHandler) {
+        eventHandlers.onAcknowledge(acknowledgeHandler);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Requester onResponse(Callback<Payload> responseHandler) {
+        eventHandlers.onResponse(responseHandler);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Requester onEnd(Callback<List<Message>> endHandler) {
+        eventHandlers.onEnd(endHandler);
+        return this;
+    }
+
+    protected Message getMessage() {
+        return message;
+    }
+
+    private ChannelManager getChannelManager() {
+        return context.getChannelManager();
+    }
+
+    Collector createCollector(RequestOptions requestOptions, MsbContextImpl context, EventHandlers eventHandlers) {
+        return new Collector(requestOptions, context, eventHandlers);
+    }
+}

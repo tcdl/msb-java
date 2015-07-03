@@ -1,7 +1,7 @@
 package io.github.tcdl.examples;
 
-import java.util.Map;
-
+import io.github.tcdl.MsbContextImpl;
+import io.github.tcdl.RequesterImpl;
 import io.github.tcdl.api.Callback;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.MsbContext;
@@ -12,6 +12,8 @@ import io.github.tcdl.api.ResponderServer;
 import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.Utils;
+
+import java.util.Map;
 
 /**
  * Created by rdrozdov-tc on 6/15/15.
@@ -25,7 +27,7 @@ public class BaseExample {
     }
 
     public void init() {
-        context = new MsbContext.MsbContextBuilder().withShutdownHook(true).build();
+        context = new MsbContextImpl.MsbContextBuilder().withShutdownHook(true).build();
     }
 
     public Requester createRequester(String namespace, Integer numberOfResponses) {
@@ -43,14 +45,14 @@ public class BaseExample {
             .withResponseTimeout(Utils.ifNull(responseTimeout, 10000))
             .build();
 
-        return Requester.create(namespace, options, context);
+        return context.getObjectFactory().createRequester(namespace, options);
     }
 
     public void sendRequest(Requester requester, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
         sendRequest(requester, "QUERY", null, true, waitForResponses, null, responseCallback);
     }
 
-    public void sendRequest(Requester requester, String body, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
+    public void sendRequest(RequesterImpl requester, String body, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
         sendRequest(requester, null, body, false, waitForResponses, null, responseCallback);
     }
 
@@ -76,7 +78,7 @@ public class BaseExample {
     public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler requestHandler) {
         MessageTemplate options = new MessageTemplate();
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
-        return ResponderServer.create(namespace, options, context, requestHandler);
+        return ResponderServer.create(namespace, options, (MsbContextImpl)context, requestHandler);
     }
 
     public void respond(Responder responder) {
@@ -85,7 +87,6 @@ public class BaseExample {
 
     public void respond(Responder responder, String text) {
         responder.send(createPayload(null, text));
-
     }
 
     public void sleep(int timeout) throws InterruptedException {
