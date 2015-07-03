@@ -1,6 +1,8 @@
 package io.github.tcdl.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.adapters.mock.MockAdapter;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.MsbContext;
@@ -11,6 +13,7 @@ import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -30,12 +33,12 @@ public class ResponderIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(ResponderIT.class);
 
-    private MsbContext msbContext;
+    private MsbContextImpl msbContext;
     private JsonValidator validator;
 
     @Before
     public void setUp() throws Exception {
-        msbContext = new MsbContext.MsbContextBuilder().build();
+        msbContext = (MsbContextImpl) new MsbContextImpl.MsbContextBuilder().build();
         validator = new JsonValidator();
     }
 

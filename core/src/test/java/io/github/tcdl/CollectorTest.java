@@ -1,7 +1,6 @@
 package io.github.tcdl;
 
 import io.github.tcdl.api.Callback;
-import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.api.RequestOptions;
@@ -11,6 +10,7 @@ import io.github.tcdl.message.MessageFactory;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,7 +65,7 @@ public class CollectorTest {
     @Mock
     private TimeoutManager timeoutManagerMock;
 
-    private MsbContext msbContext;
+    private MsbContextImpl msbContext;
 
     @Before
     public void setUp() throws IOException {

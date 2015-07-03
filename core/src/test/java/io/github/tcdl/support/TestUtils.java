@@ -1,7 +1,7 @@
 package io.github.tcdl.support;
 
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.api.MsbContext;
+import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.TimeoutManager;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.message.Acknowledge;
@@ -27,7 +27,7 @@ import com.typesafe.config.ConfigFactory;
  */
 public class TestUtils {
 
-    public static MsbContext createSimpleMsbContext() {
+    public static MsbContextImpl createSimpleMsbContext() {
         return new TestMsbContextBuilder().build();
     }
 
@@ -175,7 +175,7 @@ public class TestUtils {
             return this;
         }
 
-        public MsbContext build() {
+        public MsbContextImpl build() {
             MsbConfigurations msbConfig = msbConfigOp.orElse(TestUtils.createMsbConfigurations());
             Clock clock = clockOp.orElse(Clock.systemDefaultZone());
             ChannelManager channelManager = channelManagerOp.orElseGet(() -> new ChannelManager(msbConfig, clock, new JsonValidator()));
@@ -184,7 +184,7 @@ public class TestUtils {
             return new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
         }
 
-        private static class TestMsbContext extends MsbContext {
+        private static class TestMsbContext extends MsbContextImpl {
             TestMsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory,
                     ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
                 super(msbConfig, messageFactory, channelManager, clock, timeoutManager);

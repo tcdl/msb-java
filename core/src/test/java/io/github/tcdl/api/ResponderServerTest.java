@@ -6,13 +6,14 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.MessageHandler;
+import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.impl.ResponderImpl;
 import io.github.tcdl.support.TestUtils;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -25,7 +26,7 @@ public class ResponderServerTest {
     private RequestOptions requestOptions;
     private MessageTemplate messageTemplate;
 
-    private MsbContext msbContext = TestUtils.createSimpleMsbContext();
+    private MsbContextImpl msbContext = TestUtils.createSimpleMsbContext();
 
     @Before
     public void setUp() {
@@ -43,7 +44,7 @@ public class ResponderServerTest {
 
         ArgumentCaptor<MessageHandler> subscriberCaptor = ArgumentCaptor.forClass(MessageHandler.class);
         ChannelManager spyChannelManager = spy(msbContext.getChannelManager());
-        MsbContext spyMsbContext = spy(msbContext);
+        MsbContextImpl spyMsbContext = spy(msbContext);
 
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 

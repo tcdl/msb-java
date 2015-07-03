@@ -1,7 +1,7 @@
 package io.github.tcdl.monitor;
 
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.api.MsbContext;
+import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.Producer;
 import io.github.tcdl.api.Responder;
 import io.github.tcdl.impl.ResponderImpl;
@@ -29,7 +29,7 @@ import static io.github.tcdl.support.Utils.isServiceTopic;
  * 3. The agent sends the current statistics in response to the heartbeat.
  */
 public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
-    private MsbContext msbContext;
+    private MsbContextImpl msbContext;
     private ChannelManager channelManager;
     private MessageFactory messageFactory;
     private Clock clock;
@@ -39,7 +39,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
      */
     Map<String, TopicStats> topicInfoMap = new HashMap<>();
 
-    public DefaultChannelMonitorAgent(MsbContext msbContext) {
+    public DefaultChannelMonitorAgent(MsbContextImpl msbContext) {
         this.msbContext = msbContext;
 
         this.channelManager = msbContext.getChannelManager();
@@ -50,7 +50,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
     /**
      * Convenience factory method that creates the agent instance and starts it.
      */
-    public static void start(MsbContext msbContext) {
+    public static void start(MsbContextImpl msbContext) {
         new DefaultChannelMonitorAgent(msbContext).start();
     }
 

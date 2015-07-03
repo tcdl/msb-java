@@ -1,12 +1,12 @@
 package io.github.tcdl;
 
 import io.github.tcdl.api.Callback;
-import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +59,7 @@ public class Collector {
     private  ScheduledFuture responseTimeoutFuture;
     private CollectorManager collectorManager;
 
-    public Collector(RequestOptions requestOptions, MsbContext msbContext, EventHandlers eventHandlers) {
+    public Collector(RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers eventHandlers) {
         this.channelManager = msbContext.getChannelManager();
         this.clock = msbContext.getClock();
 

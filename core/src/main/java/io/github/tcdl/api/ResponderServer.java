@@ -1,6 +1,7 @@
 package io.github.tcdl.api;
 
 import io.github.tcdl.ChannelManager;
+import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.impl.ResponderImpl;
@@ -11,7 +12,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Class for creating microservices responsible for listening on messages from the bus and executing business logic. *
  * <p>First of all it's needed to create {@code ResponderServer} with
- * {@link #create(String, MessageTemplate, MsbContext, RequestHandler)} method.
+ * {@link #create(String, MessageTemplate, MsbContextImpl, RequestHandler)} method.
  * Then we can start listening incoming messages, by calling it's {@link #listen()} method.
  * And also it's required to implement interface {@link RequestHandler}. Implementation of this interface will be
  * business logic processed by microservice. Inside this logic we can use instance of {@link Responder} created by {@code ResponderServer}
@@ -21,11 +22,11 @@ public class ResponderServer {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServer.class);
 
     private String namespace;
-    private MsbContext msbContext;
+    private MsbContextImpl msbContext;
     private MessageTemplate messageTemplate;
     private RequestHandler requestHandler;
 
-    private ResponderServer(String namespace, MessageTemplate messageTemplate, MsbContext msbContext, RequestHandler requestHandler) {
+    private ResponderServer(String namespace, MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler) {
         this.namespace = namespace;
         this.messageTemplate = messageTemplate;
         this.msbContext = msbContext;
@@ -42,7 +43,7 @@ public class ResponderServer {
      * @param requestHandler  handler for processing the request
      * @return new instance of a {@link ResponderServer}
      */
-    public static ResponderServer create(String namespace,  MessageTemplate messageTemplate, MsbContext msbContext, RequestHandler requestHandler) {
+    public static ResponderServer create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler) {
         return new ResponderServer(namespace, messageTemplate, msbContext, requestHandler);
     }
 

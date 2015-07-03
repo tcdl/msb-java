@@ -1,7 +1,7 @@
 package io.github.tcdl.events;
 
+import io.github.tcdl.RequesterImpl;
 import io.github.tcdl.api.Callback;
-import io.github.tcdl.api.Requester;
 import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
@@ -9,7 +9,7 @@ import io.github.tcdl.api.message.payload.Payload;
 import java.util.List;
 
 /**
- * {@link EventHandlers} is a component that allows to register custom event handlers for {@link Requester} specific events .
+ * {@link EventHandlers} is a component that allows to register custom event handlers for {@link RequesterImpl} specific events .
  * Created by rdrozdov-tc on 6/2/15.
  */
 public class EventHandlers {

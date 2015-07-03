@@ -1,8 +1,9 @@
 package io.github.tcdl.examples;
 
+import io.github.tcdl.MsbContextImpl;
+import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.api.ResponderServer;
-import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.message.payload.Payload;
 
 import java.util.Arrays;
@@ -22,7 +23,7 @@ public class DateExtractor {
 
     public static void main(String... args) {
 
-        MsbContext msbContext = new MsbContext.MsbContextBuilder().
+        MsbContextImpl msbContext = (MsbContextImpl) new MsbContextImpl.MsbContextBuilder().
                 withDefaultChannelMonitorAgent(true).
                 withShutdownHook(true).
                 build();
