@@ -34,6 +34,10 @@ public class ScenarioRunner extends JUnitStories {
 
     @Override
     public InjectableStepsFactory stepsFactory() {
-        return new InstanceStepsFactory(configuration(), new RequesterResponderSteps());
+        return new InstanceStepsFactory(configuration(),
+                new ConfigurationSteps(),
+                new RequesterResponderSteps(),
+                new AsyncRequesterSteps()
+        );
     }
 }
