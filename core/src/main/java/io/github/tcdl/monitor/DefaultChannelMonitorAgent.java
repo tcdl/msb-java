@@ -4,6 +4,7 @@ import io.github.tcdl.ChannelManager;
 import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.Producer;
 import io.github.tcdl.api.Responder;
+import io.github.tcdl.impl.ResponderImpl;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.Message.MessageBuilder;
@@ -61,7 +62,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
     public DefaultChannelMonitorAgent start() {
         channelManager.subscribe(TOPIC_HEARTBEAT, // Launch listener for heartbeat topic
                 message -> {
-                        Responder responder = new Responder(null, message, msbContext);
+                        Responder responder = new ResponderImpl(null, message, msbContext);
                         Payload payload = new Payload.PayloadBuilder()
                                 .withBody(topicInfoMap)
                                 .build();

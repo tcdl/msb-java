@@ -11,6 +11,7 @@ import io.github.tcdl.ChannelManager;
 import io.github.tcdl.MessageHandler;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.impl.ResponderImpl;
 import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,7 +77,7 @@ public class ResponderServerTest {
 
         // simulate incoming request
         ArgumentCaptor<Payload> responseCaptor = ArgumentCaptor.forClass(Payload.class);
-        Responder responder = spy(new Responder(messageTemplate, TestUtils.createMsbRequestMessageNoPayload(TestUtils.getSimpleNamespace()), msbContext));
+        ResponderImpl responder = spy(new ResponderImpl(messageTemplate, TestUtils.createMsbRequestMessageNoPayload(TestUtils.getSimpleNamespace()), msbContext));
         responderServer.onResponder(responder);
 
         verify(responder).send(responseCaptor.capture());

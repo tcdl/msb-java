@@ -1,17 +1,17 @@
 package io.github.tcdl.examples;
 
+import java.util.Map;
+
 import io.github.tcdl.api.Callback;
+import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.MsbContext;
+import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.Requester;
 import io.github.tcdl.api.Responder;
 import io.github.tcdl.api.ResponderServer;
-import io.github.tcdl.api.MessageTemplate;
-import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.Utils;
-
-import java.util.Map;
 
 /**
  * Created by rdrozdov-tc on 6/15/15.
@@ -85,6 +85,7 @@ public class BaseExample {
 
     public void respond(Responder responder, String text) {
         responder.send(createPayload(null, text));
+
     }
 
     public void sleep(int timeout) throws InterruptedException {

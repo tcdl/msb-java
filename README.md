@@ -97,16 +97,9 @@ Factory method to create a new instance of a responder server
 #### listen()
 start listening for incoming requests
 
-Class: Responder
+Interface: Responder
 ---------------------------------------------------
-Component which holds original request message and create response base on it.
-Is used by ResponderServer to send responses and acknowledgements.
-
-#### new Responder(messageTemplate, originalMessage, msbContext)
-Creates a new instance of a responder
-
-- **messageTemplate** template which is used to construct response message
-- **msbContext** MSB application [context](#msb-context)
+Responsible for creating responses and acknowledgements and sending them to the bus.
 
 #### sendAck([timeoutMs], [responsesRemaining])
 Send acknowledge message

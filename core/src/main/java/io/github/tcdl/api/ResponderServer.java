@@ -3,19 +3,19 @@ package io.github.tcdl.api;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.impl.ResponderImpl;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class for creating microservices which will listen for incoming requests, execute business logic
- * and respond.
- * <p>First of all it's needed to create {@code ResponderServer}, method create
- * {@link #create(String, MessageTemplate, MsbContext, RequestHandler)} is responsible for it.
- * After object of {@code ResponderServer} was created it should start listening incoming messages.
- * Method {@link #listen} is used to listen incoming messages.
- * And also it's needed to implement interface {@link RequestHandler}.Implementation of this interface will be
- * business logic of microservice.Inside this login {@link Responder} can be used for sending response.
+ * Class for creating microservices responsible for listening on messages from the bus and executing business logic. *
+ * <p>First of all it's needed to create {@code ResponderServer} with
+ * {@link #create(String, MessageTemplate, MsbContext, RequestHandler)} method.
+ * Then we can start listening incoming messages, by calling it's {@link #listen()} method.
+ * And also it's required to implement interface {@link RequestHandler}. Implementation of this interface will be
+ * business logic processed by microservice. Inside this logic we can use instance of {@link Responder} created by {@code ResponderServer}
+ * for each message from bus, and can be used for sending responses back to bus.
  */
 public class ResponderServer {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServer.class);
@@ -34,10 +34,10 @@ public class ResponderServer {
     }
 
     /**
-     * Create a new instance of a {@link ResponderServer}.
+     * Create a new instance of {@link ResponderServer}.
      *
-     * @param namespace       topic on a bus for listening incoming requests
-     * @param messageTemplate template which will be used for creating response messages, object of class {@link MessageTemplate}
+     * @param namespace       topic on a bus for listening on incoming requests
+     * @param messageTemplate template used for creating response messages
      * @param msbContext      context inside which {@link ResponderServer} is working
      * @param requestHandler  handler for processing the request
      * @return new instance of a {@link ResponderServer}
@@ -55,7 +55,7 @@ public class ResponderServer {
         channelManager.subscribe(namespace,
                 message -> {
                         LOG.debug("Received message with id {} from topic {}", message.getId(), namespace);
-                        Responder responder = new Responder(messageTemplate, message, msbContext);
+                        ResponderImpl responder = new ResponderImpl(messageTemplate, message, msbContext);
                         onResponder(responder);
 
                 });
@@ -64,19 +64,19 @@ public class ResponderServer {
     }
 
     /**
-     * Implementation of this interface is business logic of microservice.
+     * Implementation of this interface contains business logic processed by microservice.
      */
     public interface RequestHandler {
         /**
-         * Execute business login and send response.
-         * @param request request which was received from a bus
-         * @param responder object of class {@link Responder} which will be used for sending response
+         * Execute business logic and send response.
+         * @param request request received from a bus
+         * @param responder object of type {@link Responder} which will be used for sending response
          * @throws Exception if some problems during execution business logic or sending response were occurred
          */
         void process(Payload request, Responder responder) throws Exception;
     }
 
-    protected void onResponder(Responder responder) {
+    void onResponder(ResponderImpl responder) {
         Message originalMessage = responder.getOriginalMessage();
         Payload request = originalMessage.getPayload();
         LOG.debug("Pushing message with id {} to middleware chain", originalMessage.getId());
@@ -88,7 +88,7 @@ public class ResponderServer {
         }
     }
 
-    private void errorHandler(Responder responder, Exception exception) {
+    private void errorHandler(ResponderImpl responder, Exception exception) {
         Message originalMessage = responder.getOriginalMessage();
         LOG.error("Handling error for message with id {}", originalMessage.getId());
         Payload responsePayload = new Payload.PayloadBuilder()

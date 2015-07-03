@@ -1,7 +1,10 @@
-package io.github.tcdl.api;
+package io.github.tcdl.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.tcdl.adapters.mock.MockAdapter;
+import io.github.tcdl.api.MessageTemplate;
+import io.github.tcdl.api.MsbContext;
+import io.github.tcdl.api.Responder;
 import io.github.tcdl.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
@@ -42,7 +45,7 @@ public class ResponderIT {
         MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
 
-        Responder responder = new Responder(messageOptions, originalMessage, msbContext);
+        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
 
         Message ackMessage = responder.sendAck(1000, 2);
 
@@ -64,7 +67,7 @@ public class ResponderIT {
             assertTrue("Message not contain expected property ack.responsesRemaining", jsonObject.getJSONObject("ack").has("responsesRemaining"));
             assertTrue("Message not contain expected property ack.timeoutMs", jsonObject.getJSONObject("ack").has("timeoutMs"));
 
-            // ack fields match sended 
+            // ack fields match sent
             assertEquals("Message 'ack.responderId' is incorrect", originalAckMsg.getAck().getResponderId(), jsonObject
                     .getJSONObject("ack").getString("responderId"));
             assertEquals("Message 'ack.responsesRemaining' is incorrect", originalAckMsg.getAck().getResponsesRemaining(), jsonObject
@@ -87,7 +90,7 @@ public class ResponderIT {
         MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
 
-        Responder responder = new Responder(messageOptions, originalMessage, msbContext);
+        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
         Payload responsePayload = TestUtils.createSimpleResponsePayload();
         Message responseMessage = responder.send(responsePayload);
 
@@ -97,16 +100,16 @@ public class ResponderIT {
         assertResponseMessage(adapterJsonMessage, responseMessage);
     }
 
-    private void assertResponseMessage(String recievedResponseMsg, Message originalResponseMsg) {
+    private void assertResponseMessage(String receivedResponseMsg, Message originalResponseMsg) {
         try {
-            validator.validate(recievedResponseMsg, this.msbContext.getMsbConfig().getSchema());
-            JSONObject jsonObject = new JSONObject(recievedResponseMsg);
+            validator.validate(receivedResponseMsg, this.msbContext.getMsbConfig().getSchema());
+            JSONObject jsonObject = new JSONObject(receivedResponseMsg);
 
             // payload fields set 
             assertTrue("Message not contain 'body' filed", jsonObject.getJSONObject("payload").has("body"));
             assertTrue("Message not contain 'headers' filed", jsonObject.getJSONObject("payload").has("headers"));
 
-            // payload fields match sended 
+            // payload fields match sent
             assertEquals("Message 'body' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(originalResponseMsg.getPayload().getBodyAs(Map.class)),
                     jsonObject.getJSONObject("payload").get("body").toString());
             assertEquals("Message 'headers' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(originalResponseMsg.getPayload().getHeaders()),
