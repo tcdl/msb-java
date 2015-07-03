@@ -1,7 +1,6 @@
 package io.github.tcdl.examples;
 
 import io.github.tcdl.MsbContextImpl;
-import io.github.tcdl.RequesterImpl;
 import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.message.payload.Payload;

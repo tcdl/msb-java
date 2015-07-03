@@ -2,7 +2,7 @@ package io.github.tcdl.examples;
 
 import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.api.MsbContext;
-import io.github.tcdl.api.ResponderServer;
+import io.github.tcdl.impl.ResponderServerImpl;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.message.payload.Payload;
 
@@ -22,15 +22,15 @@ public class MultipleResponder {
 
     public static void runResponder(String namespace, MsbContext msbContext) {
         MessageTemplate options = new MessageTemplate();
-        ResponderServer.create(namespace, options, (MsbContextImpl)msbContext, (request, responder) -> {
-                    Map requestBody = request.getBodyAs(Map.class);
-                    System.out.println(">>> GOT request: " + requestBody);
+        ResponderServerImpl.create(namespace, options, (MsbContextImpl) msbContext, (request, responder) -> {
+            Map requestBody = request.getBodyAs(Map.class);
+            System.out.println(">>> GOT request: " + requestBody);
 
-                    String requestId = (String)requestBody.get("requestId");
-                    SearchResponse response = new SearchResponse(requestId, "response");
-                    System.out.println(">>> SENDING response in request to " + requestId);
-                    responder.send(new Payload.PayloadBuilder().withBody(response).build());
-                })
+            String requestId = (String) requestBody.get("requestId");
+            SearchResponse response = new SearchResponse(requestId, "response");
+            System.out.println(">>> SENDING response in request to " + requestId);
+            responder.send(new Payload.PayloadBuilder().withBody(response).build());
+        })
                 .listen();
     }
 

@@ -1,24 +1,4 @@
-package io.github.tcdl;
-
-import io.github.tcdl.ChannelManager;
-import io.github.tcdl.Collector;
-import io.github.tcdl.CollectorManager;
-import io.github.tcdl.Consumer;
-import io.github.tcdl.Producer;
-import io.github.tcdl.RequesterImpl;
-import io.github.tcdl.events.EventHandlers;
-import io.github.tcdl.api.Callback;
-import io.github.tcdl.api.MessageTemplate;
-import io.github.tcdl.api.RequestOptions;
-import io.github.tcdl.api.message.Message;
-import io.github.tcdl.api.message.payload.Payload;
-import io.github.tcdl.support.TestUtils;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+package io.github.tcdl.impl;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -32,12 +12,33 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.time.Clock;
+
+import io.github.tcdl.ChannelManager;
+import io.github.tcdl.Collector;
+import io.github.tcdl.CollectorManager;
+import io.github.tcdl.Consumer;
+import io.github.tcdl.MsbContextImpl;
+import io.github.tcdl.Producer;
+import io.github.tcdl.api.Callback;
+import io.github.tcdl.api.MessageTemplate;
+import io.github.tcdl.api.RequestOptions;
+import io.github.tcdl.api.Requester;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.events.EventHandlers;
+import io.github.tcdl.support.TestUtils;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  * Created by rdro on 4/27/2015.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class RequesterTest {
+public class RequesterImplTest {
 
     @Mock
     private EventHandlers eventHandlerMock;
@@ -140,12 +141,22 @@ public class RequesterTest {
 
     @Test
     public void testRequestMessage() throws Exception {
-        RequesterImpl requester = initRequesterForResponsesWithTimeout(0);
-        Payload request = TestUtils.createSimpleRequestPayload();
+        ChannelManager channelManagerMock = mock(ChannelManager.class);
+        Producer producerMock = mock(Producer.class);
+        when(channelManagerMock.findOrCreateProducer("test:requester")).thenReturn(producerMock);
+        ArgumentCaptor<Message> messageArgumentCaptor =  ArgumentCaptor.forClass(Message.class);
 
-        requester.publish(request);
+        MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
+                .withChannelManager(channelManagerMock)
+                .withClock(Clock.systemDefaultZone())
+                .build();
 
-        Message requestMessage = requester.getMessage();
+        Payload requestPayload = TestUtils.createSimpleRequestPayload();
+        Requester requester = RequesterImpl.create("test:requester", TestUtils.createSimpleRequestOptions(), msbContext);
+        requester.publish(requestPayload);
+        verify(producerMock).publish(messageArgumentCaptor.capture());
+
+        Message requestMessage = messageArgumentCaptor.getValue();
         assertNotNull(requestMessage);
         assertNotNull(requestMessage.getMeta());
         assertNotNull(requestMessage.getPayload());

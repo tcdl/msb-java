@@ -2,8 +2,7 @@ package io.github.tcdl.examples;
 
 import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.api.MessageTemplate;
-import io.github.tcdl.api.MsbContext;
-import io.github.tcdl.api.ResponderServer;
+import io.github.tcdl.impl.ResponderServerImpl;
 import io.github.tcdl.api.message.payload.Payload;
 
 import java.util.Arrays;
@@ -33,41 +32,41 @@ public class DateExtractor {
 
         final Pattern YEAR_PATTERN = Pattern.compile("^.*(20(\\d{2})).*$");
 
-        ResponderServer.create(namespace, options, msbContext, (request, responder) -> {
+        ResponderServerImpl.create(namespace, options, msbContext, (request, responder) -> {
 
-                    RequestQuery query = request.getQueryAs(RequestQuery.class);
-                    String queryString = query.getQ();
-                    Matcher matcher = YEAR_PATTERN.matcher(queryString);
+            RequestQuery query = request.getQueryAs(RequestQuery.class);
+            String queryString = query.getQ();
+            Matcher matcher = YEAR_PATTERN.matcher(queryString);
 
-                    if (matcher.matches()) {
-                        // send acknowledge
-                        responder.sendAck(500, null);
+            if (matcher.matches()) {
+                // send acknowledge
+                responder.sendAck(500, null);
 
-                        // parse year
-                        String str = matcher.group(1);
-                        Integer year = Integer.valueOf(matcher.group(2));
+                // parse year
+                String str = matcher.group(1);
+                Integer year = Integer.valueOf(matcher.group(2));
 
-                        // populate response body
-                        Result result = new Result();
-                        result.setStr(str);
-                        result.setStartIndex(queryString.indexOf(str));
-                        result.setEndIndex(queryString.indexOf(str) + str.length() - 1);
-                        result.setInferredDate(new HashMap<>());
-                        result.setProbability(0.9f);
+                // populate response body
+                Result result = new Result();
+                result.setStr(str);
+                result.setStartIndex(queryString.indexOf(str));
+                result.setEndIndex(queryString.indexOf(str) + str.length() - 1);
+                result.setInferredDate(new HashMap<>());
+                result.setProbability(0.9f);
 
-                        Result.Date date = new Result.Date();
-                        date.setYear(year);
-                        result.setDate(date);
+                Result.Date date = new Result.Date();
+                date.setYear(year);
+                result.setDate(date);
 
-                        ResponseBody responseBody = new ResponseBody();
-                        responseBody.setResults(Arrays.asList(result));
-                        Payload responsePayload = new Payload.PayloadBuilder()
-                                .withStatusCode(200)
-                                .withBody(responseBody).build();
+                ResponseBody responseBody = new ResponseBody();
+                responseBody.setResults(Arrays.asList(result));
+                Payload responsePayload = new Payload.PayloadBuilder()
+                        .withStatusCode(200)
+                        .withBody(responseBody).build();
 
-                        responder.send(responsePayload);
-                    }
-                })
+                responder.send(responsePayload);
+            }
+        })
                 .listen();
     }
 

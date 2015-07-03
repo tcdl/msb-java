@@ -1,5 +1,8 @@
-package io.github.tcdl;
+package io.github.tcdl.impl;
 
+import io.github.tcdl.ChannelManager;
+import io.github.tcdl.Collector;
+import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.api.Callback;
 import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.Requester;
@@ -112,10 +115,6 @@ public class RequesterImpl implements Requester {
     public Requester onEnd(Callback<List<Message>> endHandler) {
         eventHandlers.onEnd(endHandler);
         return this;
-    }
-
-    protected Message getMessage() {
-        return message;
     }
 
     private ChannelManager getChannelManager() {

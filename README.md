@@ -55,17 +55,29 @@ Options used while constructing Requester that specify number and time to wait f
 - **responseTimeout** period of time in milliseconds before ending request
 - **waitForResponses** number of expected responses before ending or timing out
 
-Class: Requester
+Class: ObjectFactory
 ---------------------------------------------------
-Enable user send message to bus and process responses for this messages if any expected.
+Provides methods for creation Requester and ResponderServer
 
-#### create(namespace, requestOptions, [originalMessage], msbContext)
+#### createRequester(namespace, requestOptions, [originalMessage], msbContext)
 Factory method to create a new instance of a requester
 
 - **namespace** topic name to listen on for requests
 - **requestOptions** specify number and time to wait for acknowledgements or responses [options](#request-options)
 - **originalMessage** original message (to take correlation id from)
 - **msbContext** MSB application [context](#msb-context)
+
+#### createResponderServer(namespace, messageTemplate, msbContext, requestHandler)
+Factory method to create a new instance of a responder server
+
+- **namespace** topic name to listen on for requests
+- **messageTemplate** template which is used to construct a request/response message
+- **msbContext** MSB application [context](#msb-context)
+- **requestHandler** handler for processing the request
+
+Interface: Requester
+---------------------------------------------------
+Enable user send message to bus and process responses for this messages if any expected.
 
 #### publish(request)
 Publish a request to the message bus
@@ -81,18 +93,9 @@ Assign a handler on response message
 #### onEnd(Callback handler) 
 Assign a handler on event when all responses were received or timeout happened
 
-Class: ResponderServer
+Interface: ResponderServer
 ---------------------------------------------------
-Component for creating microservices which will listen for incoming requests, execute business logic
-and respond.
-
-#### create(namespace, messageTemplate, msbContext, requestHandler)
-Factory method to create a new instance of a responder server
-
-- **namespace** topic name to listen on for requests
-- **messageTemplate** template which is used to construct a request/response message
-- **msbContext** MSB application [context](#msb-context)
-- **requestHandler** handler for processing the request
+Enable user to listen on messages from the bus and executing microservice business logic.
 
 #### listen()
 start listening for incoming requests

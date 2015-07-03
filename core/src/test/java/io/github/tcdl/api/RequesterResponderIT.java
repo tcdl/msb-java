@@ -1,11 +1,12 @@
 package io.github.tcdl.api;
 
 import io.github.tcdl.MsbContextImpl;
-import io.github.tcdl.RequesterImpl;
+import io.github.tcdl.impl.RequesterImpl;
 import io.github.tcdl.adapters.mock.MockAdapter;
 import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.impl.ResponderServerImpl;
 import io.github.tcdl.support.TestUtils;
 
 import org.junit.Before;
@@ -53,7 +54,7 @@ public class RequesterResponderIT {
         RequesterImpl requester = RequesterImpl.create(namespace, requestOptions, msbContext);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
 
-        ResponderServer.create(namespace, requestOptions.getMessageTemplate(), msbContext, (request, response) -> {
+        ResponderServerImpl.create(namespace, requestOptions.getMessageTemplate(), msbContext, (request, response) -> {
             requestReceived.countDown();
         })
                 .listen();
@@ -89,11 +90,11 @@ public class RequesterResponderIT {
 
         //listen for message and send ack
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
-        ResponderServer.create(namespace, messageTemplate, serverMsbContext, (request, response) -> {
-                    Message message = response.sendAck(100, 2);
-                    sentAcks.add(message);
-                    ackSend.countDown();
-                })
+        ResponderServerImpl.create(namespace, messageTemplate, serverMsbContext, (request, response) -> {
+            Message message = response.sendAck(100, 2);
+            sentAcks.add(message);
+            ackSend.countDown();
+        })
                 .listen();
 
         assertTrue("Message ack was not send", ackSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
@@ -128,7 +129,7 @@ public class RequesterResponderIT {
 
         //listen for message and send response
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
-        ResponderServer
+        ResponderServerImpl
                 .create(namespace, messageTemplate, serverMsbContext, (request, response) -> {
                     Payload payload = new Payload.PayloadBuilder().withBody(
                             new HashMap<String, String>().put("body", "payload from test : testResponderAnswerWithResponseRequesterReceiveResponse"))
@@ -162,21 +163,21 @@ public class RequesterResponderIT {
         CountDownLatch ackReceived = new CountDownLatch(1);
 
         MsbContextImpl serverOneMsbContext = TestUtils.createSimpleMsbContext();
-        ResponderServer.create(namespace1, responderServerOneMessageOptions, serverOneMsbContext, (request, response) -> {
+        ResponderServerImpl.create(namespace1, responderServerOneMessageOptions, serverOneMsbContext, (request, response) -> {
 
-                    //Create and send request message, wait for ack 
-                    RequesterImpl requester = RequesterImpl.create(namespace2, requestAwaitAckMessageOptions, msbContext);
-                    Payload requestPayload = TestUtils.createSimpleRequestPayload();
-                    requester.onAcknowledge((Acknowledge a) -> ackReceived.countDown());
-                    requester.publish(requestPayload);
-                })
+            //Create and send request message, wait for ack
+            RequesterImpl requester = RequesterImpl.create(namespace2, requestAwaitAckMessageOptions, msbContext);
+            Payload requestPayload = TestUtils.createSimpleRequestPayload();
+            requester.onAcknowledge((Acknowledge a) -> ackReceived.countDown());
+            requester.publish(requestPayload);
+        })
                 .listen();
 
         MsbContextImpl serverTwoMsbContext = TestUtils.createSimpleMsbContext();
-        ResponderServer.create(namespace2, responderServerTwoMessageOptions, serverTwoMsbContext, (request, response) -> {
-                    response.sendAck(100, 2);
-                    ackSent.countDown();
-                })
+        ResponderServerImpl.create(namespace2, responderServerTwoMessageOptions, serverTwoMsbContext, (request, response) -> {
+            response.sendAck(100, 2);
+            ackSent.countDown();
+        })
                 .listen();
 
         MockAdapter.pushRequestMessage(TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace1));
@@ -226,11 +227,11 @@ public class RequesterResponderIT {
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
         Random randomAckValue = new Random();
         randomAckValue.ints();
-        ResponderServer.create(namespace, requestOptions.getMessageTemplate(), serverMsbContext, (request, response) -> {
-                    Message message = response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
-                    sentAcks.add(message);
-                    ackSend.countDown();
-                })
+        ResponderServerImpl.create(namespace, requestOptions.getMessageTemplate(), serverMsbContext, (request, response) -> {
+            Message message = response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
+            sentAcks.add(message);
+            ackSend.countDown();
+        })
                 .listen();
 
         assertTrue("Message ack was not send", ackSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));

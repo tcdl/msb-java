@@ -1,9 +1,8 @@
 package io.github.tcdl.api;
 
-import io.github.tcdl.api.RequestOptions;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 /**
  * Created by ruslan on 15.06.15.
