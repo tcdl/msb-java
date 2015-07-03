@@ -117,7 +117,7 @@ public class CollectorTest {
         Callback<Payload> onResponse = mock(Callback.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
         collector.handleMessage(originalMessageWithPayload);
@@ -132,7 +132,7 @@ public class CollectorTest {
         Callback<Payload> onResponse = mock(Callback.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
         collector.handleMessage(originalMessageWithPayload);
@@ -147,7 +147,7 @@ public class CollectorTest {
         Callback<Acknowledge> onAck = mock(Callback.class);
         when(eventHandlers.onAcknowledge()).thenReturn(onAck);
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, originalMessageWithAck);
 
         collector.handleMessage(originalMessageWithAck);
@@ -163,7 +163,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, originalMessageWithAck);
 
         collector.handleMessage(originalMessageWithAck);
@@ -187,7 +187,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
         collector.handleMessage(originalMessageWithPayload);
@@ -214,7 +214,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
         //send first response
@@ -246,7 +246,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
         //send payload response
@@ -272,7 +272,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
         //send payload response
@@ -298,7 +298,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
         //send payload response
@@ -322,7 +322,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, requestMessage);
 
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMs).build();
@@ -349,7 +349,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, requestMessage);
 
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMsInAck)
@@ -378,7 +378,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, requestMessage);
 
         Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemaining)
@@ -409,7 +409,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, requestMessage);
 
         Acknowledge ackRespOne = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemainingResponderOne)
@@ -448,7 +448,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector collector = spy(new Collector(requestOptionsMock, msbContext, eventHandlers));
-        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
+//        doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, originalMessageWithPayload);
 
         assertEquals(responsesRemaining, collector.getResponsesRemaining());

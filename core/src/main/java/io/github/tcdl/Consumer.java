@@ -35,8 +35,10 @@ public class Consumer {
     private MessageHandler messageHandler;
     private JsonValidator validator;
 
+    private CollectorManager collectorManager;
+
     public Consumer(ConsumerAdapter rawAdapter, String topic, MsbConfigurations msbConfig,
-            Clock clock, ChannelMonitorAgent channelMonitorAgent, JsonValidator validator) {
+                    Clock clock, ChannelMonitorAgent channelMonitorAgent, JsonValidator validator, ChannelManager channelManager) {
 
         LOG.debug("Creating consumer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
@@ -53,6 +55,7 @@ public class Consumer {
         this.clock = clock;
         this.channelMonitorAgent = channelMonitorAgent;
         this.validator = validator;
+        this.collectorManager = new CollectorManager(topic, channelManager);
     }
 
     /**
@@ -105,6 +108,22 @@ public class Consumer {
         Instant now = clock.instant();
 
         return expiryTime.isBefore(now);
+    }
+
+    public void registerCollector(Collector collector) {
+        collectorManager.registerCollector(collector);
+
+        if (messageHandler == null) {
+            synchronized (this) {
+                if (messageHandler == null) {
+                    messageHandler = collectorManager;
+                }
+            }
+        }
+    }
+
+    public CollectorManager getCollectorManager() {
+        return collectorManager;
     }
 
     public MessageHandler getMessageHandler() {
