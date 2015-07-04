@@ -1,21 +1,5 @@
 package io.github.tcdl.impl;
 
-import io.github.tcdl.ChannelManager;
-import io.github.tcdl.MsbContextImpl;
-import io.github.tcdl.Producer;
-import io.github.tcdl.api.MessageTemplate;
-import io.github.tcdl.api.Responder;
-import io.github.tcdl.api.message.Message;
-import io.github.tcdl.api.message.payload.Payload;
-import io.github.tcdl.config.MsbConfigurations;
-import io.github.tcdl.message.MessageFactory;
-import io.github.tcdl.support.TestUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
-import java.time.Clock;
-
 import static junit.framework.TestCase.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -25,6 +9,22 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import io.github.tcdl.ChannelManager;
+import io.github.tcdl.Producer;
+import io.github.tcdl.api.MessageTemplate;
+import io.github.tcdl.api.MsbContextBuilder;
+import io.github.tcdl.api.Responder;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.message.MessageFactory;
+import io.github.tcdl.support.TestUtils;
+
+import java.time.Clock;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * Created by anstr on 5/26/2015.
@@ -67,7 +67,7 @@ public class ResponderImplTest {
 
     @Test
     public void testResponderConstructorOk() {
-        MsbContextImpl context = (MsbContextImpl) new MsbContextImpl.MsbContextBuilder().build();
+        MsbContextImpl context = TestUtils.createSimpleMsbContext();
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
         new ResponderImpl(config, originalMessage, context);
     }

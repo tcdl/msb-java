@@ -4,17 +4,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.github.tcdl.MsbContextImpl;
+
 import io.github.tcdl.adapters.mock.MockAdapter;
 import io.github.tcdl.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.impl.MsbContextImpl;
 import io.github.tcdl.impl.RequesterImpl;
 import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -44,7 +47,7 @@ public class RequesterIT {
     @Test
     public void testRequestMessage() throws Exception {
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        RequesterImpl requester = RequesterImpl.create(NAMESPACE, requestOptions, msbContext);
+        Requester requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);

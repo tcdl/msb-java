@@ -1,14 +1,13 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.MsbContextImpl;
-import io.github.tcdl.impl.RequesterImpl;
 import io.github.tcdl.api.Callback;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.MsbContext;
+import io.github.tcdl.api.MsbContextBuilder;
 import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.Requester;
 import io.github.tcdl.api.Responder;
-import io.github.tcdl.impl.ResponderServerImpl;
+import io.github.tcdl.api.ResponderServer;
 import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.Utils;
@@ -27,7 +26,7 @@ public class BaseExample {
     }
 
     public void init() {
-        context = new MsbContextImpl.MsbContextBuilder().withShutdownHook(true).build();
+        context = new MsbContextBuilder().withShutdownHook(true).build();
     }
 
     public Requester createRequester(String namespace, Integer numberOfResponses) {
@@ -52,7 +51,7 @@ public class BaseExample {
         sendRequest(requester, "QUERY", null, true, waitForResponses, null, responseCallback);
     }
 
-    public void sendRequest(RequesterImpl requester, String body, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
+    public void sendRequest(Requester requester, String body, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
         sendRequest(requester, null, body, false, waitForResponses, null, responseCallback);
     }
 
@@ -75,10 +74,10 @@ public class BaseExample {
         requester.publish(createPayload(query, body));
     }
 
-    public ResponderServerImpl createResponderServer(String namespace, ResponderServerImpl.RequestHandler requestHandler) {
+    public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler requestHandler) {
         MessageTemplate options = new MessageTemplate();
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
-        return ResponderServerImpl.create(namespace, options, (MsbContextImpl) context, requestHandler);
+        return context.getObjectFactory().createResponderServer(namespace, options, requestHandler);
     }
 
     public void respond(Responder responder) {

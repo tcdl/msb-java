@@ -1,11 +1,11 @@
 package io.github.tcdl.impl;
 
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.ResponderServer;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
+
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ public class ResponderServerImpl implements ResponderServer {
      * @param requestHandler  handler for processing the request
      * @return new instance of a {@link ResponderServerImpl}
      */
-    public static ResponderServerImpl create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler) {
+    static ResponderServerImpl create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler) {
         return new ResponderServerImpl(namespace, messageTemplate, msbContext, requestHandler);
     }
 

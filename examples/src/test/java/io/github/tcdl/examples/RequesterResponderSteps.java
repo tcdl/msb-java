@@ -1,9 +1,12 @@
 package io.github.tcdl.examples;
 
 import io.github.tcdl.api.Requester;
-import io.github.tcdl.impl.ResponderServerImpl;
+import io.github.tcdl.api.ResponderServer;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.Utils;
+
+import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;
@@ -13,9 +16,6 @@ import org.jbehave.core.model.ExamplesTable;
 import org.jbehave.core.model.OutcomesTable;
 import org.junit.Assert;
 
-import java.lang.reflect.Method;
-import java.util.Map;
-
 /**
  * Created by rdrozdov-tc on 6/25/15.
  */
@@ -24,7 +24,7 @@ public class RequesterResponderSteps extends BaseExample {
     private final static String MICROSERVICE_PACKAGE = "io.github.tcdl.examples";
 
     private Requester requester;
-    private ResponderServerImpl responderServer;
+    private ResponderServer responderServer;
     private String responseBody;
     private Map<String, Object> receivedResponse;
 
