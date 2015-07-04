@@ -1,17 +1,20 @@
-package io.github.tcdl;
+package io.github.tcdl.api;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-
-import io.github.tcdl.RequesterImpl;
+import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.adapters.mock.MockAdapter;
-import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.exception.JsonSchemaValidationException;
-import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.impl.RequesterImpl;
 import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -19,16 +22,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 /**
- * @author ruk
- * 
  * Component test for requester message generation validation
  */
 public class RequesterIT {
@@ -49,19 +43,15 @@ public class RequesterIT {
 
     @Test
     public void testRequestMessage() throws Exception {
-        String namespace = "test:requester";
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        RequesterImpl requester = RequesterImpl.create(namespace, requestOptions, msbContext);
+        RequesterImpl requester = RequesterImpl.create(NAMESPACE, requestOptions, msbContext);
         requester.publish(requestPayload);
-        Message message = requester.getMessage();
-
-        assertEquals("Message payload not match sent", requestPayload, message.getPayload());
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
-        assertRequestMessage(adapterJsonMessage, message);
+        assertRequestMessage(adapterJsonMessage, requestPayload);
     }
 
-    private void assertRequestMessage(String json, Message message) {
+    private void assertRequestMessage(String json, Payload payload) {
 
         try {
             validator.validate(json, this.msbContext.getMsbConfig().getSchema());
@@ -71,10 +61,10 @@ public class RequesterIT {
             assertTrue("Message not contain 'body' field", jsonObject.getJSONObject("payload").has("body")); 
             assertTrue("Message not contain 'headers' field", jsonObject.getJSONObject("payload").has("headers"));            
             
-            // payload fields match sended 
-            assertEquals("Message 'body' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(message.getPayload().getBodyAs(Map.class)),
+            // payload fields match sent
+            assertEquals("Message 'body' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(payload.getBodyAs(Map.class)),
                     jsonObject.getJSONObject("payload").get("body").toString());
-            assertEquals("Message 'headers' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(message.getPayload().getHeaders()), jsonObject
+            assertEquals("Message 'headers' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(payload.getHeaders()), jsonObject
                     .getJSONObject("payload").get("headers").toString());
 
             //topics

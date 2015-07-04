@@ -1,8 +1,7 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.RequesterImpl;
 import io.github.tcdl.api.Requester;
-import io.github.tcdl.api.ResponderServer;
+import io.github.tcdl.impl.ResponderServerImpl;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.Utils;
 
@@ -25,7 +24,7 @@ public class RequesterResponderSteps extends BaseExample {
     private final static String MICROSERVICE_PACKAGE = "io.github.tcdl.examples";
 
     private Requester requester;
-    private ResponderServer responderServer;
+    private ResponderServerImpl responderServer;
     private String responseBody;
     private Map<String, Object> receivedResponse;
 

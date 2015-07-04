@@ -1,6 +1,5 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.RequesterImpl;
 import io.github.tcdl.api.Requester;
 
 /**

@@ -1,4 +1,4 @@
-package io.github.tcdl.api;
+package io.github.tcdl.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.anyObject;
@@ -6,14 +6,15 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.MessageHandler;
 import io.github.tcdl.MsbContextImpl;
+import io.github.tcdl.api.MessageTemplate;
+import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
-import io.github.tcdl.impl.ResponderImpl;
 import io.github.tcdl.support.TestUtils;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -21,7 +22,7 @@ import org.mockito.ArgumentCaptor;
 /**
  * Created by rdro on 4/30/2015.
  */
-public class ResponderServerTest {
+public class ResponderServerImplTest {
 
     private RequestOptions requestOptions;
     private MessageTemplate messageTemplate;
@@ -37,9 +38,8 @@ public class ResponderServerTest {
 
     @Test
     public void testResponderServerProcessSuccess() throws Exception {
-
         String namespace = TestUtils.getSimpleNamespace();
-        ResponderServer.RequestHandler handler = (request, responder) -> {
+        ResponderServerImpl.RequestHandler handler = (request, responder) -> {
         };
 
         ArgumentCaptor<MessageHandler> subscriberCaptor = ArgumentCaptor.forClass(MessageHandler.class);
@@ -48,10 +48,10 @@ public class ResponderServerTest {
 
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 
-        ResponderServer responderServer = ResponderServer
+        ResponderServerImpl responderServer = ResponderServerImpl
                 .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler);
 
-        ResponderServer spyResponderServer = spy(responderServer).listen();
+        ResponderServerImpl spyResponderServer = (ResponderServerImpl) spy(responderServer).listen();
 
         verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
 
@@ -63,16 +63,15 @@ public class ResponderServerTest {
 
     @Test(expected = NullPointerException.class)
     public void testResponderServerProcessErrorNoHandler() throws Exception {
-        ResponderServer.create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, null);
+        ResponderServerImpl.create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, null);
     }
 
     @Test
     public void testResponderServerProcessWithError() throws Exception {
-
         Exception error = new Exception();
-        ResponderServer.RequestHandler handler = (request, responder) -> { throw error; };
+        ResponderServerImpl.RequestHandler handler = (request, responder) -> { throw error; };
 
-        ResponderServer responderServer = ResponderServer
+        ResponderServerImpl responderServer = (ResponderServerImpl) ResponderServerImpl
                 .create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, handler)
                 .listen();
 

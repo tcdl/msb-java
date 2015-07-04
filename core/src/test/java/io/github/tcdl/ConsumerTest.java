@@ -44,9 +44,6 @@ public class ConsumerTest {
     @Mock
     private ChannelMonitorAgent channelMonitorAgentMock;
 
-    @Captor
-    private ArgumentCaptor<RawMessageHandler> messageHandlerCaptor;
-
     @Mock
     private MessageHandler messageHandlerMock;
 

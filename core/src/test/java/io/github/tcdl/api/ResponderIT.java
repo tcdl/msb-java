@@ -1,15 +1,13 @@
-package io.github.tcdl.impl;
+package io.github.tcdl.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.adapters.mock.MockAdapter;
-import io.github.tcdl.api.MessageTemplate;
-import io.github.tcdl.api.MsbContext;
-import io.github.tcdl.api.Responder;
 import io.github.tcdl.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.impl.ResponderImpl;
 import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
