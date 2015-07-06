@@ -76,7 +76,6 @@ public class RequesterResponderIT {
         CountDownLatch ackSend = new CountDownLatch(1);
         CountDownLatch ackResponseReceived = new CountDownLatch(1);
 
-        List<Message> sentAcks = new LinkedList<>();
         List<Acknowledge> receivedResponseAcks = new LinkedList<>();
 
         //Create and send request message directly to broker, wait for ack  
@@ -91,8 +90,7 @@ public class RequesterResponderIT {
         //listen for message and send ack
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
         serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, response) -> {
-            Message message = response.sendAck(100, 2);
-            sentAcks.add(message);
+            response.sendAck(100, 2);
             ackSend.countDown();
         })
                 .listen();
@@ -100,7 +98,6 @@ public class RequesterResponderIT {
         assertTrue("Message ack was not send", ackSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         assertTrue("Message ack response not received", ackResponseReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         assertTrue("Expected one ack", receivedResponseAcks.size() == 1);
-        assertEquals(sentAcks.get(0).getAck().getResponderId(), receivedResponseAcks.get(0).getResponderId());
     }
 
     @Test
@@ -199,7 +196,6 @@ public class RequesterResponderIT {
         CountDownLatch ackSend = new CountDownLatch(requestsToSendDuringTest);
         CountDownLatch ackResponseReceived = new CountDownLatch(requestsToSendDuringTest);
 
-        List<Message> sentAcks = new LinkedList<>();
         Set<Acknowledge> receivedResponseAcks = new HashSet<>();
 
         //Create and send request messages directly to broker, wait for ack
@@ -227,8 +223,7 @@ public class RequesterResponderIT {
         Random randomAckValue = new Random();
         randomAckValue.ints();
         serverMsbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
-            Message message = response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
-            sentAcks.add(message);
+            response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
             ackSend.countDown();
         })
                 .listen();
@@ -236,6 +231,5 @@ public class RequesterResponderIT {
         assertTrue("Message ack was not send", ackSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         assertTrue("Message ack response not received", ackResponseReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         assertTrue("Expected one ack", receivedResponseAcks.size() == requestsToSendDuringTest);
-        assertEquals(sentAcks.stream().map(Message::getAck).collect(toSet()), receivedResponseAcks);
     }
 }

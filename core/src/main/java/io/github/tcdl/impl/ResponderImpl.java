@@ -38,7 +38,7 @@ public class ResponderImpl implements Responder {
      * {@inheritDoc}
      */
     @Override
-    public Message sendAck(Integer timeoutMs, Integer responsesRemaining) {
+    public void sendAck(Integer timeoutMs, Integer responsesRemaining) {
         AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.withResponderId(responderId);
         ackBuilder.withTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
@@ -46,23 +46,19 @@ public class ResponderImpl implements Responder {
 
         Message message = this.messageFactory.createResponseMessage(this.messageBuilder, ackBuilder.build(), null);
         sendMessage(message);
-
-        return message;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Message send(Payload responsePayload) {
+    public void send(Payload responsePayload) {
         AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.withResponderId(responderId);
         ackBuilder.withResponsesRemaining(-1);
 
         Message message = this.messageFactory.createResponseMessage(this.messageBuilder, ackBuilder.build(), responsePayload);
         sendMessage(message);
-
-        return message;
     }
 
     private void sendMessage(Message message) {
