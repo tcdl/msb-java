@@ -48,12 +48,10 @@ public class ResponderIT {
 
         Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
 
-        Message ackMessage = responder.sendAck(1000, 2);
-
-        assertNull("Message payload shouldn't be set", ackMessage.getPayload());
+        responder.sendAck(1000, 2);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());
-        assertAckMessage(adapterJsonMessage, ackMessage);
+        assertNotNull("Ack message shouldn't be null", adapterJsonMessage);
     }
 
     private void assertAckMessage(String recievedAckMsg, Message originalAckMsg) {
@@ -93,12 +91,10 @@ public class ResponderIT {
 
         Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
         Payload responsePayload = TestUtils.createSimpleResponsePayload();
-        Message responseMessage = responder.send(responsePayload);
-
-        assertEquals("Message payload not match sended", responsePayload, responseMessage.getPayload());
+        responder.send(responsePayload);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());
-        assertResponseMessage(adapterJsonMessage, responseMessage);
+        assertNotNull("Response message shouldn't be null", adapterJsonMessage);
     }
 
     private void assertResponseMessage(String receivedResponseMsg, Message originalResponseMsg) {
