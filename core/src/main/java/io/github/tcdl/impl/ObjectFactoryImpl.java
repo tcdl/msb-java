@@ -5,7 +5,6 @@ import io.github.tcdl.api.ObjectFactory;
 import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.Requester;
 import io.github.tcdl.api.ResponderServer;
-import io.github.tcdl.api.ResponderServer.RequestHandler;
 import io.github.tcdl.api.message.Message;
 
 /**
@@ -43,5 +42,4 @@ public class ObjectFactoryImpl implements ObjectFactory {
     public ResponderServer createResponderServer(String namespace,  MessageTemplate messageTemplate, ResponderServer.RequestHandler requestHandler) {
         return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler);
     }
-
 }
