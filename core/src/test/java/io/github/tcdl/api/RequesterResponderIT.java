@@ -4,7 +4,6 @@ import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.impl.RequesterImpl;
 import io.github.tcdl.adapters.mock.MockAdapter;
 import io.github.tcdl.api.message.Acknowledge;
-import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.impl.ResponderServerImpl;
 import io.github.tcdl.support.TestUtils;
@@ -23,7 +22,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.stream.Collectors.toSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -65,10 +63,46 @@ public class RequesterResponderIT {
     }
 
     @Test
+    public void testResponderAnswerWithAckRequesterReceiveAck() throws Exception {
+        String namespace = "test:requester-responder-test-get-ack";
+        MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
+                .withWaitForResponses(1)
+                .build();
+
+        CountDownLatch ackSend = new CountDownLatch(1);
+        CountDownLatch ackResponseReceived = new CountDownLatch(1);
+
+        List<Acknowledge> receivedResponseAcks = new LinkedList<>();
+
+        //Create and send request message directly to broker, wait for ack
+        Payload requestPayload = TestUtils.createSimpleRequestPayload();
+        RequesterImpl.create(namespace, requestOptions, msbContext).
+                onAcknowledge((Acknowledge ack) -> {
+                    receivedResponseAcks.add(ack);
+                    ackResponseReceived.countDown();
+                })
+                .publish(requestPayload);
+
+        //listen for message and send ack
+        MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
+        ResponderServerImpl.create(namespace, messageTemplate, serverMsbContext, (request, response) -> {
+            response.sendAck(100, 2);
+            ackSend.countDown();
+        })
+                .listen();
+
+        assertTrue("Message ack was not send", ackSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
+        assertTrue("Message ack response not received", ackResponseReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
+        assertTrue("Expected one ack", receivedResponseAcks.size() == 1);
+    }
+
+    @Test
     public void testResponderAnswerWithResponseRequesterReceiveResponse() throws Exception {
         String namespace = "test:requester-responder-test-get-resp";
         MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
-        RequestOptions requestOptions =  new RequestOptions.Builder()
+        RequestOptions requestOptions = new RequestOptions.Builder()
             .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
             .withWaitForResponses(1)
             .build();
@@ -106,6 +140,57 @@ public class RequesterResponderIT {
         assertTrue("Message response not received", respReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         assertTrue("Expected one response", receivedResponses.size() == 1);
         assertEquals(sentResponses.poll().getStatusCode(), receivedResponses.poll().getStatusCode());
+    }
+
+    @Test
+    public void testMultipleRequesterListenForAcks() throws Exception {
+        String namespace = "test:requester-responder-test-send-multiple-requests-get-ack";
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withAckTimeout(100)
+                .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
+                .withWaitForResponses(1)
+                .build();
+
+        int requestsToSendDuringTest = 5;
+
+        CountDownLatch ackSend = new CountDownLatch(requestsToSendDuringTest);
+        CountDownLatch ackResponseReceived = new CountDownLatch(requestsToSendDuringTest);
+
+        Set<Acknowledge> receivedResponseAcks = new HashSet<>();
+
+        //Create and send request messages directly to broker, wait for ack
+        Payload requestPayload = TestUtils.createSimpleRequestPayload();
+
+        final AtomicInteger messagesToSend = new AtomicInteger(requestsToSendDuringTest);
+        Thread publishingThread = new Thread(() -> {
+            while (messagesToSend.get() > 0) {
+
+                RequesterImpl.create(namespace, requestOptions, msbContext).
+                        onAcknowledge((Acknowledge ack) -> {
+                            receivedResponseAcks.add(ack);
+                            ackResponseReceived.countDown();
+                        })
+                        .publish(requestPayload);
+                messagesToSend.decrementAndGet();
+            }
+
+        });
+        publishingThread.setDaemon(true);
+        publishingThread.start();
+
+        //listen for message and send ack
+        MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
+        Random randomAckValue = new Random();
+        randomAckValue.ints();
+        ResponderServerImpl.create(namespace, requestOptions.getMessageTemplate(), serverMsbContext, (request, response) -> {
+            response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
+            ackSend.countDown();
+        })
+                .listen();
+
+        assertTrue("Message ack was not send", ackSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
+        assertTrue("Message ack response not received", ackResponseReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
+        assertTrue("Expected one ack", receivedResponseAcks.size() == requestsToSendDuringTest);
     }
 
     @Test

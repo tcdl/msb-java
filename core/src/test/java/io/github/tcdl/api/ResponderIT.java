@@ -23,7 +23,6 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -38,6 +37,34 @@ public class ResponderIT {
     public void setUp() throws Exception {
         msbContext = (MsbContextImpl) new MsbContextImpl.MsbContextBuilder().build();
         validator = new JsonValidator();
+    }
+
+    @Test
+    public void testCreateAckMessage() throws Exception {
+        String namespace = "test:responder-ack";
+        MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
+        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
+
+        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
+
+        responder.sendAck(1000, 2);
+
+        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());
+        assertNotNull("Ack message shouldn't be null", adapterJsonMessage);
+    }
+
+    @Test
+    public void testCreateResponseMessage() throws Exception {
+        String namespace = "test:responder-response";
+        MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
+        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
+
+        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
+        Payload responsePayload = TestUtils.createSimpleResponsePayload();
+        responder.send(responsePayload);
+
+        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());
+        assertNotNull("Response message shouldn't be null", adapterJsonMessage);
     }
 
     private void assertAckMessage(String recievedAckMsg, Message originalAckMsg) {
