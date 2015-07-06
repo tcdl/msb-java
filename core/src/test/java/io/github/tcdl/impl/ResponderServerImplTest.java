@@ -6,15 +6,15 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.MessageHandler;
-import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.RequestOptions;
+import io.github.tcdl.api.ResponderServer;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.TestUtils;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -39,7 +39,7 @@ public class ResponderServerImplTest {
     @Test
     public void testResponderServerProcessSuccess() throws Exception {
         String namespace = TestUtils.getSimpleNamespace();
-        ResponderServerImpl.RequestHandler handler = (request, responder) -> {
+        ResponderServer.RequestHandler handler = (request, responder) -> {
         };
 
         ArgumentCaptor<MessageHandler> subscriberCaptor = ArgumentCaptor.forClass(MessageHandler.class);
@@ -63,17 +63,17 @@ public class ResponderServerImplTest {
 
     @Test(expected = NullPointerException.class)
     public void testResponderServerProcessErrorNoHandler() throws Exception {
-        ResponderServerImpl.create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, null);
+        msbContext.getObjectFactory().createResponderServer(TestUtils.getSimpleNamespace(), messageTemplate, null);
     }
 
     @Test
     public void testResponderServerProcessWithError() throws Exception {
         Exception error = new Exception();
-        ResponderServerImpl.RequestHandler handler = (request, responder) -> { throw error; };
+        ResponderServer.RequestHandler handler = (request, responder) -> { throw error; };
 
-        ResponderServerImpl responderServer = (ResponderServerImpl) ResponderServerImpl
-                .create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, handler)
-                .listen();
+        ResponderServerImpl responderServer = ResponderServerImpl
+                .create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, handler);
+        responderServer.listen();
 
         // simulate incoming request
         ArgumentCaptor<Payload> responseCaptor = ArgumentCaptor.forClass(Payload.class);

@@ -1,7 +1,7 @@
 package io.github.tcdl.api;
 
-import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.api.message.Message;
+import io.github.tcdl.impl.MsbContextImpl;
 
 /**
  * Provides methods for creation {@link Requester} and {@link ResponderServer}.
@@ -31,11 +31,10 @@ public interface ObjectFactory {
      *
      * @param namespace       topic on a bus for listening on incoming requests
      * @param messageTemplate template used for creating response messages
-     * @param msbContext      context inside which {@link ResponderServer} is working
      * @param requestHandler  handler for processing the request
      * @return new instance of a {@link ResponderServer}
      */
-    ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate, MsbContextImpl msbContext,
+    ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate, 
             ResponderServer.RequestHandler requestHandler);
 
 }

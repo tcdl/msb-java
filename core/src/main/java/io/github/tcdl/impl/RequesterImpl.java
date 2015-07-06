@@ -2,7 +2,6 @@ package io.github.tcdl.impl;
 
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.Collector;
-import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.api.Callback;
 import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.Requester;
@@ -12,6 +11,7 @@ import io.github.tcdl.api.message.Message.MessageBuilder;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.message.MessageFactory;
+
 import org.apache.commons.lang3.Validate;
 
 import java.util.List;
@@ -37,7 +37,7 @@ public class RequesterImpl implements Requester {
      * @param context shared by all Requester instances
      * @return instance of a requester
      */
-    public static RequesterImpl create(String namespace, RequestOptions requestOptions, MsbContextImpl context) {
+    static RequesterImpl create(String namespace, RequestOptions requestOptions, MsbContextImpl context) {
         return new RequesterImpl(namespace, requestOptions, null, context);
     }
 
@@ -50,7 +50,7 @@ public class RequesterImpl implements Requester {
      * @param context shared by all Requester instances
      * @return instance of a requester
      */
-    public static RequesterImpl create(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContextImpl context) {
+    static RequesterImpl create(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContextImpl context) {
         return new RequesterImpl(namespace, requestOptions, originalMessage, context);
     }
 

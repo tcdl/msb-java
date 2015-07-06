@@ -1,19 +1,21 @@
 package io.github.tcdl.support;
 
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.TimeoutManager;
 import io.github.tcdl.api.MessageTemplate;
-import io.github.tcdl.api.message.Acknowledge;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.api.ObjectFactory;
 import io.github.tcdl.api.RequestOptions;
+import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.Message.MessageBuilder;
-import io.github.tcdl.message.MessageFactory;
 import io.github.tcdl.api.message.MetaMessage;
 import io.github.tcdl.api.message.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.api.message.Topics;
 import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.impl.MsbContextImpl;
+import io.github.tcdl.impl.ObjectFactoryImpl;
+import io.github.tcdl.message.MessageFactory;
 
 import java.time.Clock;
 import java.util.HashMap;
@@ -149,6 +151,7 @@ public class TestUtils {
         private Optional<ChannelManager> channelManagerOp = Optional.empty(); 
         private Optional<Clock> clockOp = Optional.empty();
         private Optional<TimeoutManager> timeoutManagerOp = Optional.empty();
+        private Optional<ObjectFactory> objectFactoryOp = Optional.empty(); 
 
         public TestMsbContextBuilder withMsbConfigurations(MsbConfigurations msbConfig) {
             this.msbConfigOp = Optional.ofNullable(msbConfig);
@@ -174,6 +177,11 @@ public class TestUtils {
             this.timeoutManagerOp = Optional.ofNullable(timeoutManager);
             return this;
         }
+        
+        public TestMsbContextBuilder withObjectFactory(ObjectFactory objectFactory) {
+            this.objectFactoryOp = Optional.ofNullable(objectFactory);
+            return this;
+        } 
 
         public MsbContextImpl build() {
             MsbConfigurations msbConfig = msbConfigOp.orElse(TestUtils.createMsbConfigurations());
@@ -181,13 +189,21 @@ public class TestUtils {
             ChannelManager channelManager = channelManagerOp.orElseGet(() -> new ChannelManager(msbConfig, clock, new JsonValidator()));
             MessageFactory messageFactory = messageFactoryOp.orElseGet(() -> new MessageFactory(msbConfig.getServiceDetails(), clock));
             TimeoutManager timeoutManager = timeoutManagerOp.orElseGet(() -> new TimeoutManager(1));
-            return new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+            TestMsbContext msbContext = new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+            
+            ObjectFactory objectFactory = objectFactoryOp.orElseGet(() -> new ObjectFactoryImpl(msbContext));
+            msbContext.setFactory(objectFactory);
+            return msbContext;
         }
 
         private static class TestMsbContext extends MsbContextImpl {
             TestMsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory,
                     ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
                 super(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+            }
+            
+            public void setFactory(ObjectFactory objectFactory) {
+                super.setObjectFactory(objectFactory);
             }
         }
 

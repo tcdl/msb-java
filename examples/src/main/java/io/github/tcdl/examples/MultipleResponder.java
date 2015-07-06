@@ -1,9 +1,8 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.MsbContextImpl;
-import io.github.tcdl.api.MsbContext;
-import io.github.tcdl.impl.ResponderServerImpl;
 import io.github.tcdl.api.MessageTemplate;
+import io.github.tcdl.api.MsbContext;
+import io.github.tcdl.api.MsbContextBuilder;
 import io.github.tcdl.api.message.payload.Payload;
 
 import java.util.Map;
@@ -14,15 +13,15 @@ import java.util.Map;
 public class MultipleResponder {
 
     public static void main(String... args) {
-        MsbContext msbContext = new MsbContextImpl.MsbContextBuilder().
-                withShutdownHook(true).
-                build();
+        MsbContext msbContext = new MsbContextBuilder()
+                .withShutdownHook(true)
+                .build();
         runResponder("test:aggregator", msbContext);
     }
 
     public static void runResponder(String namespace, MsbContext msbContext) {
         MessageTemplate options = new MessageTemplate();
-        ResponderServerImpl.create(namespace, options, (MsbContextImpl) msbContext, (request, responder) -> {
+        msbContext.getObjectFactory().createResponderServer(namespace, options, (request, responder) -> {
             Map requestBody = request.getBodyAs(Map.class);
             System.out.println(">>> GOT request: " + requestBody);
 
