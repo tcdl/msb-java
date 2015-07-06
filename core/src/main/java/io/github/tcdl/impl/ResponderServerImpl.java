@@ -3,6 +3,7 @@ package io.github.tcdl.impl;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.MsbContextImpl;
 import io.github.tcdl.api.MessageTemplate;
+import io.github.tcdl.api.Responder;
 import io.github.tcdl.api.ResponderServer;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
@@ -69,7 +70,7 @@ public class ResponderServerImpl implements ResponderServer {
         }
     }
 
-    private void errorHandler(ResponderImpl responder, Exception exception) {
+    private void errorHandler(Responder responder, Exception exception) {
         Message originalMessage = responder.getOriginalMessage();
         LOG.error("Handling error for message with id {}", originalMessage.getId());
         Payload responsePayload = new Payload.PayloadBuilder()

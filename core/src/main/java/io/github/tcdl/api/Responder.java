@@ -24,4 +24,9 @@ public interface Responder {
      * @return response message which was sent
      */
     Message send(Payload responsePayload);
+
+    /**
+     * @return original message to send a response to
+     */
+    Message getOriginalMessage();
 }
