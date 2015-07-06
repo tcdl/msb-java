@@ -4,9 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-/**
- * Created by ruslan on 15.06.15.
- */
 public class RequestOptionsTest {
 
     @Test

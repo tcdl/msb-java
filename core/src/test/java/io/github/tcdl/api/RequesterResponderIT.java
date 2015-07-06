@@ -1,17 +1,7 @@
 package io.github.tcdl.api;
 
-import io.github.tcdl.impl.MsbContextImpl;
-import io.github.tcdl.impl.RequesterImpl;
-import io.github.tcdl.adapters.mock.MockAdapter;
-import io.github.tcdl.api.message.Acknowledge;
-import io.github.tcdl.api.message.Message;
-import io.github.tcdl.api.message.payload.Payload;
-import io.github.tcdl.impl.ResponderServerImpl;
-import io.github.tcdl.support.TestUtils;
-
-import org.junit.Before;
-import org.junit.Test;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -23,9 +13,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.stream.Collectors.toSet;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import io.github.tcdl.adapters.mock.MockAdapter;
+import io.github.tcdl.api.message.Acknowledge;
+import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.impl.MsbContextImpl;
+import io.github.tcdl.support.TestUtils;
+import org.junit.Before;
+import org.junit.Test;
 
 public class RequesterResponderIT {
 

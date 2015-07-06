@@ -1,14 +1,13 @@
 package io.github.tcdl.api;
 
 import io.github.tcdl.api.message.Message;
-import io.github.tcdl.impl.MsbContextImpl;
 
 /**
  * Provides methods for creation {@link Requester} and {@link ResponderServer}.
  */
 public interface ObjectFactory {
     /**
-     * Creates a new instance of a requester.
+     * Creates a new instance of {@link Requester}.
      *
      * @param namespace      topic name to send a request to
      * @param requestOptions options to configure a requester
@@ -17,7 +16,7 @@ public interface ObjectFactory {
     Requester createRequester(String namespace, RequestOptions requestOptions);
 
     /**
-     * Creates a new instance of a requester with originalMessage.
+     * Creates a new instance of {@link Requester} with originalMessage.
      *
      * @param namespace       topic name to send a request to
      * @param requestOptions  options to configure a requester
@@ -36,5 +35,4 @@ public interface ObjectFactory {
      */
     ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate, 
             ResponderServer.RequestHandler requestHandler);
-
 }
