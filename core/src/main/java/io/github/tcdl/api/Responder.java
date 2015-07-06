@@ -1,6 +1,5 @@
 package io.github.tcdl.api;
 
-import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
 
 /**
