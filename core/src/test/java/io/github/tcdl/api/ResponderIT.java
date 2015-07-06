@@ -40,22 +40,6 @@ public class ResponderIT {
         validator = new JsonValidator();
     }
 
-    @Test
-    public void testCreateAckMessage() throws Exception {
-        String namespace = "test:responder-ack";
-        MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
-        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
-
-        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
-
-        Message ackMessage = responder.sendAck(1000, 2);
-
-        assertNull("Message payload shouldn't be set", ackMessage.getPayload());
-
-        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());
-        assertAckMessage(adapterJsonMessage, ackMessage);
-    }
-
     private void assertAckMessage(String recievedAckMsg, Message originalAckMsg) {
         try {
             validator.validate(recievedAckMsg, this.msbContext.getMsbConfig().getSchema());
@@ -83,22 +67,6 @@ public class ResponderIT {
             LOG.error("Exception while parse message ack", e);
             fail("Message validation failed");
         }
-    }
-
-    @Test
-    public void testCreateResponseMessage() throws Exception {
-        String namespace = "test:responder-response";
-        MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
-        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
-
-        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
-        Payload responsePayload = TestUtils.createSimpleResponsePayload();
-        Message responseMessage = responder.send(responsePayload);
-
-        assertEquals("Message payload not match sended", responsePayload, responseMessage.getPayload());
-
-        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());
-        assertResponseMessage(adapterJsonMessage, responseMessage);
     }
 
     private void assertResponseMessage(String receivedResponseMsg, Message originalResponseMsg) {
