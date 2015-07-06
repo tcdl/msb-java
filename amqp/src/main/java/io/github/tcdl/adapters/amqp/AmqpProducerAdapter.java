@@ -40,7 +40,7 @@ public class AmqpProducerAdapter implements ProducerAdapter {
     @Override
     public void publish(String jsonMessage) {
         try {
-            Charset charset = Charset.forName(amqpBrokerConfig.getCharsetName());
+            Charset charset = amqpBrokerConfig.getCharset();
             channel.basicPublish(exchangeName, "" /* routing key */, MessageProperties.PERSISTENT_BASIC, jsonMessage.getBytes(charset));
         } catch (IOException e) {
             throw new ChannelException(String.format("Failed to publish message '%s' into exchange '%s'", jsonMessage, exchangeName), e);

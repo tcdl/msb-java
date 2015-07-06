@@ -6,6 +6,8 @@ import io.github.tcdl.api.exception.ConfigurationException;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig.AmqpBrokerConfigBuilder;
 import org.junit.Test;
 
+import java.nio.charset.Charset;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -43,7 +45,7 @@ public class AmqpBrokerConfigTest {
         AmqpBrokerConfigBuilder brokerConfigBuilder = new AmqpBrokerConfigBuilder();
         AmqpBrokerConfig brokerConfig = brokerConfigBuilder.withConfig(amqpConfig).build();
 
-        assertEquals(brokerConfig.getCharsetName(), charsetName);
+        assertEquals(brokerConfig.getCharset(), Charset.forName(charsetName));
         assertEquals(brokerConfig.getHost(), host);
         assertEquals(brokerConfig.getPort(), port);
         assertEquals(brokerConfig.getGroupId(), groupId);
@@ -196,6 +198,27 @@ public class AmqpBrokerConfigTest {
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "charsetName");
+    }
+
+    @Test(expected = ConfigurationException.class)
+    public void testInvalidCharset() {
+        String invalidCharset = "blah";
+
+        String configStr = "config.amqp {"
+                + " charsetName = \"" + invalidCharset + "\"\n"
+                + " host = \"" + host + "\"\n"
+                + " port = \"" + port + "\"\n"
+                + " username = \"" + username + "\"\n"
+                + " password = \"" + password + "\"\n"
+                + " virtualHost = \"" + virtualHost + "\"\n"
+                + " groupId = \"" + groupId + "\"\n"
+                + " durable = " + durable + "\n"
+                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + "}";
+
+        AmqpBrokerConfigBuilder builder = createConfigBuilder(configStr);
+        builder.build();
     }
 
     private void testMandatoryConfigurationOption(String configStr, String path) {

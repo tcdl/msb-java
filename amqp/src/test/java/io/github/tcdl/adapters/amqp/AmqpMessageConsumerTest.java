@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -33,7 +34,7 @@ public class AmqpMessageConsumerTest {
         mockExecutorService = mock(ExecutorService.class);
         mockMessageHandler = mock(RawMessageHandler.class);
 
-        amqpMessageConsumer = new AmqpMessageConsumer(mockChannel, mockExecutorService, mockMessageHandler, "UTF-8");
+        amqpMessageConsumer = new AmqpMessageConsumer(mockChannel, mockExecutorService, mockMessageHandler, Charset.forName("UTF-8"));
     }
 
     @Test
@@ -73,13 +74,13 @@ public class AmqpMessageConsumerTest {
 
     @Test
     public void testProperCharsetUsed() throws IOException {
-        byte[] encodedMessage = new byte[] { -10 }; // In ISO-8859-1 ö is mapped to 246 (which is equal to -10 during int -> byte conversion)
+        byte[] encodedMessage = new byte[] { 0, 0, 0, -10 }; // In UTF-32 ö is mapped to 000000f6
         String expectedDecodedMessage = "ö";
 
         Envelope envelope = mock(Envelope.class);
         when(envelope.getDeliveryTag()).thenReturn(1234L);
 
-        AmqpMessageConsumer consumer = new AmqpMessageConsumer(mockChannel, mockExecutorService, mockMessageHandler, "ISO-8859-1");
+        AmqpMessageConsumer consumer = new AmqpMessageConsumer(mockChannel, mockExecutorService, mockMessageHandler, Charset.forName("UTF-32"));
         consumer.handleDelivery("some tag", envelope, null, encodedMessage);
 
         ArgumentCaptor<AmqpMessageProcessingTask> taskCaptor = ArgumentCaptor.forClass(AmqpMessageProcessingTask.class);

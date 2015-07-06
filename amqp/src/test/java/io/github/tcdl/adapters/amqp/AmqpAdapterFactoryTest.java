@@ -12,6 +12,7 @@ import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +29,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 
 public class AmqpAdapterFactoryTest {
-    final String charsetName = "UTF-8";
+    final Charset charset = Charset.forName("UTF-8");
     final String host = "127.0.0.1";
     final int port = 5672;
     final String username = "user";
@@ -74,7 +75,7 @@ public class AmqpAdapterFactoryTest {
             fail("Can't create mockConsumerThreadPool");
         }
         
-        amqpConfig = new AmqpBrokerConfig(charsetName, host, port,
+        amqpConfig = new AmqpBrokerConfig(charset, host, port,
                 Optional.of(username), Optional.of(password), Optional.of(virtualHost), groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
         
         amqpAdapterFactory = new AmqpAdapterFactory() {

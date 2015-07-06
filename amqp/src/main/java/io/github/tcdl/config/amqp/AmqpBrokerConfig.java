@@ -1,5 +1,6 @@
 package io.github.tcdl.config.amqp;
 
+import java.nio.charset.Charset;
 import java.util.Optional;
 
 import io.github.tcdl.config.ConfigurationUtil;
@@ -9,7 +10,7 @@ import com.typesafe.config.Config;
 
 public class AmqpBrokerConfig {
 
-    private String charsetName;
+    private Charset charset;
 
     private final int port;
     private final String host;
@@ -22,11 +23,11 @@ public class AmqpBrokerConfig {
     private final int consumerThreadPoolSize;
     private final int consumerThreadPoolQueueCapacity;
 
-    public AmqpBrokerConfig(String charsetName, String host, int port,
+    public AmqpBrokerConfig(Charset charset, String host, int port,
             Optional<String> username, Optional<String> password, Optional<String> virtualHost,
             String groupId, boolean durable,
             int consumerThreadPoolSize, int consumerThreadPoolQueueCapacity) {
-        this.charsetName = charsetName;
+        this.charset = charset;
         this.port = port;
         this.host = host;
         this.username = username;
@@ -39,7 +40,7 @@ public class AmqpBrokerConfig {
     }
 
     public static class AmqpBrokerConfigBuilder {
-        private String charsetName;
+        private Charset charset;
         private int port;
         private String host;
         private Optional<String> username;
@@ -56,7 +57,12 @@ public class AmqpBrokerConfig {
          * @throws ConfigurationException if provided configuration is broken
          */
         public AmqpBrokerConfigBuilder withConfig(Config config) {
-            this.charsetName = ConfigurationUtil.getString(config, "charsetName");
+            String charsetName = ConfigurationUtil.getString(config, "charsetName");
+            try {
+                this.charset = Charset.forName(charsetName);
+            } catch (Exception e) {
+                throw new ConfigurationException(String.format("Unable to load the configured charset: '%s'", charsetName), e);
+            }
 
             this.host = ConfigurationUtil.getString(config, "host");
             this.port = ConfigurationUtil.getInt(config, "port");
@@ -76,13 +82,13 @@ public class AmqpBrokerConfig {
          * @throws ConfigurationException if provided configuration is broken
          */
         public AmqpBrokerConfig build() {
-            return new AmqpBrokerConfig(charsetName, host, port, username, password, virtualHost,
+            return new AmqpBrokerConfig(charset, host, port, username, password, virtualHost,
                     groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
         }
     }
 
-    public String getCharsetName() {
-        return charsetName;
+    public Charset getCharset() {
+        return charset;
     }
 
     public String getHost() {
@@ -127,8 +133,8 @@ public class AmqpBrokerConfig {
 
     @Override
     public String toString() {
-        return String.format("AmqpBrokerConfig [charsetName=%s, host=%s, port=%d, username=%s, password=xxx, virtualHost=%s, groupId=%s, durable=%s, consumerThreadPoolSize=%s, consumerThreadPoolQueueCapacity=%s]",
-                charsetName, host, port, username, virtualHost, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
+        return String.format("AmqpBrokerConfig [charset=%s, host=%s, port=%d, username=%s, password=xxx, virtualHost=%s, groupId=%s, durable=%s, consumerThreadPoolSize=%s, consumerThreadPoolQueueCapacity=%s]",
+                charset, host, port, username, virtualHost, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
     }
 
 }
