@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
@@ -123,7 +124,7 @@ public class AmqpConsumerAdapterTest {
     }
 
     private AmqpConsumerAdapter createAdapter(String topic, String groupId, boolean durable) {
-        AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig("UTF-8", "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(), groupId, durable, 5, 20);
+        AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig(Charset.forName("UTF-8"), "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(), groupId, durable, 5, 20);
         return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, mockConsumerThreadPool);
     }
 }

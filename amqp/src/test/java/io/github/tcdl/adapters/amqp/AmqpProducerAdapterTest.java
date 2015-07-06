@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.mockito.AdditionalMatchers;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -29,7 +30,7 @@ public class AmqpProducerAdapterTest {
         Connection mockConnection = mock(Connection.class);
         mockChannel = mock(Channel.class);
         mockAmqpBrokerConfig = mock(AmqpBrokerConfig.class);
-        when(mockAmqpBrokerConfig.getCharsetName()).thenReturn("UTF-8");
+        when(mockAmqpBrokerConfig.getCharset()).thenReturn(Charset.forName("UTF-8"));
 
         mockAmqpConnectionManager = mock(AmqpConnectionManager.class);
 
@@ -65,10 +66,10 @@ public class AmqpProducerAdapterTest {
 
     @Test
     public void testProperCharsetUsed() throws IOException {
-        when(mockAmqpBrokerConfig.getCharsetName()).thenReturn("ISO-8859-1");
+        when(mockAmqpBrokerConfig.getCharset()).thenReturn(Charset.forName("UTF-32"));
 
         String message = "ö";
-        byte[] expectedEncodedMessage = new byte[] { -10 }; // In ISO-8859-1 ö is mapped to 246 (which is equal to -10 during int -> byte conversion)
+        byte[] expectedEncodedMessage = new byte[] { 0, 0, 0, -10 }; // In UTF-32 ö is mapped to 000000f6
         AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter("myTopic", mockAmqpBrokerConfig, mockAmqpConnectionManager);
 
         producerAdapter.publish(message);

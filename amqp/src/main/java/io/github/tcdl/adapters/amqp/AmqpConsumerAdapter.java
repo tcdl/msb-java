@@ -7,6 +7,7 @@ import io.github.tcdl.api.exception.ChannelException;
 import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 
 public class AmqpConsumerAdapter implements ConsumerAdapter {
@@ -56,8 +57,8 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
             channel.queueDeclare(queueName, durable /* durable */, false /* exclusive */, !durable /*auto-delete */, null);
             channel.queueBind(queueName, exchangeName, "");
 
-            String charsetName = adapterConfig.getCharsetName();
-            consumerTag = channel.basicConsume(queueName, false /* autoAck */, new AmqpMessageConsumer(channel, consumerThreadPool, msgHandler, charsetName));
+            Charset charset = adapterConfig.getCharset();
+            consumerTag = channel.basicConsume(queueName, false /* autoAck */, new AmqpMessageConsumer(channel, consumerThreadPool, msgHandler, charset));
         } catch (IOException e) {
             throw new ChannelException(String.format("Failed to subscribe to topic %s", topic), e);
         }
