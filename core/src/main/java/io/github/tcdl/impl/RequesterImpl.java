@@ -24,7 +24,6 @@ public class RequesterImpl implements Requester {
     private RequestOptions requestOptions;
     private MsbContextImpl context;
 
-    private Message message;
     private MessageFactory messageFactory;
     private MessageBuilder messageBuilder;
     EventHandlers eventHandlers;
@@ -72,21 +71,21 @@ public class RequesterImpl implements Requester {
      */
     @Override
     public void publish(Payload requestPayload) {
-        this.message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
+        Message message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
         //use Collector instance to handle expected responses/acks
         if (requestOptions.isWaitForResponses()) {
             Collector collector = createCollector(requestOptions, context, eventHandlers);
             String topic = message.getTopics().getResponse();
-            collector.listenForResponses(topic, this.message);
+            collector.listenForResponses(topic, message);
 
-            getChannelManager().findOrCreateProducer(this.message.getTopics().getTo())
-                    .publish(this.message);
+            getChannelManager().findOrCreateProducer(message.getTopics().getTo())
+                    .publish(message);
 
             collector.waitForResponses();
         } else {
-            getChannelManager().findOrCreateProducer(this.message.getTopics().getTo())
-                    .publish(this.message);
+            getChannelManager().findOrCreateProducer(message.getTopics().getTo())
+                    .publish(message);
         }
     }
 
