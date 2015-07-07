@@ -1,6 +1,7 @@
 package io.github.tcdl;
 
 import com.googlecode.junittoolbox.MultithreadingTester;
+import io.github.tcdl.collector.CollectorManager;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.support.JsonValidator;
@@ -14,9 +15,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-/**
- * Created by ruslan on 10.06.15.
- */
 public class ChannelManagerConcurrentTest {
 
     private ChannelManager channelManager;

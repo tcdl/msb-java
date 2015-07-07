@@ -53,22 +53,20 @@ public class ChannelManager {
         return producer;
     }
 
-    public Consumer findOrCreateConsumer(final String topic) {
+    public void subscribe(String topic, MessageHandler messageHandler) {
         Validate.notNull(topic, "field 'topic' is null");
+        Validate.notNull(messageHandler, "field 'messageHandler' is null");
+        findOrCreateConsumer(topic, messageHandler);
+    }
+
+    Consumer findOrCreateConsumer(final String topic, MessageHandler messageHandler) {
         Consumer consumer = consumersByTopic.computeIfAbsent(topic, key -> {
-            Consumer newConsumer = createConsumer(key);
+            Consumer newConsumer = createConsumer(key, messageHandler);
             channelMonitorAgent.consumerTopicCreated(key);
             return newConsumer;
         });
 
         return consumer;
-    }
-
-    public void subscribe(String topic, MessageHandler messageHandler) {
-        Validate.notNull(topic, "field 'topic' is null");
-        Validate.notNull(messageHandler, "field 'messageHandler' is null");
-        Consumer consumer = findOrCreateConsumer(topic);
-        consumer.subscribe(messageHandler);
     }
 
     public synchronized void unsubscribe(String topic) {
@@ -87,12 +85,12 @@ public class ChannelManager {
         return new Producer(adapter, topic, handler);
     }
 
-    private Consumer createConsumer(String topic) {
+    private Consumer createConsumer(String topic, MessageHandler messageHandler) {
         Utils.validateTopic(topic);
 
         ConsumerAdapter adapter = getAdapterFactory().createConsumerAdapter(topic);
 
-        return new Consumer(adapter, topic, msbConfig, clock, channelMonitorAgent, validator);
+        return new Consumer(adapter, topic, messageHandler, msbConfig, clock, channelMonitorAgent, validator);
     }
 
     public void shutdown() {

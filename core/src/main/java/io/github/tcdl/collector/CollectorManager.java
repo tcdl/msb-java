@@ -1,5 +1,7 @@
-package io.github.tcdl;
+package io.github.tcdl.collector;
 
+import io.github.tcdl.ChannelManager;
+import io.github.tcdl.MessageHandler;
 import io.github.tcdl.api.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

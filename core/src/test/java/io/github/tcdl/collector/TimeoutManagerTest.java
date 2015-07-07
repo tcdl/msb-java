@@ -1,5 +1,7 @@
-package io.github.tcdl;
+package io.github.tcdl.collector;
 
+import io.github.tcdl.collector.Collector;
+import io.github.tcdl.collector.TimeoutManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;

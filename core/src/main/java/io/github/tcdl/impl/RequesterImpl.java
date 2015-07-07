@@ -1,7 +1,7 @@
 package io.github.tcdl.impl;
 
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.Collector;
+import io.github.tcdl.collector.Collector;
 import io.github.tcdl.api.Callback;
 import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.Requester;
@@ -17,7 +17,7 @@ import org.apache.commons.lang3.Validate;
 import java.util.List;
 
 /**
- * Internal implementations of Requester interface 
+ * Internal implementations of Requester interface
  */
 public class RequesterImpl implements Requester {
 
@@ -31,9 +31,9 @@ public class RequesterImpl implements Requester {
     /**
      * Creates a new instance of a requester.
      *
-     * @param namespace topic name to send a request to
+     * @param namespace      topic name to send a request to
      * @param requestOptions options to configure a requester
-     * @param context shared by all Requester instances
+     * @param context        shared by all Requester instances
      * @return instance of a requester
      */
     static RequesterImpl create(String namespace, RequestOptions requestOptions, MsbContextImpl context) {
@@ -43,10 +43,10 @@ public class RequesterImpl implements Requester {
     /**
      * Creates a new instance of a requester with originalMessage.
      *
-     * @param namespace topic name to send a request to
-     * @param requestOptions options to configure a requester
+     * @param namespace       topic name to send a request to
+     * @param requestOptions  options to configure a requester
      * @param originalMessage original message (to take correlation id from)
-     * @param context shared by all Requester instances
+     * @param context         shared by all Requester instances
      * @return instance of a requester
      */
     static RequesterImpl create(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContextImpl context) {
@@ -75,9 +75,10 @@ public class RequesterImpl implements Requester {
 
         //use Collector instance to handle expected responses/acks
         if (requestOptions.isWaitForResponses()) {
-            Collector collector = createCollector(requestOptions, context, eventHandlers);
             String topic = message.getTopics().getResponse();
-            collector.listenForResponses(topic, message);
+
+            Collector collector = createCollector(topic, message, requestOptions, context, eventHandlers);
+            collector.listenForResponses();
 
             getChannelManager().findOrCreateProducer(message.getTopics().getTo())
                     .publish(message);
@@ -120,7 +121,7 @@ public class RequesterImpl implements Requester {
         return context.getChannelManager();
     }
 
-    Collector createCollector(RequestOptions requestOptions, MsbContextImpl context, EventHandlers eventHandlers) {
-        return new Collector(requestOptions, context, eventHandlers);
+    Collector createCollector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl context, EventHandlers eventHandlers) {
+        return new Collector(topic, requestMessage, requestOptions, context, eventHandlers);
     }
 }

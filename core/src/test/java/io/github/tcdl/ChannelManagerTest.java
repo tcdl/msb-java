@@ -12,6 +12,7 @@ import java.time.Clock;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import io.github.tcdl.collector.CollectorManager;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
