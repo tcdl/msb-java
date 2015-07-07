@@ -12,6 +12,6 @@ after_success:
   - mvn clean test jacoco:report coveralls:report
 env:
   global:
-  - secure: BbZbrBgTmaAtWTHRKJe8VXl9A49M5WNBSwcjxhxg6xHC5Hxdv0Pg/0OtTIJtxFr8NU4adcx3q5FqZOBYAsJnYN0KMmN4z8MTHt/tUMXNg/J2SbVWL4xJRJrcF6ndJL3Es9WsTTU2+9+D0V2AhzmHyQ+07O+SMAFE4VbrxfAlE48=
-  - secure: JWdRDDJ3YhFLd96PHxTYB1mZvrg2PrVlsxI7gAKcgW5Kj6o1bS6SFY7xiqqBFmtd30RC5fs67BaLaCXZK7NutHT0CM7M5gfHLvdDWxB9wIfEM3gpdeFmtdch5bcfrWp2+scgijj+Y2qUbs5QSymnMPPX/zFOXs/PsZZHf1CIiFQ=
+  - secure: Sgjc8E9/62r1XVCLDhXBa1y3QTvcte/OiSFt0U5almp84i9o3dSvWrdbAOScBzHdBsTRxpqfj0rj6HJQk1eqsyEqWBxpRZ3jVBMmaGg1gRjeKH9iV+pLuo0eBA/YW1swkaFydEj8kaWba0O10VCFO0rtjdzGNJblr0eTrLh3AnM=
+  - secure: V594ZCa0yXLx3XJmm8f88lDNYQxmrb/o/w0220BvJuY8mr1AzoSZwatLKPx1IazzstxtRJQo/UHlb72BDLcz9vJDopLRd6V8asdjBq6IMaSKrMQT7ED5NRfbuSG2ilTjzTCWLRtsKEAxasC7c3+c/s678FbrfP6+zCs6rN7HIhM=
   - secure: QRvQihs4BrO9UloFkafR0sUKkGI1pD2CY50SqN7mC+1iIkkrYRNpJpaUhxsZXTJFvo6sf9tOiZpe7mokAfFT72VLDpTCXCnN8GzIS0ozPfh7CjE/CdhfjZahxdMsz5x8Imsuo0kbB31r5j3uwJdc+zLr9lW5NRY5mpQbsZJIL+s=
