@@ -1,4 +1,4 @@
-package io.github.tcdl.examples;
+package io.github.tcdl.acceptance;
 
 import com.typesafe.config.Config;
 import io.github.tcdl.api.Callback;

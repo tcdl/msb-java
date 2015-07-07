@@ -1,4 +1,4 @@
-package io.github.tcdl.examples;
+package io.github.tcdl.acceptance;
 
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.MsbContext;

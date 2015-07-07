@@ -1,4 +1,4 @@
-package io.github.tcdl.examples;
+package io.github.tcdl.acceptance;
 
 import io.github.tcdl.api.Requester;
 
@@ -7,14 +7,14 @@ import org.apache.commons.lang3.ArrayUtils;
 /**
  * Created by anstr on 6/9/2015.
  */
-public class SimpleRequesterExample  {
+public class SimpleRequester {
     private static final Integer NUMBER_OF_RESPONSES = 1;
 
     private boolean passed;
     private String namespace;
     private MsbTestHelper helper = MsbTestHelper.getInstance();
 
-    SimpleRequesterExample(String namespace) {
+    SimpleRequester(String namespace) {
         this.namespace = namespace;
     }
 

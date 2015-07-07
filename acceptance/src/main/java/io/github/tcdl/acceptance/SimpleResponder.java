@@ -1,14 +1,14 @@
-package io.github.tcdl.examples;
+package io.github.tcdl.acceptance;
 
 /**
  * Created by anstr on 6/9/2015.
  */
-public class SimpleResponderExample {
+public class SimpleResponder {
 
     private String namespace;
     private MsbTestHelper helper = MsbTestHelper.getInstance();
 
-    SimpleResponderExample(String namespace) {
+    SimpleResponder(String namespace) {
         this.namespace = namespace;
     }
 
@@ -17,7 +17,7 @@ public class SimpleResponderExample {
         helper.createResponderServer(namespace, (request, responder) -> {
             System.out.print(">>> REQUEST: " + request.getHeaders());
             helper.sleep(500);
-            helper.respond(responder, namespace + ":" + "SimpleResponderExample");
+            helper.respond(responder, namespace + ":" + "SimpleResponder");
         })
         .listen();
     }

@@ -1,8 +1,9 @@
-package io.github.tcdl.examples;
+package io.github.tcdl.acceptance.bdd.steps;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+import io.github.tcdl.acceptance.bdd.steps.MsbSteps;
 import org.jbehave.core.annotations.Given;
 
 /**

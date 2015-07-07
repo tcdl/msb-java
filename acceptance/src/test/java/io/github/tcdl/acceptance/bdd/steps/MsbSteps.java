@@ -1,5 +1,6 @@
-package io.github.tcdl.examples;
+package io.github.tcdl.acceptance.bdd.steps;
 
+import io.github.tcdl.acceptance.MsbTestHelper;
 import io.github.tcdl.api.MsbContext;
 import org.jbehave.core.annotations.Given;
 
