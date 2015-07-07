@@ -31,10 +31,10 @@ public class DateExtractor {
     }
 
     public void start(MsbContext msbContext) {
-        MessageTemplate options = new MessageTemplate();
+        MessageTemplate messageTemplate = new MessageTemplate();
         final String namespace = "search:parsers:facets:v1";
 
-        msbContext.getObjectFactory().createResponderServer(namespace, options, (request, responder) -> {
+        msbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responder) -> {
 
             RequestQuery query = request.getQueryAs(RequestQuery.class);
             String queryString = query.getQ();
