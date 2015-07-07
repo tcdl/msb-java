@@ -5,11 +5,13 @@ import io.github.tcdl.api.Requester;
 /**
  * Created by rdrozdov-tc on 6/15/15.
  */
-public class RequesterResponderTest extends BaseExample {
+public class RequesterResponderTest {
 
     private static final Integer NUMBER_OF_RESPONSES = 1;
 
     final String NAMESPACE = "test:requester-responder-example";
+
+    private MsbTestHelper helper = MsbTestHelper.getInstance();
 
     private boolean passed;
 
@@ -18,15 +20,16 @@ public class RequesterResponderTest extends BaseExample {
     }
 
     public void runRequesterResponder() throws Exception {
+        helper.initDefault();
         // running responder server
-        createResponderServer(NAMESPACE,(request, responder) -> {
-                    responder.sendAck(1000, NUMBER_OF_RESPONSES);
-                    respond(responder);
-                })
-                .listen();
+        helper.createResponderServer(NAMESPACE, (request, responder) -> {
+            responder.sendAck(1000, NUMBER_OF_RESPONSES);
+            helper.respond(responder);
+        })
+        .listen();
 
         // sending a request
-        Requester requester = createRequester(NAMESPACE, NUMBER_OF_RESPONSES);
-        sendRequest(requester, NUMBER_OF_RESPONSES, payload -> passed = true);
+        Requester requester = helper.createRequester(NAMESPACE, NUMBER_OF_RESPONSES);
+        helper.sendRequest(requester, NUMBER_OF_RESPONSES, payload -> passed = true);
     }
 }

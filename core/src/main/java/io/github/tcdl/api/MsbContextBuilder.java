@@ -1,5 +1,7 @@
 package io.github.tcdl.api;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.TimeoutManager;
 import io.github.tcdl.api.exception.MsbException;
@@ -9,14 +11,10 @@ import io.github.tcdl.impl.ObjectFactoryImpl;
 import io.github.tcdl.message.MessageFactory;
 import io.github.tcdl.monitor.DefaultChannelMonitorAgent;
 import io.github.tcdl.support.JsonValidator;
-
-import java.time.Clock;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
+import java.time.Clock;
 
 /**
  * Create and initialize MsbContext object.
@@ -26,12 +24,22 @@ public class MsbContextBuilder {
     
     private static final Logger LOG = LoggerFactory.getLogger(MsbContextBuilder.class);
 
+    private Config config;
     private boolean withShutdownHook;
     private boolean withDefaultChannelMonitorAgent;
 
-    
     public MsbContextBuilder() {
         super();
+    }
+
+    /**
+     * Overrides default configuration from reference.conf with given type-safe configuration
+     * @param config type-safe configuration bean
+     * @return MsbContextBuilder
+     */
+    public MsbContextBuilder withConfig(Config config) {
+        this.config = config;
+        return this;
     }
 
     /**
@@ -56,8 +64,9 @@ public class MsbContextBuilder {
     }
     
     /**
-     * Create implememntation of {@link MsbContext} and initialize it with configuration from reference.conf(property file inside MSB library)
-     * or application.conf, which will override library properties
+     * Create implementation of {@link MsbContext}
+     * Can be initialized with configuration from reference.conf(property file inside MSB library) or application.conf,
+     * which will override library properties. Also configuration can be specified directly with withConfig method
      * This is environment where microservice will be run, it holds all necessary information such as
      * bus configuration, service details, schema for incoming and outgoing messages, factory for building requests
      * and responses etc.
@@ -66,8 +75,10 @@ public class MsbContextBuilder {
      */
     public MsbContext build() {
         Clock clock = Clock.systemDefaultZone();
-        Config config = ConfigFactory.load();
         JsonValidator validator = new JsonValidator();
+        if (config == null) {
+            config = ConfigFactory.load();
+        }
         MsbConfigurations msbConfig = new MsbConfigurations(config);
         ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator);
         MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);

@@ -20,17 +20,19 @@ import java.util.regex.Pattern;
  */
 public class DateExtractor {
 
-    public static void main(String... args) {
+    final Pattern YEAR_PATTERN = Pattern.compile("^.*(20(\\d{2})).*$");
 
+    public static void main(String... args) {
         MsbContext msbContext = new MsbContextBuilder()
                 .withDefaultChannelMonitorAgent(true)
                 .withShutdownHook(true)
                 .build();
+        new DateExtractor().start(msbContext);
+    }
 
+    public void start(MsbContext msbContext) {
         MessageTemplate options = new MessageTemplate();
         final String namespace = "search:parsers:facets:v1";
-
-        final Pattern YEAR_PATTERN = Pattern.compile("^.*(20(\\d{2})).*$");
 
         msbContext.getObjectFactory().createResponderServer(namespace, options, (request, responder) -> {
 
@@ -67,7 +69,7 @@ public class DateExtractor {
                 responder.send(responsePayload);
             }
         })
-                .listen();
+        .listen();
     }
 
     private static class RequestQuery {

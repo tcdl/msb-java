@@ -1,5 +1,6 @@
 package io.github.tcdl.examples;
 
+import com.typesafe.config.Config;
 import io.github.tcdl.api.Callback;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.MsbContext;
@@ -15,18 +16,37 @@ import io.github.tcdl.support.Utils;
 import java.util.Map;
 
 /**
- * Created by rdrozdov-tc on 6/15/15.
+ * Utility to simplify using requester and responder server
  */
-public class BaseExample {
+public class MsbTestHelper {
 
-    MsbContext context;
+    private static MsbTestHelper instance;
 
-    public BaseExample() {
-        init();
+    private MsbContext context;
+
+    private MsbTestHelper() {
     }
 
-    public void init() {
-        context = new MsbContextBuilder().withShutdownHook(true).build();
+    public static MsbTestHelper getInstance() {
+        if (instance == null) {
+            instance = new MsbTestHelper();
+        }
+        return instance;
+    }
+
+    public void initDefault() {
+        context = new MsbContextBuilder()
+                .withShutdownHook(true).build();
+    }
+
+    public void initWithConfig(Config config) {
+        context = new MsbContextBuilder()
+                .withConfig(config)
+                .withShutdownHook(true).build();
+    }
+
+    public MsbContext getContext() {
+        return context;
     }
 
     public Requester createRequester(String namespace, Integer numberOfResponses) {
@@ -43,7 +63,6 @@ public class BaseExample {
             .withAckTimeout(Utils.ifNull(ackTimeout, 3000))
             .withResponseTimeout(Utils.ifNull(responseTimeout, 10000))
             .build();
-
         return context.getObjectFactory().createRequester(namespace, options);
     }
 
