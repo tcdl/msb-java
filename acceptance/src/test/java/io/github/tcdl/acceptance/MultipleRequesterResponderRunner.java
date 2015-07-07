@@ -1,4 +1,4 @@
-package io.github.tcdl.examples;
+package io.github.tcdl.acceptance;
 
 import org.junit.Test;
 
@@ -16,10 +16,10 @@ public class MultipleRequesterResponderRunner {
 
     @Test
     public void runTest() throws Exception {
-        SimpleResponderExample responderExample1 = new SimpleResponderExample("test:simple-queue2");
+        SimpleResponder responderExample1 = new SimpleResponder("test:simple-queue2");
         responderExample1.runSimpleResponderExample();
 
-        SimpleResponderExample responderExample2 = new SimpleResponderExample("test:simple-queue3");
+        SimpleResponder responderExample2 = new SimpleResponder("test:simple-queue3");
         responderExample2.runSimpleResponderExample();
 
         MultipleRequesterResponder multipleRequesterResponder = new MultipleRequesterResponder(
@@ -28,7 +28,7 @@ public class MultipleRequesterResponderRunner {
                 "test:simple-queue3");
         multipleRequesterResponder.runMultipleRequesterResponder();
 
-        SimpleRequesterExample requesterExample = new SimpleRequesterExample("test:simple-queue1");
+        SimpleRequester requesterExample = new SimpleRequester("test:simple-queue1");
         requesterExample.runSimpleRequesterExample("test:simple-queue2", "test:simple-queue3");
 
         TimeUnit.SECONDS.sleep(TIMEOUT_IN_SECONDS);

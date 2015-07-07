@@ -9,9 +9,9 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>msb-java-examples</artifactId>
-    <name>msb java examples</name>
-    <description>msb java examples</description>
+    <artifactId>msb-java-acceptance</artifactId>
+    <name>msb acceptance tests</name>
+    <description>msb acceptance tests</description>
     <packaging>jar</packaging>
     <scm>
         <connection>scm:git:https://github.com/tcdl/msb-java.git</connection>
@@ -32,6 +32,15 @@
         <dependency>
             <groupId>io.github.tcdl</groupId>
             <artifactId>msb-java-amqp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.tcdl</groupId>
+            <artifactId>msb-java-examples</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jbehave</groupId>
+            <artifactId>jbehave-core</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

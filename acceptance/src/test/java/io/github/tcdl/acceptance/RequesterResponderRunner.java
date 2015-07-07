@@ -1,4 +1,4 @@
-package io.github.tcdl.examples;
+package io.github.tcdl.acceptance;
 
 import org.junit.Test;
 

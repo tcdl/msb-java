@@ -1,5 +1,8 @@
-package io.github.tcdl.examples;
+package io.github.tcdl.acceptance.bdd;
 
+import io.github.tcdl.acceptance.bdd.steps.AsyncRequesterSteps;
+import io.github.tcdl.acceptance.bdd.steps.ConfigurationSteps;
+import io.github.tcdl.acceptance.bdd.steps.RequesterResponderSteps;
 import org.jbehave.core.configuration.Configuration;
 import org.jbehave.core.configuration.MostUsefulConfiguration;
 import org.jbehave.core.io.LoadFromURL;

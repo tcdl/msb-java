@@ -1,5 +1,6 @@
-package io.github.tcdl.examples;
+package io.github.tcdl.acceptance.bdd.steps;
 
+import io.github.tcdl.acceptance.bdd.steps.MsbSteps;
 import io.github.tcdl.api.Requester;
 import io.github.tcdl.api.message.payload.Payload;
 import org.jbehave.core.annotations.Given;
