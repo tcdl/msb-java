@@ -1,5 +1,10 @@
 package io.github.tcdl;
 
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import java.time.Clock;
+
 import com.googlecode.junittoolbox.MultithreadingTester;
 import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
@@ -8,15 +13,6 @@ import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.Clock;
-
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
-/**
- * Created by ruslan on 10.06.15.
- */
 public class ChannelManagerConcurrentTest {
 
     private ChannelManager channelManager;
@@ -56,16 +52,4 @@ public class ChannelManagerConcurrentTest {
         }).run();
     }
 
-    @Test
-    public void testUnsubscribeMultithreadInteraction() {
-        String topic = "topic:test-remove-consumer-multithreaded";
-
-        CollectorManager collectorManager = new CollectorManager(topic, channelManager);
-        channelManager.subscribe(topic, collectorManager);
-
-        new MultithreadingTester().add(() -> {
-            channelManager.unsubscribe(topic);
-            verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
-        }).run();
-    }
 }

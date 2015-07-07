@@ -12,9 +12,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.time.Clock;
+
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.Collector;
-import io.github.tcdl.CollectorManager;
 import io.github.tcdl.Consumer;
 import io.github.tcdl.Producer;
 import io.github.tcdl.api.Callback;
@@ -23,11 +23,9 @@ import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.Requester;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.collector.Collector;
 import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.support.TestUtils;
-
-import java.time.Clock;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -39,6 +37,8 @@ import org.mockito.runners.MockitoJUnitRunner;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RequesterImplTest {
+
+    private static final String NAMESPACE = "test:requester";
 
     @Mock
     private EventHandlers eventHandlerMock;
@@ -61,7 +61,7 @@ public class RequesterImplTest {
 
         requester.publish(TestUtils.createSimpleRequestPayload());
 
-        verify(collectorMock, never()).listenForResponses(anyString(), any());
+        verify(collectorMock, never()).listenForResponses();
         verify(collectorMock, never()).waitForResponses();
     }
 
@@ -69,11 +69,11 @@ public class RequesterImplTest {
     public void testPublishWaitForResponses() throws Exception {
         RequesterImpl requester = initRequesterForResponsesWithTimeout(1);
 
-        doReturn(mock(CollectorManager.class)).when(collectorMock).findOrCreateCollectorManager(anyString());
+        //doReturn(mock(CollectorManager.class)).when(collectorMock).findOrCreateCollectorManager(anyString());
 
         requester.publish(TestUtils.createSimpleRequestPayload());
 
-        verify(collectorMock).listenForResponses(anyString(), any(Message.class));
+        verify(collectorMock).listenForResponses();
         verify(collectorMock).waitForResponses();
     }
 
@@ -143,8 +143,8 @@ public class RequesterImplTest {
     public void testRequestMessage() throws Exception {
         ChannelManager channelManagerMock = mock(ChannelManager.class);
         Producer producerMock = mock(Producer.class);
-        when(channelManagerMock.findOrCreateProducer("test:requester")).thenReturn(producerMock);
-        ArgumentCaptor<Message> messageArgumentCaptor =  ArgumentCaptor.forClass(Message.class);
+        when(channelManagerMock.findOrCreateProducer(NAMESPACE)).thenReturn(producerMock);
+        ArgumentCaptor<Message> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
 
         MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
                 .withChannelManager(channelManagerMock)
@@ -152,7 +152,7 @@ public class RequesterImplTest {
                 .build();
 
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = RequesterImpl.create("test:requester", TestUtils.createSimpleRequestOptions(), msbContext);
+        Requester requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), msbContext);
         requester.publish(requestPayload);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
@@ -163,26 +163,25 @@ public class RequesterImplTest {
     }
 
     private RequesterImpl initRequesterForResponsesWithTimeout(int numberOfResponses) throws Exception {
-        RequestOptions requestOptionsMock = mock(RequestOptions.class);
+
         MessageTemplate messageTemplateMock = mock(MessageTemplate.class);
 
-        when(requestOptionsMock.getMessageTemplate()).thenReturn(messageTemplateMock);
-        when(requestOptionsMock.getWaitForResponses()).thenReturn(numberOfResponses);
-        when(requestOptionsMock.isWaitForResponses()).thenReturn(numberOfResponses > 0 ? true : false);
-        when(requestOptionsMock.getResponseTimeout()).thenReturn(100);
+        RequestOptions requestOptionsMock = new RequestOptions.Builder().withMessageTemplate(messageTemplateMock).withWaitForResponses(numberOfResponses)
+                .withResponseTimeout(100).build();
+
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
 
         MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
                 .withChannelManager(channelManagerMock)
                 .build();
 
-        RequesterImpl requester = spy(RequesterImpl.create("test:requester", requestOptionsMock, null, msbContext));
+        RequesterImpl requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, null, msbContext));
 
-        collectorMock = spy(new Collector(requestOptionsMock, msbContext, eventHandlerMock));
+        collectorMock = spy(new Collector(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptionsMock, msbContext, eventHandlerMock));
 
         doReturn(collectorMock)
                 .when(requester)
-                .createCollector(any(RequestOptions.class), any(MsbContextImpl.class), any(EventHandlers.class));
+                .createCollector(anyString(), any(Message.class), any(RequestOptions.class), any(MsbContextImpl.class), any(EventHandlers.class));
 
         return requester;
     }

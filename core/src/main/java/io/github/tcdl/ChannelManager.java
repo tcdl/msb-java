@@ -53,10 +53,22 @@ public class ChannelManager {
         return producer;
     }
 
-    public Consumer findOrCreateConsumer(final String topic) {
+    /**
+     * Start consuming messages on specified topic with handler .
+     * Calls to subscribe() and unsubscribe() have to be properly synchronized by client code not to lose messages.
+     *
+     * @param topic
+     * @param messageHandler handler for processing messages
+     */
+    public void subscribe(String topic, MessageHandler messageHandler) {
         Validate.notNull(topic, "field 'topic' is null");
+        Validate.notNull(messageHandler, "field 'messageHandler' is null");
+        findOrCreateConsumer(topic, messageHandler);
+    }
+
+    Consumer findOrCreateConsumer(final String topic, MessageHandler messageHandler) {
         Consumer consumer = consumersByTopic.computeIfAbsent(topic, key -> {
-            Consumer newConsumer = createConsumer(key);
+            Consumer newConsumer = createConsumer(key, messageHandler);
             channelMonitorAgent.consumerTopicCreated(key);
             return newConsumer;
         });
@@ -64,14 +76,12 @@ public class ChannelManager {
         return consumer;
     }
 
-    public void subscribe(String topic, MessageHandler messageHandler) {
-        Validate.notNull(topic, "field 'topic' is null");
-        Validate.notNull(messageHandler, "field 'messageHandler' is null");
-        Consumer consumer = findOrCreateConsumer(topic);
-        consumer.subscribe(messageHandler);
-    }
-
-    public synchronized void unsubscribe(String topic) {
+    /**
+     * Stop consuming messages on specified topic.
+     * Calls to subscribe() and unsubscribe() have to be properly synchronized by client code not to lose messages.     *
+     * @param topic
+     */
+    public void unsubscribe(String topic) {
         Consumer consumer = consumersByTopic.remove(topic);
         if (consumer != null) {
             consumer.end();
@@ -87,12 +97,12 @@ public class ChannelManager {
         return new Producer(adapter, topic, handler);
     }
 
-    private Consumer createConsumer(String topic) {
+    private Consumer createConsumer(String topic, MessageHandler messageHandler) {
         Utils.validateTopic(topic);
 
         ConsumerAdapter adapter = getAdapterFactory().createConsumerAdapter(topic);
 
-        return new Consumer(adapter, topic, msbConfig, clock, channelMonitorAgent, validator);
+        return new Consumer(adapter, topic, messageHandler, msbConfig, clock, channelMonitorAgent, validator);
     }
 
     public void shutdown() {

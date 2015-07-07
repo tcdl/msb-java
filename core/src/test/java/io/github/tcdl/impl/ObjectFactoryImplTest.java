@@ -34,7 +34,7 @@ public class ObjectFactoryImplTest {
         ObjectFactory objectFactory = new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build());
         Requester expectedRequester = objectFactory
                 .createRequester(NAMESPACE, mock(RequestOptions.class), TestUtils.createMsbRequestMessageNoPayload("test:object-factory-incoming"));
-                        assertNotNull(expectedRequester);
+        assertNotNull(expectedRequester);
     }
 
     @Test

@@ -21,7 +21,7 @@ import java.util.Map;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.Producer;
 import io.github.tcdl.MessageHandler;
-import io.github.tcdl.TimeoutManager;
+import io.github.tcdl.collector.TimeoutManager;
 import io.github.tcdl.config.ServiceDetails;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.impl.MsbContextImpl;

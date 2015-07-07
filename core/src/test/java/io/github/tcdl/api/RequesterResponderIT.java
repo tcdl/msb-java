@@ -226,4 +226,40 @@ public class RequesterResponderIT {
         assertTrue("Message ack response not received", ackResponseReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         assertTrue("Expected one ack", receivedResponseAcks.size() == requestsToSendDuringTest);
     }
+
+    @Test
+    public void testRequestMessageCollectorUnsubscribeAfterResponsesAndSubscribeAgain() throws Exception {
+        String namespace = "test:requester-message-collector-resubscribe-onmessage";
+        RequestOptions requestOptionsWaitResponse = new RequestOptions.Builder()
+                .withMessageTemplate(new MessageTemplate())
+                .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
+                .withWaitForResponses(1)
+                .build();
+
+        Thread serverListenThread = new Thread(() -> {
+            msbContext.getObjectFactory().createResponderServer(namespace, requestOptionsWaitResponse.getMessageTemplate(), (request, response) -> {
+                Payload payload = new Payload.Builder().withBody(
+                        new HashMap<String, String>().put("body", "payload from test : testRequestMessageCollectorUnsubscribeAfterResponsesAndSubscribeAgain"))
+                        .withStatusCode(4444).build();
+                response.send(payload);
+            })
+                    .listen();
+
+        });
+        serverListenThread.setDaemon(true);
+        serverListenThread.start();
+
+        CountDownLatch endConversation1 = new CountDownLatch(1);
+        CountDownLatch endConversation2 = new CountDownLatch(1);
+
+        //Create and send request message
+        Requester requester = msbContext.getObjectFactory().createRequester(namespace, requestOptionsWaitResponse).onEnd(arg -> endConversation1.countDown());
+        requester.publish(TestUtils.createSimpleRequestPayload());
+        assertTrue("Message was not received", endConversation1.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
+
+        //Create and send request message
+        requester.onEnd(arg -> endConversation2.countDown());
+        requester.publish(TestUtils.createSimpleRequestPayload());
+        assertTrue("Message was not received", endConversation2.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
+    }
 }

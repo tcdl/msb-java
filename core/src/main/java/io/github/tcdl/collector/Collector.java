@@ -1,16 +1,6 @@
-package io.github.tcdl;
+package io.github.tcdl.collector;
 
-import io.github.tcdl.api.Callback;
-import io.github.tcdl.api.RequestOptions;
-import io.github.tcdl.api.message.Acknowledge;
-import io.github.tcdl.events.EventHandlers;
-import io.github.tcdl.impl.MsbContextImpl;
-import io.github.tcdl.api.message.Message;
-import io.github.tcdl.api.message.payload.Payload;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import static io.github.tcdl.support.Utils.ifNull;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -21,7 +11,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 
-import static io.github.tcdl.support.Utils.ifNull;
+import io.github.tcdl.api.Callback;
+import io.github.tcdl.api.RequestOptions;
+import io.github.tcdl.api.message.Acknowledge;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.events.EventHandlers;
+import io.github.tcdl.impl.MsbContextImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
@@ -32,7 +30,6 @@ public class Collector {
 
     private static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
-    private ChannelManager channelManager;
     private List<Message> ackMessages;
     private List<Message> payloadMessages;
 
@@ -49,8 +46,8 @@ public class Collector {
     private TimeoutManager timeoutManager;
 
     private Clock clock;
-
     private Message requestMessage;
+
 
     private Optional<Callback<Payload>> onResponse = Optional.empty();
     private Optional<Callback<Acknowledge>> onAcknowledge = Optional.empty();
@@ -58,14 +55,16 @@ public class Collector {
 
     private  ScheduledFuture ackTimeoutFuture;
     private  ScheduledFuture responseTimeoutFuture;
-    private CollectorManager collectorManager;
+    private  CollectorManager collectorManager;
 
-    public Collector(RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers eventHandlers) {
-        this.channelManager = msbContext.getChannelManager();
+    public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers eventHandlers) {
+        this.requestMessage = requestMessage;
+
         this.clock = msbContext.getClock();
+        this.collectorManager = msbContext.getCollectorManagerFactory().findOrCreateCollectorManager(topic);
+        this.timeoutManager = msbContext.getTimeoutManager();
 
         this.startedAt = clock.instant().toEpochMilli();
-
         this.ackMessages = new LinkedList<>();
         this.payloadMessages = new LinkedList<>();
         this.timeoutMsById = new HashMap<>();
@@ -77,8 +76,6 @@ public class Collector {
         this.waitForAcksUntil = getWaitForAckUntilFromConfigs(requestOptions);
         this.waitForResponses = requestOptions.getWaitForResponses();
         this.responsesRemaining = waitForResponses;
-
-        this.timeoutManager = msbContext.getTimeoutManager();
 
         if (eventHandlers != null) {
             onResponse = Optional.ofNullable(eventHandlers.onResponse());
@@ -95,10 +92,7 @@ public class Collector {
         return getResponsesRemaining() > 0;
     }
 
-    public void listenForResponses(String topic, Message requestMessage) {
-        this.requestMessage = requestMessage;
-
-        collectorManager = findOrCreateCollectorManager(topic);
+    public void listenForResponses() {
         collectorManager.registerCollector(this);
     }
 
@@ -280,15 +274,5 @@ public class Collector {
 
     Message getRequestMessage() {
         return requestMessage;
-    }
-
-    public CollectorManager findOrCreateCollectorManager(String topic) {
-        Consumer consumer = channelManager.findOrCreateConsumer(topic);
-        synchronized (consumer) {
-            if (consumer.getMessageHandler() == null) {
-                consumer.subscribe(new CollectorManager(topic, channelManager));
-            }
-        }
-        return (CollectorManager) consumer.getMessageHandler();
     }
 }

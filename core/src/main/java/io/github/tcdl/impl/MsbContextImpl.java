@@ -3,9 +3,11 @@ package io.github.tcdl.impl;
 import java.time.Clock;
 
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.TimeoutManager;
 import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.api.ObjectFactory;
+import io.github.tcdl.collector.CollectorManager;
+import io.github.tcdl.collector.CollectorManagerFactory;
+import io.github.tcdl.collector.TimeoutManager;
 import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.message.MessageFactory;
 import org.slf4j.Logger;
@@ -24,13 +26,16 @@ public class MsbContextImpl implements MsbContext {
     private ChannelManager channelManager;
     private Clock clock;
     private TimeoutManager timeoutManager;
+    private CollectorManagerFactory collectorManagerFactory;
 
-    public MsbContextImpl(MsbConfig msbConfig, MessageFactory messageFactory, ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
+    public MsbContextImpl(MsbConfig msbConfig, MessageFactory messageFactory, ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager,
+            CollectorManagerFactory collectorManagerFactory) {
         this.msbConfig = msbConfig;
         this.messageFactory = messageFactory;
         this.channelManager = channelManager;
         this.clock = clock;
         this.timeoutManager = timeoutManager;
+        this.collectorManagerFactory = collectorManagerFactory;
     }
 
     /**
@@ -45,7 +50,6 @@ public class MsbContextImpl implements MsbContext {
     }
 
     /**
-     *
      * @return msb configuration ({@link MsbConfig})
      */
     public MsbConfig getMsbConfig() {
@@ -53,7 +57,6 @@ public class MsbContextImpl implements MsbContext {
     }
 
     /**
-     *
      * @return message factory ({@link MessageFactory}) for incoming and outgoing messages
      */
     public MessageFactory getMessageFactory() {
@@ -61,7 +64,6 @@ public class MsbContextImpl implements MsbContext {
     }
 
     /**
-     *
      * @return factory ({@link ChannelManager}) for creating producers and consumers
      */
     public ChannelManager getChannelManager() {
@@ -69,7 +71,6 @@ public class MsbContextImpl implements MsbContext {
     }
 
     /**
-     *
      * @return object of class {@link Clock} which MUST be used to obtain current time
      */
     public Clock getClock() {
@@ -77,13 +78,19 @@ public class MsbContextImpl implements MsbContext {
     }
 
     /**
-     *
      * @return object of class {@link TimeoutManager} which will be used for scheduling tasks
      */
     public TimeoutManager getTimeoutManager() {
         return timeoutManager;
     }
-    
+
+    /**
+     * @return object of class {@link CollectorManagerFactory} which will be used for creating and holding objects of class {@link CollectorManager}
+     */
+    public CollectorManagerFactory getCollectorManagerFactory() {
+        return collectorManagerFactory;
+    }
+
     /**
      * {@inheritDoc}
      */
