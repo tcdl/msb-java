@@ -2,16 +2,17 @@ language: java
 jdk:
 - oraclejdk8
 services:
-  - rabbitmq
-# Explicitly mute "install" step. Perform all operations in the following "script" step.
-install: ""
+- rabbitmq
+install: ''
 script:
-  - mvn clean deploy --settings settings.xml -B -V
-  - mvn -Dtest=io.github.tcdl.acceptance.* -DfailIfNoTests=false test
+- mvn clean deploy --settings settings.xml -B -V
+- mvn -Dtest=io.github.tcdl.acceptance.* -DfailIfNoTests=false test
 after_success:
-  - mvn clean test jacoco:report coveralls:report
+- mvn clean test jacoco:report coveralls:report
 env:
   global:
-  - secure: EK0DDudj5/Qsvdbx6BTz+TInaqMy8LIgyzq2TZTu73d4fcNTzGD93iACZ29X1VG/aW818sd1byX7fDl2pn34j5q6fVT7KfKAnxdtnKlFqWk8q4FiXjcDYhqH+XxuAO2nkf5Wy+PrpZswcgoCHg7giFSltLldI8SrvXpk4Pro2oA=
-  - secure: FJclhPV7YiRTYNKiaRdV7TWsbghOKxIf+s7pDzCUGZYxTjnc+m56S4LmDEYm3R09KscYz4vDWmmBOX5kchPQF9wDKXjo3RLeKugfE3kmOqbJ6dXIfSuvk9Q/e+ARXmQNWHdve4nKGjPeaw2cvpbeeX1nLz/K5VIJA8cNNqhZ9Ps=
-  - secure: QRvQihs4BrO9UloFkafR0sUKkGI1pD2CY50SqN7mC+1iIkkrYRNpJpaUhxsZXTJFvo6sf9tOiZpe7mokAfFT72VLDpTCXCnN8GzIS0ozPfh7CjE/CdhfjZahxdMsz5x8Imsuo0kbB31r5j3uwJdc+zLr9lW5NRY5mpQbsZJIL+s= 
+  - secure: QRvQihs4BrO9UloFkafR0sUKkGI1pD2CY50SqN7mC+1iIkkrYRNpJpaUhxsZXTJFvo6sf9tOiZpe7mokAfFT72VLDpTCXCnN8GzIS0ozPfh7CjE/CdhfjZahxdMsz5x8Imsuo0kbB31r5j3uwJdc+zLr9lW5NRY5mpQbsZJIL+s=
+  - secure: WPfgOpOBxrbREUyMChbmXLWWqWnlj1Be8a4+TTHdnaDkngrGppuJpsqV1hCUdh41/fqo6ogYpCiHynWqS9MFJQNE9oBe0yOZA8HZwFhUCTF2WrnbrualPi8fV/1Tfrqk27Q7/jPvE9TIGliXBcfCxxCyKwjM8uVNMngxgAuPWgY=
+  - secure: bhdxaUaJTZlX3cdYU4PRQOk1KGy0+nIMAotHX4WBnCf4PyS5UE/ZvqxVuKRLYRiMShsAN/p6cc9GN13+jFbftMgZBVxL1a8wkAZPPNmmsBYxSkbiI6VbPYG6WgMxyg7EJthyfOzXIFxphu6Lgt66ynlBOcTmRcg7v2HBYD4eydc=
+  - secure: im+/oyuLCeeDj7vKfrthgJ3EOh61TQL34Ll/gPIqIg7DZn6XwBt/7YkvTzzAEgDv1xQRoLuJMcjFn7TUeMzjNxdvqaGfz2S3puR2LxC9W52lA3e5tZW/i8rTtzAuPv+tpzDdVU2vHg4GDMAgnF1+tIQ6Ws7JCNn3CzQSHXUI4Vo=
+  - secure: E4DfFccl7FvkuveccVYQ8lbxVZ50CP47GNMI9KsIBcm/+U+w+9fe9nccF8AgtX1gSpXg1zWBdvERkl1m/TR4dH7MlvCShvFuiE6MV2FrFGaqjV48lSma818sv40D1r0Au1pp1HnS0duIfRE3xocGvfXdjf07gCBWHANuNVVkD1A=
