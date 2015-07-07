@@ -3,7 +3,8 @@ package io.github.tcdl.api;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.TimeoutManager;
+import io.github.tcdl.collector.CollectorManagerFactory;
+import io.github.tcdl.collector.TimeoutManager;
 import io.github.tcdl.api.exception.MsbException;
 import io.github.tcdl.config.MsbConfigurations;
 import io.github.tcdl.impl.MsbContextImpl;
@@ -83,8 +84,9 @@ public class MsbContextBuilder {
         ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator);
         MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);
         TimeoutManager timeoutManager = new TimeoutManager(msbConfig.getTimerThreadPoolSize());
+        CollectorManagerFactory collectorManagerFactory = new CollectorManagerFactory(channelManager);
 
-        MsbContextImpl msbContext = new MsbContextImpl(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+        MsbContextImpl msbContext = new MsbContextImpl(msbConfig, messageFactory, channelManager, clock, timeoutManager, collectorManagerFactory);
 
         if (withDefaultChannelMonitorAgent) {
             DefaultChannelMonitorAgent.start(msbContext);

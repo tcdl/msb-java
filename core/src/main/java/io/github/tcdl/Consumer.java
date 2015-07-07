@@ -32,35 +32,31 @@ public class Consumer {
     private ChannelMonitorAgent channelMonitorAgent;
     private Clock clock;
 
+    //handler that invoked when message being received.
     private MessageHandler messageHandler;
     private JsonValidator validator;
 
-    public Consumer(ConsumerAdapter rawAdapter, String topic, MsbConfigurations msbConfig,
+    public Consumer(ConsumerAdapter rawAdapter, String topic, MessageHandler messageHandler, MsbConfigurations msbConfig,
             Clock clock, ChannelMonitorAgent channelMonitorAgent, JsonValidator validator) {
 
         LOG.debug("Creating consumer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
         Validate.notNull(topic, "the 'topic' must not be null");
+        Validate.notNull(messageHandler, "the 'messageHandler' must not be null");
         Validate.notNull(msbConfig, "the 'msbConfig' must not be null");
         Validate.notNull(clock, "the 'clock' must not be null");
         Validate.notNull(channelMonitorAgent, "the 'channelMonitorAgent' must not be null");
         Validate.notNull(validator, "the 'validator' must not be null");
 
         this.rawAdapter = rawAdapter;
-        this.rawAdapter.subscribe(this::handleRawMessage);
         this.topic = topic;
+        this.messageHandler = messageHandler;
         this.msbConfig = msbConfig;
         this.clock = clock;
         this.channelMonitorAgent = channelMonitorAgent;
         this.validator = validator;
-    }
 
-    /**
-     * Adds a handler that invoked when message being received.
-     */
-    public void subscribe(MessageHandler messageHandler) {
-        Validate.notNull(messageHandler, "the 'messageHandler' must not be null");
-        this.messageHandler = messageHandler;
+        this.rawAdapter.subscribe(this::handleRawMessage);
     }
 
     /**
@@ -105,9 +101,5 @@ public class Consumer {
         Instant now = clock.instant();
 
         return expiryTime.isBefore(now);
-    }
-
-    public MessageHandler getMessageHandler() {
-        return messageHandler;
     }
 }

@@ -6,7 +6,8 @@ import static org.mockito.Mockito.verify;
 import java.time.Clock;
 
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.TimeoutManager;
+import io.github.tcdl.collector.CollectorManagerFactory;
+import io.github.tcdl.collector.TimeoutManager;
 import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.api.ObjectFactory;
 import io.github.tcdl.config.MsbConfigurations;
@@ -33,10 +34,13 @@ public class MsbContextImplTest {
     @Mock
     private TimeoutManager timeoutManagerMock;
 
+    @Mock
+    private CollectorManagerFactory collectorManagerFactoryMock;
+
     @Test
     public void testShutdown() {
         MsbContext msbContext = new MsbContextImpl(msbConfigurationsMock, messageFactoryMock, channelManagerMock, clock,
-                timeoutManagerMock);
+                timeoutManagerMock, collectorManagerFactoryMock);
         msbContext.shutdown();
         verify(timeoutManagerMock).shutdown();
         verify(channelManagerMock).shutdown();
@@ -46,7 +50,7 @@ public class MsbContextImplTest {
     public void testSetObjectFactory() {
         ObjectFactory objectFactoryMock = mock(ObjectFactory.class);
         MsbContextImpl msbContext = new MsbContextImpl(msbConfigurationsMock, messageFactoryMock, channelManagerMock, clock,
-                timeoutManagerMock);
+                timeoutManagerMock, collectorManagerFactoryMock);
         msbContext.setObjectFactory(objectFactoryMock);
         assertEquals(objectFactoryMock, msbContext.getObjectFactory());
     }

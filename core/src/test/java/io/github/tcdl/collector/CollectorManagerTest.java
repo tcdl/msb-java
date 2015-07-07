@@ -1,6 +1,9 @@
-package io.github.tcdl;
+package io.github.tcdl.collector;
 
+import io.github.tcdl.ChannelManager;
 import io.github.tcdl.api.message.Message;
+import io.github.tcdl.collector.Collector;
+import io.github.tcdl.collector.CollectorManager;
 import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;

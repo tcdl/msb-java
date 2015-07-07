@@ -1,16 +1,6 @@
-package io.github.tcdl;
+package io.github.tcdl.collector;
 
-import io.github.tcdl.api.Callback;
-import io.github.tcdl.api.RequestOptions;
-import io.github.tcdl.api.message.Acknowledge;
-import io.github.tcdl.events.EventHandlers;
-import io.github.tcdl.impl.MsbContextImpl;
-import io.github.tcdl.api.message.Message;
-import io.github.tcdl.api.message.payload.Payload;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import static io.github.tcdl.support.Utils.ifNull;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -21,7 +11,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 
-import static io.github.tcdl.support.Utils.ifNull;
+import io.github.tcdl.ChannelManager;
+import io.github.tcdl.api.Callback;
+import io.github.tcdl.api.RequestOptions;
+import io.github.tcdl.api.message.Acknowledge;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.events.EventHandlers;
+import io.github.tcdl.impl.MsbContextImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
@@ -58,14 +57,16 @@ public class Collector {
 
     private  ScheduledFuture ackTimeoutFuture;
     private  ScheduledFuture responseTimeoutFuture;
-    private CollectorManager collectorManager;
+    private  CollectorManager collectorManager;
 
-    public Collector(RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers eventHandlers) {
+    public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers eventHandlers) {
+        this.requestMessage = requestMessage;
+
         this.channelManager = msbContext.getChannelManager();
         this.clock = msbContext.getClock();
+        this.collectorManager = msbContext.getCollectorManagerFactory().findOrCreateCollectorManager(topic);
 
         this.startedAt = clock.instant().toEpochMilli();
-
         this.ackMessages = new LinkedList<>();
         this.payloadMessages = new LinkedList<>();
         this.timeoutMsById = new HashMap<>();
@@ -95,10 +96,7 @@ public class Collector {
         return getResponsesRemaining() > 0;
     }
 
-    public void listenForResponses(String topic, Message requestMessage) {
-        this.requestMessage = requestMessage;
-
-        collectorManager = findOrCreateCollectorManager(topic);
+    public void listenForResponses() {
         collectorManager.registerCollector(this);
     }
 
@@ -280,15 +278,5 @@ public class Collector {
 
     Message getRequestMessage() {
         return requestMessage;
-    }
-
-    public CollectorManager findOrCreateCollectorManager(String topic) {
-        Consumer consumer = channelManager.findOrCreateConsumer(topic);
-        synchronized (consumer) {
-            if (consumer.getMessageHandler() == null) {
-                consumer.subscribe(new CollectorManager(topic, channelManager));
-            }
-        }
-        return (CollectorManager) consumer.getMessageHandler();
     }
 }

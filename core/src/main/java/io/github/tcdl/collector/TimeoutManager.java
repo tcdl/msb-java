@@ -1,5 +1,6 @@
-package io.github.tcdl;
+package io.github.tcdl.collector;
 
+import io.github.tcdl.RunOnShutdownScheduledExecutorDecorator;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

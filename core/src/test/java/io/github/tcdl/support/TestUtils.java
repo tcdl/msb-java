@@ -1,7 +1,8 @@
 package io.github.tcdl.support;
 
 import io.github.tcdl.ChannelManager;
-import io.github.tcdl.TimeoutManager;
+import io.github.tcdl.collector.CollectorManagerFactory;
+import io.github.tcdl.collector.TimeoutManager;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.ObjectFactory;
 import io.github.tcdl.api.RequestOptions;
@@ -151,7 +152,8 @@ public class TestUtils {
         private Optional<ChannelManager> channelManagerOp = Optional.empty(); 
         private Optional<Clock> clockOp = Optional.empty();
         private Optional<TimeoutManager> timeoutManagerOp = Optional.empty();
-        private Optional<ObjectFactory> objectFactoryOp = Optional.empty(); 
+        private Optional<ObjectFactory> objectFactoryOp = Optional.empty();
+        private Optional<CollectorManagerFactory> collectorManagerFactoryOp = Optional.empty();
 
         public TestMsbContextBuilder withMsbConfigurations(MsbConfigurations msbConfig) {
             this.msbConfigOp = Optional.ofNullable(msbConfig);
@@ -181,7 +183,12 @@ public class TestUtils {
         public TestMsbContextBuilder withObjectFactory(ObjectFactory objectFactory) {
             this.objectFactoryOp = Optional.ofNullable(objectFactory);
             return this;
-        } 
+        }
+
+        public TestMsbContextBuilder withCollectorManagerFactory(CollectorManagerFactory collectorManagerFactory) {
+            this.collectorManagerFactoryOp = Optional.ofNullable(collectorManagerFactory);
+            return this;
+        }
 
         public MsbContextImpl build() {
             MsbConfigurations msbConfig = msbConfigOp.orElse(TestUtils.createMsbConfigurations());
@@ -189,7 +196,8 @@ public class TestUtils {
             ChannelManager channelManager = channelManagerOp.orElseGet(() -> new ChannelManager(msbConfig, clock, new JsonValidator()));
             MessageFactory messageFactory = messageFactoryOp.orElseGet(() -> new MessageFactory(msbConfig.getServiceDetails(), clock));
             TimeoutManager timeoutManager = timeoutManagerOp.orElseGet(() -> new TimeoutManager(1));
-            TestMsbContext msbContext = new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+            CollectorManagerFactory collectorManagerFactory = collectorManagerFactoryOp.orElseGet(() -> new CollectorManagerFactory(channelManager));
+            TestMsbContext msbContext = new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager, collectorManagerFactory);
             
             ObjectFactory objectFactory = objectFactoryOp.orElseGet(() -> new ObjectFactoryImpl(msbContext));
             msbContext.setFactory(objectFactory);
@@ -198,8 +206,8 @@ public class TestUtils {
 
         private static class TestMsbContext extends MsbContextImpl {
             TestMsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory,
-                    ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
-                super(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+                    ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager, CollectorManagerFactory collectorManagerFactory) {
+                super(msbConfig, messageFactory, channelManager, clock, timeoutManager, collectorManagerFactory);
             }
             
             public void setFactory(ObjectFactory objectFactory) {
