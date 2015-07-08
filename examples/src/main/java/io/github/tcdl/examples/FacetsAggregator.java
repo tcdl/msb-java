@@ -1,8 +1,7 @@
 package io.github.tcdl.examples;
 
-import io.github.tcdl.api.MessageTemplate;
-import io.github.tcdl.api.MsbContext;
-import io.github.tcdl.api.MsbContextBuilder;
+import io.github.tcdl.api.*;
+import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
 
 import java.util.Arrays;
@@ -53,7 +52,34 @@ public class FacetsAggregator {
 
                 responder.send(responsePayloadAny);
             } else {
-//                responder.send(responsePayload);
+                RequestOptions requestOptions = new RequestOptions.Builder()
+                        .withWaitForResponses(1)
+                        .withAckTimeout(200)
+                        .withResponseTimeout(600)
+                        .build();
+
+                Requester requester = msbContext.getObjectFactory().createRequester("search:parsers:facets:v1",
+                        requestOptions, responder.getOriginalMessage());
+
+                final String[] result = {""};
+
+                requester.onResponse(response -> {
+                    System.out.println(">>> RESPONSE: " + response);
+                    result[0] +=response;
+                });
+
+                requester.onEnd(listOfMessages -> {
+                    for (Message message : listOfMessages)
+                        System.out.println(">>> MESSAGE: " + message.getPayload().getBody());
+
+                    Payload responsePayload = new Payload.PayloadBuilder()
+                            .withStatusCode(200)
+                            .withBody(result[0]).build();
+
+                    responder.send(responsePayload);
+                });
+
+                requester.publish(request);
             }
         }).listen();
     }
