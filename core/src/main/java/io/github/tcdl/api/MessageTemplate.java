@@ -23,7 +23,7 @@ public class MessageTemplate {
      *
      * @param ttl time to live for the message
      */
-    public MessageTemplate setTtl(Integer ttl) {
+    public MessageTemplate withTtl(Integer ttl) {
         this.ttl = ttl;
         return this;
     }
