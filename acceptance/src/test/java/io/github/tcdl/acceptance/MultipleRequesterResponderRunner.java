@@ -4,15 +4,13 @@ import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
+import static io.github.tcdl.acceptance.TestConfig.TIMEOUT_IN_SECONDS;
 import static org.junit.Assert.assertTrue;
-
 /**
  * Created by anstr on 6/10/2015.
  */
 
 public class MultipleRequesterResponderRunner {
-
-    private static long TIMEOUT_IN_SECONDS = 5 ;
 
     @Test
     public void runTest() throws Exception {
