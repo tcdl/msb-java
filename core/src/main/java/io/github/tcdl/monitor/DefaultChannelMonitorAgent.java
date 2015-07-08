@@ -7,7 +7,7 @@ import io.github.tcdl.impl.MsbContextImpl;
 import io.github.tcdl.impl.ResponderImpl;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.message.Message;
-import io.github.tcdl.api.message.Message.MessageBuilder;
+import io.github.tcdl.api.message.Message.Builder;
 import io.github.tcdl.message.MessageFactory;
 import io.github.tcdl.api.message.payload.Payload;
 
@@ -63,7 +63,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
         channelManager.subscribe(TOPIC_HEARTBEAT, // Launch listener for heartbeat topic
                 message -> {
                         Responder responder = new ResponderImpl(null, message, msbContext);
-                        Payload payload = new Payload.PayloadBuilder()
+                        Payload payload = new Payload.Builder()
                                 .withBody(topicInfoMap)
                                 .build();
                         responder.send(payload);
@@ -147,13 +147,13 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
      * Makes broadcast of the current statistics.
      */
     private void doAnnounce() {
-        Payload payload = new Payload.PayloadBuilder()
+        Payload payload = new Payload.Builder()
                 .withBody(topicInfoMap)
                 .build();
 
         Producer producer = channelManager.findOrCreateProducer(TOPIC_ANNOUNCE);
 
-        MessageBuilder messageBuilder = messageFactory.createBroadcastMessageBuilder(new MessageTemplate(), TOPIC_ANNOUNCE, payload);
+        Builder messageBuilder = messageFactory.createBroadcastMessageBuilder(new MessageTemplate(), TOPIC_ANNOUNCE, payload);
         Message announcementMessage = messageBuilder.build();
 
         producer.publish(announcementMessage);

@@ -39,7 +39,7 @@ public final class Payload {
         this.bodyBuffer = bodyBuffer;
     }
 
-    public static class PayloadBuilder {
+    public static class Builder {
 
         private Integer statusCode;
         private String statusMessage;
@@ -49,37 +49,37 @@ public final class Payload {
         private Object body;
         private Object bodyBuffer;
 
-        public PayloadBuilder withStatusCode(Integer statusCode) {
+        public Builder withStatusCode(Integer statusCode) {
             this.statusCode = statusCode;
             return this;
         }
 
-        public PayloadBuilder withStatusMessage(String statusMessage) {
+        public Builder withStatusMessage(String statusMessage) {
             this.statusMessage = statusMessage;
             return this;
         }
 
-        public PayloadBuilder withHeaders(Map<String, String> headers) {
+        public Builder withHeaders(Map<String, String> headers) {
             this.headers = headers;
             return this;
         }
 
-        public PayloadBuilder withQuery(Object query) {
+        public Builder withQuery(Object query) {
             this.query = query;
             return this;
         }
 
-        public PayloadBuilder withParams(Object params) {
+        public Builder withParams(Object params) {
             this.params = params;
             return this;
         }
 
-        public PayloadBuilder withBody(Object body) {
+        public Builder withBody(Object body) {
             this.body = body;
             return this;
         }
 
-        public PayloadBuilder withBodyBuffer(Object bodyBuffer) {
+        public Builder withBodyBuffer(Object bodyBuffer) {
             this.bodyBuffer = bodyBuffer;
             return this;
         }

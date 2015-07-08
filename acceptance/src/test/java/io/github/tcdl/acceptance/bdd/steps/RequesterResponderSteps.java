@@ -28,7 +28,7 @@ public class RequesterResponderSteps extends MsbSteps {
     public void createResponderServer(String namespace) {
         helper.createResponderServer(namespace, (request, responder) -> {
             if (responseBody != null) {
-                Payload payload = new Payload.PayloadBuilder().withBody(Utils.fromJson(responseBody, Map.class)).build();
+                Payload payload = new Payload.Builder().withBody(Utils.fromJson(responseBody, Map.class)).build();
                 responder.send(payload);
             }
         })

@@ -3,9 +3,9 @@ package io.github.tcdl.message;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.api.message.Message;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.config.ServiceDetails;
-import io.github.tcdl.api.message.Message.MessageBuilder;
+import io.github.tcdl.api.message.Message.Builder;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.TestUtils;
 import io.github.tcdl.support.Utils;
@@ -36,7 +36,7 @@ public class MessageFactoryTest {
     private MessageTemplate messageOptions;
 
     @Mock
-    private MsbConfigurations msbConf;
+    private MsbConfig msbConf;
 
     private ServiceDetails serviceDetails = TestUtils.createMsbConfigurations().getServiceDetails();
 
@@ -46,7 +46,7 @@ public class MessageFactoryTest {
     public void testCreateRequestMessageHasBasicFieldsSet() {
         String namespace = "test:request-basic-fields";
         Message originalMessage = TestUtils.createMsbResponseMessage(namespace);
-        MessageBuilder requestMesageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageOptions, originalMessage);
+        Builder requestMesageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageOptions, originalMessage);
 
         Message message = requestMesageBuilder.build();
 
@@ -64,7 +64,7 @@ public class MessageFactoryTest {
     public void testCreateResponseMessageHasBasicFieldsSet() {
         String namespace = "test:request-basic-fields";
         Message originalMessage = TestUtils.createMsbRequestMessageNoPayload(namespace);
-        MessageBuilder responseMesageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
+        Builder responseMesageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
 
         Message message = responseMesageBuilder.build();
 
@@ -77,7 +77,7 @@ public class MessageFactoryTest {
     @Test
     public void testCreateRequestMessageWithPayload() {
         Payload requestPayload = TestUtils.createSimpleResponsePayload();
-        MessageBuilder requestMesageBuilder = TestUtils.createMesageBuilder();
+        Builder requestMesageBuilder = TestUtils.createMesageBuilder();
 
         Message message = messageFactory.createRequestMessage(requestMesageBuilder, requestPayload);
 
@@ -87,7 +87,7 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateRequestMessageWithoutPayload() {
-        MessageBuilder requestMesageBuilder = TestUtils.createMesageBuilder();
+        Builder requestMesageBuilder = TestUtils.createMesageBuilder();
 
         Message message = messageFactory.createRequestMessage(requestMesageBuilder, null);
 
@@ -97,9 +97,9 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateResponseMessageWithPayloadAndAck() {
-        MessageBuilder responseMesageBuilder = TestUtils.createMesageBuilder();
+        Builder responseMesageBuilder = TestUtils.createMesageBuilder();
         Payload responsePayload = TestUtils.createSimpleResponsePayload();
-        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(3).withTimeoutMs(100).build();
+        Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(3).withTimeoutMs(100).build();
 
         Message message = messageFactory.createResponseMessage(responseMesageBuilder, ack, responsePayload);
 
@@ -109,7 +109,7 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateResponseMessageWithoutPayloadAndAck() {
-        MessageBuilder responseMesageBuilder = TestUtils.createMesageBuilder();
+        Builder responseMesageBuilder = TestUtils.createMesageBuilder();
 
         Message message = messageFactory.createResponseMessage(responseMesageBuilder, null, null);
 
@@ -128,7 +128,7 @@ public class MessageFactoryTest {
         String topic = "topic:target";
 
         Payload broadcastPayload = TestUtils.createSimpleBroadcastPayload();
-        MessageBuilder messageBuilder = messageFactory.createBroadcastMessageBuilder(messageOptions, topic, broadcastPayload);
+        Builder messageBuilder = messageFactory.createBroadcastMessageBuilder(messageOptions, topic, broadcastPayload);
 
         Message message = messageBuilder.build();
 

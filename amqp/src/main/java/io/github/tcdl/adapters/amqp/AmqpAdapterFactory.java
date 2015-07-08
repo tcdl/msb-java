@@ -8,7 +8,7 @@ import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ProducerAdapter;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
 import io.github.tcdl.api.exception.ChannelException;
 import io.github.tcdl.api.exception.ConfigurationException;
@@ -44,7 +44,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
      * @throws ChannelException if an error is encountered during connecting to broker
      * @throws ConfigurationException if provided configuration is broken
      */
-    public void init(MsbConfigurations msbConfig) {
+    public void init(MsbConfig msbConfig) {
         amqpBrokerConfig = createAmqpBrokerConfig(msbConfig);
         ConnectionFactory connectionFactory = createConnectionFactory(amqpBrokerConfig);
         Connection connection = createConnection(connectionFactory);
@@ -52,7 +52,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
         consumerThreadPool = createConsumerThreadPool(amqpBrokerConfig);
     }
 
-    protected AmqpBrokerConfig createAmqpBrokerConfig(MsbConfigurations msbConfig) {
+    protected AmqpBrokerConfig createAmqpBrokerConfig(MsbConfig msbConfig) {
         Config amqpApplicationConfig = msbConfig.getBrokerConfig();
         Config amqpLibConfig = ConfigFactory.load("amqp").getConfig("config.amqp");
 

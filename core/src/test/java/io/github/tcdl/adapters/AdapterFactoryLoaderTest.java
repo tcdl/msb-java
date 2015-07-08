@@ -5,7 +5,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import io.github.tcdl.adapters.mock.MockAdapterFactory;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 
 import org.junit.Test;
 
@@ -26,7 +26,7 @@ public class AdapterFactoryLoaderTest {
     public void testCreatedMockAdapterByFactoryClassName(){
         String configStr = String.format(basicConfigWithoutAdapterFactory, "brokerAdapterFactory = \"io.github.tcdl.adapters.mock.MockAdapterFactory\",");
         Config config = ConfigFactory.parseString(configStr);
-        MsbConfigurations msbConfig = new MsbConfigurations(config);
+        MsbConfig msbConfig = new MsbConfig(config);
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);
         AdapterFactory adapterFactory = loader.getAdapterFactory();
         assertThat(adapterFactory, instanceOf(MockAdapterFactory.class));
@@ -38,7 +38,7 @@ public class AdapterFactoryLoaderTest {
         String nonexistentAdapterFactoryClassName = "io.github.tcdl.adapters.NonexistentAdapterFactory";
         String configStr = String.format(basicConfigWithoutAdapterFactory, "brokerAdapterFactory = \"" + nonexistentAdapterFactoryClassName + "\", ");
                 Config config = ConfigFactory.parseString(configStr);
-        MsbConfigurations msbConfig = new MsbConfigurations(config);
+        MsbConfig msbConfig = new MsbConfig(config);
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);
         try {
             loader.getAdapterFactory();
@@ -55,7 +55,7 @@ public class AdapterFactoryLoaderTest {
         String adapterFactoryClassNameWithoutDefaultConstructor = "java.lang.Integer";
         String configStr = String.format(basicConfigWithoutAdapterFactory, "brokerAdapterFactory = \"" + adapterFactoryClassNameWithoutDefaultConstructor + "\", ");
         Config config = ConfigFactory.parseString(configStr);
-        MsbConfigurations msbConfig = new MsbConfigurations(config);
+        MsbConfig msbConfig = new MsbConfig(config);
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);
         try {
             loader.getAdapterFactory();
@@ -72,7 +72,7 @@ public class AdapterFactoryLoaderTest {
         String incorrectAdapterFactoryImplementationClassName = "java.lang.StringBuilder";
         String configStr = String.format(basicConfigWithoutAdapterFactory, "brokerAdapterFactory = \"" + incorrectAdapterFactoryImplementationClassName + "\", ");
         Config config = ConfigFactory.parseString(configStr);
-        MsbConfigurations msbConfig = new MsbConfigurations(config);
+        MsbConfig msbConfig = new MsbConfig(config);
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfig);
         try {
             loader.getAdapterFactory();

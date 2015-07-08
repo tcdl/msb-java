@@ -4,7 +4,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import org.junit.Test;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -49,7 +49,7 @@ public class AmqpAdapterFactoryExecutorTest {
                         + "  }";
 
         Config msbConfig = ConfigFactory.parseString(String.format(basicConfig, brokerConf));
-        MsbConfigurations msbConfigurations = new MsbConfigurations(msbConfig);
+        MsbConfig msbConfigurations = new MsbConfig(msbConfig);
 
         AmqpAdapterFactory adapterFactory = new MockAdapterFactory();
         adapterFactory.init(msbConfigurations);
@@ -74,7 +74,7 @@ public class AmqpAdapterFactoryExecutorTest {
                         + "    consumerThreadPoolQueueCapacity = -1\n"
                         + "  }";
         Config msbConfig = ConfigFactory.parseString(String.format(basicConfig, brokerConf));
-        MsbConfigurations msbConfigurations = new MsbConfigurations(msbConfig);
+        MsbConfig msbConfigurations = new MsbConfig(msbConfig);
 
         AmqpAdapterFactory adapterFactory = new MockAdapterFactory();
         adapterFactory.init(msbConfigurations);

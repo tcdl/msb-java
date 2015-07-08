@@ -1,7 +1,7 @@
 package io.github.tcdl;
 
 import com.googlecode.junittoolbox.MultithreadingTester;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.support.JsonValidator;
 import io.github.tcdl.support.TestUtils;
@@ -25,7 +25,7 @@ public class ChannelManagerConcurrentTest {
 
     @Before
     public void setUp() {
-        MsbConfigurations msbConfig = TestUtils.createMsbConfigurations();
+        MsbConfig msbConfig = TestUtils.createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
         JsonValidator validator = new JsonValidator();
         this.channelManager = new ChannelManager(msbConfig, clock, validator);

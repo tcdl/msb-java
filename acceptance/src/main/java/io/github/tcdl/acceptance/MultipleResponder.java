@@ -28,7 +28,7 @@ public class MultipleResponder {
             String requestId = (String) requestBody.get("requestId");
             SearchResponse response = new SearchResponse(requestId, "response");
             System.out.println(">>> SENDING response in request to " + requestId);
-            responder.send(new Payload.PayloadBuilder().withBody(response).build());
+            responder.send(new Payload.Builder().withBody(response).build());
         })
                 .listen();
     }

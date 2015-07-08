@@ -3,7 +3,7 @@ package io.github.tcdl.api.message;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.github.tcdl.api.message.MetaMessage.MetaMessageBuilder;
+import io.github.tcdl.api.message.MetaMessage.Builder;
 import io.github.tcdl.api.message.payload.Payload;
 import org.apache.commons.lang3.Validate;
 
@@ -43,41 +43,41 @@ public final class Message {
         this.payload = payload;
     }
 
-    public static class MessageBuilder {
+    public static class Builder {
 
         private String id;
         private String correlationId;
         private Topics topics;
-        private MetaMessageBuilder metaBuilder;
+        private MetaMessage.Builder metaBuilder;
         private Acknowledge ack;
         private Payload payload;
 
-        public MessageBuilder setId(String id) {
+        public Builder setId(String id) {
             this.id = id;
             return this;
         }
 
-        public MessageBuilder withCorrelationId(String correlationId) {
+        public Builder withCorrelationId(String correlationId) {
             this.correlationId = correlationId;
             return this;
         }
 
-        public MessageBuilder withTopics(Topics topics) {
+        public Builder withTopics(Topics topics) {
             this.topics = topics;
             return this;
         }
 
-        public MessageBuilder withMetaBuilder(MetaMessageBuilder metaBuilder) {
+        public Message.Builder withMetaBuilder(MetaMessage.Builder metaBuilder) {
             this.metaBuilder = metaBuilder;
             return this;
         }
 
-        public MessageBuilder withAck(Acknowledge ack) {
+        public Builder withAck(Acknowledge ack) {
             this.ack = ack;
             return this;
         }
 
-        public MessageBuilder withPayload(Payload payload) {
+        public Builder withPayload(Payload payload) {
             this.payload = payload;
             return this;
         }

@@ -2,7 +2,7 @@ package io.github.tcdl;
 
 import io.github.tcdl.api.Callback;
 import io.github.tcdl.api.message.Acknowledge;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.impl.MsbContextImpl;
@@ -61,7 +61,7 @@ public class CollectorTest {
     private EventHandlers eventHandlers;
 
     @Mock
-    private MsbConfigurations msbConfigurationsMock;
+    private MsbConfig msbConfigurationsMock;
 
     @Mock
     private TimeoutManager timeoutManagerMock;
@@ -326,7 +326,7 @@ public class CollectorTest {
         doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, requestMessage);
 
-        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMs).build();
+        Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMs).build();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ack, TOPIC, requestMessage.getCorrelationId());
 
         collector.handleMessage(messageWithAck);
@@ -353,7 +353,7 @@ public class CollectorTest {
         doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, requestMessage);
 
-        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMsInAck)
+        Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMsInAck)
                 .build();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ack, TOPIC, requestMessage.getCorrelationId());
 
@@ -382,7 +382,7 @@ public class CollectorTest {
         doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, requestMessage);
 
-        Acknowledge ack = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemaining)
+        Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemaining)
                 .withTimeoutMs(timeoutMsInAck).build();
         Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ack, TOPIC, requestMessage.getCorrelationId());
 
@@ -413,11 +413,11 @@ public class CollectorTest {
         doReturn(mock(CollectorManager.class)).when(collector).findOrCreateCollectorManager(TOPIC);
         collector.listenForResponses(TOPIC, requestMessage);
 
-        Acknowledge ackRespOne = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemainingResponderOne)
+        Acknowledge ackRespOne = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemainingResponderOne)
                 .withTimeoutMs(timeoutMsInAckResponderOne).build();
         Message messageWithAckOne = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ackRespOne, TOPIC, requestMessage.getCorrelationId());
 
-        Acknowledge ackRespTwo = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemainingResponderTwo)
+        Acknowledge ackRespTwo = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemainingResponderTwo)
                 .withTimeoutMs(timeoutMsInAckResponderTwo).build();
         Message messageWithAckTwo = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ackRespTwo, TOPIC, requestMessage.getCorrelationId());
 

@@ -4,6 +4,10 @@ package io.github.tcdl.api;
  * A message template to be used to construct a request/response message
  */
 public class MessageTemplate {
+    
+    public MessageTemplate() {
+        super();
+    }
 
     private Integer ttl;
 
@@ -19,8 +23,9 @@ public class MessageTemplate {
      *
      * @param ttl time to live for the message
      */
-    public void setTtl(Integer ttl) {
+    public MessageTemplate withTtl(Integer ttl) {
         this.ttl = ttl;
+        return this;
     }
 
     @Override

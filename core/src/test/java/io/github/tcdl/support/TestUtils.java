@@ -7,12 +7,11 @@ import io.github.tcdl.api.ObjectFactory;
 import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.api.message.Message;
-import io.github.tcdl.api.message.Message.MessageBuilder;
+import io.github.tcdl.api.message.Message.Builder;
 import io.github.tcdl.api.message.MetaMessage;
-import io.github.tcdl.api.message.MetaMessage.MetaMessageBuilder;
 import io.github.tcdl.api.message.Topics;
 import io.github.tcdl.api.message.payload.Payload;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.impl.MsbContextImpl;
 import io.github.tcdl.impl.ObjectFactoryImpl;
 import io.github.tcdl.message.MessageFactory;
@@ -53,65 +52,69 @@ public class TestUtils {
     }
 
     public static Message createMsbRequestMessageWithPayloadAndTopicTo(String topicTo) {
-        MsbConfigurations msbConf = createMsbConfigurations();
+        MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
-        MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
+        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
+        return new Message.Builder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
                 .withPayload(createSimpleRequestPayload()).build();
     }
 
     public static Message createMsbRequestMessageWithAckNoPayloadAndTopicTo(String topicTo) {
-        Acknowledge simpleAck = new Acknowledge.AcknowledgeBuilder().withResponderId(Utils.generateId()).build();
+        Acknowledge simpleAck = new Acknowledge.Builder().withResponderId(Utils.generateId()).build();
         return createMsbRequestMessageWithAckNoPayloadAndTopicTo(simpleAck, topicTo, Utils.generateId());
     }
 
     public static Message createMsbRequestMessageWithAckNoPayloadAndTopicTo(Acknowledge ack, String topicTo, String correlationId) {
-        MsbConfigurations msbConf = createMsbConfigurations();
+        MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
-        MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.MessageBuilder().withCorrelationId(Utils.ifNull(correlationId, Utils.generateId())).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(
-                metaBuilder)
-                .withPayload(null).withAck(ack).build();
+        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
+        return new Message.Builder()
+            .withCorrelationId(Utils.ifNull(correlationId, Utils.generateId())).setId(Utils.generateId())
+                .withTopics(topic)
+                .withMetaBuilder(metaBuilder)
+                .withPayload(null)
+                .withAck(ack)
+                .build();
     }
 
     public static Message createMsbRequestMessageNoPayload(String namespace) {
-        MsbConfigurations msbConf = createMsbConfigurations();
+        MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics(namespace, namespace + ":response:" +
                 msbConf.getServiceDetails().getInstanceId());
 
-        MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
+        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
+        return new Message.Builder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
                 .withPayload(null).build();
     }
 
     public static Message createMsbResponseMessage(String namespace) {
-        MsbConfigurations msbConf = createMsbConfigurations();
+        MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics(namespace, namespace + ":response:" +
                 msbConf.getServiceDetails().getInstanceId());
-        MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic)
+        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
+        return new Message.Builder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic)
                 .withMetaBuilder(metaBuilder).withPayload(createSimpleResponsePayload()).build();
     }
 
-    public static MessageBuilder createMesageBuilder() {
-        MsbConfigurations msbConf = createMsbConfigurations();
+    public static Builder createMesageBuilder() {
+        MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics("", "");
-        MetaMessageBuilder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder);
+        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
+        return new Message.Builder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder);
     }
 
-    public static MsbConfigurations createMsbConfigurations() {
-        return new MsbConfigurations(ConfigFactory.load());
+    public static MsbConfig createMsbConfigurations() {
+        return new MsbConfig(ConfigFactory.load());
     }
 
     public static Payload createSimpleRequestPayload() {
@@ -123,7 +126,7 @@ public class TestUtils {
 
         body.put("body", "someRequestBody created at " + Clock.systemDefaultZone().millis());
 
-        return new Payload.PayloadBuilder().withBody(body).withHeaders(headers).build();
+        return new Payload.Builder().withBody(body).withHeaders(headers).build();
     }
 
     public static Payload createSimpleBroadcastPayload() {
@@ -138,22 +141,22 @@ public class TestUtils {
         Map<String, String> body = new HashMap<String, String>();
         body.put("body", "someResponseBody");
 
-        return new Payload.PayloadBuilder().withBody(body).withHeaders(headers).build();
+        return new Payload.Builder().withBody(body).withHeaders(headers).build();
     }
 
-    public static MetaMessageBuilder createSimpleMetaBuilder(MsbConfigurations msbConf, Clock clock) {
-        return new MetaMessage.MetaMessageBuilder(null, clock.instant(), msbConf.getServiceDetails(), clock);
+    public static MetaMessage.Builder createSimpleMetaBuilder(MsbConfig msbConf, Clock clock) {
+        return new MetaMessage.Builder(null, clock.instant(), msbConf.getServiceDetails(), clock);
     }
     
     public static class TestMsbContextBuilder {
-        private Optional<MsbConfigurations> msbConfigOp = Optional.empty();
+        private Optional<MsbConfig> msbConfigOp = Optional.empty();
         private Optional<MessageFactory> messageFactoryOp = Optional.empty(); 
         private Optional<ChannelManager> channelManagerOp = Optional.empty(); 
         private Optional<Clock> clockOp = Optional.empty();
         private Optional<TimeoutManager> timeoutManagerOp = Optional.empty();
         private Optional<ObjectFactory> objectFactoryOp = Optional.empty(); 
 
-        public TestMsbContextBuilder withMsbConfigurations(MsbConfigurations msbConfig) {
+        public TestMsbContextBuilder withMsbConfigurations(MsbConfig msbConfig) {
             this.msbConfigOp = Optional.ofNullable(msbConfig);
             return this;
         }
@@ -184,7 +187,7 @@ public class TestUtils {
         } 
 
         public MsbContextImpl build() {
-            MsbConfigurations msbConfig = msbConfigOp.orElse(TestUtils.createMsbConfigurations());
+            MsbConfig msbConfig = msbConfigOp.orElse(TestUtils.createMsbConfigurations());
             Clock clock = clockOp.orElse(Clock.systemDefaultZone());
             ChannelManager channelManager = channelManagerOp.orElseGet(() -> new ChannelManager(msbConfig, clock, new JsonValidator()));
             MessageFactory messageFactory = messageFactoryOp.orElseGet(() -> new MessageFactory(msbConfig.getServiceDetails(), clock));
@@ -197,7 +200,7 @@ public class TestUtils {
         }
 
         private static class TestMsbContext extends MsbContextImpl {
-            TestMsbContext(MsbConfigurations msbConfig, MessageFactory messageFactory,
+            TestMsbContext(MsbConfig msbConfig, MessageFactory messageFactory,
                     ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
                 super(msbConfig, messageFactory, channelManager, clock, timeoutManager);
             }

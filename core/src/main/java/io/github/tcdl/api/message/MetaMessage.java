@@ -30,13 +30,13 @@ public final class MetaMessage {
         this.serviceDetails = serviceDetails;
     }
 
-    public static class MetaMessageBuilder {
+    public static class Builder {
         private Integer ttl;
         private Instant createdAt;
         private ServiceDetails serviceDetails;
         private Clock clock;
 
-        public MetaMessageBuilder(Integer ttl, Instant createdAt, ServiceDetails serviceDetails, Clock clock) {
+        public Builder(Integer ttl, Instant createdAt, ServiceDetails serviceDetails, Clock clock) {
             this.ttl = ttl;
             this.createdAt = createdAt;
             this.serviceDetails = serviceDetails;

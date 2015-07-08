@@ -121,7 +121,7 @@ public class RequesterResponderIT {
         //listen for message and send response
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
         serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, response) -> {
-                    Payload payload = new Payload.PayloadBuilder().withBody(
+                    Payload payload = new Payload.Builder().withBody(
                             new HashMap<String, String>().put("body", "payload from test : testResponderAnswerWithResponseRequesterReceiveResponse"))
                             .withStatusCode(3333).build();
                     response.send(payload);

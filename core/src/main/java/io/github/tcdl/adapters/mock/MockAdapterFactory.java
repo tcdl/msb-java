@@ -3,7 +3,7 @@ package io.github.tcdl.adapters.mock;
 import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ProducerAdapter;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 
 /**
  * MockAdapterFactory is an implementation of {@link AdapterFactory}
@@ -13,7 +13,7 @@ import io.github.tcdl.config.MsbConfigurations;
 public class MockAdapterFactory implements AdapterFactory {
 
     @Override
-    public void init(MsbConfigurations msbConfig) {
+    public void init(MsbConfig msbConfig) {
         // No-op
     }
 

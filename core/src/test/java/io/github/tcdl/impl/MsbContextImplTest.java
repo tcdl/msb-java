@@ -9,7 +9,7 @@ import io.github.tcdl.ChannelManager;
 import io.github.tcdl.TimeoutManager;
 import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.api.ObjectFactory;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.message.MessageFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,7 +22,7 @@ public class MsbContextImplTest {
     private Clock clock = Clock.systemDefaultZone();
 
     @Mock
-    private MsbConfigurations msbConfigurationsMock;
+    private MsbConfig msbConfigurationsMock;
 
     @Mock
     private MessageFactory messageFactoryMock;

@@ -23,22 +23,22 @@ public final class Acknowledge {
         this.timeoutMs = timeoutMs;
     }
 
-    public static class AcknowledgeBuilder {
+    public static class Builder {
         private String responderId;
         private Integer responsesRemaining;
         private Integer timeoutMs;
 
-        public AcknowledgeBuilder withResponderId(String responderId) {
+        public Builder withResponderId(String responderId) {
             this.responderId = responderId;
             return this;
         }
 
-        public AcknowledgeBuilder withResponsesRemaining(Integer responsesRemaining) {
+        public Builder withResponsesRemaining(Integer responsesRemaining) {
             this.responsesRemaining = responsesRemaining;
             return this;
         }
 
-        public AcknowledgeBuilder withTimeoutMs(Integer timeoutMs) {
+        public Builder withTimeoutMs(Integer timeoutMs) {
             this.timeoutMs = timeoutMs;
             return this;
         }
