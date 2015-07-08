@@ -9,7 +9,7 @@ import io.github.tcdl.adapters.AdapterFactoryLoader;
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ProducerAdapter;
 import io.github.tcdl.api.Callback;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.monitor.NoopChannelMonitorAgent;
@@ -22,7 +22,7 @@ import org.apache.commons.lang3.Validate;
  */
 public class ChannelManager {
 
-    private MsbConfigurations msbConfig;
+    private MsbConfig msbConfig;
     private Clock clock;
     private JsonValidator validator;
     private AdapterFactory adapterFactory;
@@ -31,7 +31,7 @@ public class ChannelManager {
     private Map<String, Producer> producersByTopic;
     private Map<String, Consumer> consumersByTopic;
 
-    public ChannelManager(MsbConfigurations msbConfig, Clock clock, JsonValidator validator) {
+    public ChannelManager(MsbConfig msbConfig, Clock clock, JsonValidator validator) {
         this.msbConfig = msbConfig;
         this.clock = clock;
         this.validator = validator;

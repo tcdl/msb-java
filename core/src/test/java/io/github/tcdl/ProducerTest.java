@@ -3,7 +3,7 @@ package io.github.tcdl;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.adapters.ProducerAdapter;
 import io.github.tcdl.api.Callback;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.api.exception.ChannelException;
 import io.github.tcdl.api.exception.JsonConversionException;
 import io.github.tcdl.api.message.Message;
@@ -95,15 +95,15 @@ public class ProducerTest {
     }
 
     private  Message createBrokenRequestMessageWithAndTopicTo(String topicTo) {
-        MsbConfigurations msbConf = new MsbConfigurations(ConfigFactory.load());
+        MsbConfig msbConf = new MsbConfig(ConfigFactory.load());
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         Map<String, String> body = new HashMap<String, String>();
         body.put("body", "{\\\"x\\\" : 3} garbage");
-        Payload payload = new Payload.PayloadBuilder().withBody(body).build();
-        MetaMessage.MetaMessageBuilder metaBuilder = new MetaMessage.MetaMessageBuilder(null,  clock.instant(), msbConf.getServiceDetails(), clock);
-        return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(
+        Payload payload = new Payload.Builder().withBody(body).build();
+        MetaMessage.Builder metaBuilder = new MetaMessage.Builder(null,  clock.instant(), msbConf.getServiceDetails(), clock);
+        return new Message.Builder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(
                 metaBuilder).withPayload(payload)
                 .build();
     }

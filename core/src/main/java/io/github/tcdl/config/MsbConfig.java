@@ -13,9 +13,9 @@ import static io.github.tcdl.config.ConfigurationUtil.getInt;
 import static io.github.tcdl.config.ConfigurationUtil.getString;
 
 /**
- * {@link MsbConfigurations} class provides access to configuration properties
+ * {@link MsbConfig} class provides access to configuration properties
  */
-public class MsbConfigurations {
+public class MsbConfig {
 
     public final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -33,11 +33,11 @@ public class MsbConfigurations {
 
     private int timerThreadPoolSize;
 
-    public MsbConfigurations(Config loadedConfig) {
+    public MsbConfig(Config loadedConfig) {
         Config config = loadedConfig.getConfig("msbConfig");
 
         Config serviceDetailsConfig = config.hasPath("serviceDetails") ? config.getConfig("serviceDetails") : ConfigFactory.empty();
-        this.serviceDetails = new ServiceDetails.ServiceDetailsBuilder(serviceDetailsConfig).build();
+        this.serviceDetails = new ServiceDetails.Builder(serviceDetailsConfig).build();
         this.schema = readJsonSchema();
         this.brokerAdapterFactoryClass = getBrokerAdapterFactory(config);
         this.brokerConfig = config.hasPath("brokerConfig") ? config.getConfig("brokerConfig") : ConfigFactory.empty();

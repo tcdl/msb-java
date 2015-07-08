@@ -3,9 +3,8 @@ package io.github.tcdl.message;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.api.message.Message;
-import io.github.tcdl.api.message.Message.MessageBuilder;
 import io.github.tcdl.api.message.MetaMessage;
-import io.github.tcdl.api.message.MetaMessage.MetaMessageBuilder;
+import io.github.tcdl.api.message.MetaMessage.Builder;
 import io.github.tcdl.api.message.Topics;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.config.ServiceDetails;
@@ -15,7 +14,6 @@ import org.apache.commons.lang3.Validate;
 import javax.annotation.Nullable;
 import java.time.Clock;
 
-import static io.github.tcdl.api.message.Acknowledge.AcknowledgeBuilder;
 
 /**
  * Created by rdro on 4/22/2015.
@@ -32,50 +30,50 @@ public class MessageFactory {
         this.clock = clock;
     }
 
-    public MessageBuilder createRequestMessageBuilder(String namespace, MessageTemplate messageTemplate, Message originalMessage) {
-        MessageBuilder messageBuilder = createMessageBuilderWithMeta(messageTemplate, originalMessage);
+    public Message.Builder createRequestMessageBuilder(String namespace, MessageTemplate messageTemplate, Message originalMessage) {
+        Message.Builder messageBuilder = createMessageBuilderWithMeta(messageTemplate, originalMessage);
         Topics topic = new Topics(namespace, namespace + ":response:" +
                 this.serviceDetails.getInstanceId());
         return messageBuilder.withTopics(topic);
     }
 
-    public MessageBuilder createResponseMessageBuilder(MessageTemplate messageTemplate, Message originalMessage) {
-        MessageBuilder messageBuilder = createMessageBuilderWithMeta(messageTemplate, originalMessage);
+    public Message.Builder createResponseMessageBuilder(MessageTemplate messageTemplate, Message originalMessage) {
+        Message.Builder messageBuilder = createMessageBuilderWithMeta(messageTemplate, originalMessage);
         Topics topic = new Topics(originalMessage.getTopics().getResponse(), null);
         return messageBuilder.withTopics(topic);
     }
 
-    private MessageBuilder createMessageBuilderWithMeta(MessageTemplate config, Message originalMessage) {
-        MessageBuilder messageBuilder = createBaseMessage(originalMessage);
-        MetaMessageBuilder metaBuilder = createMetaBuilder(config);
+    private Message.Builder createMessageBuilderWithMeta(MessageTemplate config, Message originalMessage) {
+        Message.Builder messageBuilder = createBaseMessage(originalMessage);
+        MetaMessage.Builder metaBuilder = createMetaBuilder(config);
         return messageBuilder.withMetaBuilder(metaBuilder);
     }
 
-    public Message createRequestMessage(MessageBuilder messageBuilder, Payload payload) {
+    public Message createRequestMessage(Message.Builder messageBuilder, Payload payload) {
         if (payload != null) {
             messageBuilder.withPayload(payload);
         }
         return messageBuilder.build();
     }
 
-    public Message createResponseMessage(MessageBuilder messageBuilder, Acknowledge ack, Payload payload) {
+    public Message createResponseMessage(Message.Builder messageBuilder, Acknowledge ack, Payload payload) {
         messageBuilder.withPayload(payload);
         messageBuilder.withAck(ack);
         return messageBuilder.build();
     }
 
-    public AcknowledgeBuilder createAckBuilder() {
-        return new AcknowledgeBuilder().withResponderId(Utils.generateId());
+    public Acknowledge.Builder createAckBuilder() {
+        return new Acknowledge.Builder().withResponderId(Utils.generateId());
     }
 
-    public MetaMessageBuilder createMetaBuilder(MessageTemplate config) {
+    public Builder createMetaBuilder(MessageTemplate config) {
         Integer ttl = config == null ? null : config.getTtl();
-        return new MetaMessage.MetaMessageBuilder(ttl, clock.instant(), this.serviceDetails, clock);
+        return new MetaMessage.Builder(ttl, clock.instant(), this.serviceDetails, clock);
     }
 
-    public MessageBuilder createBroadcastMessageBuilder(MessageTemplate config, String topicTo, Payload payload) {
-        MessageBuilder messageBuilder = createBaseMessage(null);
-        MetaMessageBuilder metaBuilder = createMetaBuilder(config);
+    public Message.Builder createBroadcastMessageBuilder(MessageTemplate config, String topicTo, Payload payload) {
+        Message.Builder messageBuilder = createBaseMessage(null);
+        Builder metaBuilder = createMetaBuilder(config);
         messageBuilder.withMetaBuilder(metaBuilder);
 
         Topics topics = new Topics(topicTo, null);
@@ -85,8 +83,8 @@ public class MessageFactory {
         return messageBuilder;
     }
 
-    private MessageBuilder createBaseMessage(@Nullable Message originalMessage) {
-        MessageBuilder baseMessage = new Message.MessageBuilder()
+    private Message.Builder createBaseMessage(@Nullable Message originalMessage) {
+        Message.Builder baseMessage = new Message.Builder()
                 .setId(Utils.generateId())
                 .withCorrelationId(
                         originalMessage != null && originalMessage.getCorrelationId() != null ? originalMessage

@@ -6,7 +6,7 @@ import io.github.tcdl.ChannelManager;
 import io.github.tcdl.TimeoutManager;
 import io.github.tcdl.api.MsbContext;
 import io.github.tcdl.api.ObjectFactory;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.message.MessageFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,14 +18,14 @@ public class MsbContextImpl implements MsbContext {
 
     private static final Logger LOG = LoggerFactory.getLogger(MsbContextImpl.class);
 
-    private MsbConfigurations msbConfig;
+    private MsbConfig msbConfig;
     private ObjectFactory objectFactory;
     private MessageFactory messageFactory;
     private ChannelManager channelManager;
     private Clock clock;
     private TimeoutManager timeoutManager;
 
-    public MsbContextImpl(MsbConfigurations msbConfig, MessageFactory messageFactory, ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
+    public MsbContextImpl(MsbConfig msbConfig, MessageFactory messageFactory, ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
         this.msbConfig = msbConfig;
         this.messageFactory = messageFactory;
         this.channelManager = channelManager;
@@ -46,9 +46,9 @@ public class MsbContextImpl implements MsbContext {
 
     /**
      *
-     * @return msb configuration ({@link MsbConfigurations})
+     * @return msb configuration ({@link MsbConfig})
      */
-    public MsbConfigurations getMsbConfig() {
+    public MsbConfig getMsbConfig() {
         return msbConfig;
     }
 

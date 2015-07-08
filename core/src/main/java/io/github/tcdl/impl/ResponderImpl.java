@@ -1,12 +1,11 @@
 package io.github.tcdl.impl;
 
-import static io.github.tcdl.api.message.Acknowledge.AcknowledgeBuilder;
+import static io.github.tcdl.api.message.Acknowledge.Builder;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.Producer;
 import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.Responder;
 import io.github.tcdl.api.message.Message;
-import io.github.tcdl.api.message.Message.MessageBuilder;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.message.MessageFactory;
 import io.github.tcdl.support.Utils;
@@ -23,7 +22,7 @@ public class ResponderImpl implements Responder {
     private Message originalMessage;
     private ChannelManager channelManager;
     private MessageFactory messageFactory;
-    private MessageBuilder messageBuilder;
+    private Message.Builder messageBuilder;
 
     public ResponderImpl(MessageTemplate messageTemplate, Message originalMessage, MsbContextImpl msbContext) {
         validateReceivedMessage(originalMessage);
@@ -39,7 +38,7 @@ public class ResponderImpl implements Responder {
      */
     @Override
     public void sendAck(Integer timeoutMs, Integer responsesRemaining) {
-        AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
+        Builder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.withResponderId(responderId);
         ackBuilder.withTimeoutMs(timeoutMs != null && timeoutMs > -1 ? timeoutMs : null);
         ackBuilder.withResponsesRemaining(responsesRemaining == null ? 1 : responsesRemaining);
@@ -53,7 +52,7 @@ public class ResponderImpl implements Responder {
      */
     @Override
     public void send(Payload responsePayload) {
-        AcknowledgeBuilder ackBuilder = this.messageFactory.createAckBuilder();
+        Builder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.withResponderId(responderId);
         ackBuilder.withResponsesRemaining(-1);
 

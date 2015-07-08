@@ -3,7 +3,7 @@ package io.github.tcdl.adapters;
 import io.github.tcdl.api.exception.AdapterInitializationException;
 import io.github.tcdl.api.exception.ConfigurationException;
 import io.github.tcdl.api.exception.ChannelException;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 
 /**
  * AdapterFactory creates an instance of Broker Adapter by means of Broker AdapterFactory.
@@ -11,9 +11,9 @@ import io.github.tcdl.config.MsbConfigurations;
  */
 public class AdapterFactoryLoader {
 
-    private final MsbConfigurations msbConfig;
+    private final MsbConfig msbConfig;
 
-    public AdapterFactoryLoader(MsbConfigurations msbConfig) {
+    public AdapterFactoryLoader(MsbConfig msbConfig) {
         this.msbConfig = msbConfig;
     }
 

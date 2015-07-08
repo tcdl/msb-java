@@ -17,7 +17,7 @@ import io.github.tcdl.api.MessageTemplate;
 import io.github.tcdl.api.Responder;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.message.MessageFactory;
 import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
@@ -27,7 +27,7 @@ import org.mockito.ArgumentCaptor;
 public class ResponderImplTest {
 
     private MessageTemplate config;
-    private MsbConfigurations msbConf;
+    private MsbConfig msbConf;
     private static final String TOPIC = "test:responder";
 
     private ChannelManager mockChannelManager;
@@ -50,7 +50,7 @@ public class ResponderImplTest {
         MsbContextImpl msbContextSpy = spy(msbContext);
         mockChannelManager = mock(ChannelManager.class);
         mockProducer = mock(Producer.class);
-        payload = new Payload.PayloadBuilder().build();
+        payload = new Payload.Builder().build();
         originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
 
         when(msbContextSpy.getChannelManager()).thenReturn(mockChannelManager);

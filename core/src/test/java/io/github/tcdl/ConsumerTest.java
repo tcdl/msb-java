@@ -11,7 +11,7 @@ import java.time.Clock;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ConsumerAdapter.RawMessageHandler;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.api.exception.JsonConversionException;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.MetaMessage;
@@ -39,7 +39,7 @@ public class ConsumerTest {
     private ConsumerAdapter adapterMock;
 
     @Mock
-    private MsbConfigurations msbConfMock;
+    private MsbConfig msbConfMock;
 
     @Mock
     private ChannelMonitorAgent channelMonitorAgentMock;
@@ -97,7 +97,7 @@ public class ConsumerTest {
 
     @Test
     public void testHandleRawMessageConsumeFromTopicSkipValidation() {
-        MsbConfigurations msbConf = spy(TestUtils.createMsbConfigurations());
+        MsbConfig msbConf = spy(TestUtils.createMsbConfigurations());
 
         // disable validation
         when(msbConf.isValidateMessage()).thenReturn(false);
@@ -116,7 +116,7 @@ public class ConsumerTest {
 
     @Test
     public void testHandleRawMessageConsumeFromTopicValidateThrowException() {
-        MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
+        MsbConfig msbConf = TestUtils.createMsbConfigurations();
         Consumer consumer = new Consumer(adapterMock, TOPIC, msbConf, clock, channelMonitorAgentMock, validator);
         consumer.subscribe(messageHandlerMock);
 
@@ -127,7 +127,7 @@ public class ConsumerTest {
     @Test
     public void testHandleRawMessageConsumeFromServiceTopicValidateThrowException() {
         String service_topic = "_service:topic";
-        MsbConfigurations msbConf = TestUtils.createMsbConfigurations();
+        MsbConfig msbConf = TestUtils.createMsbConfigurations();
         Consumer consumer = new Consumer(adapterMock, service_topic, msbConf, clock, channelMonitorAgentMock, validator);
         consumer.subscribe(messageHandlerMock);
 
@@ -156,12 +156,12 @@ public class ConsumerTest {
     }
 
     private  Message createExpiredMsbRequestMessageWithTopicTo(String topicTo) {
-        MsbConfigurations msbConf = new MsbConfigurations(ConfigFactory.load());
+        MsbConfig msbConf = new MsbConfig(ConfigFactory.load());
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
-        MetaMessage.MetaMessageBuilder metaBuilder = new MetaMessage.MetaMessageBuilder(0, clock.instant(), msbConf.getServiceDetails(), clock);
-        return new Message.MessageBuilder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
+        MetaMessage.Builder metaBuilder = new MetaMessage.Builder(0, clock.instant(), msbConf.getServiceDetails(), clock);
+        return new Message.Builder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
                 .build();
     }
 }

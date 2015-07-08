@@ -12,7 +12,7 @@ import java.time.Clock;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.monitor.ChannelMonitorAgent;
 import io.github.tcdl.support.JsonValidator;
@@ -32,7 +32,7 @@ public class ChannelManagerTest {
 
     @Before
     public void setUp() {
-        MsbConfigurations msbConfig = TestUtils.createMsbConfigurations();
+        MsbConfig msbConfig = TestUtils.createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
         JsonValidator validator = new JsonValidator();
         this.channelManager = new ChannelManager(msbConfig, clock, validator);

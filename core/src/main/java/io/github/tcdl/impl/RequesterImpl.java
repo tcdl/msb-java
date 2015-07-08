@@ -7,7 +7,7 @@ import io.github.tcdl.api.RequestOptions;
 import io.github.tcdl.api.Requester;
 import io.github.tcdl.api.message.Acknowledge;
 import io.github.tcdl.api.message.Message;
-import io.github.tcdl.api.message.Message.MessageBuilder;
+import io.github.tcdl.api.message.Message.Builder;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.events.EventHandlers;
 import io.github.tcdl.message.MessageFactory;
@@ -25,7 +25,7 @@ public class RequesterImpl implements Requester {
     private MsbContextImpl context;
 
     private MessageFactory messageFactory;
-    private MessageBuilder messageBuilder;
+    private Builder messageBuilder;
     EventHandlers eventHandlers;
 
     /**

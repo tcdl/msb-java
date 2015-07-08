@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 import io.github.tcdl.adapters.ConsumerAdapter;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.api.exception.JsonConversionException;
 import io.github.tcdl.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.api.message.Message;
@@ -28,14 +28,14 @@ public class Consumer {
 
     private final ConsumerAdapter rawAdapter;
     private final String topic;
-    private MsbConfigurations msbConfig;
+    private MsbConfig msbConfig;
     private ChannelMonitorAgent channelMonitorAgent;
     private Clock clock;
 
     private MessageHandler messageHandler;
     private JsonValidator validator;
 
-    public Consumer(ConsumerAdapter rawAdapter, String topic, MsbConfigurations msbConfig,
+    public Consumer(ConsumerAdapter rawAdapter, String topic, MsbConfig msbConfig,
             Clock clock, ChannelMonitorAgent channelMonitorAgent, JsonValidator validator) {
 
         LOG.debug("Creating consumer for topic: {}", topic);

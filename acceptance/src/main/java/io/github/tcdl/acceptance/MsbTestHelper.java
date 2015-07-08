@@ -116,7 +116,7 @@ public class MsbTestHelper {
     }
 
     public Payload createPayload(String query, String body) {
-        return new Payload.PayloadBuilder()
+        return new Payload.Builder()
                 .withQuery(Utils.fromJson("{\"q\": \"" + query + "\"}", Map.class))
                 .withBody(Utils.fromJson("{\"body\": \"" + body + "\"}", Map.class))
                 .build();

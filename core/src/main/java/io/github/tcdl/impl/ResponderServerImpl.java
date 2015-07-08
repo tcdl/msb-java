@@ -73,7 +73,7 @@ public class ResponderServerImpl implements ResponderServer {
     private void errorHandler(Responder responder, Exception exception) {
         Message originalMessage = responder.getOriginalMessage();
         LOG.error("Handling error for message with id {}", originalMessage.getId());
-        Payload responsePayload = new Payload.PayloadBuilder()
+        Payload responsePayload = new Payload.Builder()
                 .withStatusCode(500)
                 .withStatusMessage(exception.getMessage()).build();
         responder.send(responsePayload);

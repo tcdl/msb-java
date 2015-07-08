@@ -50,7 +50,7 @@ public class MultipleRequester {
                 .build();
 
         SearchRequest request = new SearchRequest(requestId, queryString);
-        Payload requestPayload = new Payload.PayloadBuilder().withBody(request).build();
+        Payload requestPayload = new Payload.Builder().withBody(request).build();
 
         CompletableFuture.supplyAsync(() -> {
             msbContext.getObjectFactory().createRequester(namespace, options)

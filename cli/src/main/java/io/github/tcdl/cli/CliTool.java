@@ -2,7 +2,7 @@ package io.github.tcdl.cli;
 
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.adapters.AdapterFactoryLoader;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,7 +14,7 @@ import java.util.List;
 public class CliTool {
 
     public static void main(String[] args) {
-        MsbConfigurations msbConfig = new MsbConfigurations(ConfigFactory.load());
+        MsbConfig msbConfig = new MsbConfig(ConfigFactory.load());
         AdapterFactoryLoader adapterFactoryLoader = new AdapterFactoryLoader(msbConfig);
 
         // Parse command line arguments

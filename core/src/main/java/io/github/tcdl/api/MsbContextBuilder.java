@@ -5,7 +5,7 @@ import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.ChannelManager;
 import io.github.tcdl.TimeoutManager;
 import io.github.tcdl.api.exception.MsbException;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.impl.MsbContextImpl;
 import io.github.tcdl.impl.ObjectFactoryImpl;
 import io.github.tcdl.message.MessageFactory;
@@ -79,7 +79,7 @@ public class MsbContextBuilder {
         if (config == null) {
             config = ConfigFactory.load();
         }
-        MsbConfigurations msbConfig = new MsbConfigurations(config);
+        MsbConfig msbConfig = new MsbConfig(config);
         ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator);
         MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);
         TimeoutManager timeoutManager = new TimeoutManager(msbConfig.getTimerThreadPoolSize());

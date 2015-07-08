@@ -8,7 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ProducerAdapter;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import io.github.tcdl.config.amqp.AmqpBrokerConfig;
 
 import java.io.IOException;
@@ -46,7 +46,7 @@ public class AmqpAdapterFactoryTest {
     ConnectionFactory mockConnectionFactory;
     Connection mockConnection;
     ExecutorService mockConsumerThreadPool;
-    MsbConfigurations msbConfigurations;
+    MsbConfig msbConfigurations;
     
     @Before
     public void setUp() {
@@ -61,7 +61,7 @@ public class AmqpAdapterFactoryTest {
                 + "  } \n"
                 + "}";
         Config msbConfig = ConfigFactory.parseString(configStr);
-        msbConfigurations = new MsbConfigurations(msbConfig); 
+        msbConfigurations = new MsbConfig(msbConfig); 
 
         mockConnectionFactory = mock(ConnectionFactory.class);
         mockConnection = mock(Connection.class);
@@ -95,7 +95,7 @@ public class AmqpAdapterFactoryTest {
             }
             
             @Override
-            protected AmqpBrokerConfig createAmqpBrokerConfig(MsbConfigurations msbConfig) {
+            protected AmqpBrokerConfig createAmqpBrokerConfig(MsbConfig msbConfig) {
                 return amqpConfig;
             }
             

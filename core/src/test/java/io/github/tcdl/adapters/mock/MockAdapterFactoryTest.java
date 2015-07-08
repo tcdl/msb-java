@@ -9,7 +9,7 @@ import io.github.tcdl.adapters.AdapterFactory;
 import io.github.tcdl.adapters.AdapterFactoryLoader;
 import io.github.tcdl.adapters.ConsumerAdapter;
 import io.github.tcdl.adapters.ProducerAdapter;
-import io.github.tcdl.config.MsbConfigurations;
+import io.github.tcdl.config.MsbConfig;
 import org.junit.Test;
 
 /**

@@ -35,7 +35,7 @@ public final class ServiceDetails {
         this.pid = pid;
     }
 
-    public static class ServiceDetailsBuilder {
+    public static class Builder {
 
         private String name;
         private String version;
@@ -44,7 +44,7 @@ public final class ServiceDetails {
         private String ip;
         private long pid;
 
-        public ServiceDetailsBuilder(Config config) {
+        public Builder(Config config) {
             name = getString(config, "name");
             version = getString(config, "version");
             instanceId = getString(config, "instanceId");
@@ -54,7 +54,7 @@ public final class ServiceDetails {
             pid = getPID();
         }
 
-        public ServiceDetailsBuilder() {
+        public Builder() {
         }
 
         public ServiceDetails build() {
