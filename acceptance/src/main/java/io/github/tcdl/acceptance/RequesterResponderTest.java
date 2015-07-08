@@ -2,6 +2,9 @@ package io.github.tcdl.acceptance;
 
 import io.github.tcdl.api.Requester;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by rdrozdov-tc on 6/15/15.
  */
@@ -13,10 +16,16 @@ public class RequesterResponderTest {
 
     private MsbTestHelper helper = MsbTestHelper.getInstance();
 
-    private boolean passed;
+    private CountDownLatch passedLatch;
 
     public boolean isPassed() {
-        return passed;
+        try {
+            passedLatch.await(15, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            return false;
+        }
+
+        return passedLatch.getCount() == 0;
     }
 
     public void runRequesterResponder() throws Exception {
@@ -30,6 +39,7 @@ public class RequesterResponderTest {
 
         // sending a request
         Requester requester = helper.createRequester(NAMESPACE, NUMBER_OF_RESPONSES);
-        helper.sendRequest(requester, NUMBER_OF_RESPONSES, payload -> passed = true);
+        passedLatch = new CountDownLatch(1);
+        helper.sendRequest(requester, NUMBER_OF_RESPONSES, payload -> passedLatch.countDown());
     }
 }

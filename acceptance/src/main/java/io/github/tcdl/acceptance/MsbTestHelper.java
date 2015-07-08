@@ -60,8 +60,8 @@ public class MsbTestHelper {
     public Requester createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout) {
         RequestOptions options = new RequestOptions.Builder()
             .withWaitForResponses(numberOfResponses)
-            .withAckTimeout(Utils.ifNull(ackTimeout, 3000))
-            .withResponseTimeout(Utils.ifNull(responseTimeout, 10000))
+            .withAckTimeout(Utils.ifNull(ackTimeout, 5000))
+            .withResponseTimeout(Utils.ifNull(responseTimeout, 15000))
             .build();
         return context.getObjectFactory().createRequester(namespace, options);
     }
