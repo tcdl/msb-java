@@ -6,7 +6,7 @@ services:
 # Explicitly mute "install" step. Perform all operations in the following "script" step.
 install: ""
 script:
-  - mvn clean deploy --settings settings.xml -B -V
+  - mvn clean install --settings settings.xml -B -V
   - mvn -Dtest=io.github.tcdl.acceptance.* -DfailIfNoTests=false test
 after_success:
   - mvn clean test jacoco:report coveralls:report
