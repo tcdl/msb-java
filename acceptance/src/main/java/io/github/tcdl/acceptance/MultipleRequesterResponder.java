@@ -4,6 +4,7 @@ import io.github.tcdl.api.Requester;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -65,8 +66,8 @@ public class MultipleRequesterResponder {
             @Override
             public String call() throws Exception {
                 util.sendRequest(requester, NUMBER_OF_RESPONSES, response -> {
-                    System.out.println(">>> RESPONSE body: " + response.getBody());
-                    result = response.getBody().toString();
+                    System.out.println(">>> RESPONSE body: " + response.getBodyAs(Map.class));
+                    result = response.getBodyAs(Map.class).toString();
                     synchronized (this) {
                         notify();
                     }
