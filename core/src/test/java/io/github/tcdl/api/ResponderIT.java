@@ -107,9 +107,9 @@ public class ResponderIT {
             assertTrue("Message not contain 'headers' filed", jsonObject.getJSONObject("payload").has("headers"));
 
             // payload fields match sent
-            assertEquals("Message 'body' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(originalResponsePayload.getBodyAs(Map.class)),
+            assertEquals("Message 'body' is incorrect", Utils.getJsonObjectMapper().writeValueAsString(originalResponsePayload.getBodyAs(Map.class)),
                     jsonObject.getJSONObject("payload").get("body").toString());
-            assertEquals("Message 'headers' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(originalResponsePayload.getHeadersAs(Map.class)),
+            assertEquals("Message 'headers' is incorrect", Utils.getJsonObjectMapper().writeValueAsString(originalResponsePayload.getHeadersAs(Map.class)),
                     jsonObject
                     .getJSONObject("payload").get("headers").toString());
 
