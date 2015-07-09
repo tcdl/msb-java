@@ -6,26 +6,51 @@ import io.github.tcdl.api.exception.JsonConversionException;
 import io.github.tcdl.api.exception.MessageBuilderException;
 import io.github.tcdl.support.Utils;
 
-import java.util.Map;
-
 /**
- * Created by rdro on 4/23/2015.
+ * REST-like message payload.
  */
 public final class Payload {
 
+    /**
+     * Response status code
+     */
     private Integer statusCode;
+
+    /**
+     * Response status message
+     */
     private String statusMessage;
-    private final Map<String, String> headers;
+
+    /**
+     * Provide things like authorisation, information about the body and information about the user. (Request Meta Info/Who)
+     */
+    private Object headers;
+
+    /**
+     * Query provides instructions. (How)
+     */
     private Object query;
+
+    /**
+     * Params provide hierarchical ids of the entities acted upon. (What)
+     */
     private Object params;
+
+    /**
+     * Body provides data/state
+     */
     private Object body;
+
+    /**
+     * Base64-encoded binary body
+     */
     private Object bodyBuffer;
 
     @JsonCreator
     private Payload(
             @JsonProperty("statusCode") Integer statusCode,
             @JsonProperty("statusMessage") String statusMessage,
-            @JsonProperty("headers") Map<String, String> headers,
+            @JsonProperty("headers") Object headers,
             @JsonProperty("query") Object query,
             @JsonProperty("params") Object params,
             @JsonProperty("body") Object body,
@@ -43,7 +68,7 @@ public final class Payload {
 
         private Integer statusCode;
         private String statusMessage;
-        private Map<String, String> headers;
+        private Object headers;
         private Object query;
         private Object params;
         private Object body;
@@ -59,7 +84,7 @@ public final class Payload {
             return this;
         }
 
-        public Builder withHeaders(Map<String, String> headers) {
+        public Builder withHeaders(Object headers) {
             this.headers = headers;
             return this;
         }
@@ -97,7 +122,7 @@ public final class Payload {
         return statusMessage;
     }
 
-    public Map<String, String> getHeaders() {
+    public Object getHeaders() {
         return headers;
     }
 
