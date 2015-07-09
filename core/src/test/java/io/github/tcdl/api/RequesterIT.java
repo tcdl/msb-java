@@ -61,9 +61,9 @@ public class RequesterIT {
             assertTrue("Message not contain 'headers' field", jsonObject.getJSONObject("payload").has("headers"));            
             
             // payload fields match sent
-            assertEquals("Message 'body' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(payload.getBodyAs(Map.class)),
+            assertEquals("Message 'body' is incorrect", Utils.getJsonObjectMapper().writeValueAsString(payload.getBodyAs(Map.class)),
                     jsonObject.getJSONObject("payload").get("body").toString());
-            assertEquals("Message 'headers' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(payload.getHeadersAs(Map.class)), jsonObject
+            assertEquals("Message 'headers' is incorrect", Utils.getJsonObjectMapper().writeValueAsString(payload.getHeadersAs(Map.class)), jsonObject
                     .getJSONObject("payload").get("headers").toString());
 
             //topics

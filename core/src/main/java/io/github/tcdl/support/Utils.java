@@ -32,6 +32,13 @@ public class Utils {
 
     private static final Pattern VALID_TOPIC_REGEXP = Pattern.compile("^_?([a-z0-9\\-]+\\:)+([a-z0-9\\-]+)$");
 
+    private static ObjectMapper objectMapper =  new ObjectMapper()
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+            .registerModule(new JSR310Module())
+            .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+
     public static String generateId() {
         return UUID.randomUUID().toString();
     }
@@ -51,22 +58,16 @@ public class Utils {
         return value != null ? value : other;
     }
 
-    public static ObjectMapper getMsbJsonObjectMapper() {
-        return new ObjectMapper()
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                .registerModule(new JSR310Module())
-                .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+    public static ObjectMapper getJsonObjectMapper() {
+        return objectMapper;
     }
 
     /**
      * @throws JsonConversionException if some problems during parsing to JSON
      */
     public static String toJson(Object object) {
-        ObjectMapper mapper = getMsbJsonObjectMapper();
         try {
-            return mapper.writeValueAsString(object);
+            return objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
             LOG.error("Failed parse to JSON from: " + object, e);
             throw new JsonConversionException(e.getMessage());
@@ -78,9 +79,8 @@ public class Utils {
      */
     public static <T> T fromJson(String json, Class<T> clazz) {
         if (json == null) return null;
-        ObjectMapper mapper = getMsbJsonObjectMapper();
         try {
-            return mapper.readValue(json, clazz);
+            return objectMapper.readValue(json, clazz);
         } catch (IOException e) {
             LOG.error("Failed parse JSON: {} to object of type: {}", json, clazz, e);
             throw new JsonConversionException(e.getMessage());
