@@ -1,5 +1,13 @@
-package io.github.tcdl;
+package io.github.tcdl.collector;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import io.github.tcdl.ChannelManager;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.support.TestUtils;
 import org.junit.Before;
@@ -8,15 +16,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-/**
- * Created by ruslan on 23.06.15.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class CollectorManagerTest {
 
@@ -76,6 +75,7 @@ public class CollectorManagerTest {
         collectorManager.registerCollector(secondCollectorMock);
 
         assertEquals(2, collectorManager.collectorsByCorrelationId.size());
+        verify(channelManagerMock, times(2)).subscribe(TOPIC, collectorManager);
     }
 
     @Test
@@ -88,8 +88,10 @@ public class CollectorManagerTest {
         collectorManager.registerCollector(secondCollectorMock);
 
         collectorManager.unsubscribe(collectorMock);
-
         verify(channelManagerMock, never()).unsubscribe(TOPIC);
+
+        collectorManager.unsubscribe(secondCollectorMock);
+        verify(channelManagerMock).unsubscribe(TOPIC);
     }
 
     @Test

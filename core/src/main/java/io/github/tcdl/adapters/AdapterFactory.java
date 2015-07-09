@@ -9,23 +9,24 @@ import io.github.tcdl.api.exception.ConfigurationException;
  * accordingly to MSB Configuration and associated with a proper Topic.
  */
 public interface AdapterFactory {
-    
+
     /**
      * Initialize AdapterFactory. The method should be called only once from AdapterFactoryLoader.
-     * @param msbConfig - MsbConfigurations object 
+     *
+     * @param msbConfig {@link MsbConfig} object
      * @throws ConfigurationException if provided configuration is broken
      */
     void init(MsbConfig msbConfig);
 
     /**
-     * @param topic - topic name
+     * @param topic topic name
      * @return Producer Adapter associated with a topic
      * @throws ChannelException if some problems during creation were occurred
      */
     ProducerAdapter createProducerAdapter(String topic);
 
     /**
-     * @param topic - topic name
+     * @param topic topic name
      * @return Consumer Adapter associated with a topic
      * @throws ChannelException if some problems during creation were occurred
      */

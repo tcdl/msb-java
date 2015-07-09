@@ -1,27 +1,26 @@
 package io.github.tcdl.support;
 
-import io.github.tcdl.ChannelManager;
-import io.github.tcdl.TimeoutManager;
-import io.github.tcdl.api.MessageTemplate;
-import io.github.tcdl.api.ObjectFactory;
-import io.github.tcdl.api.RequestOptions;
-import io.github.tcdl.api.message.Acknowledge;
-import io.github.tcdl.api.message.Message;
-import io.github.tcdl.api.message.Message.Builder;
-import io.github.tcdl.api.message.MetaMessage;
-import io.github.tcdl.api.message.Topics;
-import io.github.tcdl.api.message.payload.Payload;
-import io.github.tcdl.config.MsbConfig;
-import io.github.tcdl.impl.MsbContextImpl;
-import io.github.tcdl.impl.ObjectFactoryImpl;
-import io.github.tcdl.message.MessageFactory;
-
 import java.time.Clock;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import com.typesafe.config.ConfigFactory;
+import io.github.tcdl.ChannelManager;
+import io.github.tcdl.api.MessageTemplate;
+import io.github.tcdl.api.ObjectFactory;
+import io.github.tcdl.api.RequestOptions;
+import io.github.tcdl.api.message.Acknowledge;
+import io.github.tcdl.api.message.Message;
+import io.github.tcdl.api.message.MetaMessage;
+import io.github.tcdl.api.message.Topics;
+import io.github.tcdl.api.message.payload.Payload;
+import io.github.tcdl.collector.CollectorManagerFactory;
+import io.github.tcdl.collector.TimeoutManager;
+import io.github.tcdl.config.MsbConfig;
+import io.github.tcdl.impl.MsbContextImpl;
+import io.github.tcdl.impl.ObjectFactoryImpl;
+import io.github.tcdl.message.MessageFactory;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -72,13 +71,10 @@ public class TestUtils {
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder()
-            .withCorrelationId(Utils.ifNull(correlationId, Utils.generateId())).setId(Utils.generateId())
-                .withTopics(topic)
-                .withMetaBuilder(metaBuilder)
-                .withPayload(null)
-                .withAck(ack)
-                .build();
+        return new Message.Builder().withCorrelationId(Utils.ifNull(correlationId, Utils.generateId())).setId(Utils.generateId()).withTopics(
+                topic).withMetaBuilder(
+                metaBuilder)
+                .withPayload(null).withAck(ack).build();
     }
 
     public static Message createMsbRequestMessageNoPayload(String namespace) {
@@ -104,7 +100,7 @@ public class TestUtils {
                 .withMetaBuilder(metaBuilder).withPayload(createSimpleResponsePayload()).build();
     }
 
-    public static Builder createMesageBuilder() {
+    public static Message.Builder createMesageBuilder() {
         MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
@@ -154,7 +150,8 @@ public class TestUtils {
         private Optional<ChannelManager> channelManagerOp = Optional.empty(); 
         private Optional<Clock> clockOp = Optional.empty();
         private Optional<TimeoutManager> timeoutManagerOp = Optional.empty();
-        private Optional<ObjectFactory> objectFactoryOp = Optional.empty(); 
+        private Optional<ObjectFactory> objectFactoryOp = Optional.empty();
+        private Optional<CollectorManagerFactory> collectorManagerFactoryOp = Optional.empty();
 
         public TestMsbContextBuilder withMsbConfigurations(MsbConfig msbConfig) {
             this.msbConfigOp = Optional.ofNullable(msbConfig);
@@ -184,7 +181,12 @@ public class TestUtils {
         public TestMsbContextBuilder withObjectFactory(ObjectFactory objectFactory) {
             this.objectFactoryOp = Optional.ofNullable(objectFactory);
             return this;
-        } 
+        }
+
+        public TestMsbContextBuilder withCollectorManagerFactory(CollectorManagerFactory collectorManagerFactory) {
+            this.collectorManagerFactoryOp = Optional.ofNullable(collectorManagerFactory);
+            return this;
+        }
 
         public MsbContextImpl build() {
             MsbConfig msbConfig = msbConfigOp.orElse(TestUtils.createMsbConfigurations());
@@ -192,7 +194,8 @@ public class TestUtils {
             ChannelManager channelManager = channelManagerOp.orElseGet(() -> new ChannelManager(msbConfig, clock, new JsonValidator()));
             MessageFactory messageFactory = messageFactoryOp.orElseGet(() -> new MessageFactory(msbConfig.getServiceDetails(), clock));
             TimeoutManager timeoutManager = timeoutManagerOp.orElseGet(() -> new TimeoutManager(1));
-            TestMsbContext msbContext = new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+            CollectorManagerFactory collectorManagerFactory = collectorManagerFactoryOp.orElseGet(() -> new CollectorManagerFactory(channelManager));
+            TestMsbContext msbContext = new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager, collectorManagerFactory);
             
             ObjectFactory objectFactory = objectFactoryOp.orElseGet(() -> new ObjectFactoryImpl(msbContext));
             msbContext.setFactory(objectFactory);
@@ -201,8 +204,8 @@ public class TestUtils {
 
         private static class TestMsbContext extends MsbContextImpl {
             TestMsbContext(MsbConfig msbConfig, MessageFactory messageFactory,
-                    ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager) {
-                super(msbConfig, messageFactory, channelManager, clock, timeoutManager);
+                    ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager, CollectorManagerFactory collectorManagerFactory) {
+                super(msbConfig, messageFactory, channelManager, clock, timeoutManager, collectorManagerFactory);
             }
             
             public void setFactory(ObjectFactory objectFactory) {
