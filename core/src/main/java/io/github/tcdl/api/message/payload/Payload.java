@@ -44,7 +44,7 @@ public final class Payload {
     /**
      * Base64-encoded binary body
      */
-    private Object bodyBuffer;
+    private String bodyBuffer;
 
     @JsonCreator
     private Payload(
@@ -54,7 +54,7 @@ public final class Payload {
             @JsonProperty("query") Object query,
             @JsonProperty("params") Object params,
             @JsonProperty("body") Object body,
-            @JsonProperty("bodyBuffer") Object bodyBuffer) {
+            @JsonProperty("bodyBuffer") String bodyBuffer) {
         this.statusMessage = statusMessage;
         this.statusCode = statusCode;
         this.headers = headers;
@@ -72,7 +72,7 @@ public final class Payload {
         private Object query;
         private Object params;
         private Object body;
-        private Object bodyBuffer;
+        private String bodyBuffer;
 
         public Builder withStatusCode(Integer statusCode) {
             this.statusCode = statusCode;
@@ -104,7 +104,7 @@ public final class Payload {
             return this;
         }
 
-        public Builder withBodyBuffer(Object bodyBuffer) {
+        public Builder withBodyBuffer(String bodyBuffer) {
             this.bodyBuffer = bodyBuffer;
             return this;
         }
@@ -138,7 +138,7 @@ public final class Payload {
         return body;
     }
 
-    public Object getBodyBuffer() {
+    public String getBodyBuffer() {
         return bodyBuffer;
     }
 
@@ -161,14 +161,6 @@ public final class Payload {
     public <T> T getBodyAs(Class<T> clazz) {
         try {
             return Utils.fromJson(Utils.toJson(body), clazz);
-        } catch(JsonConversionException e) {
-            throw new MessageBuilderException(e.getMessage());
-        }
-    }
-
-    public <T> T getBodyBufferAs(Class<T> clazz) {
-        try {
-            return Utils.fromJson(Utils.toJson(bodyBuffer), clazz);
         } catch(JsonConversionException e) {
             throw new MessageBuilderException(e.getMessage());
         }
