@@ -38,6 +38,10 @@
             <artifactId>jbehave-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.nodyn</groupId>
+            <artifactId>nodyn</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

@@ -3,7 +3,13 @@ package io.github.tcdl.examples;
 import io.github.tcdl.api.*;
 import io.github.tcdl.api.message.Message;
 import io.github.tcdl.api.message.payload.Payload;
+import io.nodyn.NoOpExitHandler;
+import io.nodyn.Nodyn;
+import io.nodyn.runtime.NodynConfig;
+import io.nodyn.runtime.RuntimeFactory;
 
+import javax.script.ScriptException;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +21,12 @@ import java.util.Map;
  */
 public class FacetsAggregator {
 
-    public static void main(String[] args) {
+    private static final String SCRIPT = "" +
+            "var executor = require('autoCorrect.js');" +
+            "executor.load();";
+
+    public static void main(String[] args) throws ScriptException, FileNotFoundException, NoSuchMethodException {
+
         MsbContext msbContext = new MsbContextBuilder()
                 .withDefaultChannelMonitorAgent(true)
                 .withShutdownHook(true)
@@ -23,6 +34,8 @@ public class FacetsAggregator {
 
         MessageTemplate options = new MessageTemplate();
         final String namespace = "search:aggregator:facets:v1";
+
+        autoCorrect("autoCorrect");
 
         msbContext.getObjectFactory().createResponderServer(namespace, options, (request, responder) -> {
 
@@ -82,6 +95,31 @@ public class FacetsAggregator {
                 requester.publish(request);
             }
         }).listen();
+    }
+
+    private static String autoCorrect(String s) {
+        System.setProperty( "nodyn.binary", "node" );
+        // Use DynJS runtime
+        RuntimeFactory factory = RuntimeFactory.init(
+                FacetsAggregator.class.getClassLoader(),
+                RuntimeFactory.RuntimeType.DYNJS);
+
+        // Set config to run main.js
+        NodynConfig config = new NodynConfig( new String[] { "-e", SCRIPT } );
+
+        // Create a new Nodyn and run it
+        Nodyn nodyn = factory.newRuntime(config);
+        nodyn.setExitHandler( new NoOpExitHandler() );
+        try {
+            int exitCode = nodyn.run();
+            if (exitCode != 0) {
+                throw new RuntimeException();
+            }
+        } catch (Throwable t) {
+            throw new RuntimeException( t );
+        }
+
+        return null;
     }
 
     private static class RequestQuery {
