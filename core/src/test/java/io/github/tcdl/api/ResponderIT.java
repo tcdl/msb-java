@@ -109,7 +109,7 @@ public class ResponderIT {
             // payload fields match sent
             assertEquals("Message 'body' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(originalResponsePayload.getBodyAs(Map.class)),
                     jsonObject.getJSONObject("payload").get("body").toString());
-            assertEquals("Message 'headers' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(originalResponsePayload.getHeaders()),
+            assertEquals("Message 'headers' is incorrect", Utils.getMsbJsonObjectMapper().writeValueAsString(originalResponsePayload.getHeadersAs(Map.class)),
                     jsonObject
                     .getJSONObject("payload").get("headers").toString());
 

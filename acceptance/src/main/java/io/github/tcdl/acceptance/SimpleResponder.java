@@ -1,5 +1,7 @@
 package io.github.tcdl.acceptance;
 
+import java.util.Map;
+
 /**
  * Created by anstr on 6/9/2015.
  */
@@ -15,7 +17,7 @@ public class SimpleResponder {
     public void runSimpleResponderExample() {
         helper.initDefault();
         helper.createResponderServer(namespace, (request, responder) -> {
-            System.out.print(">>> REQUEST: " + request.getHeaders());
+            System.out.print(">>> REQUEST: " + request.getBodyAs(Map.class));
             helper.sleep(500);
             helper.respond(responder, namespace + ":" + "SimpleResponder");
         })

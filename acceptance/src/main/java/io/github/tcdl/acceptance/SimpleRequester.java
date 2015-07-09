@@ -2,6 +2,7 @@ package io.github.tcdl.acceptance;
 
 import io.github.tcdl.api.Requester;
 
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +37,7 @@ public class SimpleRequester {
         passedLatch = new CountDownLatch(expectedResponses != null ? expectedResponses.length : 0);
 
         helper.sendRequest(requester, NUMBER_OF_RESPONSES, response -> {
-            String body = response.getBody().toString();
+            String body = response.getBodyAs(Map.class).toString();
             for (String bodyFragment : expectedResponses) {
                 if (body.contains(bodyFragment)) {
                     passedLatch.countDown();

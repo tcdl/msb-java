@@ -1,6 +1,5 @@
 package io.github.tcdl.acceptance.bdd.steps;
 
-import io.github.tcdl.acceptance.bdd.steps.MsbSteps;
 import io.github.tcdl.api.Requester;
 import io.github.tcdl.api.message.payload.Payload;
 import io.github.tcdl.support.Utils;
@@ -62,9 +61,7 @@ public class RequesterResponderSteps extends MsbSteps {
     }
 
     private void onResponse(Payload payload) {
-        if (payload.getBody() != null) {
-            receivedResponse = payload.getBodyAs(Map.class);
-        }
+        receivedResponse = payload.getBodyAs(Map.class);
     }
 
     @Then("requester gets response in $timeout ms")

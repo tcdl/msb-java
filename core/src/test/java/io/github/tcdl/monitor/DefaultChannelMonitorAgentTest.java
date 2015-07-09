@@ -153,7 +153,7 @@ public class DefaultChannelMonitorAgentTest {
 
     private void verifyMessageContainsTopic(Message message, String topicName) {
         assertNotNull(message.getPayload());
-        assertNotNull(message.getPayload().getBody());
+        assertNotNull(message.getPayload().getBodyAs(Map.class));
         assertTrue(message.getPayload().getBodyAs(Map.class).containsKey(topicName));
     }
 }

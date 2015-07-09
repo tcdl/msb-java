@@ -122,24 +122,12 @@ public final class Payload {
         return statusMessage;
     }
 
-    public Object getHeaders() {
-        return headers;
-    }
-
-    public Object getQuery() {
-        return query;
-    }
-
-    public Object getParams() {
-        return params;
-    }
-
-    public Object getBody() {
-        return body;
-    }
-
-    public String getBodyBuffer() {
-        return bodyBuffer;
+    public <T> T getHeadersAs(Class<T> clazz) {
+        try {
+            return Utils.fromJson(Utils.toJson(headers), clazz);
+        } catch (JsonConversionException e) {
+            throw new MessageBuilderException(e.getMessage());
+        }
     }
 
     public <T> T getQueryAs(Class<T> clazz) {
@@ -164,6 +152,10 @@ public final class Payload {
         } catch(JsonConversionException e) {
             throw new MessageBuilderException(e.getMessage());
         }
+    }
+
+    public String getBodyBuffer() {
+        return bodyBuffer;
     }
 
     @Override
