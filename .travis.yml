@@ -6,7 +6,7 @@ services:
 install: ''
 script:
 - mvn clean deploy --settings settings.xml -B -V
-- mvn -Dtest=io.github.tcdl.acceptance.* -DfailIfNoTests=false test
+- mvn -Dtest=io.github.tcdl.msb.acceptance.* -DfailIfNoTests=false test
 after_success:
 - mvn clean test jacoco:report coveralls:report
 env:
