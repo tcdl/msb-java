@@ -4,6 +4,9 @@
 # Build files #
 target/
 
+# Runtime files #
+logs/
+
 # Eclipse #
 .settings/
 .project
