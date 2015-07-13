@@ -1,15 +1,30 @@
 package io.github.tcdl.msb.api;
 
 /**
- * Options used while constructing {@link Requester} that specify number and time to wait for acknowledgements or responses.
- * Not all combinations make sense for this object.
- * e.g: - setting {@literal waitForResponses <= 0} will not activate await for responses
+ * Specifies waiting policy (for acknowledgements and responses) for requests sent using {@link Requester}.
  */
 public class RequestOptions {
 
+    /**
+     * Min time (in milliseconds) to wait for acknowledgements.
+     */
     private Integer ackTimeout;
+
+    /**
+     * Max time (in milliseconds) to wait for responses and acknowledgements. Once this timeout is reached we stop waiting for responses even if
+     * {@link #waitForResponses} has not been reached. Beware that acks may adjust this timeout.
+     */
     private Integer responseTimeout;
+
+    /**
+     * Number of responses to wait for. Once this number is reached (and {@link #ackTimeout} passed) we stop waiting for responses even if
+     * {@link #responseTimeout} has not been reached. Beware that acks may adjust this number.
+     *
+     * 0 means not to wait for responses at all.
+     * -1 means to wait until {@link #responseTimeout} is reached.
+     */
     private Integer waitForResponses;
+
     private MessageTemplate messageTemplate;
 
     private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, MessageTemplate messageTemplate) {
