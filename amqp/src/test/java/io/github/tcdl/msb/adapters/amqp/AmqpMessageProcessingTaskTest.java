@@ -17,7 +17,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class AmqpMessageProcessingTaskTest {
 
     private String messageStr = "some message";
-    private long deliveryTag = 123L;
 
     private Channel mockChannel;
     private ConsumerAdapter.RawMessageHandler mockMessageHandler;
@@ -28,7 +27,7 @@ public class AmqpMessageProcessingTaskTest {
     public void setUp() {
         mockChannel = mock(Channel.class);
         mockMessageHandler = mock(ConsumerAdapter.RawMessageHandler.class);
-        task = new AmqpMessageProcessingTask("consumer tag", messageStr, mockChannel, deliveryTag, mockMessageHandler);
+        task = new AmqpMessageProcessingTask("consumer tag", messageStr, mockChannel, 123L, mockMessageHandler);
     }
 
     @Test
@@ -36,7 +35,6 @@ public class AmqpMessageProcessingTaskTest {
         task.run();
 
         verify(mockMessageHandler).onMessage(messageStr);
-        verify(mockChannel).basicAck(deliveryTag, false);
     }
 
     @Test

@@ -39,6 +39,7 @@ public class AmqpAdapterFactoryTest {
     final boolean durable = false;
     final int consumerThreadPoolSize = 5;
     final int consumerThreadPoolQueueCapacity = 20;
+    final boolean requeueRejectedMessages = true;
     
     AmqpBrokerConfig amqpConfig;
     AmqpAdapterFactory amqpAdapterFactory;
@@ -76,7 +77,7 @@ public class AmqpAdapterFactoryTest {
         }
         
         amqpConfig = new AmqpBrokerConfig(charset, host, port,
-                Optional.of(username), Optional.of(password), Optional.of(virtualHost), groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
+                Optional.of(username), Optional.of(password), Optional.of(virtualHost), groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages);
         
         amqpAdapterFactory = new AmqpAdapterFactory() {
             @Override

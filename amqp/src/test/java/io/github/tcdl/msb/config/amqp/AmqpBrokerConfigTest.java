@@ -24,6 +24,7 @@ public class AmqpBrokerConfigTest {
     final boolean durable = false;
     final int consumerThreadPoolSize = 5;
     final int consumerThreadPoolQueueCapacity = 20;
+    final boolean requeueRejectedMessages = true;
 
     @Test
     public void testBuildAmqpBrokerConfig() {
@@ -38,6 +39,7 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + "}";
 
         Config amqpConfig = ConfigFactory.parseString(configStr).getConfig("config.amqp");
@@ -51,6 +53,7 @@ public class AmqpBrokerConfigTest {
         assertEquals(brokerConfig.isDurable(), durable);
         assertEquals(brokerConfig.getConsumerThreadPoolSize(), consumerThreadPoolSize);
         assertEquals(brokerConfig.getConsumerThreadPoolQueueCapacity(), consumerThreadPoolQueueCapacity);
+        assertEquals(brokerConfig.isRequeueRejectedMessages(), requeueRejectedMessages);
 
         assertEquals(brokerConfig.getUsername().get(), username);
         assertEquals(brokerConfig.getPassword().get(), password);
@@ -67,6 +70,7 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + "}";
 
         Config amqpConfig = ConfigFactory.parseString(configStr).getConfig("config.amqp");
@@ -92,6 +96,7 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "host");
@@ -109,6 +114,7 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "port");
@@ -126,6 +132,7 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "groupId");
@@ -143,6 +150,7 @@ public class AmqpBrokerConfigTest {
                 + " groupId = \"" + groupId + "\"\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "durable");
@@ -160,6 +168,7 @@ public class AmqpBrokerConfigTest {
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "consumerThreadPoolSize");
@@ -177,6 +186,7 @@ public class AmqpBrokerConfigTest {
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "consumerThreadPoolQueueCapacity");
@@ -194,6 +204,7 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "charsetName");
@@ -218,6 +229,24 @@ public class AmqpBrokerConfigTest {
 
         AmqpBrokerConfig.AmqpBrokerConfigBuilder builder = createConfigBuilder(configStr);
         builder.build();
+    }
+
+    @Test
+    public void testRequeueRejectedMessagesOption() {
+        String configStr = "config.amqp {"
+                + " charsetName = \"" + charsetName + "\"\n"
+                + " host = \"" + host + "\"\n"
+                + " port = \"" + port + "\"\n"
+                + " username = \"" + username + "\"\n"
+                + " password = \"" + password + "\"\n"
+                + " virtualHost = \"" + virtualHost + "\"\n"
+                + " groupId = \"" + groupId + "\"\n"
+                + " durable = " + durable + "\n"
+                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + "}";
+
+        testMandatoryConfigurationOption(configStr, "requeueRejectedMessages");
     }
 
     private void testMandatoryConfigurationOption(String configStr, String path) {

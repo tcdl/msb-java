@@ -35,9 +35,7 @@ public class AmqpMessageProcessingTask implements Runnable {
         try {
             LOG.debug(String.format("[consumer tag: %s] Starting message processing: %s", consumerTag, body));
             msgHandler.onMessage(body);
-            LOG.debug(String.format("[consumer tag: %s] Message has been processed: %s. About to send AMQP ack...", consumerTag, body));
-            channel.basicAck(deliveryTag, false);
-            LOG.debug(String.format("[consumer tag: %s] AMQP ack has been sent for message '%s'", consumerTag, body));
+            LOG.debug(String.format("[consumer tag: %s] Message has been processed: %s", consumerTag, body));
         } catch (Exception e) {
             LOG.error(String.format("[consumer tag: %s] Failed to process message %s", consumerTag, body), e);
         }

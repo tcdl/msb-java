@@ -46,6 +46,7 @@ public class AmqpAdapterFactoryExecutorTest {
                         + "    charsetName = \"UTF-8\"\n"
                         + "    consumerThreadPoolSize = 5\n"
                         + "    consumerThreadPoolQueueCapacity = 20\n"
+                        + "    requeueRejectedMessages = true\n"
                         + "  }";
 
         Config msbConfig = ConfigFactory.parseString(String.format(basicConfig, brokerConf));
@@ -72,6 +73,7 @@ public class AmqpAdapterFactoryExecutorTest {
                         + "    charsetName = \"UTF-8\"\n"
                         + "    consumerThreadPoolSize = 5\n"
                         + "    consumerThreadPoolQueueCapacity = -1\n"
+                        + "    requeueRejectedMessages = true\n"
                         + "  }";
         Config msbConfig = ConfigFactory.parseString(String.format(basicConfig, brokerConf));
         MsbConfig msbConfigurations = new MsbConfig(msbConfig);
