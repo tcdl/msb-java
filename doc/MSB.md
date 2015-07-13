@@ -130,7 +130,7 @@ It consists of the following Maven modules:
 
 ## Core classes
 
-All classes and interfaces that should be used by a microservice developer reside in package  [io.github.tcdl.api](/core/src/main/java/io/github/tcdl/api) and its subpackages. [This Appendix](#api-class-diagram) shows relation between all those classes.
+All classes and interfaces that should be used by a microservice developer reside in package  [io.github.tcdl.msb.api](/core/src/main/java/io/github/tcdl/msb/api) and its subpackages. [This Appendix](#api-class-diagram) shows relation between all those classes.
 
 The following subsections describe the most important ones.
 
