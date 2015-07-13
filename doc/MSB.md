@@ -324,7 +324,7 @@ See for more [detail](https://www.rabbitmq.com/tutorials/amqp-concepts.html).
 
 `consumerThreadPoolSize` – number of consumer threads used to process incoming messages. Defines the level of parallelism. Default is 5.
 
-`consumerThreadPoolQueueCapacity` – maximum number of requests waiting in FIFO queue to be processed by consumer thread pool. Should be positive integer or -1. Value of -1 stands for unlimited. Default is 20.
+`consumerThreadPoolQueueCapacity` – maximum number of requests waiting in FIFO queue to be processed by consumer thread pool. Should be positive integer or -1. Value of -1 stands for unlimited.
 
 ## AMQP adapter
 
