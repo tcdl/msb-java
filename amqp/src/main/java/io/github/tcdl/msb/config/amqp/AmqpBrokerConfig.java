@@ -22,11 +22,11 @@ public class AmqpBrokerConfig {
     private final boolean durable;
     private final int consumerThreadPoolSize;
     private final int consumerThreadPoolQueueCapacity;
+    private final boolean requeueRejectedMessages;
 
     public AmqpBrokerConfig(Charset charset, String host, int port,
             Optional<String> username, Optional<String> password, Optional<String> virtualHost,
-            String groupId, boolean durable,
-            int consumerThreadPoolSize, int consumerThreadPoolQueueCapacity) {
+            String groupId, boolean durable, int consumerThreadPoolSize, int consumerThreadPoolQueueCapacity, boolean requeueRejectedMessages) {
         this.charset = charset;
         this.port = port;
         this.host = host;
@@ -37,6 +37,7 @@ public class AmqpBrokerConfig {
         this.durable = durable;
         this.consumerThreadPoolSize = consumerThreadPoolSize;
         this.consumerThreadPoolQueueCapacity = consumerThreadPoolQueueCapacity;
+        this.requeueRejectedMessages = requeueRejectedMessages;
     }
 
     public static class AmqpBrokerConfigBuilder {
@@ -50,6 +51,7 @@ public class AmqpBrokerConfig {
         private boolean durable;
         private int consumerThreadPoolSize;
         private int consumerThreadPoolQueueCapacity;
+        private boolean requeueRejectedMessages;
 
         /**
          * Initialize Builder with Config
@@ -75,6 +77,7 @@ public class AmqpBrokerConfig {
             this.durable = ConfigurationUtil.getBoolean(config, "durable");
             this.consumerThreadPoolSize = ConfigurationUtil.getInt(config, "consumerThreadPoolSize");
             this.consumerThreadPoolQueueCapacity = ConfigurationUtil.getInt(config, "consumerThreadPoolQueueCapacity");
+            this.requeueRejectedMessages = ConfigurationUtil.getBoolean(config, "requeueRejectedMessages");
             return this;
         }
 
@@ -83,7 +86,7 @@ public class AmqpBrokerConfig {
          */
         public AmqpBrokerConfig build() {
             return new AmqpBrokerConfig(charset, host, port, username, password, virtualHost,
-                    groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
+                    groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages);
         }
     }
 
@@ -131,10 +134,14 @@ public class AmqpBrokerConfig {
         return consumerThreadPoolQueueCapacity;
     }
 
+    public boolean isRequeueRejectedMessages() {
+        return requeueRejectedMessages;
+    }
+
     @Override
     public String toString() {
-        return String.format("AmqpBrokerConfig [charset=%s, host=%s, port=%d, username=%s, password=xxx, virtualHost=%s, groupId=%s, durable=%s, consumerThreadPoolSize=%s, consumerThreadPoolQueueCapacity=%s]",
-                charset, host, port, username, virtualHost, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
+        return String.format("AmqpBrokerConfig [charset=%s, host=%s, port=%d, username=%s, password=xxx, virtualHost=%s, groupId=%s, durable=%s, consumerThreadPoolSize=%s, consumerThreadPoolQueueCapacity=%s, requeueRejectedMessages=%s]",
+                charset, host, port, username, virtualHost, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages);
     }
 
 }

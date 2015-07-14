@@ -2,12 +2,11 @@ package io.github.tcdl.msb.adapters.amqp;
 
 import com.rabbitmq.client.Channel;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 import io.github.tcdl.msb.api.exception.ChannelException;
+import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 
 public class AmqpConsumerAdapter implements ConsumerAdapter {
@@ -57,8 +56,7 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
             channel.queueDeclare(queueName, durable /* durable */, false /* exclusive */, !durable /*auto-delete */, null);
             channel.queueBind(queueName, exchangeName, "");
 
-            Charset charset = adapterConfig.getCharset();
-            consumerTag = channel.basicConsume(queueName, false /* autoAck */, new AmqpMessageConsumer(channel, consumerThreadPool, msgHandler, charset));
+            consumerTag = channel.basicConsume(queueName, false /* autoAck */, new AmqpMessageConsumer(channel, consumerThreadPool, msgHandler, adapterConfig));
         } catch (IOException e) {
             throw new ChannelException(String.format("Failed to subscribe to topic %s", topic), e);
         }
