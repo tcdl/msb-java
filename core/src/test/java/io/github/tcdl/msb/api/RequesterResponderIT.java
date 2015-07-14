@@ -63,9 +63,9 @@ public class RequesterResponderIT {
         String namespace = "test:requester-responder-test-get-ack";
         MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
         RequestOptions requestOptions = new RequestOptions.Builder()
-            .withAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
-            .withWaitForResponses(1)
-            .build();
+                .withAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
+                .withWaitForResponses(1)
+                .build();
 
         CountDownLatch ackSend = new CountDownLatch(1);
         CountDownLatch ackResponseReceived = new CountDownLatch(1);
@@ -98,10 +98,10 @@ public class RequesterResponderIT {
     public void testResponderAnswerWithResponseRequesterReceiveResponse() throws Exception {
         String namespace = "test:requester-responder-test-get-resp";
         MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
-        RequestOptions requestOptions =  new RequestOptions.Builder()
-            .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
-            .withWaitForResponses(1)
-            .build();
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
+                .withWaitForResponses(1)
+                .build();
 
         CountDownLatch respSend = new CountDownLatch(1);
         CountDownLatch respReceived = new CountDownLatch(1);
@@ -121,14 +121,14 @@ public class RequesterResponderIT {
         //listen for message and send response
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
         serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, response) -> {
-                    Payload payload = new Payload.Builder().withBody(
-                            new HashMap<String, String>().put("body", "payload from test : testResponderAnswerWithResponseRequesterReceiveResponse"))
-                            .withStatusCode(3333).build();
-                    response.send(payload);
-                    sentResponses.add(payload);
-                    respSend.countDown();
+            Payload payload = new Payload.Builder().withBody(
+                    new HashMap<String, String>().put("body", "payload from test : testResponderAnswerWithResponseRequesterReceiveResponse"))
+                    .withStatusCode(3333).build();
+            response.send(payload);
+            sentResponses.add(payload);
+            respSend.countDown();
 
-                })
+        })
                 .listen();
 
         assertTrue("Message response was not send", respSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
@@ -138,16 +138,16 @@ public class RequesterResponderIT {
     }
 
     @Test
-    public void testResponderCommunicationWithAck () throws Exception {
+    public void testResponderCommunicationWithAck() throws Exception {
         String namespace1 = "test:requester-responder-server-one";
         String namespace2 = "test:requester-responder-server-two";
         MessageTemplate responderServerOneMessageOptions = TestUtils.createSimpleMessageTemplate();
         MessageTemplate responderServerTwoMessageOptions = TestUtils.createSimpleMessageTemplate();
 
         RequestOptions requestAwaitAckMessageOptions = new RequestOptions.Builder()
-            .withAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
-            .withWaitForResponses(1)
-            .build();
+                .withAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
+                .withWaitForResponses(1)
+                .build();
 
         CountDownLatch ackSent = new CountDownLatch(1);
         CountDownLatch ackReceived = new CountDownLatch(1);
@@ -180,10 +180,10 @@ public class RequesterResponderIT {
     public void testMultipleRequesterListenForAcks() throws Exception {
         String namespace = "test:requester-responder-test-send-multiple-requests-get-ack";
         RequestOptions requestOptions = new RequestOptions.Builder()
-            .withAckTimeout(100)
-            .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
-            .withWaitForResponses(1)
-            .build();
+                .withAckTimeout(100)
+                .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
+                .withWaitForResponses(1)
+                .build();
 
         int requestsToSendDuringTest = 5;
 
@@ -196,7 +196,7 @@ public class RequesterResponderIT {
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
 
         final AtomicInteger messagesToSend = new AtomicInteger(requestsToSendDuringTest);
-        Thread publishingThread= new Thread(() -> {
+        Thread publishingThread = new Thread(() -> {
             while (messagesToSend.get() > 0) {
 
                 msbContext.getObjectFactory().createRequester(namespace, requestOptions).

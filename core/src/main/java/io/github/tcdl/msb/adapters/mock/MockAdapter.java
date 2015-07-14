@@ -4,12 +4,15 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.support.Utils;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +28,19 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
     static Map<String, Queue<String>> messageMap = new ConcurrentHashMap<>();
 
     private String topic;
+    private ExecutorService executorService;
+    private Queue<ExecutorService> activeConsumerExecutors;
 
     public MockAdapter(String topic) {
+        LOG.debug("Created Mock Adapter for publishing to topic: " + topic);
         this.topic = topic;
+    }
+
+    public MockAdapter(String topic, Queue<ExecutorService> activeConsumerExecutors) {
+        LOG.debug("Created Mock Adapter for consuming form topic: " + topic);
+        this.topic = topic;
+        this.activeConsumerExecutors = activeConsumerExecutors;
+        this.executorService = activateConsumerThreadPool(topic);
     }
 
     @Override
@@ -46,32 +59,40 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
 
     @Override
     public void subscribe(RawMessageHandler messageHandler) {
+        if (executorService == null) {
+            LOG.warn("Mock Adapter not initialized for consuming");
+        } else {
+            executorService.execute(() -> {
+                {
+                    String jsonMessage = null;
+                    while (!executorService.isShutdown()) {
+                        jsonMessage = pollJsonMessageForTopic(topic);
 
-        Thread subscriberThread = new Thread(() -> {
-            String jsonMessage = null;
-            while (true) {
-                jsonMessage = pollJsonMessageForTopic(topic);
-
-                if (messageHandler != null && jsonMessage != null) {
-                    LOG.debug("Process message for topic {} [{}]", topic, jsonMessage);
-                    messageHandler.onMessage(jsonMessage);
-                } else {
-                    try {
-                        Thread.sleep(CONSUMING_INTERVAL);
-                    } catch (Exception e) {
-                        LOG.debug("Finish listen for subscribed topic");
+                        if (messageHandler != null && jsonMessage != null) {
+                            LOG.debug("Process message for topic {} [{}]", topic, jsonMessage);
+                            messageHandler.onMessage(jsonMessage);
+                        } else {
+                            try {
+                                Thread.sleep(CONSUMING_INTERVAL);
+                            } catch (Exception e) {
+                                LOG.debug("Finish listen for subscribed topic");
+                            }
+                        }
                     }
                 }
-            }
-        });
 
-        subscriberThread.setDaemon(true);
-        subscriberThread.start();
+            });
+        }
     }
 
     @Override
     public void unsubscribe() {
         LOG.debug("Unsubscribe");
+        if (executorService == null) {
+            LOG.warn("Mock Adapter not initialized for consuming");
+        }
+        activeConsumerExecutors.remove(executorService);
+        executorService.shutdown();
     }
 
     public static String pollJsonMessageForTopic(String topic) {
@@ -103,6 +124,16 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
         } catch (JsonConversionException e) {
             LOG.error("Pushed message can not be parsed");
         }
+    }
+
+    private ExecutorService activateConsumerThreadPool(String topic) {
+        BasicThreadFactory threadFactory = new BasicThreadFactory.Builder()
+                .namingPattern("mock-consumer-" + topic + "-thread-%d")
+                .build();
+
+        ExecutorService executorService = Executors.newFixedThreadPool(1, threadFactory);
+        activeConsumerExecutors.add(executorService);
+        return executorService;
     }
 
 }

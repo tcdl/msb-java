@@ -2,6 +2,7 @@ package io.github.tcdl.msb.adapters.mock;
 
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
@@ -15,17 +16,29 @@ import org.junit.Test;
 public class MockAdapterFactoryTest {
 
     @Test
-    public void testCreateConsumerAdapterReturnMock() {
+    public void testCreateConsumerAdapter() {
         MockAdapterFactory mockAdapterFactory = new MockAdapterFactory();
         ConsumerAdapter consumer = mockAdapterFactory.createConsumerAdapter("");
         assertThat(consumer, instanceOf(MockAdapter.class));
+        assertTrue(mockAdapterFactory.consumerExecutors.size() == 1);
     }
 
     @Test
-    public void testCreateProducerAdapterReturnMock() {
+    public void testCreateProducerAdapter() {
         MockAdapterFactory mockAdapterFactory = new MockAdapterFactory();
         ProducerAdapter producer = mockAdapterFactory.createProducerAdapter("");
         assertThat(producer, instanceOf(MockAdapter.class));
+        assertTrue(mockAdapterFactory.consumerExecutors.size() == 0);
+    }
+
+    @Test
+    public void testShutdown() {
+        MockAdapterFactory mockAdapterFactory = new MockAdapterFactory();
+        mockAdapterFactory.createConsumerAdapter("");
+        assertTrue(mockAdapterFactory.consumerExecutors.size() == 1);
+        mockAdapterFactory.shutdown();
+        assertTrue(mockAdapterFactory.consumerExecutors.size() == 0);
+
     }
 
 }
