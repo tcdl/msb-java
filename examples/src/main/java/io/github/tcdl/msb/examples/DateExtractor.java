@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  */
 public class DateExtractor {
 
-    final Pattern YEAR_PATTERN = Pattern.compile("^.*(20(\\d{2})).*$");
+    final Pattern YEAR_PATTERN = Pattern.compile("^\\D*(20(\\d{2})).*$");
 
     public static void main(String... args) {
         MsbContext msbContext = new MsbContextBuilder()
