@@ -1,4 +1,4 @@
-package io.github.tcdl.msb.monitor;
+package io.github.tcdl.msb.monitor.agent;
 
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Producer;
@@ -33,7 +33,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
     /**
      * This map contains statistics info per topic.
      */
-    Map<String, TopicStats> topicInfoMap = new HashMap<>();
+    Map<String, AgentTopicStats> topicInfoMap = new HashMap<>();
 
     public DefaultChannelMonitorAgent(MsbContextImpl msbContext) {
         this.msbContext = msbContext;
@@ -77,7 +77,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
             return;
         }
 
-        TopicStats updatedStats = getOrCreateTopicStats(topicName).setProducers(true);
+        AgentTopicStats updatedStats = getOrCreateTopicStats(topicName).withProducers(true);
         topicInfoMap.put(topicName, updatedStats);
 
         doAnnounce();
@@ -90,7 +90,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
             return;
         }
 
-        TopicStats updatedStats = getOrCreateTopicStats(topicName).setConsumers(true);
+        AgentTopicStats updatedStats = getOrCreateTopicStats(topicName).withConsumers(true);
         topicInfoMap.put(topicName, updatedStats);
 
         doAnnounce();
@@ -103,7 +103,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
             return;
         }
 
-        TopicStats updatedStats = getOrCreateTopicStats(topicName).setConsumers(false);
+        AgentTopicStats updatedStats = getOrCreateTopicStats(topicName).withConsumers(false);
         topicInfoMap.put(topicName, updatedStats);
     }
 
@@ -115,7 +115,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
         }
 
         Instant now = clock.instant();
-        TopicStats updatedStats = getOrCreateTopicStats(topicName).setLastProducedAt(now);
+        AgentTopicStats updatedStats = getOrCreateTopicStats(topicName).withLastProducedAt(now);
         topicInfoMap.put(topicName, updatedStats);
     }
 
@@ -127,13 +127,13 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
         }
 
         Instant now = clock.instant();
-        TopicStats updatedStats = getOrCreateTopicStats(topicName).setLastConsumedAt(now);
+        AgentTopicStats updatedStats = getOrCreateTopicStats(topicName).withLastConsumedAt(now);
         topicInfoMap.put(topicName, updatedStats);
     }
 
-    private TopicStats getOrCreateTopicStats(String topicName) {
+    private AgentTopicStats getOrCreateTopicStats(String topicName) {
         if (!topicInfoMap.containsKey(topicName)) {
-            topicInfoMap.put(topicName, new TopicStats());
+            topicInfoMap.put(topicName, new AgentTopicStats());
         }
 
         return topicInfoMap.get(topicName);

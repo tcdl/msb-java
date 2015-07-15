@@ -8,7 +8,7 @@ import java.time.Clock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.junittoolbox.MultithreadingTester;
 import io.github.tcdl.msb.config.MsbConfig;
-import io.github.tcdl.msb.monitor.ChannelMonitorAgent;
+import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.TestUtils;
 import org.junit.Before;

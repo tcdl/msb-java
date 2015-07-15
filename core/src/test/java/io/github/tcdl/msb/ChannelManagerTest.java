@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.collector.CollectorManager;
 import io.github.tcdl.msb.config.MsbConfig;
-import io.github.tcdl.msb.monitor.ChannelMonitorAgent;
+import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.TestUtils;
 import org.junit.Before;
@@ -79,7 +79,7 @@ public class ChannelManagerTest {
         String topic = "topic:test-agent-publish";
 
         Producer producer = channelManager.findOrCreateProducer(topic);
-        Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
+        Message message = TestUtils.createMsbRequestMessageWithSimplePayload(topic);
         producer.publish(message);
 
         verify(mockChannelMonitorAgent).producerMessageSent(topic);
@@ -92,7 +92,7 @@ public class ChannelManagerTest {
         CountDownLatch awaitReceiveEvents = new CountDownLatch(1);
         final Holder<Message> messageEvent = new Holder<>();
 
-        Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
+        Message message = TestUtils.createMsbRequestMessageWithSimplePayload(topic);
         channelManager.findOrCreateProducer(topic).publish(message);
         channelManager.subscribe(topic,
                 msg ->  {

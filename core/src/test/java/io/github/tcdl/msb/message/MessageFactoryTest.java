@@ -77,7 +77,7 @@ public class MessageFactoryTest {
     @Test
     public void testCreateRequestMessageWithPayload() {
         Payload requestPayload = TestUtils.createSimpleResponsePayload();
-        Builder requestMesageBuilder = TestUtils.createMesageBuilder();
+        Builder requestMesageBuilder = TestUtils.createMessageBuilder();
 
         Message message = messageFactory.createRequestMessage(requestMesageBuilder, requestPayload);
 
@@ -87,7 +87,7 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateRequestMessageWithoutPayload() {
-        Builder requestMesageBuilder = TestUtils.createMesageBuilder();
+        Builder requestMesageBuilder = TestUtils.createMessageBuilder();
 
         Message message = messageFactory.createRequestMessage(requestMesageBuilder, null);
 
@@ -97,7 +97,7 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateResponseMessageWithPayloadAndAck() {
-        Builder responseMesageBuilder = TestUtils.createMesageBuilder();
+        Builder responseMesageBuilder = TestUtils.createMessageBuilder();
         Payload responsePayload = TestUtils.createSimpleResponsePayload();
         Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(3).withTimeoutMs(100).build();
 
@@ -109,7 +109,7 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateResponseMessageWithoutPayloadAndAck() {
-        Builder responseMesageBuilder = TestUtils.createMesageBuilder();
+        Builder responseMesageBuilder = TestUtils.createMessageBuilder();
 
         Message message = messageFactory.createResponseMessage(responseMesageBuilder, null, null);
 

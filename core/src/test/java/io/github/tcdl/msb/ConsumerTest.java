@@ -8,7 +8,7 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.config.MsbConfig;
-import io.github.tcdl.msb.monitor.ChannelMonitorAgent;
+import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
@@ -102,7 +102,7 @@ public class ConsumerTest {
 
     @Test
     public void testValidMessageProcessedBySubscriber() throws JsonConversionException {
-        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
+        Message originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(TOPIC);
         Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
         consumer.handleRawMessage(Utils.toJson(originalMessage, messageMapper));
@@ -129,7 +129,7 @@ public class ConsumerTest {
         Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
         // create a message with required empty namespace
-        Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo("");
+        Message message = TestUtils.createMsbRequestMessageWithSimplePayload("");
 
         consumer.handleRawMessage(Utils.toJson(message, messageMapper));
 
@@ -140,7 +140,7 @@ public class ConsumerTest {
 
     @Test
     public void testHandleRawMessageConsumeFromTopic() throws JsonConversionException {
-        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
+        Message originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(TOPIC);
         Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
         consumer.handleRawMessage(Utils.toJson(originalMessage, messageMapper));

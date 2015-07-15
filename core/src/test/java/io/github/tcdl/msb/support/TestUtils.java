@@ -1,7 +1,14 @@
 package io.github.tcdl.msb.support;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Clock;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContextBuilder;
@@ -49,26 +56,49 @@ public class TestUtils {
     }
 
     public static MessageTemplate createSimpleMessageTemplate() {
-        MessageTemplate messageTemplate = new MessageTemplate();
-        return messageTemplate;
+        return new MessageTemplate();
     }
 
-    public static Message createMsbRequestMessageWithPayloadAndTopicTo(String topicTo) {
+    public static Message createMsbRequestMessageWithSimplePayload(String topicTo) {
+        return createMsbRequestMessage(topicTo, createSimpleRequestPayload());
+    }
+
+    public static Message createMsbRequestMessage(String topicTo, String instanceId, Payload payload) {
+        MsbConfig msbConf = createMsbConfigurations(instanceId);
+        Clock clock = Clock.systemDefaultZone();
+
+        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
+        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
+        return new Message.Builder()
+                .withCorrelationId(Utils.generateId())
+                .withId(Utils.generateId())
+                .withTopics(topic)
+                .withMetaBuilder(metaBuilder)
+                .withPayload(payload)
+                .build();
+    }
+
+    public static Message createMsbRequestMessage(String topicTo, Payload payload) {
         MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
-                .withPayload(createSimpleRequestPayload()).build();
+        return new Message.Builder()
+                .withCorrelationId(Utils.generateId())
+                .withId(Utils.generateId())
+                .withTopics(topic)
+                .withMetaBuilder(metaBuilder)
+                .withPayload(payload)
+                .build();
     }
 
-    public static Message createMsbRequestMessageWithAckNoPayloadAndTopicTo(String topicTo) {
+    public static Message createMsbRequestMessageWithAckNoPayload(String topicTo) {
         Acknowledge simpleAck = new Acknowledge.Builder().withResponderId(Utils.generateId()).build();
-        return createMsbRequestMessageWithAckNoPayloadAndTopicTo(simpleAck, topicTo, Utils.generateId());
+        return createMsbRequestMessageNoPayload(simpleAck, topicTo, Utils.generateId());
     }
 
-    public static Message createMsbRequestMessageWithAckNoPayloadAndTopicTo(Acknowledge ack, String topicTo, String correlationId) {
+    public static Message createMsbRequestMessageNoPayload(Acknowledge ack, String topicTo, String correlationId) {
         MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
@@ -103,13 +133,19 @@ public class TestUtils {
                 .withMetaBuilder(metaBuilder).withPayload(createSimpleResponsePayload()).build();
     }
 
-    public static Message.Builder createMesageBuilder() {
+    public static Message.Builder createMessageBuilder() {
         MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics("", "");
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
         return new Message.Builder().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder);
+    }
+
+    public static MsbConfig createMsbConfigurations(String instanceId) {
+        Config config = ConfigFactory.load();
+        config = config.withValue("msbConfig.serviceDetails.instanceId", ConfigValueFactory.fromAnyRef(instanceId));
+        return new MsbConfig(config);
     }
 
     public static MsbConfig createMsbConfigurations() {

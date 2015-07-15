@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.support;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
@@ -9,6 +10,7 @@ import io.github.tcdl.msb.impl.MsbContextImpl;
 import org.junit.Test;
 
 import java.time.Instant;
+import java.util.Map;
 
 import static io.github.tcdl.msb.support.Utils.TOPIC_ANNOUNCE;
 import static io.github.tcdl.msb.support.Utils.TOPIC_HEARTBEAT;
@@ -67,7 +69,7 @@ public class UtilsTest {
                 .withPayloadMapper(payloadMapperMock)
                 .build()).getMessageMapper();
 
-        Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TestUtils.getSimpleNamespace());
+        Message message = TestUtils.createMsbRequestMessageWithSimplePayload(TestUtils.getSimpleNamespace());
         Payload payload = message.getPayload();
 
         Utils.toJson(message, messageMapper);
@@ -81,11 +83,20 @@ public class UtilsTest {
                 .withPayloadMapper(payloadMapperSpy)
                 .build()).getMessageMapper();
 
-        Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TestUtils.getSimpleNamespace());
+        Message message = TestUtils.createMsbRequestMessageWithSimplePayload(TestUtils.getSimpleNamespace());
         String jsonMessage = Utils.toJson(message, messageMapper);
         String jsonPayload = Utils.toJson(message.getPayload(), payloadMapperSpy);
 
         Utils.fromJson(jsonMessage, Message.class, messageMapper);
         verify(payloadMapperSpy).readValue(jsonPayload, Payload.class);
     }
+
+    @Test
+    public void testDeserializationViaTypeReference() {
+        Map<String, TestPojo> deserializedObject = Utils.fromJson("{\"key1\":{\"field\": 10}}", new TypeReference<Map<String, TestPojo>>() {}, TestUtils.createMessageMapper());
+        assertEquals(1, deserializedObject.size());
+        assertTrue(deserializedObject.containsKey("key1"));
+        assertEquals(10, deserializedObject.get("key1").field);
+    }
+
 }

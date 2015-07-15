@@ -42,8 +42,8 @@ public class CollectorTest {
 
     private static final String TOPIC = "test:collector";
 
-    private static Message originalMessageWithPayload = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
-    private static Message originalMessageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(TOPIC);
+    private static Message originalMessageWithPayload = TestUtils.createMsbRequestMessageWithSimplePayload(TOPIC);
+    private static Message originalMessageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayload(TOPIC);
 
     @Mock
     private MessageFactory messageFactoryMock;
@@ -303,7 +303,7 @@ public class CollectorTest {
         collector.listenForResponses();
 
         Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMs).build();
-        Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ack, TOPIC, originalMessageWithPayload.getCorrelationId());
+        Message messageWithAck = TestUtils.createMsbRequestMessageNoPayload(ack, TOPIC, originalMessageWithPayload.getCorrelationId());
 
         collector.handleMessage(messageWithAck);
 
@@ -330,7 +330,7 @@ public class CollectorTest {
 
         Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMsInAck)
                 .build();
-        Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ack, TOPIC, originalMessageWithPayload.getCorrelationId());
+        Message messageWithAck = TestUtils.createMsbRequestMessageNoPayload(ack, TOPIC, originalMessageWithPayload.getCorrelationId());
 
         collector.handleMessage(messageWithAck);
 
@@ -358,7 +358,7 @@ public class CollectorTest {
 
         Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemaining)
                 .withTimeoutMs(timeoutMsInAck).build();
-        Message messageWithAck = TestUtils.createMsbRequestMessageWithAckNoPayloadAndTopicTo(ack, TOPIC, originalMessageWithPayload.getCorrelationId());
+        Message messageWithAck = TestUtils.createMsbRequestMessageNoPayload(ack, TOPIC, originalMessageWithPayload.getCorrelationId());
 
         collector.handleMessage(messageWithAck);
 
@@ -389,12 +389,12 @@ public class CollectorTest {
         Acknowledge ackRespOne = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemainingResponderOne)
                 .withTimeoutMs(timeoutMsInAckResponderOne).build();
         Message messageWithAckOne = TestUtils
-                .createMsbRequestMessageWithAckNoPayloadAndTopicTo(ackRespOne, TOPIC, originalMessageWithPayload.getCorrelationId());
+                .createMsbRequestMessageNoPayload(ackRespOne, TOPIC, originalMessageWithPayload.getCorrelationId());
 
         Acknowledge ackRespTwo = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemainingResponderTwo)
                 .withTimeoutMs(timeoutMsInAckResponderTwo).build();
         Message messageWithAckTwo = TestUtils
-                .createMsbRequestMessageWithAckNoPayloadAndTopicTo(ackRespTwo, TOPIC, originalMessageWithPayload.getCorrelationId());
+                .createMsbRequestMessageNoPayload(ackRespTwo, TOPIC, originalMessageWithPayload.getCorrelationId());
 
         collector.handleMessage(messageWithAckOne);
         verify(timeoutManagerMock).enableResponseTimeout(eq(timeoutMsInAckResponderOne), eq(collector));

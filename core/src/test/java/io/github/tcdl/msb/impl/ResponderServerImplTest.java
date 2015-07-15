@@ -55,7 +55,7 @@ public class ResponderServerImplTest {
 
         verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
 
-        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
+        Message originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(namespace);
         subscriberCaptor.getValue().handleMessage(originalMessage);
 
         verify(spyResponderServer).onResponder(anyObject());
