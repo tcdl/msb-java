@@ -1,13 +1,15 @@
 package io.github.tcdl.msb.adapters.mock;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
-
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
@@ -40,15 +42,32 @@ public class MockAdapterTest {
     public void testSubscribeCallMessageHandler() throws ChannelException, JsonConversionException {
         String topic = "test:mock-adapter-subscribe";
         String message = Utils.toJson(TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic));
-        Queue<String> queue = new ConcurrentLinkedQueue<>();
-        queue.add(message);
-        MockAdapter mockAdapter = new MockAdapter(topic);
-        mockAdapter.messageMap.put(topic, queue);
+        Queue<ExecutorService> activeConsumerExecutors = new LinkedList<>();
+        MockAdapter mockAdapter = new MockAdapter(topic, activeConsumerExecutors);
+        Queue<String> messages = new ConcurrentLinkedQueue<>();
+        messages.add(message);
+        mockAdapter.messageMap.put(topic, messages);
         ConsumerAdapter.RawMessageHandler mockHandler = mock(ConsumerAdapter.RawMessageHandler.class);
 
         mockAdapter.subscribe(mockHandler);
 
+        assertTrue(activeConsumerExecutors.size() == 1);
         verify(mockHandler, timeout(500)).onMessage(eq(message));
+    }
+
+    @Test
+    public void testUnsubscribe() throws ChannelException, JsonConversionException {
+        String topic = "test:mock-adapter-unsubscribe";
+        Queue<ExecutorService> activeConsumerExecutors = new LinkedList<>();
+        MockAdapter mockAdapter = new MockAdapter(topic, activeConsumerExecutors);
+
+        ConsumerAdapter.RawMessageHandler mockHandler = mock(ConsumerAdapter.RawMessageHandler.class);
+        mockAdapter.subscribe(mockHandler);
+
+        assertTrue(activeConsumerExecutors.size() == 1);
+        mockAdapter.unsubscribe();
+        assertTrue(activeConsumerExecutors.size() == 0);
+
     }
 
 }
