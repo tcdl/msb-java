@@ -6,6 +6,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
@@ -165,8 +167,10 @@ public class ConsumerTest {
     }
 
     private  Message createExpiredMsbRequestMessageWithTopicTo(String topicTo) {
+        Instant MOMENT_IN_PAST = Instant.parse("2007-12-03T10:15:30.00Z");
+
         MsbConfig msbConf = new MsbConfig(ConfigFactory.load());
-        Clock clock = Clock.systemDefaultZone();
+        Clock clock = Clock.fixed(MOMENT_IN_PAST, ZoneId.systemDefault());
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessage.Builder metaBuilder = new MetaMessage.Builder(0, clock.instant(), msbConf.getServiceDetails(), clock);
