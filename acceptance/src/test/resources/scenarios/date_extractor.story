@@ -15,3 +15,8 @@ And response contains
 |results|
 |year=15|
 
+When requester sends a request with query '2015-counter-2078'
+Then requester gets response in 2000 ms
+And response contains
+|results|
+|year=15|
