@@ -1,5 +1,6 @@
 package io.github.tcdl.msb;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.exception.ChannelException;
@@ -21,19 +22,23 @@ public class Producer {
 
     private final ProducerAdapter rawAdapter;
     private final Callback<Message> messageHandler;
+    private final ObjectMapper messageMapper;
 
-    public Producer(ProducerAdapter rawAdapter, String topic, Callback<Message> messageHandler) {
+    public Producer(ProducerAdapter rawAdapter, String topic, Callback<Message> messageHandler, ObjectMapper messageMapper) {
         LOG.debug("Creating producer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
         Validate.notNull(topic, "the 'topic' must not be null");
         Validate.notNull(messageHandler, "the 'messageHandler' must not be null");
+        Validate.notNull(messageMapper, "the 'messageMapper' must not be null");
+
         this.rawAdapter = rawAdapter;
         this.messageHandler = messageHandler;
+        this.messageMapper = messageMapper;
     }
 
     public void publish(Message message) {
         try {
-            String jsonMessage = Utils.toJson(message);
+            String jsonMessage = Utils.toJson(message, messageMapper);
             LOG.debug("Publishing message to adapter : {}", jsonMessage);
             rawAdapter.publish(jsonMessage);
             messageHandler.call(message);

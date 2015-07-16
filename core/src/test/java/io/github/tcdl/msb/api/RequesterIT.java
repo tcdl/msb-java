@@ -7,6 +7,7 @@ import static org.junit.Assert.fail;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.msb.api.message.payload.Payload;
@@ -33,12 +34,14 @@ public class RequesterIT {
     private RequestOptions requestOptions;
     private MsbContextImpl msbContext;
     private JsonValidator validator;
+    private ObjectMapper messageMapper;
 
     @Before
     public void setUp() throws Exception {
         this.requestOptions = TestUtils.createSimpleRequestOptions();
         this.msbContext = TestUtils.createSimpleMsbContext();
         this.validator = new JsonValidator();
+        this.messageMapper = msbContext.getMessageMapper();
     }
 
     @Test
@@ -62,9 +65,9 @@ public class RequesterIT {
             assertTrue("Message not contain 'headers' field", jsonObject.getJSONObject("payload").has("headers"));            
             
             // payload fields match sent
-            Assert.assertEquals("Message 'body' is incorrect", Utils.getJsonObjectMapper().writeValueAsString(payload.getBodyAs(Map.class)),
+            Assert.assertEquals("Message 'body' is incorrect", messageMapper.writeValueAsString(payload.getBodyAs(Map.class)),
                     jsonObject.getJSONObject("payload").get("body").toString());
-            assertEquals("Message 'headers' is incorrect", Utils.getJsonObjectMapper().writeValueAsString(payload.getHeadersAs(Map.class)), jsonObject
+            assertEquals("Message 'headers' is incorrect", messageMapper.writeValueAsString(payload.getHeadersAs(Map.class)), jsonObject
                     .getJSONObject("payload").get("headers").toString());
 
             //topics

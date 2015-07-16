@@ -1,5 +1,6 @@
 package io.github.tcdl.msb;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.api.Callback;
@@ -42,19 +43,26 @@ public class ProducerTest {
     @Mock
     private Callback<Message> handlerMock;
 
+    private ObjectMapper messageMapper = TestUtils.createMessageMapper();
+
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerProducerNullAdapter() {
-        new Producer(null, "testTopic", handlerMock);
+        new Producer(null, "testTopic", handlerMock, messageMapper);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateProducerNullTopic() {
-        new Producer(adapterMock, null, handlerMock);
+        new Producer(adapterMock, null, handlerMock, messageMapper);
     }
 
     @Test(expected = NullPointerException.class)
-    public void testCreateConsumerNullHandler() {
-        new Producer(adapterMock, "testTopic", null);
+    public void testCreateProducerNullHandler() {
+        new Producer(adapterMock, "testTopic", null, messageMapper);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testCreateProducerNullMapper() {
+        new Producer(adapterMock, "testTopic", handlerMock, null);
     }
 
     @Test
@@ -62,7 +70,7 @@ public class ProducerTest {
     public void testPublishVerifyHandlerCalled() {
         Message originaMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
 
-        Producer producer = new Producer(adapterMock, TOPIC, handlerMock);
+        Producer producer = new Producer(adapterMock, TOPIC, handlerMock, messageMapper);
         producer.publish(originaMessage);
 
         verify(handlerMock).call(any(Message.class));
@@ -75,7 +83,7 @@ public class ProducerTest {
 
         Mockito.doThrow(ChannelException.class).when(adapterMock).publish(anyString());
 
-        Producer producer = new Producer(adapterMock, TOPIC, handlerMock);
+        Producer producer = new Producer(adapterMock, TOPIC, handlerMock, messageMapper);
         producer.publish(originaMessage);
 
         verify(handlerMock, never()).call(any(Message.class));
@@ -87,7 +95,7 @@ public class ProducerTest {
     public void testPublishThrowExceptionVerifyCallbackNotSetNotCalled() throws ChannelException {
         Message brokenMessage = createBrokenRequestMessageWithAndTopicTo(TOPIC);
 
-        Producer producer = new Producer(adapterMock, TOPIC, handlerMock);
+        Producer producer = new Producer(adapterMock, TOPIC, handlerMock, messageMapper);
         producer.publish(brokenMessage);
 
         verify(adapterMock, never()).publish(anyString());

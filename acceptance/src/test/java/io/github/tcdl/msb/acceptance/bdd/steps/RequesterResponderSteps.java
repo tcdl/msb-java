@@ -1,7 +1,9 @@
 package io.github.tcdl.msb.acceptance.bdd.steps;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.support.Utils;
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;
@@ -25,9 +27,10 @@ public class RequesterResponderSteps extends MsbSteps {
     // responder steps
     @Given("responder server listens on namespace $namespace")
     public void createResponderServer(String namespace) {
+        ObjectMapper mapper = super.helper.getObjectMapper();
         helper.createResponderServer(namespace, (request, responder) -> {
             if (responseBody != null) {
-                Payload payload = new Payload.Builder().withBody(Utils.fromJson(responseBody, Map.class)).build();
+                Payload payload = new Payload.Builder().withBody(Utils.fromJson(responseBody, Map.class, mapper)).build();
                 responder.send(payload);
             }
         })
@@ -61,7 +64,8 @@ public class RequesterResponderSteps extends MsbSteps {
     }
 
     private void onResponse(Payload payload) {
-        receivedResponse = payload.getBodyAs(Map.class);
+        ObjectMapper mapper = super.helper.getObjectMapper();
+        receivedResponse = PayloadWrapper.wrap(payload, mapper).getBodyAs(Map.class);
     }
 
     @Then("requester gets response in $timeout ms")

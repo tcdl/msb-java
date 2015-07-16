@@ -1,5 +1,24 @@
 package io.github.tcdl.msb.monitor;
 
+import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.MessageHandler;
+import io.github.tcdl.msb.Producer;
+import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.collector.TimeoutManager;
+import io.github.tcdl.msb.config.ServiceDetails;
+import io.github.tcdl.msb.impl.MsbContextImpl;
+import io.github.tcdl.msb.message.MessageFactory;
+import io.github.tcdl.msb.support.TestUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Map;
+
 import static io.github.tcdl.msb.support.Utils.TOPIC_ANNOUNCE;
 import static io.github.tcdl.msb.support.Utils.TOPIC_HEARTBEAT;
 import static org.junit.Assert.assertEquals;
@@ -12,26 +31,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.util.Map;
-
-import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.Producer;
-import io.github.tcdl.msb.MessageHandler;
-import io.github.tcdl.msb.collector.TimeoutManager;
-import io.github.tcdl.msb.config.ServiceDetails;
-import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.impl.MsbContextImpl;
-import io.github.tcdl.msb.message.MessageFactory;
-import io.github.tcdl.msb.support.TestUtils;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 
 public class DefaultChannelMonitorAgentTest {
     private static final Instant CLOCK_INSTANT = Instant.parse("2007-12-03T10:15:30.00Z");
@@ -153,7 +152,7 @@ public class DefaultChannelMonitorAgentTest {
 
     private void verifyMessageContainsTopic(Message message, String topicName) {
         assertNotNull(message.getPayload());
-        assertNotNull(message.getPayload().getBodyAs(Map.class));
-        assertTrue(message.getPayload().getBodyAs(Map.class).containsKey(topicName));
+        assertNotNull(message.getPayload().getBody());
+        assertTrue(((Map)message.getPayload().getBody()).containsKey(topicName));
     }
 }

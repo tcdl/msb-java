@@ -11,6 +11,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.api.exception.ChannelException;
@@ -27,13 +28,15 @@ import org.junit.Test;
  */
 public class MockAdapterTest {
 
+    private ObjectMapper messageMapper = TestUtils.createMessageMapper();
+
     @Test
     public void testPublishAddMessageToMap() throws ChannelException, JsonConversionException {
         String topic = "test:mock-adapter-publish";
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic);
         MockAdapter mockAdapter = new MockAdapter(topic);
 
-        mockAdapter.publish(Utils.toJson(message));
+        mockAdapter.publish(Utils.toJson(message, messageMapper));
 
         assertNotNull(mockAdapter.messageMap.get(topic).poll());
     }
@@ -41,7 +44,7 @@ public class MockAdapterTest {
     @Test
     public void testSubscribeCallMessageHandler() throws ChannelException, JsonConversionException {
         String topic = "test:mock-adapter-subscribe";
-        String message = Utils.toJson(TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic));
+        String message = Utils.toJson(TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(topic), messageMapper);
         Queue<ExecutorService> activeConsumerExecutors = new LinkedList<>();
         MockAdapter mockAdapter = new MockAdapter(topic, activeConsumerExecutors);
         Queue<String> messages = new ConcurrentLinkedQueue<>();

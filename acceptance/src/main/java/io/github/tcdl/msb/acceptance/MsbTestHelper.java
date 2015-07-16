@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.acceptance;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
@@ -11,6 +12,7 @@ import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.support.Utils;
 
 import java.util.Map;
@@ -47,6 +49,10 @@ public class MsbTestHelper {
 
     public MsbContext getContext() {
         return context;
+    }
+
+    public ObjectMapper getObjectMapper() {
+        return ((MsbContextImpl)(getContext())).getMessageMapper();
     }
 
     public Requester createRequester(String namespace, Integer numberOfResponses) {
@@ -116,9 +122,10 @@ public class MsbTestHelper {
     }
 
     public Payload createPayload(String query, String body) {
+        ObjectMapper mapper = ((MsbContextImpl) context).getMessageMapper();
         return new Payload.Builder()
-                .withQuery(Utils.fromJson("{\"q\": \"" + query + "\"}", Map.class))
-                .withBody(Utils.fromJson("{\"body\": \"" + body + "\"}", Map.class))
+                .withQuery(Utils.fromJson("{\"q\": \"" + query + "\"}", Map.class, mapper))
+                .withBody(Utils.fromJson("{\"body\": \"" + body + "\"}", Map.class, mapper))
                 .build();
     }
 }

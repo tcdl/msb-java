@@ -1,7 +1,6 @@
 package io.github.tcdl.msb.acceptance;
 
 import io.github.tcdl.msb.api.Requester;
-
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import java.util.Map;
@@ -66,8 +65,8 @@ public class MultipleRequesterResponder {
             @Override
             public String call() throws Exception {
                 util.sendRequest(requester, NUMBER_OF_RESPONSES, response -> {
-                    System.out.println(">>> RESPONSE body: " + response.getBodyAs(Map.class));
-                    result = response.getBodyAs(Map.class).toString();
+                    System.out.println(">>> RESPONSE body: " + response.getBody());
+                    result = response.getBody().toString();
                     synchronized (this) {
                         notify();
                     }

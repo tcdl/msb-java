@@ -1,9 +1,6 @@
 package io.github.tcdl.msb;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
@@ -16,6 +13,10 @@ import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 /**
  * {@link Consumer} is a component responsible for consuming messages from the bus.
@@ -33,6 +34,7 @@ public class Consumer {
     private Clock clock;
     private MessageHandler messageHandler;
     private JsonValidator validator;
+    private ObjectMapper messageMapper;
 
     /**
      *
@@ -43,9 +45,10 @@ public class Consumer {
      * @param clock
      * @param channelMonitorAgent
      * @param validator validates incoming messages
+     * @param messageMapper message deserializer
      */
     public Consumer(ConsumerAdapter rawAdapter, String topic, MessageHandler messageHandler, MsbConfig msbConfig,
-            Clock clock, ChannelMonitorAgent channelMonitorAgent, JsonValidator validator) {
+            Clock clock, ChannelMonitorAgent channelMonitorAgent, JsonValidator validator, ObjectMapper messageMapper) {
 
         LOG.debug("Creating consumer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
@@ -55,6 +58,7 @@ public class Consumer {
         Validate.notNull(clock, "the 'clock' must not be null");
         Validate.notNull(channelMonitorAgent, "the 'channelMonitorAgent' must not be null");
         Validate.notNull(validator, "the 'validator' must not be null");
+        Validate.notNull(messageMapper, "the 'messageMapper' must not be null");
 
         this.rawAdapter = rawAdapter;
         this.topic = topic;
@@ -63,6 +67,7 @@ public class Consumer {
         this.clock = clock;
         this.channelMonitorAgent = channelMonitorAgent;
         this.validator = validator;
+        this.messageMapper = messageMapper;
 
         this.rawAdapter.subscribe(this::handleRawMessage);
     }
@@ -85,7 +90,7 @@ public class Consumer {
                 validator.validate(jsonMessage, msbConfig.getSchema());
             }
             LOG.debug("Parsing message {}", jsonMessage);
-            Message message = Utils.fromJson(jsonMessage, Message.class);
+            Message message = Utils.fromJson(jsonMessage, Message.class, messageMapper);
             LOG.debug("Message has been successfully parsed {}", jsonMessage);
 
             if (!isMessageExpired(message)) {

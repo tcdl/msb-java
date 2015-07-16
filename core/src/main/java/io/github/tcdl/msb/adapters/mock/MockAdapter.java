@@ -1,20 +1,22 @@
 package io.github.tcdl.msb.adapters.mock;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.adapters.ProducerAdapter;
+import io.github.tcdl.msb.api.exception.JsonConversionException;
+import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
+import io.github.tcdl.msb.support.JsonValidator;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.ProducerAdapter;
-import io.github.tcdl.msb.api.exception.JsonConversionException;
-import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.support.Utils;
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * MockAdapter class represents implementation of {@link ProducerAdapter} and {@link ConsumerAdapter}
@@ -30,6 +32,7 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
     private String topic;
     private ExecutorService executorService;
     private Queue<ExecutorService> activeConsumerExecutors;
+    private JsonValidator.JsonReader jsonReader = new JsonValidator.JsonReader();
 
     public MockAdapter(String topic) {
         LOG.debug("Created Mock Adapter for publishing to topic: " + topic);
@@ -50,9 +53,19 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
     public void publish(String jsonMessage) {
         LOG.debug("Received request {}", jsonMessage);
         try {
-            Message incomingMessage = Utils.fromJson(jsonMessage, Message.class);
-            pushRequestMessage(incomingMessage);
-        } catch (JsonConversionException e) {
+            JsonNode messageAsNode = jsonReader.read(jsonMessage);
+            if (!messageAsNode.has("topics")) {
+                throw new JsonSchemaValidationException(String.format("missing topics in message %s", jsonMessage));
+            }
+
+            JsonNode topicsAsNode = messageAsNode.get("topics");
+            if (!topicsAsNode.has("to")) {
+                throw new JsonSchemaValidationException(String.format("missing topics.to in message %s", jsonMessage));
+            }
+
+            String topicsTo = topicsAsNode.get("to").asText();
+            pushRequestMessage(topicsTo, jsonMessage);
+        } catch (IOException e) {
             LOG.error("Received message can not be parsed");
         }
     }
@@ -107,8 +120,7 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
         return jsonMessage;
     }
 
-    public static void pushRequestMessage(Message message) {
-        String topicTo = message.getTopics().getTo();
+    public static void pushRequestMessage(String topicTo, String jsonMessage) {
         Queue<String> messagesQueue = messageMap.get(topicTo);
         if (messagesQueue == null) {
             messagesQueue = new ConcurrentLinkedQueue<>();
@@ -118,7 +130,6 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
             }
         }
         try {
-            String jsonMessage = Utils.toJson(message);
             messagesQueue.add(jsonMessage);
             LOG.debug("Message for topic {} published: [{}]", topicTo, jsonMessage);
         } catch (JsonConversionException e) {

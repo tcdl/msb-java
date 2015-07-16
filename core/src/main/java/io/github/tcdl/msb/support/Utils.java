@@ -1,13 +1,7 @@
 package io.github.tcdl.msb.support;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,13 +26,6 @@ public class Utils {
 
     private static final Pattern VALID_TOPIC_REGEXP = Pattern.compile("^_?([a-z0-9\\-]+\\:)+([a-z0-9\\-]+)$");
 
-    private static ObjectMapper objectMapper =  new ObjectMapper()
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            .registerModule(new JSR310Module())
-            .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-
     public static String generateId() {
         return UUID.randomUUID().toString();
     }
@@ -58,14 +45,10 @@ public class Utils {
         return value != null ? value : other;
     }
 
-    public static ObjectMapper getJsonObjectMapper() {
-        return objectMapper;
-    }
-
     /**
      * @throws JsonConversionException if some problems during parsing to JSON
      */
-    public static String toJson(Object object) {
+    public static String toJson(Object object, ObjectMapper objectMapper) {
         try {
             return objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
@@ -77,7 +60,7 @@ public class Utils {
     /**
      * @throws JsonConversionException if some problems during parsing JSON
      */
-    public static <T> T fromJson(String json, Class<T> clazz) {
+    public static <T> T fromJson(String json, Class<T> clazz, ObjectMapper objectMapper) {
         if (json == null) return null;
         try {
             return objectMapper.readValue(json, clazz);

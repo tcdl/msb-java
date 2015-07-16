@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.support;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
 import org.junit.After;
 import org.junit.Before;
@@ -22,9 +23,11 @@ public class JsonValidatorTest {
     private JsonValidator validator;
 
     private JsonValidator.JsonReader jsonReaderMock;
+    private ObjectMapper mapper;
 
     @Before
     public void setUp() throws Exception {
+        mapper = TestUtils.createMessageMapper();
         jsonReaderMock = spy(JsonValidator.JsonReader.class);
         validator = new JsonValidator(jsonReaderMock);
     }
@@ -37,7 +40,7 @@ public class JsonValidatorTest {
     @Test
     public void testValidateSuccess() throws Exception {
         String namespace = TestUtils.getSimpleNamespace();
-        String jsonMessage = Utils.toJson(TestUtils.createMsbRequestMessageNoPayload(namespace));
+        String jsonMessage = Utils.toJson(TestUtils.createMsbRequestMessageNoPayload(namespace), mapper);
 
         try {
             validator.validate(jsonMessage, schema);
@@ -49,7 +52,7 @@ public class JsonValidatorTest {
     @Test
     public void testCachingJsonSchema() throws Exception {
         String namespace = TestUtils.getSimpleNamespace();
-        String jsonMessage = Utils.toJson(TestUtils.createMsbRequestMessageNoPayload(namespace));
+        String jsonMessage = Utils.toJson(TestUtils.createMsbRequestMessageNoPayload(namespace), mapper);
 
         // validate first time. 2 calls for message and schema
         validator.validate(jsonMessage, schema);
@@ -69,7 +72,7 @@ public class JsonValidatorTest {
     @Test(expected = NullPointerException.class)
     public void testValidateNullJsonSchemaFail() throws Exception {
         String namespace = TestUtils.getSimpleNamespace();
-        String jsonMessage = Utils.toJson(TestUtils.createMsbRequestMessageNoPayload(namespace));
+        String jsonMessage = Utils.toJson(TestUtils.createMsbRequestMessageNoPayload(namespace), mapper);
         validator.validate(jsonMessage, null);
     }
 

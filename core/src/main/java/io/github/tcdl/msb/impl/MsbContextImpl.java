@@ -1,7 +1,6 @@
 package io.github.tcdl.msb.impl;
 
-import java.time.Clock;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.ObjectFactory;
@@ -12,6 +11,8 @@ import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.message.MessageFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Clock;
 
 /**
  * Specifies the context of the MSB message processing.
@@ -26,15 +27,20 @@ public class MsbContextImpl implements MsbContext {
     private ChannelManager channelManager;
     private Clock clock;
     private TimeoutManager timeoutManager;
+    private ObjectMapper messageMapper;
     private CollectorManagerFactory collectorManagerFactory;
 
-    public MsbContextImpl(MsbConfig msbConfig, MessageFactory messageFactory, ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager,
+    public MsbContextImpl(MsbConfig msbConfig, MessageFactory messageFactory, ChannelManager channelManager,
+            Clock clock,
+            TimeoutManager timeoutManager,
+            ObjectMapper messageMapper,
             CollectorManagerFactory collectorManagerFactory) {
         this.msbConfig = msbConfig;
         this.messageFactory = messageFactory;
         this.channelManager = channelManager;
         this.clock = clock;
         this.timeoutManager = timeoutManager;
+        this.messageMapper = messageMapper;
         this.collectorManagerFactory = collectorManagerFactory;
     }
 
@@ -85,6 +91,13 @@ public class MsbContextImpl implements MsbContext {
     }
 
     /**
+     * @return object of class {@link ObjectMapper} which will be used to deserialize/serialize message
+     */
+    public ObjectMapper getMessageMapper() {
+        return messageMapper;
+    }
+
+    /**
      * @return object of class {@link CollectorManagerFactory} which will be used for creating and holding objects of class {@link CollectorManager}
      */
     public CollectorManagerFactory getCollectorManagerFactory() {
@@ -102,4 +115,5 @@ public class MsbContextImpl implements MsbContext {
     public void setObjectFactory(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
     }
+
 }

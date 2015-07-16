@@ -6,7 +6,7 @@ import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
-
+import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,9 +62,8 @@ public class ResponderServerImpl implements ResponderServer {
         Message originalMessage = responder.getOriginalMessage();
         Payload request = originalMessage.getPayload();
         LOG.debug("Pushing message with id {} to middleware chain", originalMessage.getId());
-
         try {
-            requestHandler.process(request, responder);
+            requestHandler.process(PayloadWrapper.wrap(request, msbContext.getMessageMapper()), responder);
         } catch (Exception exception) {
             errorHandler(responder, exception);
         }
