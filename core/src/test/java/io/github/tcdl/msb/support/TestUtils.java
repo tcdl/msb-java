@@ -1,13 +1,10 @@
 package io.github.tcdl.msb.support;
 
-import java.time.Clock;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.MessageTemplate;
+import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.message.Acknowledge;
@@ -15,12 +12,18 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.collector.CollectorManagerFactory;
 import io.github.tcdl.msb.collector.TimeoutManager;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ObjectFactoryImpl;
 import io.github.tcdl.msb.message.MessageFactory;
+
+import java.time.Clock;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -113,6 +116,10 @@ public class TestUtils {
         return new MsbConfig(ConfigFactory.load());
     }
 
+    public static ObjectMapper createMessageMapper() {
+        return new MsbContextBuilder().buildMessageMapper(null);
+    }
+
     public static Payload createSimpleRequestPayload() {
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("url", "http://mock/request");
@@ -122,7 +129,7 @@ public class TestUtils {
 
         body.put("body", "someRequestBody created at " + Clock.systemDefaultZone().millis());
 
-        return new Payload.Builder().withBody(body).withHeaders(headers).build();
+        return PayloadWrapper.wrap(new Payload.Builder().withBody(body).withHeaders(headers).build(), createMessageMapper());
     }
 
     public static Payload createSimpleBroadcastPayload() {
@@ -191,7 +198,8 @@ public class TestUtils {
         public MsbContextImpl build() {
             MsbConfig msbConfig = msbConfigOp.orElse(TestUtils.createMsbConfigurations());
             Clock clock = clockOp.orElse(Clock.systemDefaultZone());
-            ChannelManager channelManager = channelManagerOp.orElseGet(() -> new ChannelManager(msbConfig, clock, new JsonValidator()));
+            ObjectMapper messageMapper = createMessageMapper();
+            ChannelManager channelManager = channelManagerOp.orElseGet(() -> new ChannelManager(msbConfig, clock, new JsonValidator(), messageMapper));
             MessageFactory messageFactory = messageFactoryOp.orElseGet(() -> new MessageFactory(msbConfig.getServiceDetails(), clock));
             TimeoutManager timeoutManager = timeoutManagerOp.orElseGet(() -> new TimeoutManager(1));
             CollectorManagerFactory collectorManagerFactory = collectorManagerFactoryOp.orElseGet(() -> new CollectorManagerFactory(channelManager));
@@ -205,7 +213,7 @@ public class TestUtils {
         private static class TestMsbContext extends MsbContextImpl {
             TestMsbContext(MsbConfig msbConfig, MessageFactory messageFactory,
                     ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager, CollectorManagerFactory collectorManagerFactory) {
-                super(msbConfig, messageFactory, channelManager, clock, timeoutManager, collectorManagerFactory);
+                super(msbConfig, messageFactory, channelManager, clock, timeoutManager, createMessageMapper(), collectorManagerFactory);
             }
             
             public void setFactory(ObjectFactory objectFactory) {

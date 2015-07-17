@@ -5,6 +5,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import java.time.Clock;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.junittoolbox.MultithreadingTester;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.ChannelMonitorAgent;
@@ -18,13 +19,15 @@ public class ChannelManagerConcurrentTest {
     private ChannelManager channelManager;
     private ChannelMonitorAgent mockChannelMonitorAgent;
     private MessageHandler messageHandlerMock;
+    private ObjectMapper mapper;
 
     @Before
     public void setUp() {
         MsbConfig msbConfig = TestUtils.createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
         JsonValidator validator = new JsonValidator();
-        this.channelManager = new ChannelManager(msbConfig, clock, validator);
+        ObjectMapper messageMapper = TestUtils.createMessageMapper();
+        this.channelManager = new ChannelManager(msbConfig, clock, validator, messageMapper);
 
         mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
         channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);

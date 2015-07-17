@@ -12,6 +12,7 @@ import java.time.Clock;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.collector.CollectorManager;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -36,7 +37,8 @@ public class ChannelManagerTest {
         MsbConfig msbConfig = TestUtils.createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
         JsonValidator validator = new JsonValidator();
-        this.channelManager = new ChannelManager(msbConfig, clock, validator);
+        ObjectMapper messageMapper = TestUtils.createMessageMapper();
+        this.channelManager = new ChannelManager(msbConfig, clock, validator, messageMapper);
 
         mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
         channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);

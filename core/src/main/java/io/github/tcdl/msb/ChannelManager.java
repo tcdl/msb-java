@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.AdapterFactoryLoader;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
@@ -25,16 +26,18 @@ public class ChannelManager {
     private MsbConfig msbConfig;
     private Clock clock;
     private JsonValidator validator;
+    private ObjectMapper messageMapper;
     private AdapterFactory adapterFactory;
     private ChannelMonitorAgent channelMonitorAgent;
 
     private Map<String, Producer> producersByTopic;
     private Map<String, Consumer> consumersByTopic;
 
-    public ChannelManager(MsbConfig msbConfig, Clock clock, JsonValidator validator) {
+    public ChannelManager(MsbConfig msbConfig, Clock clock, JsonValidator validator, ObjectMapper messageMapper) {
         this.msbConfig = msbConfig;
         this.clock = clock;
         this.validator = validator;
+        this.messageMapper = messageMapper;
         this.adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
         this.producersByTopic = new ConcurrentHashMap<>();
         this.consumersByTopic = new ConcurrentHashMap<>();
@@ -94,7 +97,7 @@ public class ChannelManager {
 
         ProducerAdapter adapter = getAdapterFactory().createProducerAdapter(topic);
         Callback<Message> handler = message -> channelMonitorAgent.producerMessageSent(topic);
-        return new Producer(adapter, topic, handler);
+        return new Producer(adapter, topic, handler, messageMapper);
     }
 
     private Consumer createConsumer(String topic, MessageHandler messageHandler) {
@@ -102,7 +105,7 @@ public class ChannelManager {
 
         ConsumerAdapter adapter = getAdapterFactory().createConsumerAdapter(topic);
 
-        return new Consumer(adapter, topic, messageHandler, msbConfig, clock, channelMonitorAgent, validator);
+        return new Consumer(adapter, topic, messageHandler, msbConfig, clock, channelMonitorAgent, validator, messageMapper);
     }
 
     public void shutdown() {

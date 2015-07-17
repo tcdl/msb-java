@@ -1,11 +1,24 @@
 package io.github.tcdl.msb.api;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.api.exception.MsbException;
+import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.collector.CollectorManagerFactory;
 import io.github.tcdl.msb.collector.TimeoutManager;
-import io.github.tcdl.msb.api.exception.MsbException;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ObjectFactoryImpl;
@@ -15,6 +28,7 @@ import io.github.tcdl.msb.support.JsonValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.time.Clock;
 
 /**
@@ -28,6 +42,7 @@ public class MsbContextBuilder {
     private Config config;
     private boolean withShutdownHook;
     private boolean withDefaultChannelMonitorAgent;
+    private ObjectMapper payloadMapper;
 
     public MsbContextBuilder() {
         super();
@@ -63,7 +78,17 @@ public class MsbContextBuilder {
         this.withDefaultChannelMonitorAgent = withDefaultChannelMonitorAgent;
         return this;
     }
-    
+
+    /**
+     * Specifies payload object mapper to serialize/deserialize message payload
+     * @param payloadMapper if not provided default object mapper will be used
+     * @return MsbContextBuilder
+     */
+    public MsbContextBuilder withPayloadMapper(ObjectMapper payloadMapper) {
+        this.payloadMapper = payloadMapper;
+        return this;
+    }
+
     /**
      * Create implementation of {@link MsbContext}
      * Can be initialized with configuration from reference.conf(property file inside MSB library) or application.conf,
@@ -81,12 +106,14 @@ public class MsbContextBuilder {
             config = ConfigFactory.load();
         }
         MsbConfig msbConfig = new MsbConfig(config);
-        ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator);
+        ObjectMapper messageMapper = buildMessageMapper(payloadMapper);
+
+        ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator, messageMapper);
         MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock);
         TimeoutManager timeoutManager = new TimeoutManager(msbConfig.getTimerThreadPoolSize());
         CollectorManagerFactory collectorManagerFactory = new CollectorManagerFactory(channelManager);
 
-        MsbContextImpl msbContext = new MsbContextImpl(msbConfig, messageFactory, channelManager, clock, timeoutManager, collectorManagerFactory);
+        MsbContextImpl msbContext = new MsbContextImpl(msbConfig, messageFactory, channelManager, clock, timeoutManager, messageMapper, collectorManagerFactory);
 
         if (withDefaultChannelMonitorAgent) {
             DefaultChannelMonitorAgent.start(msbContext);
@@ -107,5 +134,31 @@ public class MsbContextBuilder {
         msbContext.setObjectFactory(objectFactory);
         
         return msbContext;
+    }
+
+    public ObjectMapper buildMessageMapper(ObjectMapper payloadMapper) {
+        ObjectMapper messageMapper = new ObjectMapper()
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .registerModule(new JSR310Module());
+
+        if (payloadMapper != null) {
+            SimpleModule payloadModule = new SimpleModule()
+                .addSerializer(Payload.class, new JsonSerializer<Payload>() {
+                    @Override public void serialize(Payload value, JsonGenerator jsonGenerator, SerializerProvider provider) throws IOException {
+                        jsonGenerator.writeString(payloadMapper.writeValueAsString(value));
+                    }
+                })
+                .addDeserializer(Payload.class, new JsonDeserializer<Payload>() {
+                    @Override public Payload deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException {
+                        return payloadMapper.readValue(jsonParser.getValueAsString(), Payload.class);
+                    }
+                });
+
+            messageMapper.registerModule(payloadModule);
+        }
+
+        return messageMapper;
     }
 }

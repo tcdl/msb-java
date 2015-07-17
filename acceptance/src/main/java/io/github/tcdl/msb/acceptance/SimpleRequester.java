@@ -37,7 +37,7 @@ public class SimpleRequester {
         passedLatch = new CountDownLatch(expectedResponses != null ? expectedResponses.length : 0);
 
         helper.sendRequest(requester, NUMBER_OF_RESPONSES, response -> {
-            String body = response.getBodyAs(Map.class).toString();
+            String body = response.getBody().toString();
             for (String bodyFragment : expectedResponses) {
                 if (body.contains(bodyFragment)) {
                     passedLatch.countDown();

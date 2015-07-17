@@ -1,7 +1,14 @@
 package io.github.tcdl.msb.api;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import io.github.tcdl.msb.adapters.mock.MockAdapter;
+import io.github.tcdl.msb.api.message.Acknowledge;
+import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.impl.MsbContextImpl;
+import io.github.tcdl.msb.support.TestUtils;
+import io.github.tcdl.msb.support.Utils;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -13,13 +20,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.github.tcdl.msb.adapters.mock.MockAdapter;
-import io.github.tcdl.msb.api.message.Acknowledge;
-import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.impl.MsbContextImpl;
-import io.github.tcdl.msb.support.TestUtils;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class RequesterResponderIT {
 
@@ -170,7 +172,8 @@ public class RequesterResponderIT {
         })
                 .listen();
 
-        MockAdapter.pushRequestMessage(TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace1));
+        MockAdapter.pushRequestMessage(namespace1,
+                Utils.toJson(TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace1), msbContext.getMessageMapper()));
 
         assertTrue("Message ack was not send", ackSent.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         assertTrue("Message ack was not received", ackReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));

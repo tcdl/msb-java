@@ -1,18 +1,19 @@
 package io.github.tcdl.msb.api.message.payload;
 
-import java.util.Objects;
-
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.github.tcdl.msb.api.exception.JsonConversionException;
-import io.github.tcdl.msb.api.exception.MessageBuilderException;
-import io.github.tcdl.msb.support.Utils;
+import java.util.Objects;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC;
 
 /**
  * REST-like message payload.
  */
-public final class Payload {
+// Workaround to using setFieldVisibility on object mapper. It caused infinite recursion
+@JsonAutoDetect(getterVisibility = PROTECTED_AND_PUBLIC, setterVisibility = PROTECTED_AND_PUBLIC)
+public class Payload implements ConvertiblePayload {
 
     /**
      * Response status code
@@ -49,6 +50,9 @@ public final class Payload {
      */
     private String bodyBuffer;
 
+    protected Payload() {
+    }
+
     @JsonCreator
     private Payload(
             @JsonProperty("statusCode") Integer statusCode,
@@ -64,6 +68,62 @@ public final class Payload {
         this.query = query;
         this.params = params;
         this.body = body;
+        this.bodyBuffer = bodyBuffer;
+    }
+
+    public Integer getStatusCode() {
+        return statusCode;
+    }
+
+    protected void setStatusCode(Integer statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public String getStatusMessage() {
+        return statusMessage;
+    }
+
+    protected void setStatusMessage(String statusMessage) {
+        this.statusMessage = statusMessage;
+    }
+
+    public Object getHeaders() {
+        return headers;
+    }
+
+    protected void setHeaders(Object headers) {
+        this.headers = headers;
+    }
+
+    public Object getQuery() {
+        return query;
+    }
+
+    protected void setQuery(Object query) {
+        this.query = query;
+    }
+
+    public Object getParams() {
+        return params;
+    }
+
+    protected void setParams(Object params) {
+        this.params = params;
+    }
+
+    public Object getBody() {
+        return body;
+    }
+
+    protected void setBody(Object body) {
+        this.body = body;
+    }
+
+    public String getBodyBuffer() {
+        return bodyBuffer;
+    }
+
+    protected void setBodyBuffer(String bodyBuffer) {
         this.bodyBuffer = bodyBuffer;
     }
 
@@ -117,50 +177,6 @@ public final class Payload {
         }
     }
 
-    public Integer getStatusCode() {
-        return statusCode;
-    }
-
-    public String getStatusMessage() {
-        return statusMessage;
-    }
-
-    public <T> T getHeadersAs(Class<T> clazz) {
-        try {
-            return Utils.fromJson(Utils.toJson(headers), clazz);
-        } catch (JsonConversionException e) {
-            throw new MessageBuilderException(e.getMessage());
-        }
-    }
-
-    public <T> T getQueryAs(Class<T> clazz) {
-        try {
-            return Utils.fromJson(Utils.toJson(query), clazz);
-        } catch(JsonConversionException e) {
-            throw new MessageBuilderException(e.getMessage());
-        }
-    }
-
-    public <T> T getParamsAs(Class<T> clazz) {
-        try {
-            return Utils.fromJson(Utils.toJson(params), clazz);
-        } catch(JsonConversionException e) {
-            throw new MessageBuilderException(e.getMessage());
-        }
-    }
-
-    public <T> T getBodyAs(Class<T> clazz) {
-        try {
-            return Utils.fromJson(Utils.toJson(body), clazz);
-        } catch(JsonConversionException e) {
-            throw new MessageBuilderException(e.getMessage());
-        }
-    }
-
-    public String getBodyBuffer() {
-        return bodyBuffer;
-    }
-
     @Override
     public String toString() {
         return String.format("Payload [statusCode=%s, statusMessage=%s, headers=%s, query=%s, params=%s, body=%s, bodyBuffer=%s]",
@@ -183,7 +199,7 @@ public final class Payload {
             return false;
         }
     }
-    
+
     @Override
     public int hashCode() {
         return Objects.hash(body, bodyBuffer, headers, params, query, statusCode, statusMessage);

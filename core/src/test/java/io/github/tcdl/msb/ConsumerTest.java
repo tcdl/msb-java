@@ -1,14 +1,6 @@
 package io.github.tcdl.msb;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
@@ -18,12 +10,22 @@ import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
-import io.github.tcdl.msb.support.Utils;
 import io.github.tcdl.msb.support.TestUtils;
+import io.github.tcdl.msb.support.Utils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -49,44 +51,51 @@ public class ConsumerTest {
 
     private JsonValidator validator = new JsonValidator();
 
+    private ObjectMapper messageMapper = TestUtils.createMessageMapper();
+
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullAdapter() {
-        new Consumer(null, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator);
+        new Consumer(null, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullTopic() {
-        new Consumer(adapterMock, null, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator);
+        new Consumer(adapterMock, null, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullMessageHandler() {
-        new Consumer(adapterMock, TOPIC, null, msbConfMock, clock, channelMonitorAgentMock, validator);
+        new Consumer(adapterMock, TOPIC, null, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullMsbConf() {
-        new Consumer(adapterMock, TOPIC, messageHandlerMock, null, clock, channelMonitorAgentMock, validator);
+        new Consumer(adapterMock, TOPIC, messageHandlerMock, null, clock, channelMonitorAgentMock, validator, messageMapper);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullClock() {
-        new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, null, channelMonitorAgentMock, validator);
+        new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, null, channelMonitorAgentMock, validator, messageMapper);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullMonitorAgent() {
-        new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, null, validator);
+        new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, null, validator, messageMapper);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerNullValidator() {
-        new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, null);
+        new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, null, messageMapper);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testCreateConsumerNullMessageMapper() {
+        new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, null);
     }
 
     @Test
     public void testSubscribeAdapterSubscribed() {
-        new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator);
+        new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
         verify(adapterMock).subscribe(any(ConsumerAdapter.RawMessageHandler.class));
     }
@@ -94,16 +103,16 @@ public class ConsumerTest {
     @Test
     public void testValidMessageProcessedBySubscriber() throws JsonConversionException {
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
-        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator);
+        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
-        consumer.handleRawMessage(Utils.toJson(originalMessage));
+        consumer.handleRawMessage(Utils.toJson(originalMessage, messageMapper));
 
         verify(messageHandlerMock).handleMessage(any(Message.class));
     }
 
     @Test
     public void testExceptionWhileMessageConvertingProcessedBySubscriber() throws JsonConversionException {
-        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator);
+        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
 
@@ -117,12 +126,12 @@ public class ConsumerTest {
         // disable validation
         when(msbConf.isValidateMessage()).thenReturn(false);
 
-        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator);
+        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
         // create a message with required empty namespace
         Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo("");
 
-        consumer.handleRawMessage(Utils.toJson(message));
+        consumer.handleRawMessage(Utils.toJson(message, messageMapper));
 
         // should skip validation and process it
         verify(messageHandlerMock).handleMessage(any(Message.class));
@@ -132,16 +141,16 @@ public class ConsumerTest {
     @Test
     public void testHandleRawMessageConsumeFromTopic() throws JsonConversionException {
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TOPIC);
-        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator);
+        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
-        consumer.handleRawMessage(Utils.toJson(originalMessage));
+        consumer.handleRawMessage(Utils.toJson(originalMessage, messageMapper));
         verify(messageHandlerMock).handleMessage(any(Message.class));
     }
 
     @Test
     public void testHandleRawMessageConsumeFromTopicValidateThrowException() {
         MsbConfig msbConf = TestUtils.createMsbConfigurations();
-        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConf, clock, channelMonitorAgentMock, validator);
+        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConf, clock, channelMonitorAgentMock, validator, messageMapper);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
         verify(messageHandlerMock, never()).handleMessage(any(Message.class)); // no processing
@@ -151,7 +160,7 @@ public class ConsumerTest {
     public void testHandleRawMessageConsumeFromServiceTopicValidateThrowException() {
         String service_topic = "_service:topic";
         MsbConfig msbConf = TestUtils.createMsbConfigurations();
-        Consumer consumer = new Consumer(adapterMock, service_topic, messageHandlerMock, msbConf, clock, channelMonitorAgentMock, validator);
+        Consumer consumer = new Consumer(adapterMock, service_topic, messageHandlerMock, msbConf, clock, channelMonitorAgentMock, validator, messageMapper);
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}");
         verify(messageHandlerMock, never()).handleMessage(any(Message.class)); // no processing
@@ -160,9 +169,9 @@ public class ConsumerTest {
     @Test
     public void testHandleRawMessageConsumeFromTopicExpiredMessage() throws JsonConversionException {
         Message expiredMessage = createExpiredMsbRequestMessageWithTopicTo(TOPIC);
-        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator);
+        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
-        consumer.handleRawMessage(Utils.toJson(expiredMessage));
+        consumer.handleRawMessage(Utils.toJson(expiredMessage, messageMapper));
         verify(messageHandlerMock, never()).handleMessage(any(Message.class));
     }
 
