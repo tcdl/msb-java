@@ -56,7 +56,7 @@ public class TestUtils {
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
+        return new Message.Builder().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
                 .withPayload(createSimpleRequestPayload()).build();
     }
 
@@ -71,7 +71,7 @@ public class TestUtils {
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder().withCorrelationId(Utils.ifNull(correlationId, Utils.generateId())).setId(Utils.generateId()).withTopics(
+        return new Message.Builder().withCorrelationId(Utils.ifNull(correlationId, Utils.generateId())).withId(Utils.generateId()).withTopics(
                 topic).withMetaBuilder(
                 metaBuilder)
                 .withPayload(null).withAck(ack).build();
@@ -85,7 +85,7 @@ public class TestUtils {
                 msbConf.getServiceDetails().getInstanceId());
 
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
+        return new Message.Builder().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
                 .withPayload(null).build();
     }
 
@@ -96,7 +96,7 @@ public class TestUtils {
         Topics topic = new Topics(namespace, namespace + ":response:" +
                 msbConf.getServiceDetails().getInstanceId());
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic)
+        return new Message.Builder().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic)
                 .withMetaBuilder(metaBuilder).withPayload(createSimpleResponsePayload()).build();
     }
 
@@ -106,7 +106,7 @@ public class TestUtils {
 
         Topics topic = new Topics("", "");
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder);
+        return new Message.Builder().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder);
     }
 
     public static MsbConfig createMsbConfigurations() {

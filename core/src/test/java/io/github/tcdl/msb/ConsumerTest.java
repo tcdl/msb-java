@@ -174,7 +174,7 @@ public class ConsumerTest {
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessage.Builder metaBuilder = new MetaMessage.Builder(0, clock.instant(), msbConf.getServiceDetails(), clock);
-        return new Message.Builder().withCorrelationId(Utils.generateId()).setId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
+        return new Message.Builder().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
                 .build();
     }
 }
