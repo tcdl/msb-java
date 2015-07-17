@@ -166,19 +166,19 @@ public final class Payload {
         return String.format("Payload [statusCode=%s, statusMessage=%s, headers=%s, query=%s, params=%s, body=%s, bodyBuffer=%s]",
                 statusCode, statusMessage, headers, query, params, body, bodyBuffer);
     }
-    
+
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof Payload){
+        if (obj instanceof Payload) {
             Payload other = (Payload) obj;
             return Objects.equals(body, other.body)
-                && Objects.equals(bodyBuffer, other.bodyBuffer)
-                && Objects.equals(bodyBuffer, other.bodyBuffer)
-                && Objects.equals(headers, other.headers)
-                && Objects.equals(params, other.params)
-                && Objects.equals(query, other.query)
-                && Objects.equals(statusCode, other.statusCode)
-                && Objects.equals(statusMessage, other.statusMessage);
+                    && Objects.equals(bodyBuffer, other.bodyBuffer)
+                    && Objects.equals(bodyBuffer, other.bodyBuffer)
+                    && Objects.equals(headers, other.headers)
+                    && Objects.equals(params, other.params)
+                    && Objects.equals(query, other.query)
+                    && Objects.equals(statusCode, other.statusCode)
+                    && Objects.equals(statusMessage, other.statusMessage);
         } else {
             return false;
         }
