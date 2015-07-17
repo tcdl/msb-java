@@ -29,3 +29,30 @@ For this you'll need to add a `server` to the `servers` section of your settings
   <password>[YOUR_BINTRAY_API_TOKEN]</password>
 </server>
 ```
+
+## Java code style
+### Downloadable formatting:
+**Eclipse**: [codeFormatting.xml](/settings/codeFormatting.xml) -> Window -> Preferences -> **Java -> Code Style -> Formatter** -> Import
+
+**IntelliJ IDEA:** Use the same formatting XML as for Eclipse and use [IntelliJ IDEA 13: Importing Code Formatter Settings from Eclipse](http://blog.jetbrains.com/idea/2014/01/intellij-idea-13-importing-code-formatter-settings-from-eclipse/).
+
+Additionally disable folding of imports (via '\*') in **Intellij IDEA.** Navigate to Settings -> Editor -> Code Style -> Java -> Imports, set "Class count to use import with '\*'" and "Names count to use static import with '\*'" both to 1000.
+
+### How codeFormatting.xml was created:
+In **Eclipse:** As base, use "Java Conventions [built-in]", after that apply the following:
+
+- Indentation / Tab policy = **Spaces only**
+- Indentation / Indentation size = **4**
+- Indentation / Tab size = **4**
+- Indentation / Indent -> all sub checkboxes checked, **except for "Empty lines"**
+- Line Wrapping / Maximum line width = **160**
+- Line Wrapping / Never join already wrapped lines: **true**
+- Comments / Maximum line width for comments = **160**
+- Comments / Enable block comment formatting = **OFF**
+- Comments / Enable line comment formatting = **OFF**
+- Comments / New line after @param tags = **OFF**
+- Comments / Never indent block comments on first column: **OFF**
+- Comments / Never indent line comments on first column: **OFF**
+- Braces / Brace positions: **all "Same line"**
+- White space: no changes
+- Blank lines: no changes
