@@ -85,7 +85,7 @@ public class MessageFactory {
 
     private Message.Builder createBaseMessage(@Nullable Message originalMessage) {
         Message.Builder baseMessage = new Message.Builder()
-                .setId(Utils.generateId())
+                .withId(Utils.generateId())
                 .withCorrelationId(
                         originalMessage != null && originalMessage.getCorrelationId() != null ? originalMessage
                                 .getCorrelationId() : Utils.generateId());

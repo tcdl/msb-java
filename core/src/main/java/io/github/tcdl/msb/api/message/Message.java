@@ -51,7 +51,7 @@ public final class Message {
         private Acknowledge ack;
         private Payload payload;
 
-        public Builder setId(String id) {
+        public Builder withId(String id) {
             this.id = id;
             return this;
         }
