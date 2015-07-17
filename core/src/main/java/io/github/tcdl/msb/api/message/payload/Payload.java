@@ -1,7 +1,10 @@
 package io.github.tcdl.msb.api.message.payload;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.exception.MessageBuilderException;
 import io.github.tcdl.msb.support.Utils;
@@ -162,5 +165,27 @@ public final class Payload {
     public String toString() {
         return String.format("Payload [statusCode=%s, statusMessage=%s, headers=%s, query=%s, params=%s, body=%s, bodyBuffer=%s]",
                 statusCode, statusMessage, headers, query, params, body, bodyBuffer);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Payload) {
+            Payload other = (Payload) obj;
+            return Objects.equals(body, other.body)
+                    && Objects.equals(bodyBuffer, other.bodyBuffer)
+                    && Objects.equals(bodyBuffer, other.bodyBuffer)
+                    && Objects.equals(headers, other.headers)
+                    && Objects.equals(params, other.params)
+                    && Objects.equals(query, other.query)
+                    && Objects.equals(statusCode, other.statusCode)
+                    && Objects.equals(statusMessage, other.statusMessage);
+        } else {
+            return false;
+        }
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(body, bodyBuffer, headers, params, query, statusCode, statusMessage);
     }
 }
