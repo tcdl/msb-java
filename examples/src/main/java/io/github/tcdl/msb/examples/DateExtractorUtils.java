@@ -11,9 +11,9 @@ public class DateExtractorUtils {
         Matcher dateMatcher = DATE_PATTERN.matcher(s);
         if (dateMatcher.matches()) {
             String str = dateMatcher.group(1);
-            if(str.contains(".")) {
+            if (str.contains(".")) {
                 return str.split("\\.")[str.split("\\.").length - 1];
-            } else if(str.contains("/")) {
+            } else if (str.contains("/")) {
                 return str.split("/")[str.split("/").length - 1];
             } else {
                 return str;
