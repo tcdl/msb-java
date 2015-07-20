@@ -6,6 +6,7 @@ import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.impl.MsbContextImpl;
+import io.github.tcdl.msb.message.payload.MyPayload;
 import org.junit.Test;
 
 import java.time.Instant;
@@ -87,5 +88,17 @@ public class UtilsTest {
 
         Utils.fromJson(jsonMessage, Message.class, messageMapper);
         verify(payloadMapperSpy).readValue(jsonPayload, Payload.class);
+    }
+
+    @Test
+    public void testJsonDeserializationWithCustomPayloadClass() throws Exception {
+        ObjectMapper messageMapper = ((MsbContextImpl) new MsbContextBuilder().build()).getMessageMapper();
+
+        Message message = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(TestUtils.getSimpleNamespace());
+        String jsonMessage = Utils.toJson(message, messageMapper);
+
+        Message<MyPayload> customizedMessage = Utils.fromJson(jsonMessage, Message.class, MyPayload.class, messageMapper);
+
+        assertTrue(customizedMessage.getPayload() instanceof MyPayload);
     }
 }
