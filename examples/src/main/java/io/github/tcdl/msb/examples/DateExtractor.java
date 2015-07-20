@@ -9,18 +9,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Simple example of date parser micro-service
  * It listens requests from facets-aggregator and parses year from query string
- *
+ * <p>
  * Created by rdro on 5/20/2015.
  */
 public class DateExtractor {
-
-    final Pattern YEAR_PATTERN = Pattern.compile("^\\D*(20(\\d{2})).*$");
 
     public static void main(String... args) {
         MsbContext msbContext = new MsbContextBuilder()
@@ -38,26 +34,22 @@ public class DateExtractor {
 
             RequestQuery query = request.getQueryAs(RequestQuery.class);
             String queryString = query.getQ();
-            Matcher matcher = YEAR_PATTERN.matcher(queryString);
+            String year = DateExtractorUtils.retrieveYear(queryString);
 
-            if (matcher.matches()) {
+            if (year != null) {
                 // send acknowledge
                 responder.sendAck(500, null);
 
-                // parse year
-                String str = matcher.group(1);
-                Integer year = Integer.valueOf(matcher.group(2));
-
                 // populate response body
                 Result result = new Result();
-                result.setStr(str);
-                result.setStartIndex(queryString.indexOf(str));
-                result.setEndIndex(queryString.indexOf(str) + str.length() - 1);
+                result.setStr(year);
+                result.setStartIndex(queryString.indexOf(year));
+                result.setEndIndex(queryString.indexOf(year) + year.length() - 1);
                 result.setInferredDate(new HashMap<>());
                 result.setProbability(0.9f);
 
                 Result.Date date = new Result.Date();
-                date.setYear(year);
+                date.setYear(Integer.parseInt(year.substring(2, year.length())));
                 result.setDate(date);
 
                 ResponseBody responseBody = new ResponseBody();
@@ -68,8 +60,7 @@ public class DateExtractor {
 
                 responder.send(responsePayload);
             }
-        })
-        .listen();
+        }).listen();
     }
 
     private static class RequestQuery {
