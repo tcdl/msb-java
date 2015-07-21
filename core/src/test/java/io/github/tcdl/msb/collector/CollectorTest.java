@@ -93,10 +93,24 @@ public class CollectorTest {
     }
 
     @Test
+    public void testGetWaitForResponsesConfigsReturnFalseMinusCase() {
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(-10);
+        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers);
+        assertFalse("expect false if MessageOptions.waitForResponses equals -10", collector.isAwaitingResponses());
+    }
+
+    @Test
     public void testGetWaitForResponsesConfigsReturnTrue() {
         when(requestOptionsMock.getWaitForResponses()).thenReturn(100);
         Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers);
         assertTrue("expect true if MessageOptions.waitForResponses equals 100", collector.isAwaitingResponses());
+    }
+
+    @Test
+    public void testGetWaitForResponsesConfigsReturnTrueMinusOne() {
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(-1);
+        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers);
+        assertTrue("expect true if MessageOptions.waitForResponses equals -1", collector.isAwaitingResponses());
     }
 
     @Test

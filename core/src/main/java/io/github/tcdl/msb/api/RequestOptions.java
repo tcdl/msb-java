@@ -45,8 +45,6 @@ public class RequestOptions {
     public Integer getWaitForResponses() {
         if (waitForResponses == null) {
             return 0;
-        } else if (waitForResponses == -1) {
-            return Integer.MAX_VALUE;
         } else {
             return waitForResponses;
         }
