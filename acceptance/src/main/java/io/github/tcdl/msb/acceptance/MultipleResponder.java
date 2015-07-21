@@ -14,7 +14,7 @@ public class MultipleResponder {
 
     public static void main(String... args) {
         MsbContext msbContext = new MsbContextBuilder()
-                .withShutdownHook(true)
+                .enableShutdownHook(true)
                 .build();
         runResponder("test:aggregator", msbContext);
     }

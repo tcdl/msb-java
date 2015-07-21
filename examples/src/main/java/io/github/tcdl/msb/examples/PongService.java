@@ -14,7 +14,7 @@ public class PongService {
 
     public static void main(String[] args) {
         MsbContext msbContext = new MsbContextBuilder().
-                withShutdownHook(true). // Instruct the builder to auto-register hook that does graceful shutdown
+                enableShutdownHook(true). // Instruct the builder to auto-register hook that does graceful shutdown
                 build();
 
         ObjectFactory objectFactory = msbContext.getObjectFactory();

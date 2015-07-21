@@ -38,13 +38,13 @@ public class MsbTestHelper {
 
     public void initDefault() {
         context = new MsbContextBuilder()
-                .withShutdownHook(true).build();
+                .enableShutdownHook(true).build();
     }
 
     public void initWithConfig(Config config) {
         context = new MsbContextBuilder()
                 .withConfig(config)
-                .withShutdownHook(true).build();
+                .enableShutdownHook(true).build();
     }
 
     public MsbContext getContext() {

@@ -19,7 +19,7 @@ public class MultipleRequester {
 
     public static void main(String... args) throws Exception {
         MsbContext msbContext = new MsbContextBuilder()
-                .withShutdownHook(true)
+                .enableShutdownHook(true)
                 .build();
 
         int numberOfRequesters = 5;
