@@ -21,7 +21,7 @@ public class RequestOptionsTest {
                 .withWaitForResponses(-1)
                 .build();
 
-        assertEquals("expect 0 if MessageOptions.waitForResponses is -1", Integer.valueOf(0), requestOptions.getWaitForResponses());
+        assertEquals("expect maximum value an int can have if MessageOptions.waitForResponses is -1", Integer.valueOf(Integer.MAX_VALUE), requestOptions.getWaitForResponses());
     }
 
     @Test

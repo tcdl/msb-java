@@ -43,10 +43,13 @@ public class RequestOptions {
     }
 
     public Integer getWaitForResponses() {
-        if (waitForResponses == null || waitForResponses == -1) {
+        if (waitForResponses == null) {
             return 0;
+        } else if (waitForResponses == -1) {
+            return Integer.MAX_VALUE;
+        } else {
+            return waitForResponses;
         }
-        return waitForResponses;
     }
 
     public boolean isWaitForResponses() {
