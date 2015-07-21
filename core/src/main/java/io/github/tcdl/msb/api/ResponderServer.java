@@ -20,14 +20,14 @@ public interface ResponderServer {
     /**
      * Implementation of this interface contains business logic processed by microservice.
      */
-    interface RequestHandler {
+    interface RequestHandler<T extends Payload> {
         /**
          * Execute business logic and send response.
          * @param request request received from a bus
          * @param responder object of type {@link Responder} which will be used for sending response
          * @throws Exception if some problems during execution business logic or sending response were occurred
          */
-        void process(Payload request, Responder responder) throws Exception;
+        void process(T request, Responder responder) throws Exception;
     }
 
 }

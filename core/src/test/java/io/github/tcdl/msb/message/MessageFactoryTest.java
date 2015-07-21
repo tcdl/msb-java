@@ -76,7 +76,7 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateRequestMessageWithPayload() {
-        Payload requestPayload = TestUtils.createSimpleResponsePayload();
+        Payload requestPayload = TestUtils.createSimpleRequestPayload();
         Builder requestMesageBuilder = TestUtils.createMesageBuilder();
 
         Message message = messageFactory.createRequestMessage(requestMesageBuilder, requestPayload);

@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.anyObject;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.spy;
@@ -53,7 +54,7 @@ public class ResponderServerImplTest {
 
         ResponderServerImpl spyResponderServer = (ResponderServerImpl) spy(responderServer).listen();
 
-        verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
+        verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture(), any());
 
         Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
         subscriberCaptor.getValue().handleMessage(originalMessage);

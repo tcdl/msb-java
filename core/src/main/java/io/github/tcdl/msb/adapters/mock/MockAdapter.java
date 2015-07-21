@@ -139,7 +139,7 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
 
     private ExecutorService activateConsumerThreadPool(String topic) {
         BasicThreadFactory threadFactory = new BasicThreadFactory.Builder()
-                .namingPattern("mock-consumer-" + topic + "-thread-%d")
+                .namingPattern("mock-consumer")
                 .build();
 
         ExecutorService executorService = Executors.newFixedThreadPool(1, threadFactory);

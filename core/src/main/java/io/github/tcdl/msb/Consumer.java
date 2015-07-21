@@ -1,11 +1,17 @@
 package io.github.tcdl.msb;
 
+import java.lang.reflect.ParameterizedType;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
+import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
@@ -13,10 +19,6 @@ import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.time.Clock;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 /**
  * {@link Consumer} is a component responsible for consuming messages from the bus.
@@ -35,7 +37,9 @@ public class Consumer {
     private MessageHandler messageHandler;
     private JsonValidator validator;
     private ObjectMapper messageMapper;
+    private Class<? extends Payload> payloadType;
 
+    //ToDO remove
     /**
      *
      * @param rawAdapter instance of {@link ConsumerAdapter} that allows to receive messages from message bus
@@ -50,6 +54,24 @@ public class Consumer {
     public Consumer(ConsumerAdapter rawAdapter, String topic, MessageHandler messageHandler, MsbConfig msbConfig,
             Clock clock, ChannelMonitorAgent channelMonitorAgent, JsonValidator validator, ObjectMapper messageMapper) {
 
+    this(rawAdapter, topic, messageHandler, msbConfig, clock, channelMonitorAgent, validator, messageMapper, Payload.class);
+    }
+
+    /**
+     *
+     * @param rawAdapter instance of {@link ConsumerAdapter} that allows to receive messages from message bus
+     * @param topic
+     * @param messageHandler interface that user can implement to handle received message
+     * @param msbConfig consumer configs
+     * @param clock
+     * @param channelMonitorAgent
+     * @param validator validates incoming messages
+     * @param messageMapper message deserializer
+     * @param payloadType specify custom type for message payload returned for client
+     */
+    public Consumer(ConsumerAdapter rawAdapter, String topic, MessageHandler messageHandler, MsbConfig msbConfig,
+            Clock clock, ChannelMonitorAgent channelMonitorAgent, JsonValidator validator, ObjectMapper messageMapper, Class<? extends Payload> payloadType) {
+
         LOG.debug("Creating consumer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
         Validate.notNull(topic, "the 'topic' must not be null");
@@ -60,6 +82,7 @@ public class Consumer {
         Validate.notNull(validator, "the 'validator' must not be null");
         Validate.notNull(messageMapper, "the 'messageMapper' must not be null");
 
+
         this.rawAdapter = rawAdapter;
         this.topic = topic;
         this.messageHandler = messageHandler;
@@ -68,6 +91,7 @@ public class Consumer {
         this.channelMonitorAgent = channelMonitorAgent;
         this.validator = validator;
         this.messageMapper = messageMapper;
+        this.payloadType = payloadType == null ? Payload.class : payloadType;
 
         this.rawAdapter.subscribe(this::handleRawMessage);
     }
@@ -90,7 +114,8 @@ public class Consumer {
                 validator.validate(jsonMessage, msbConfig.getSchema());
             }
             LOG.debug("Parsing message {}", jsonMessage);
-            Message message = Utils.fromJson(jsonMessage, Message.class, messageMapper);
+            Message message = Utils.fromJson(jsonMessage, Message.class, payloadType, messageMapper);
+
             LOG.debug("Message has been successfully parsed {}", jsonMessage);
 
             if (!isMessageExpired(message)) {
@@ -115,4 +140,6 @@ public class Consumer {
 
         return expiryTime.isBefore(now);
     }
+
+
 }

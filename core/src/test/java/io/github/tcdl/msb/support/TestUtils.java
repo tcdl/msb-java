@@ -1,5 +1,10 @@
 package io.github.tcdl.msb.support;
 
+import java.time.Clock;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.ChannelManager;
@@ -12,18 +17,12 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.collector.CollectorManagerFactory;
 import io.github.tcdl.msb.collector.TimeoutManager;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ObjectFactoryImpl;
 import io.github.tcdl.msb.message.MessageFactory;
-
-import java.time.Clock;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -129,7 +128,7 @@ public class TestUtils {
 
         body.put("body", "someRequestBody created at " + Clock.systemDefaultZone().millis());
 
-        return PayloadWrapper.wrap(new Payload.Builder().withBody(body).withHeaders(headers).build(), createMessageMapper());
+       return new Payload.Builder().withBody(body).withHeaders(headers).build();
     }
 
     public static Payload createSimpleBroadcastPayload() {

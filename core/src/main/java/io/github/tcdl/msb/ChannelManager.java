@@ -10,6 +10,7 @@ import io.github.tcdl.msb.adapters.AdapterFactoryLoader;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.api.Callback;
+import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.monitor.ChannelMonitorAgent;
@@ -62,16 +63,30 @@ public class ChannelManager {
      *
      * @param topic
      * @param messageHandler handler for processing messages
+     * @param payloadClass  define custom payload object type
+     */
+    public void subscribe(String topic, MessageHandler messageHandler, Class<? extends Payload> payloadClass) {
+        Validate.notNull(topic, "field 'topic' is null");
+        Validate.notNull(messageHandler, "field 'messageHandler' is null");
+        findOrCreateConsumer(topic, messageHandler, payloadClass);
+    }
+
+    /**
+     * Start consuming messages on specified topic with handler .
+     * Calls to subscribe() and unsubscribe() have to be properly synchronized by client code not to lose messages.
+     *
+     * @param topic
+     * @param messageHandler handler for processing messages
      */
     public void subscribe(String topic, MessageHandler messageHandler) {
         Validate.notNull(topic, "field 'topic' is null");
         Validate.notNull(messageHandler, "field 'messageHandler' is null");
-        findOrCreateConsumer(topic, messageHandler);
+        findOrCreateConsumer(topic, messageHandler, null);
     }
 
-    Consumer findOrCreateConsumer(final String topic, MessageHandler messageHandler) {
+    private Consumer findOrCreateConsumer(final String topic, MessageHandler messageHandler, Class<? extends Payload> payloadClass) {
         Consumer consumer = consumersByTopic.computeIfAbsent(topic, key -> {
-            Consumer newConsumer = createConsumer(key, messageHandler);
+            Consumer newConsumer = createConsumer(key, messageHandler, payloadClass);
             channelMonitorAgent.consumerTopicCreated(key);
             return newConsumer;
         });
@@ -100,12 +115,12 @@ public class ChannelManager {
         return new Producer(adapter, topic, handler, messageMapper);
     }
 
-    private Consumer createConsumer(String topic, MessageHandler messageHandler) {
+    private Consumer createConsumer(String topic, MessageHandler messageHandler, Class<? extends Payload> payloadType) {
         Utils.validateTopic(topic);
 
         ConsumerAdapter adapter = getAdapterFactory().createConsumerAdapter(topic);
 
-        return new Consumer(adapter, topic, messageHandler, msbConfig, clock, channelMonitorAgent, validator, messageMapper);
+        return new Consumer(adapter, topic, messageHandler, msbConfig, clock, channelMonitorAgent, validator, messageMapper, payloadType);
     }
 
     public void shutdown() {
