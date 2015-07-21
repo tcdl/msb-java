@@ -40,8 +40,8 @@ public class MsbContextBuilder {
     private static final Logger LOG = LoggerFactory.getLogger(MsbContextBuilder.class);
 
     private Config config;
-    private boolean withShutdownHook;
-    private boolean withDefaultChannelMonitorAgent;
+    private boolean enableShutdownHook;
+    private boolean enableChannelMonitorAgent;
     private ObjectMapper payloadMapper;
 
     public MsbContextBuilder() {
@@ -60,22 +60,22 @@ public class MsbContextBuilder {
 
     /**
      * Specifies if to shutdown current context during JVM exit. 
-     * @param withShutdownHook if set to true will shutdown context regardless of
+     * @param enableShutdownHook if set to true will shutdown context regardless of
      * user will make a call to MsbContext.shutdown() from within client code and false otherwise
      * @return MsbContextBuilder
      */
-    public MsbContextBuilder withShutdownHook(boolean withShutdownHook) {
-        this.withShutdownHook = withShutdownHook;
+    public MsbContextBuilder enableShutdownHook(boolean enableShutdownHook) {
+        this.enableShutdownHook = enableShutdownHook;
         return this;
     }
 
     /**
      * Specifies if monitoring agent is enabled.
-     * @param withDefaultChannelMonitorAgent - true if monitoring agent is enabled and false otherwise 
+     * @param enableChannelMonitorAgent - true if monitoring agent is enabled and false otherwise
      * @return MsbContextBuilder
      */
-    public MsbContextBuilder withDefaultChannelMonitorAgent(boolean withDefaultChannelMonitorAgent) {
-        this.withDefaultChannelMonitorAgent = withDefaultChannelMonitorAgent;
+    public MsbContextBuilder enableChannelMonitorAgent(boolean enableChannelMonitorAgent) {
+        this.enableChannelMonitorAgent = enableChannelMonitorAgent;
         return this;
     }
 
@@ -115,11 +115,11 @@ public class MsbContextBuilder {
 
         MsbContextImpl msbContext = new MsbContextImpl(msbConfig, messageFactory, channelManager, clock, timeoutManager, messageMapper, collectorManagerFactory);
 
-        if (withDefaultChannelMonitorAgent) {
+        if (enableChannelMonitorAgent) {
             DefaultChannelMonitorAgent.start(msbContext);
         }
         
-        if (withShutdownHook) {
+        if (enableShutdownHook) {
             Runtime.getRuntime().addShutdownHook(new Thread("MSB shutdown hook") {
                 @Override
                 public void run() {

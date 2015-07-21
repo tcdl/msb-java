@@ -14,7 +14,7 @@ public class PingService {
 
     public static void main(String[] args) {
         MsbContext msbContext = new MsbContextBuilder().
-                withShutdownHook(true).
+                enableShutdownHook(true).
                 build();
 
         RequestOptions requestOptions = new RequestOptions.Builder()

@@ -20,8 +20,8 @@ public class DateExtractor {
 
     public static void main(String... args) {
         MsbContext msbContext = new MsbContextBuilder()
-                .withDefaultChannelMonitorAgent(true)
-                .withShutdownHook(true)
+                .enableChannelMonitorAgent(true)
+                .enableShutdownHook(true)
                 .build();
         new DateExtractor().start(msbContext);
     }
