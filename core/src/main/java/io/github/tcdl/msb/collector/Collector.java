@@ -30,6 +30,8 @@ public class Collector {
 
     private static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
+    private static final int WAIT_FOR_RESPONSES_UNTIL_TIMEOUT = -1;
+
     private List<Message> ackMessages;
     private List<Message> payloadMessages;
 
@@ -56,6 +58,7 @@ public class Collector {
     private  ScheduledFuture ackTimeoutFuture;
     private  ScheduledFuture responseTimeoutFuture;
     private  CollectorManager collectorManager;
+    private boolean shouldWaitUntilResponseTimeout;
 
     public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers eventHandlers) {
         this.requestMessage = requestMessage;
@@ -76,6 +79,7 @@ public class Collector {
         this.waitForAcksUntil = getWaitForAckUntilFromConfigs(requestOptions);
         this.waitForResponses = requestOptions.getWaitForResponses();
         this.responsesRemaining = waitForResponses;
+        this.shouldWaitUntilResponseTimeout = requestOptions.getWaitForResponses() == WAIT_FOR_RESPONSES_UNTIL_TIMEOUT;
 
         if (eventHandlers != null) {
             onResponse = Optional.ofNullable(eventHandlers.onResponse());
@@ -89,7 +93,7 @@ public class Collector {
     }
 
     public boolean isAwaitingResponses() {
-        return getResponsesRemaining() > 0;
+        return getResponsesRemaining() > 0 || shouldWaitUntilResponseTimeout;
     }
 
     public void listenForResponses() {
