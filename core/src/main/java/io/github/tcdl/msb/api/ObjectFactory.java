@@ -39,6 +39,18 @@ public interface ObjectFactory {
             ResponderServer.RequestHandler requestHandler);
 
     /**
+     * Create a new instance of {@link ResponderServer}.
+     *
+     * @param namespace       topic on a bus for listening on incoming requests
+     * @param messageTemplate template used for creating response messages
+     * @param requestHandler  handler for processing the request
+     * @param payloadClass    class to convert payload to
+     * @return new instance of a {@link ResponderServer}
+     */
+    ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler requestHandler, Class payloadClass);
+
+    /**
      * @param aggregatorStatsHandler this handler is invoked whenever statistics is updated via announcement channel or heartbeats.
      *                               THE HANDLER SHOULD BE THREAD SAFE because it may be invoked from parallel threads
      * @return new instance of {@link ChannelMonitorAggregator}

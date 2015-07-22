@@ -1,9 +1,13 @@
 package io.github.tcdl.msb.examples;
 
-
-import io.github.tcdl.msb.api.*;
+import io.github.tcdl.msb.api.MessageTemplate;
+import io.github.tcdl.msb.api.MsbContext;
+import io.github.tcdl.msb.api.MsbContextBuilder;
+import io.github.tcdl.msb.api.RequestOptions;
+import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.examples.payload.Request;
 
 import javax.script.ScriptException;
 import java.io.FileNotFoundException;
@@ -30,8 +34,8 @@ public class FacetsAggregator {
 
         msbContext.getObjectFactory().createResponderServer(namespace, options, (request, responder) -> {
 
-            RequestQuery query = request.getQueryAs(RequestQuery.class);
-            String q = query.getQ();
+            Request facetsRequest = (Request) request;
+            String q = facetsRequest.getQuery().getQ();
 
             if (q == null) {
                 Payload responsePayload = new Payload.Builder()
@@ -74,7 +78,7 @@ public class FacetsAggregator {
 
                 requester.onEnd(listOfMessages -> {
                     for (Message message : listOfMessages)
-                        System.out.println(">>> MESSAGE: " + message.getPayload().getBodyAs(Map.class));
+                        System.out.println(">>> MESSAGE: " + message.getPayload().getBody());
 
                     Payload responsePayload = new Payload.Builder()
                             .withStatusCode(200)
@@ -86,14 +90,6 @@ public class FacetsAggregator {
                 requester.publish(request);
             }
         }).listen();
-    }
-
-    private static class RequestQuery {
-        private String q;
-
-        public String getQ() {
-            return q;
-        }
     }
 
     private static class ResponseBodyAny {

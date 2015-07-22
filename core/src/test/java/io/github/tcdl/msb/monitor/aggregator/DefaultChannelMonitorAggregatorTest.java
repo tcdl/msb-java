@@ -8,7 +8,6 @@ import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.AggregatorTopicStats;
 import io.github.tcdl.msb.config.ServiceDetails;
@@ -292,9 +291,7 @@ public class DefaultChannelMonitorAggregatorTest {
                 .withBody(topicInfoMap)
                 .build();
 
-        Payload wrappedPayload = PayloadWrapper.wrap(announcementPayload, TestUtils.createMessageMapper());
-
-        return TestUtils.createMsbRequestMessage("to", instanceId, wrappedPayload);
+        return TestUtils.createMsbRequestMessage("to", instanceId, announcementPayload);
     }
 
 }

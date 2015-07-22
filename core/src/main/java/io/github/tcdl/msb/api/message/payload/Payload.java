@@ -13,7 +13,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.PROTECT
  */
 // Workaround to using setFieldVisibility on object mapper. It caused infinite recursion
 @JsonAutoDetect(getterVisibility = PROTECTED_AND_PUBLIC, setterVisibility = PROTECTED_AND_PUBLIC)
-public class Payload<H, Q, P, B> implements ConvertiblePayload {
+public class Payload<H, Q, P, B> {
 
     /**
      * Response status code

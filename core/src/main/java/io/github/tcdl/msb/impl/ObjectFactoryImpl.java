@@ -7,6 +7,7 @@ import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 import io.github.tcdl.msb.monitor.aggregator.DefaultChannelMonitorAggregator;
@@ -48,7 +49,15 @@ public class ObjectFactoryImpl implements ObjectFactory {
      */
     @Override
     public ResponderServer createResponderServer(String namespace,  MessageTemplate messageTemplate, ResponderServer.RequestHandler requestHandler) {
-        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler);
+        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, Payload.class);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override public ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate, ResponderServer.RequestHandler requestHandler,
+            Class payloadClass) {
+        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, payloadClass);
     }
 
     /**

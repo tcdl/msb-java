@@ -3,7 +3,6 @@ package io.github.tcdl.msb.acceptance.bdd.steps;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.support.Utils;
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;
@@ -64,8 +63,7 @@ public class RequesterResponderSteps extends MsbSteps {
     }
 
     private void onResponse(Payload payload) {
-        ObjectMapper mapper = super.helper.getObjectMapper();
-        receivedResponse = PayloadWrapper.wrap(payload, mapper).getBodyAs(Map.class);
+        receivedResponse = (Map)payload.getBody();
     }
 
     @Then("requester gets response in $timeout ms")
