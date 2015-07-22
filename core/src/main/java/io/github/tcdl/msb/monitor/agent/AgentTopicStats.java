@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
- * Immutable class that contains statistics for a topic.
+ * Effectively immutable class that contains statistics for a topic.
  */
 public class AgentTopicStats {
     /** Indicates whether this microservice produces to the topic */

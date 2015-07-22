@@ -6,16 +6,21 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * This class represents internal state of {@link io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator} that is passed to registered handlers.
+ * Represents aggregated statistics collected from multiple instances of microservices
+ * (that is transmitted over the bus by from their {@link io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent}s).
  */
 public class AggregatorStats {
     /**
-     * Topics name -> info
+     * Collects information about all topics that we know of.
+     *
+     * Structure of the map: topics name -> stats
      */
     private Map<String, AggregatorTopicStats> topicInfoMap = new ConcurrentHashMap<>();
 
     /**
-     * Instance id -> info
+     * Collects information about all instances of microservices that we know of.
+     *
+     * Structure of the map: service instance id -> details
      */
     private Map<String, ServiceDetails> serviceDetailsById = new ConcurrentHashMap<>();
 

@@ -5,7 +5,7 @@ import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 
 /**
- * Provides methods for creation {@link Requester} and {@link ResponderServer}.
+ * Provides methods for creation client-facing API classes.
  */
 public interface ObjectFactory {
     /**
