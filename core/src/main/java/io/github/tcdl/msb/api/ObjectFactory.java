@@ -44,4 +44,9 @@ public interface ObjectFactory {
      * @return new instance of {@link ChannelMonitorAggregator}
      */
     ChannelMonitorAggregator createChannelMonitorAggregator(Callback<AggregatorStats> aggregatorStatsHandler);
+
+    /**
+     * Shuts down the factory and all the objects that were created by it
+     */
+    void shutdown();
 }

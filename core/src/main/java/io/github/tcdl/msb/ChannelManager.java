@@ -17,11 +17,15 @@ import io.github.tcdl.msb.monitor.agent.NoopChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link ChannelManager} creates consumers or producers on demand and manages them.
  */
 public class ChannelManager {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ChannelManager.class);
 
     private MsbConfig msbConfig;
     private Clock clock;
@@ -109,7 +113,9 @@ public class ChannelManager {
     }
 
     public void shutdown() {
+        LOG.info("Shutting down...");
         adapterFactory.shutdown();
+        LOG.info("Shutdown complete");
     }
 
     public AdapterFactory getAdapterFactory() {

@@ -71,6 +71,8 @@ public class TimeoutManager {
     }
 
     public void shutdown() {
+        LOG.info("Shutting down...");
         timeoutExecutorDecorator.shutdown();
+        LOG.info("Shutdown complete");
     }
 }
