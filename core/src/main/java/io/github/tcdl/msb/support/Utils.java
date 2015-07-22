@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
+import io.github.tcdl.msb.api.message.payload.Payload;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +75,7 @@ public class Utils {
     /**
      * @throws JsonConversionException if some problems during parsing JSON
      */
-    public static <T> T fromJson(String json, Class<T> clazz, Class parametrizedType, ObjectMapper objectMapper) {
+    public static <T> T fromJson(String json, Class<T> clazz, Class<? extends Payload> parametrizedType, ObjectMapper objectMapper) {
         if (json == null) return null;
         JavaType type = objectMapper.getTypeFactory().constructParametricType(clazz, parametrizedType);
         try {
