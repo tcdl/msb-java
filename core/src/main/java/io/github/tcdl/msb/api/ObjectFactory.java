@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.api;
 
 import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.api.message.payload.Payload;
 
 /**
  * Provides methods for creation {@link Requester} and {@link ResponderServer}.
@@ -35,4 +36,16 @@ public interface ObjectFactory {
      */
     ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate, 
             ResponderServer.RequestHandler requestHandler);
+
+    /**
+     * Create a new instance of {@link ResponderServer}.
+     *
+     * @param namespace       topic on a bus for listening on incoming requests
+     * @param messageTemplate template used for creating response messages
+     * @param requestHandler  handler for processing the request
+     * @param payloadClass    class to convert payload to
+     * @return new instance of a {@link ResponderServer}
+     */
+    ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler requestHandler, Class payloadClass);
 }

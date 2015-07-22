@@ -58,8 +58,8 @@ public class MultipleRequester {
                             System.out.println(">>> ACK timeout: " + acknowledge.getTimeoutMs())
                     )
                     .onResponse(payload -> {
-                        System.out.println(">>> RESPONSE body: " + payload.getBodyAs(Map.class).toString());
-                        callback.accept(payload.getBodyAs(Map.class));
+                        System.out.println(">>> RESPONSE body: " + payload.getBody());
+                        callback.accept((Map)payload.getBody());
                     })
                     .publish(requestPayload);
             return null;

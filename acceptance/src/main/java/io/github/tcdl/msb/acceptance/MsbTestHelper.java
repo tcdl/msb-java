@@ -105,6 +105,12 @@ public class MsbTestHelper {
         return context.getObjectFactory().createResponderServer(namespace, options, requestHandler);
     }
 
+    public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler requestHandler, Class payloadClass) {
+        MessageTemplate options = new MessageTemplate();
+        System.out.println(">>> RESPONDER SERVER on: " + namespace);
+        return context.getObjectFactory().createResponderServer(namespace, options, requestHandler, payloadClass);
+    }
+
     public void respond(Responder responder) {
         responder.send(createPayload(null, "RESPONSE"));
     }

@@ -1,12 +1,13 @@
 package io.github.tcdl.msb.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
+import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,12 +19,14 @@ public class ResponderServerImpl implements ResponderServer {
     private MsbContextImpl msbContext;
     private MessageTemplate messageTemplate;
     private RequestHandler requestHandler;
+    private Class payloadClass;
 
-    private ResponderServerImpl(String namespace, MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler) {
+    private ResponderServerImpl(String namespace, MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler, Class payloadClass) {
         this.namespace = namespace;
         this.messageTemplate = messageTemplate;
         this.msbContext = msbContext;
         this.requestHandler = requestHandler;
+        this.payloadClass = Utils.ifNull(payloadClass, Payload.class);
         Validate.notNull(requestHandler, "requestHandler must not be null");
     }
 
@@ -36,8 +39,8 @@ public class ResponderServerImpl implements ResponderServer {
      * @param requestHandler  handler for processing the request
      * @return new instance of a {@link ResponderServerImpl}
      */
-    static ResponderServerImpl create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler) {
-        return new ResponderServerImpl(namespace, messageTemplate, msbContext, requestHandler);
+    static ResponderServerImpl create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler, Class payloadClass) {
+        return new ResponderServerImpl(namespace, messageTemplate, msbContext, requestHandler, payloadClass);
     }
 
     /**
@@ -46,13 +49,14 @@ public class ResponderServerImpl implements ResponderServer {
     @Override
     public ResponderServer listen() {
         ChannelManager channelManager = msbContext.getChannelManager();
+        ObjectMapper messageMapper = msbContext.getMessageMapper();
 
         channelManager.subscribe(namespace,
-                message -> {
-                        LOG.debug("Received message with id {} from topic {}", message.getId(), namespace);
+                incomingMessage -> {
+                        LOG.debug("Received message with id {} from topic {}", incomingMessage.getId(), namespace);
+                        Message message = Utils.fromJson(Utils.toJson(incomingMessage, messageMapper), Message.class, payloadClass, messageMapper);
                         ResponderImpl responder = new ResponderImpl(messageTemplate, message, msbContext);
                         onResponder(responder);
-
                 });
 
         return this;
@@ -63,7 +67,7 @@ public class ResponderServerImpl implements ResponderServer {
         Payload request = originalMessage.getPayload();
         LOG.debug("Pushing message with id {} to middleware chain", originalMessage.getId());
         try {
-            requestHandler.process(PayloadWrapper.wrap(request, msbContext.getMessageMapper()), responder);
+            requestHandler.process(request, responder);
         } catch (Exception exception) {
             errorHandler(responder, exception);
         }

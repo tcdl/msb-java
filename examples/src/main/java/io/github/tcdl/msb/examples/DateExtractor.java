@@ -4,6 +4,7 @@ import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.examples.payload.Request;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,8 +37,8 @@ public class DateExtractor {
 
         msbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responder) -> {
 
-            RequestQuery query = request.getQueryAs(RequestQuery.class);
-            String queryString = query.getQ();
+            Request dateRequest = (Request) request;
+            String  queryString= dateRequest.getQuery().getQ();
             Matcher matcher = YEAR_PATTERN.matcher(queryString);
 
             if (matcher.matches()) {
@@ -68,21 +69,8 @@ public class DateExtractor {
 
                 responder.send(responsePayload);
             }
-        })
+        }, Request.class)
         .listen();
-    }
-
-    private static class RequestQuery {
-
-        private String q;
-
-        public String getQ() {
-            return q;
-        }
-
-        public void setQ(String q) {
-            this.q = q;
-        }
     }
 
     private static class ResponseBody {
@@ -97,7 +85,7 @@ public class DateExtractor {
         }
     }
 
-    private static class Result {
+    private static  class Result {
         private String str;
         private int startIndex;
         private int endIndex;
@@ -153,7 +141,7 @@ public class DateExtractor {
             this.probability = probability;
         }
 
-        private static class Date {
+        public static class Date {
             private int year;
 
             public int getYear() {
