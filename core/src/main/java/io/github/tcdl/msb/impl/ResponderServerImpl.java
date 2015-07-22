@@ -26,7 +26,7 @@ public class ResponderServerImpl implements ResponderServer {
         this.messageTemplate = messageTemplate;
         this.msbContext = msbContext;
         this.requestHandler = requestHandler;
-        this.payloadClass = Utils.ifNull(payloadClass, Payload.class);
+        this.payloadClass = payloadClass;
         Validate.notNull(requestHandler, "requestHandler must not be null");
     }
 
@@ -54,7 +54,7 @@ public class ResponderServerImpl implements ResponderServer {
         channelManager.subscribe(namespace,
                 incomingMessage -> {
                     LOG.debug("[{}] Received message with id: [{}]", namespace, incomingMessage.getId());
-                    Message message = Utils.fromJson(Utils.toJson(incomingMessage, messageMapper), Message.class, payloadClass, messageMapper);
+                    Message message = Utils.toCustomParametricType(incomingMessage, Message.class, payloadClass, messageMapper);
                     ResponderImpl responder = new ResponderImpl(messageTemplate, message, msbContext);
                     onResponder(responder);
                 });

@@ -104,7 +104,7 @@ public class RequestOptions {
             return this;
         }
 
-        public Builder withPayloadClass(Class payloadClass) {
+        public Builder withPayloadClass(Class<? extends Payload> payloadClass) {
             this.payloadClass = payloadClass;
             return this;
         }

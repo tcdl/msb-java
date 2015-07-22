@@ -75,7 +75,7 @@ public class Utils {
     /**
      * @throws JsonConversionException if some problems during parsing JSON
      */
-    public static <T> T fromJson(String json, Class<T> clazz, Class parametrizedType, ObjectMapper objectMapper) {
+    private static <T> T fromJson(String json, Class<T> clazz, Class parametrizedType, ObjectMapper objectMapper) {
         if (json == null) return null;
         JavaType type = objectMapper.getTypeFactory().constructParametricType(clazz, parametrizedType);
         try {
@@ -96,6 +96,17 @@ public class Utils {
         } catch (IOException e) {
             LOG.error("Failed parse JSON: {} to object of type: {}", json, typeReference, e);
             throw new JsonConversionException(e.getMessage());
+        }
+    }
+
+    /**
+     * @throws JsonConversionException if some problems during parsing JSON
+     */
+    public static <T> T toCustomParametricType(T from, Class<T> toClass, Class parametrizedType, ObjectMapper objectMapper) {
+        if (parametrizedType != null) {
+            return Utils.fromJson(Utils.toJson(from, objectMapper), toClass, parametrizedType, objectMapper);
+        } else {
+            return from;
         }
     }
 

@@ -93,13 +93,11 @@ public class UtilsTest {
     }
 
     @Test
-    public void testJsonDeserializationWithCustomPayloadClass() throws Exception {
+    public void testToCustomParametricType() throws Exception {
         ObjectMapper messageMapper = ((MsbContextImpl) new MsbContextBuilder().build()).getMessageMapper();
 
         Message message = TestUtils.createMsbRequestMessageWithSimplePayload(TestUtils.getSimpleNamespace());
-        String jsonMessage = Utils.toJson(message, messageMapper);
-
-        Message<MyPayload> customizedMessage = Utils.fromJson(jsonMessage, Message.class, MyPayload.class, messageMapper);
+        Message<MyPayload> customizedMessage = Utils.toCustomParametricType(message, Message.class, MyPayload.class, messageMapper);
 
         assertTrue(customizedMessage.getPayload() instanceof MyPayload);
     }

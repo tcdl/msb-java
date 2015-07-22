@@ -49,7 +49,7 @@ public class ObjectFactoryImpl implements ObjectFactory {
      */
     @Override
     public ResponderServer createResponderServer(String namespace,  MessageTemplate messageTemplate, ResponderServer.RequestHandler requestHandler) {
-        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, Payload.class);
+        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, null);
     }
 
     /**

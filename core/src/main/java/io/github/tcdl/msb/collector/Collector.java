@@ -84,7 +84,7 @@ public class Collector {
         this.waitForAcksUntil = getWaitForAckUntilFromConfigs(requestOptions);
         this.waitForResponses = requestOptions.getWaitForResponses();
         this.responsesRemaining = waitForResponses;
-        this.payloadClass = Utils.ifNull(requestOptions.getPayloadClass(), Payload.class);
+        this.payloadClass = requestOptions.getPayloadClass();
         this.shouldWaitUntilResponseTimeout = requestOptions.getWaitForResponses() == WAIT_FOR_RESPONSES_UNTIL_TIMEOUT;
 
         if (eventHandlers != null) {
@@ -108,7 +108,7 @@ public class Collector {
 
     public void handleMessage(Message incomingMessage) {
         LOG.debug("Received {}", incomingMessage);
-        Message message = Utils.fromJson(Utils.toJson(incomingMessage, messageMapper), Message.class, payloadClass, messageMapper);
+        Message message = Utils.toCustomParametricType(incomingMessage, Message.class, payloadClass, messageMapper);
 
         if (message.getPayload() != null) {
             LOG.debug("Received {}", message.getPayload());
