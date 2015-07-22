@@ -1,4 +1,4 @@
-package io.github.tcdl.msb.monitor;
+package io.github.tcdl.msb.monitor.agent;
 
 /**
  * Empty implementation that does nothing for each event.

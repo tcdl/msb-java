@@ -23,7 +23,7 @@ import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ObjectFactoryImpl;
 import io.github.tcdl.msb.message.MessageFactory;
-import io.github.tcdl.msb.monitor.DefaultChannelMonitorAgent;
+import io.github.tcdl.msb.monitor.agent.DefaultChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

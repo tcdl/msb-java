@@ -1,4 +1,4 @@
-package io.github.tcdl.msb.monitor;
+package io.github.tcdl.msb.monitor.agent;
 
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;

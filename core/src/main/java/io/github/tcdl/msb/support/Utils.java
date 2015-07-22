@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.support;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +67,19 @@ public class Utils {
             return objectMapper.readValue(json, clazz);
         } catch (IOException e) {
             LOG.error("Failed parse JSON: {} to object of type: {}", json, clazz, e);
+            throw new JsonConversionException(e.getMessage());
+        }
+    }
+
+    /**
+     * @throws JsonConversionException if some problems during parsing JSON
+     */
+    public static <T> T fromJson(String json, TypeReference<T> typeReference, ObjectMapper objectMapper) {
+        if (json == null) return null;
+        try {
+            return objectMapper.readValue(json, typeReference);
+        } catch (IOException e) {
+            LOG.error("Failed parse JSON: {} to object of type: {}", json, typeReference, e);
             throw new JsonConversionException(e.getMessage());
         }
     }

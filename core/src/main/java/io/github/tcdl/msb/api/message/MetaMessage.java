@@ -22,7 +22,6 @@ public final class MetaMessage {
     private MetaMessage(@JsonProperty("ttl") Integer ttl, @JsonProperty("createdAt") Instant createdAt, @JsonProperty("durationMs") Long durationMs,
             @JsonProperty("serviceDetails") ServiceDetails serviceDetails) {
         Validate.notNull(createdAt, "the 'createdAt' must not be null");
-        Validate.notNull(durationMs, "the 'durationMs' must not be null");
         Validate.notNull(serviceDetails, "the 'serviceDetails' must not be null");
         this.ttl = ttl;
         this.createdAt = createdAt;

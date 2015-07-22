@@ -1,9 +1,11 @@
 package io.github.tcdl.msb.api;
 
 import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.api.monitor.AggregatorStats;
+import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 
 /**
- * Provides methods for creation {@link Requester} and {@link ResponderServer}.
+ * Provides methods for creation client-facing API classes.
  */
 public interface ObjectFactory {
     /**
@@ -35,4 +37,11 @@ public interface ObjectFactory {
      */
     ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate, 
             ResponderServer.RequestHandler requestHandler);
+
+    /**
+     * @param aggregatorStatsHandler this handler is invoked whenever statistics is updated via announcement channel or heartbeats.
+     *                               THE HANDLER SHOULD BE THREAD SAFE because it may be invoked from parallel threads
+     * @return new instance of {@link ChannelMonitorAggregator}
+     */
+    ChannelMonitorAggregator createChannelMonitorAggregator(Callback<AggregatorStats> aggregatorStatsHandler);
 }

@@ -43,7 +43,7 @@ public class ResponderIT {
         int ackTimeout = 1000;
         int responsesRemaining = 2;
         MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
-        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
+        Message originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(namespace);
 
         Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
 
@@ -86,7 +86,7 @@ public class ResponderIT {
     public void testCreateResponseMessage() throws Exception {
         String namespace = "test:responder-response";
         MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
-        Message originalMessage = TestUtils.createMsbRequestMessageWithPayloadAndTopicTo(namespace);
+        Message originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(namespace);
 
         Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
         Payload responsePayload = TestUtils.createSimpleResponsePayload();

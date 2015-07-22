@@ -7,7 +7,7 @@ import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.config.MsbConfig;
-import io.github.tcdl.msb.monitor.ChannelMonitorAgent;
+import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;

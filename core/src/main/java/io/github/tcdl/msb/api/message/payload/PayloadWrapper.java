@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.api.message.payload;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.exception.MessageBuilderException;
@@ -54,6 +55,14 @@ public class PayloadWrapper extends Payload {
     public <T> T getBodyAs(Class<T> clazz) {
         try {
             return Utils.fromJson(Utils.toJson(getBody(), mapper), clazz, mapper);
+        } catch(JsonConversionException e) {
+            throw new MessageBuilderException(e.getMessage());
+        }
+    }
+
+    public <T> T getBodyAs(TypeReference<T> typeReference) {
+        try {
+            return Utils.fromJson(Utils.toJson(getBody(), mapper), typeReference, mapper);
         } catch(JsonConversionException e) {
             throw new MessageBuilderException(e.getMessage());
         }
