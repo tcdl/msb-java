@@ -56,7 +56,7 @@ public class ObjectFactoryImpl implements ObjectFactory {
      * {@inheritDoc}
      */
     @Override public ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate, ResponderServer.RequestHandler requestHandler,
-            Class payloadClass) {
+            Class<? extends Payload> payloadClass) {
         return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, payloadClass);
     }
 

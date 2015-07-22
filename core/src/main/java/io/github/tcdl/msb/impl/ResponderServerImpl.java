@@ -19,9 +19,9 @@ public class ResponderServerImpl implements ResponderServer {
     private MsbContextImpl msbContext;
     private MessageTemplate messageTemplate;
     private RequestHandler requestHandler;
-    private Class payloadClass;
+    private Class<? extends Payload> payloadClass;
 
-    private ResponderServerImpl(String namespace, MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler, Class payloadClass) {
+    private ResponderServerImpl(String namespace, MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler, Class<? extends Payload> payloadClass) {
         this.namespace = namespace;
         this.messageTemplate = messageTemplate;
         this.msbContext = msbContext;
@@ -53,10 +53,10 @@ public class ResponderServerImpl implements ResponderServer {
 
         channelManager.subscribe(namespace,
                 incomingMessage -> {
-                        LOG.debug("Received message with id {} from topic {}", incomingMessage.getId(), namespace);
-                        Message message = Utils.fromJson(Utils.toJson(incomingMessage, messageMapper), Message.class, payloadClass, messageMapper);
-                        ResponderImpl responder = new ResponderImpl(messageTemplate, message, msbContext);
-                        onResponder(responder);
+                    LOG.debug("[{}] Received message with id: [{}]", namespace, incomingMessage.getId());
+                    Message message = Utils.fromJson(Utils.toJson(incomingMessage, messageMapper), Message.class, payloadClass, messageMapper);
+                    ResponderImpl responder = new ResponderImpl(messageTemplate, message, msbContext);
+                    onResponder(responder);
                 });
 
         return this;
@@ -65,7 +65,7 @@ public class ResponderServerImpl implements ResponderServer {
     void onResponder(ResponderImpl responder) {
         Message originalMessage = responder.getOriginalMessage();
         Payload request = originalMessage.getPayload();
-        LOG.debug("Pushing message with id {} to middleware chain", originalMessage.getId());
+        LOG.debug("[{}] Process message with id: [{}]", namespace, originalMessage.getId());
         try {
             requestHandler.process(request, responder);
         } catch (Exception exception) {
@@ -75,7 +75,7 @@ public class ResponderServerImpl implements ResponderServer {
 
     private void errorHandler(Responder responder, Exception exception) {
         Message originalMessage = responder.getOriginalMessage();
-        LOG.error("Handling error for message with id {}", originalMessage.getId());
+        LOG.error("[{}] Error while processing message with id: [{}]. Cause: [{}]", namespace, originalMessage.getId(), exception.getMessage());
         Payload responsePayload = new Payload.Builder()
                 .withStatusCode(500)
                 .withStatusMessage(exception.getMessage()).build();
