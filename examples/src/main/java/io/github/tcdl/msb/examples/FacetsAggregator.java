@@ -1,7 +1,10 @@
 package io.github.tcdl.msb.examples;
 
-
-import io.github.tcdl.msb.api.*;
+import io.github.tcdl.msb.api.MessageTemplate;
+import io.github.tcdl.msb.api.MsbContext;
+import io.github.tcdl.msb.api.MsbContextBuilder;
+import io.github.tcdl.msb.api.RequestOptions;
+import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
 
@@ -74,7 +77,7 @@ public class FacetsAggregator {
 
                 requester.onEnd(listOfMessages -> {
                     for (Message message : listOfMessages)
-                        System.out.println(">>> MESSAGE: " + message.getPayload().getBodyAs(Map.class));
+                        System.out.println(">>> MESSAGE: " + message.getPayload().getBody());
 
                     Payload responsePayload = new Payload.Builder()
                             .withStatusCode(200)
