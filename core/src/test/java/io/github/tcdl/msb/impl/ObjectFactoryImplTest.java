@@ -3,6 +3,7 @@ package io.github.tcdl.msb.impl;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.ObjectFactory;
+import io.github.tcdl.msb.api.PayloadConverter;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.ResponderServer;
@@ -14,6 +15,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -75,5 +79,12 @@ public class ObjectFactoryImplTest {
         objectFactorySpy.shutdown();
 
         verify(mockChannelMonitorAggregator).stop();
+    }
+
+    @Test
+    public void getPayloadConverter() {
+        ObjectFactory objectFactory = new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build());
+        PayloadConverter payloadConverter = objectFactory.getPayloadConverter();
+        assertNotNull(payloadConverter);
     }
 }

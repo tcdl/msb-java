@@ -45,6 +45,12 @@ public interface ObjectFactory {
             ResponderServer.RequestHandler requestHandler, Class<? extends Payload> payloadClass);
 
     /**
+     * @return instance of converter to convert any objects
+     * using object mapper from {@link MsbContext}
+     */
+    PayloadConverter getPayloadConverter();
+
+    /**
      * @param aggregatorStatsHandler this handler is invoked whenever statistics is updated via announcement channel or heartbeats.
      *                               THE HANDLER SHOULD BE THREAD SAFE because it may be invoked from parallel threads.
      * @return new instance of {@link ChannelMonitorAggregator}

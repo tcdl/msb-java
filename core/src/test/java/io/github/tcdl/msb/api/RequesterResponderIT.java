@@ -89,6 +89,31 @@ public class RequesterResponderIT {
     }
 
     @Test
+    public void testResponderServerReceiveCustomPayloadMessageSendByRequesterAndConvertBody() throws Exception {
+        String namespace = "test:requester-responder-test-custom-request-received-and-converted";
+        RequestOptions requestOptions = TestUtils.createSimpleRequestOptions();
+        CountDownLatch requestReceived = new CountDownLatch(1);
+
+        //Create and send request message
+        Requester requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Body sentBody = new Body("test:requester-responder-test-body");
+        Payload requestPayload = new Payload.Builder().withBody(sentBody).build();
+
+        Body receivedBody = new Body();
+        msbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
+            PayloadConverter payloadConverter = msbContext.getObjectFactory().getPayloadConverter();
+            receivedBody.setBody(payloadConverter.getAs(request.getBody(), Body.class).getBody());
+            requestReceived.countDown();
+        })
+        .listen();
+
+        requester.publish(requestPayload);
+
+        assertTrue("Message was not received", requestReceived.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
+        assertEquals(receivedBody, sentBody);
+    }
+
+    @Test
     public void testResponderAnswerWithAckRequesterReceiveAck() throws Exception {
         String namespace = "test:requester-responder-test-get-ack";
         MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
