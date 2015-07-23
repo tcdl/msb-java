@@ -6,6 +6,7 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.api.MessageTemplate;
@@ -13,6 +14,7 @@ import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.message.payload.MyPayload;
 import io.github.tcdl.msb.support.TestUtils;
 
 import org.junit.Before;
@@ -34,7 +36,7 @@ public class ResponderServerImplTest {
     }
 
     @Test
-    public void testResponderServerProcessSuccess() throws Exception {
+    public void testResponderServerProcessCustomPayloadSuccess() throws Exception {
         String namespace = TestUtils.getSimpleNamespace();
         ResponderServer.RequestHandler handler = (request, responder) -> {
         };
@@ -46,7 +48,32 @@ public class ResponderServerImplTest {
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 
         ResponderServerImpl responderServer = ResponderServerImpl
-                .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler);
+                .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler, MyPayload.class);
+
+        ResponderServerImpl spyResponderServer = (ResponderServerImpl) spy(responderServer).listen();
+
+        verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
+
+        Message originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(namespace);
+        subscriberCaptor.getValue().handleMessage(originalMessage);
+
+        verify(spyResponderServer).onResponder(anyObject());
+    }
+
+    @Test
+    public void testResponderServerProcessDefaultPayloadSuccess() throws Exception {
+        String namespace = TestUtils.getSimpleNamespace();
+        ResponderServer.RequestHandler handler = (request, responder) -> {
+        };
+
+        ArgumentCaptor<MessageHandler> subscriberCaptor = ArgumentCaptor.forClass(MessageHandler.class);
+        ChannelManager spyChannelManager = spy(msbContext.getChannelManager());
+        MsbContextImpl spyMsbContext = spy(msbContext);
+
+        when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
+
+        ResponderServerImpl responderServer = ResponderServerImpl
+                .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler, null);
 
         ResponderServerImpl spyResponderServer = (ResponderServerImpl) spy(responderServer).listen();
 
@@ -66,15 +93,18 @@ public class ResponderServerImplTest {
     @Test
     public void testResponderServerProcessWithError() throws Exception {
         Exception error = new Exception();
-        ResponderServer.RequestHandler handler = (request, responder) -> { throw error; };
+        ResponderServer.RequestHandler handler = (request, responder) -> {
+            throw error;
+        };
 
         ResponderServerImpl responderServer = ResponderServerImpl
-                .create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, handler);
+                .create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, handler, MyPayload.class);
         responderServer.listen();
 
         // simulate incoming request
         ArgumentCaptor<Payload> responseCaptor = ArgumentCaptor.forClass(Payload.class);
-        ResponderImpl responder = spy(new ResponderImpl(messageTemplate, TestUtils.createMsbRequestMessageNoPayload(TestUtils.getSimpleNamespace()), msbContext));
+        ResponderImpl responder = spy(
+                new ResponderImpl(messageTemplate, TestUtils.createMsbRequestMessageNoPayload(TestUtils.getSimpleNamespace()), msbContext));
         responderServer.onResponder(responder);
 
         verify(responder).send(responseCaptor.capture());

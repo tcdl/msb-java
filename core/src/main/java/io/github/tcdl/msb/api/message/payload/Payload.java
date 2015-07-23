@@ -13,7 +13,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.PROTECT
  */
 // Workaround to using setFieldVisibility on object mapper. It caused infinite recursion
 @JsonAutoDetect(getterVisibility = PROTECTED_AND_PUBLIC, setterVisibility = PROTECTED_AND_PUBLIC)
-public class Payload implements ConvertiblePayload {
+public class Payload<H, Q, P, B> {
 
     /**
      * Response status code
@@ -28,39 +28,39 @@ public class Payload implements ConvertiblePayload {
     /**
      * Provide things like authorisation, information about the body and information about the user. (Request Meta Info/Who)
      */
-    private Object headers;
+    private H headers;
 
     /**
      * Query provides instructions. (How)
      */
-    private Object query;
+    private Q query;
 
     /**
      * Params provide hierarchical ids of the entities acted upon. (What)
      */
-    private Object params;
+    private P params;
 
     /**
      * Body provides data/state
      */
-    private Object body;
+    private B body;
 
     /**
      * Base64-encoded binary body
      */
     private String bodyBuffer;
 
-    protected Payload() {
+    public Payload() {
     }
 
     @JsonCreator
-    private Payload(
+    public Payload(
             @JsonProperty("statusCode") Integer statusCode,
             @JsonProperty("statusMessage") String statusMessage,
-            @JsonProperty("headers") Object headers,
-            @JsonProperty("query") Object query,
-            @JsonProperty("params") Object params,
-            @JsonProperty("body") Object body,
+            @JsonProperty("headers") H headers,
+            @JsonProperty("query") Q query,
+            @JsonProperty("params") P params,
+            @JsonProperty("body") B body,
             @JsonProperty("bodyBuffer") String bodyBuffer) {
         this.statusMessage = statusMessage;
         this.statusCode = statusCode;
@@ -87,35 +87,35 @@ public class Payload implements ConvertiblePayload {
         this.statusMessage = statusMessage;
     }
 
-    public Object getHeaders() {
+    public H getHeaders() {
         return headers;
     }
 
-    protected void setHeaders(Object headers) {
+    protected void setHeaders(H headers) {
         this.headers = headers;
     }
 
-    public Object getQuery() {
+    public Q getQuery() {
         return query;
     }
 
-    protected void setQuery(Object query) {
+    protected void setQuery(Q query) {
         this.query = query;
     }
 
-    public Object getParams() {
+    public P getParams() {
         return params;
     }
 
-    protected void setParams(Object params) {
+    protected void setParams(P params) {
         this.params = params;
     }
 
-    public Object getBody() {
+    public B getBody() {
         return body;
     }
 
-    protected void setBody(Object body) {
+    protected void setBody(B body) {
         this.body = body;
     }
 

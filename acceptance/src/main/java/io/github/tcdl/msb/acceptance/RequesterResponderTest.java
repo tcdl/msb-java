@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.acceptance;
 
+import io.github.tcdl.msb.acceptance.payload.MyPayload;
 import io.github.tcdl.msb.api.Requester;
 
 import java.util.concurrent.CountDownLatch;
@@ -29,9 +30,11 @@ public class RequesterResponderTest {
         helper.initDefault();
         // running responder server
         helper.createResponderServer(NAMESPACE, (request, responder) -> {
+            MyPayload payload = (MyPayload)request;
+            System.out.println(">>> QUERY: " + payload.getQuery().getQ());
             responder.sendAck(1000, NUMBER_OF_RESPONSES);
             helper.respond(responder);
-        })
+        }, MyPayload.class)
         .listen();
 
         // sending a request

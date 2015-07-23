@@ -8,13 +8,13 @@ import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.AggregatorTopicStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 import io.github.tcdl.msb.config.ServiceDetails;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.monitor.agent.AgentTopicStats;
+import io.github.tcdl.msb.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,8 +92,9 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
         String instanceId = serviceDetails.getInstanceId();
         aggregatorStats.getServiceDetailsById().put(instanceId, serviceDetails);
 
-        Payload payload = PayloadWrapper.wrap(message.getPayload(), messageMapper);
-        Map<String, AgentTopicStats> agentTopicStatsMap = payload.getBodyAs(new TypeReference<Map<String, AgentTopicStats>>() {});
+        Payload payload = message.getPayload();
+        Map <String, AgentTopicStats > agentTopicStatsMap = Utils.toCustomTypeReference(payload.getBody(), new TypeReference<Map<String, AgentTopicStats>>() {}, messageMapper);
+
         aggregateTopicStats(aggregatorStats, agentTopicStatsMap, instanceId);
     }
 
