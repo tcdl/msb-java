@@ -1,5 +1,7 @@
 package io.github.tcdl.msb.api;
 
+import io.github.tcdl.msb.api.message.payload.Payload;
+
 /**
  * Specifies waiting policy (for acknowledgements and responses) for requests sent using {@link Requester}.
  */
@@ -19,18 +21,25 @@ public class RequestOptions {
     /**
      * Number of responses to wait for. Once this number is reached (and {@link #ackTimeout} passed) we stop waiting for responses even if
      * {@link #responseTimeout} has not been reached. Beware that acks may adjust this number.
-     *
+     * <p/>
      * 0 means not to wait for responses at all.
      * -1 means to wait until {@link #responseTimeout} is reached.
      */
     private Integer waitForResponses;
 
+    /**
+     * Class to convert payload of response message to
+     */
+    private Class<? extends Payload> payloadClass;
+
     private MessageTemplate messageTemplate;
 
-    private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, MessageTemplate messageTemplate) {
+    private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, Class<? extends Payload> payloadClass,
+            MessageTemplate messageTemplate) {
         this.ackTimeout = ackTimeout;
         this.responseTimeout = responseTimeout;
         this.waitForResponses = waitForResponses;
+        this.payloadClass = payloadClass;
         this.messageTemplate = messageTemplate;
     }
 
@@ -54,6 +63,10 @@ public class RequestOptions {
         return getWaitForResponses() != 0;
     }
 
+    public Class<? extends Payload> getPayloadClass() {
+        return payloadClass;
+    }
+
     public MessageTemplate getMessageTemplate() {
         return messageTemplate;
     }
@@ -63,6 +76,7 @@ public class RequestOptions {
         return "RequestOptions [ackTimeout=" + ackTimeout
                 + ", responseTimeout=" + responseTimeout
                 + ", waitForResponses=" + waitForResponses
+                + ", payloadClass=" + payloadClass
                 + (messageTemplate != null ? messageTemplate : "")
                 + "]";
     }
@@ -72,6 +86,7 @@ public class RequestOptions {
         private Integer ackTimeout;
         private Integer responseTimeout;
         private Integer waitForResponses;
+        private Class<? extends Payload> payloadClass;
         private MessageTemplate messageTemplate;
 
         public Builder withAckTimeout(Integer ackTimeout) {
@@ -89,13 +104,18 @@ public class RequestOptions {
             return this;
         }
 
+        public Builder withPayloadClass(Class<? extends Payload> payloadClass) {
+            this.payloadClass = payloadClass;
+            return this;
+        }
+
         public Builder withMessageTemplate(MessageTemplate messageTemplate) {
             this.messageTemplate = messageTemplate;
             return this;
         }
 
         public RequestOptions build() {
-            return new RequestOptions(ackTimeout, responseTimeout, waitForResponses, messageTemplate);
+            return new RequestOptions(ackTimeout, responseTimeout, waitForResponses, payloadClass, messageTemplate);
         }
     }
 }

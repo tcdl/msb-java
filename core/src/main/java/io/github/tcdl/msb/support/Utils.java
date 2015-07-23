@@ -1,3 +1,4 @@
+
 package io.github.tcdl.msb.support;
 
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import org.slf4j.Logger;
@@ -53,7 +55,8 @@ public class Utils {
      * @throws JsonConversionException if problem encountered during parsing JSON
      */
     public static <T> T fromJson(String json, Class<T> clazz, ObjectMapper objectMapper) {
-        if (json == null) return null;
+        if (json == null)
+            return null;
         try {
             return objectMapper.readValue(json, clazz);
         } catch (IOException e) {
@@ -65,8 +68,36 @@ public class Utils {
     /**
      * @throws JsonConversionException if problem encountered during parsing JSON
      */
-    public static <T> T fromJson(String json, TypeReference<T> typeReference, ObjectMapper objectMapper) {
-        if (json == null) return null;
+    public static <T> T toCustomParametricType(T from, Class<T> toClass, Class parametrizedType, ObjectMapper objectMapper) {
+        if (parametrizedType != null) {
+            return Utils.fromJson(Utils.toJson(from, objectMapper), toClass, parametrizedType, objectMapper);
+        } else {
+            return from;
+        }
+    }
+
+    private static <T> T fromJson(String json, Class<T> clazz, Class parametrizedType, ObjectMapper objectMapper) {
+        if (json == null)
+            return null;
+        JavaType type = objectMapper.getTypeFactory().constructParametricType(clazz, parametrizedType);
+        try {
+            return objectMapper.readValue(json, type);
+        } catch (IOException e) {
+            LOG.error("Failed parse JSON: {} to object of type: {}", json, clazz, e);
+            throw new JsonConversionException(e.getMessage());
+        }
+    }
+
+    /**
+     * @throws JsonConversionException if some problems during parsing JSON
+     */
+    public static <T> T toCustomTypeReference(Object from, TypeReference<T> typeReference, ObjectMapper objectMapper) {
+        return Utils.fromJson(Utils.toJson(from, objectMapper), typeReference, objectMapper);
+    }
+
+    private static <T> T fromJson(String json, TypeReference<T> typeReference, ObjectMapper objectMapper) {
+        if (json == null)
+            return null;
         try {
             return objectMapper.readValue(json, typeReference);
         } catch (IOException e) {

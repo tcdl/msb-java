@@ -3,7 +3,6 @@ package io.github.tcdl.msb.acceptance.bdd.steps;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.support.Utils;
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;
@@ -34,7 +33,7 @@ public class RequesterResponderSteps extends MsbSteps {
                 responder.send(payload);
             }
         })
-        .listen();
+                .listen();
     }
 
     @Given("responder server responds with '$body'")
@@ -64,8 +63,7 @@ public class RequesterResponderSteps extends MsbSteps {
     }
 
     private void onResponse(Payload payload) {
-        ObjectMapper mapper = super.helper.getObjectMapper();
-        receivedResponse = PayloadWrapper.wrap(payload, mapper).getBodyAs(Map.class);
+        receivedResponse = (Map) payload.getBody();
     }
 
     @Then("requester gets response in $timeout ms")
@@ -76,10 +74,10 @@ public class RequesterResponderSteps extends MsbSteps {
 
     @Then("response equals $table")
     public void responseEquals(ExamplesTable table) throws Exception {
-        Map<String,String> expected = table.getRow(0);
+        Map<String, String> expected = table.getRow(0);
         OutcomesTable outcomes = new OutcomesTable();
 
-        for (String key : expected.keySet()){
+        for (String key : expected.keySet()) {
             outcomes.addOutcome(key, receivedResponse.get(key), Matchers.equalTo(expected.get(key)));
         }
 
@@ -88,10 +86,10 @@ public class RequesterResponderSteps extends MsbSteps {
 
     @Then("response contains $table")
     public void responseContains(ExamplesTable table) throws Exception {
-        Map<String,String> expected = table.getRow(0);
+        Map<String, String> expected = table.getRow(0);
         OutcomesTable outcomes = new OutcomesTable();
 
-        for (String key : expected.keySet()){
+        for (String key : expected.keySet()) {
             outcomes.addOutcome(key, receivedResponse.get(key).toString(), Matchers.containsString(expected.get(key)));
         }
 

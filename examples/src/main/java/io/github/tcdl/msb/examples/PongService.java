@@ -20,7 +20,7 @@ public class PongService {
         ObjectFactory objectFactory = msbContext.getObjectFactory();
         ResponderServer responderServer = objectFactory.createResponderServer("pingpong:namespace", new MessageTemplate(), (request, responder) -> {
             // Response handling logic
-            LOG.info(String.format("Handling %s...", request.getBodyAs(String.class)));
+            LOG.info(String.format("Handling %s...", request.getBody()));
 
             Payload pongPayload = new Payload.Builder()
                     .withBody("PONG")
