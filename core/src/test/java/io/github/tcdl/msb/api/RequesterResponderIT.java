@@ -30,8 +30,8 @@ public class RequesterResponderIT {
      * Necessary for time-related assertions.
      * You may consider adjusting these values for fast/slow testing environments.
      */
-    private static final int MESSAGE_TRANSMISSION_TIME = 5000;
-    private static final int MESSAGE_ROUNDTRIP_TRANSMISSION_TIME = MESSAGE_TRANSMISSION_TIME * 2;
+    public static final int MESSAGE_TRANSMISSION_TIME = 5000;
+    public static final int MESSAGE_ROUNDTRIP_TRANSMISSION_TIME = MESSAGE_TRANSMISSION_TIME * 2;
 
     private MsbContextImpl msbContext;
 

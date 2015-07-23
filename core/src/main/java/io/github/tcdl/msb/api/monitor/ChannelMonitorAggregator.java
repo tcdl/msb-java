@@ -44,7 +44,7 @@ public interface ChannelMonitorAggregator {
     void start(boolean activateHeartbeats, long heartbeatIntervalMs, int heartbeatTimeoutMs);
 
     /**
-     * Deactivates this aggregator. After this method is invoked the object is not usable
+     * Deactivates this aggregator. After this method is invoked the object is not usable. This method can be invoked multiple times.
      */
     void stop();
 }

@@ -1,18 +1,28 @@
 package io.github.tcdl.msb.impl;
 
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-
+import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.ResponderServer;
+import io.github.tcdl.msb.api.monitor.AggregatorStats;
+import io.github.tcdl.msb.monitor.aggregator.DefaultChannelMonitorAggregator;
 import io.github.tcdl.msb.support.TestUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.concurrent.ScheduledExecutorService;
+
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ObjectFactoryImplTest {
@@ -43,5 +53,27 @@ public class ObjectFactoryImplTest {
         ResponderServer expectedResponderServer = objectFactory
                 .createResponderServer(NAMESPACE, mock(MessageTemplate.class), mock(ResponderServer.RequestHandler.class));
         assertNotNull(expectedResponderServer);
+    }
+
+    @Test
+    public void testShutdownNoAggregator() {
+        ObjectFactoryImpl objectFactory = new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build());
+        objectFactory.shutdown();
+    }
+
+    @Test
+    public void testShutdownWithAggregator() {
+        ObjectFactoryImpl objectFactorySpy = spy(new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build()));
+
+        @SuppressWarnings("unchecked")
+        Callback<AggregatorStats> mockAggregatorCallback = mock(Callback.class);
+        DefaultChannelMonitorAggregator mockChannelMonitorAggregator = mock(DefaultChannelMonitorAggregator.class);
+        when(objectFactorySpy.createDefaultChannelMonitorAggregator(Mockito.eq(mockAggregatorCallback), any(ScheduledExecutorService.class))).thenReturn(
+                mockChannelMonitorAggregator);
+
+        objectFactorySpy.createChannelMonitorAggregator(mockAggregatorCallback);
+        objectFactorySpy.shutdown();
+
+        verify(mockChannelMonitorAggregator).stop();
     }
 }

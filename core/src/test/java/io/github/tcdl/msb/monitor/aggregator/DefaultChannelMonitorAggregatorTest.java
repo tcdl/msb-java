@@ -12,6 +12,7 @@ import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.AggregatorTopicStats;
 import io.github.tcdl.msb.config.ServiceDetails;
+import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.monitor.agent.AgentTopicStats;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
@@ -41,11 +42,16 @@ public class DefaultChannelMonitorAggregatorTest {
 
     private ChannelManager mockChannelManager = mock(ChannelManager.class);
     private ObjectFactory mockObjectFactory = mock(ObjectFactory.class);
+
+    private MsbContextImpl testMsbContext = TestUtils.createMsbContextBuilder()
+            .withObjectFactory(mockObjectFactory)
+            .withChannelManager(mockChannelManager)
+            .build();
+
     private ScheduledExecutorService mockScheduledExecutorService = mock(ScheduledExecutorService.class);
     @SuppressWarnings("unchecked")
     private Callback<AggregatorStats> mockHandler = mock(Callback.class);
-    private DefaultChannelMonitorAggregator channelMonitor = new DefaultChannelMonitorAggregator(mockChannelManager, mockObjectFactory, TestUtils.createMessageMapper(),
-            mockScheduledExecutorService, mockHandler);
+    private DefaultChannelMonitorAggregator channelMonitor = new DefaultChannelMonitorAggregator(testMsbContext, mockScheduledExecutorService, mockHandler);
 
     @Test
     public void testOnAnnounce() {
@@ -232,7 +238,7 @@ public class DefaultChannelMonitorAggregatorTest {
         channelMonitor.start(true, DEFAULT_HEARTBEAT_INTERVAL_MS, DEFAULT_HEARTBEAT_TIMEOUT_MS);
 
         verify(mockChannelManager).subscribe(eq(Utils.TOPIC_ANNOUNCE), any(MessageHandler.class));
-        verify(mockScheduledExecutorService).scheduleAtFixedRate(any(HeartbeatTask.class), eq(DEFAULT_HEARTBEAT_INTERVAL_MS), eq(DEFAULT_HEARTBEAT_INTERVAL_MS),
+        verify(mockScheduledExecutorService).scheduleAtFixedRate(any(HeartbeatTask.class), eq(0L), eq(DEFAULT_HEARTBEAT_INTERVAL_MS),
                 eq(TimeUnit.MILLISECONDS));
     }
 

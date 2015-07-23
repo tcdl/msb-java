@@ -34,8 +34,7 @@ public class HeartbeatTask implements Runnable {
             LOG.debug("Sending heartbeat request...");
             RequestOptions requestOptions = new RequestOptions.Builder()
                     .withResponseTimeout(heartbeatTimeoutMs)
-                    // TODO Fix this once requester can properly handle -1
-                    .withWaitForResponses(Integer.MAX_VALUE)
+                    .withWaitForResponses(-1)
                     .build();
 
             Payload emptyPayload = new Payload.Builder().build();

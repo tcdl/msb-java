@@ -50,6 +50,7 @@ public class MsbContextImpl implements MsbContext {
     @Override
     public void shutdown() {
         LOG.info("Shutting down MSB context...");
+        objectFactory.shutdown();
         timeoutManager.shutdown();
         channelManager.shutdown();
         LOG.info("MSB context has been shut down.");
