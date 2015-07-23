@@ -85,7 +85,6 @@ public class ObjectFactoryImpl implements ObjectFactory {
     }
 
     DefaultChannelMonitorAggregator createDefaultChannelMonitorAggregator(Callback<AggregatorStats> aggregatorStatsHandler, ScheduledExecutorService scheduledExecutorService) {
-        return new DefaultChannelMonitorAggregator(msbContext.getChannelManager(), msbContext.getObjectFactory(), msbContext.getMessageMapper(),
-                scheduledExecutorService, aggregatorStatsHandler);
+        return new DefaultChannelMonitorAggregator(msbContext, scheduledExecutorService, aggregatorStatsHandler);
     }
 }

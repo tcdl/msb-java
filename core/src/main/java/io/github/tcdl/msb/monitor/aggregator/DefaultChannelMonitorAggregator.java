@@ -13,6 +13,7 @@ import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.AggregatorTopicStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 import io.github.tcdl.msb.config.ServiceDetails;
+import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.monitor.agent.AgentTopicStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,11 +37,10 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
 
     AggregatorStats masterAggregatorStats = new AggregatorStats();
 
-    public DefaultChannelMonitorAggregator(ChannelManager channelManager, ObjectFactory objectFactory, ObjectMapper messageMapper, ScheduledExecutorService scheduledExecutorService,
-            Callback<AggregatorStats> aggregatorStatsHandler) {
-        this.channelManager = channelManager;
-        this.objectFactory = objectFactory;
-        this.messageMapper = messageMapper;
+    public DefaultChannelMonitorAggregator(MsbContextImpl msbContext, ScheduledExecutorService scheduledExecutorService, Callback<AggregatorStats> aggregatorStatsHandler) {
+        this.channelManager = msbContext.getChannelManager();
+        this.objectFactory = msbContext.getObjectFactory();
+        this.messageMapper = msbContext.getMessageMapper();
         this.scheduledExecutorService = scheduledExecutorService;
         this.handler = aggregatorStatsHandler;
     }
@@ -52,7 +52,7 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
 
         if (activateHeartbeats) {
             Runnable heartbeatTask = new HeartbeatTask(heartbeatTimeoutMs, objectFactory, this::onHeartbeatResponses);
-            scheduledExecutorService.scheduleAtFixedRate(heartbeatTask, heartbeatIntervalMs, heartbeatIntervalMs, TimeUnit.MILLISECONDS);
+            scheduledExecutorService.scheduleAtFixedRate(heartbeatTask, 0, heartbeatIntervalMs, TimeUnit.MILLISECONDS);
             LOG.debug("Periodic heartbeats activated");
         }
 
