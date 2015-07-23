@@ -1,11 +1,11 @@
 package io.github.tcdl.msb.support;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Clock;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
@@ -19,18 +19,12 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.collector.CollectorManagerFactory;
 import io.github.tcdl.msb.collector.TimeoutManager;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ObjectFactoryImpl;
 import io.github.tcdl.msb.message.MessageFactory;
-
-import java.time.Clock;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -50,9 +44,9 @@ public class TestUtils {
     }
 
     public static RequestOptions createSimpleRequestOptions() {
-       return new RequestOptions.Builder()
-            .withMessageTemplate(createSimpleMessageTemplate())
-            .build();
+        return new RequestOptions.Builder()
+                .withMessageTemplate(createSimpleMessageTemplate())
+                .build();
     }
 
     public static MessageTemplate createSimpleMessageTemplate() {
@@ -165,7 +159,7 @@ public class TestUtils {
 
         body.put("body", "someRequestBody created at " + Clock.systemDefaultZone().millis());
 
-        return PayloadWrapper.wrap(new Payload.Builder().withBody(body).withHeaders(headers).build(), createMessageMapper());
+        return new Payload.Builder().withBody(body).withHeaders(headers).build();
     }
 
     public static Payload createSimpleBroadcastPayload() {
@@ -186,7 +180,7 @@ public class TestUtils {
     public static MetaMessage.Builder createSimpleMetaBuilder(MsbConfig msbConf, Clock clock) {
         return new MetaMessage.Builder(null, clock.instant(), msbConf.getServiceDetails(), clock);
     }
-    
+
     public static class TestMsbContextBuilder {
         private Optional<MsbConfig> msbConfigOp = Optional.empty();
         private Optional<MessageFactory> messageFactoryOp = Optional.empty();
@@ -220,7 +214,7 @@ public class TestUtils {
             this.timeoutManagerOp = Optional.ofNullable(timeoutManager);
             return this;
         }
-        
+
         public TestMsbContextBuilder withObjectFactory(ObjectFactory objectFactory) {
             this.objectFactoryOp = Optional.ofNullable(objectFactory);
             return this;
@@ -240,7 +234,7 @@ public class TestUtils {
             TimeoutManager timeoutManager = timeoutManagerOp.orElseGet(() -> new TimeoutManager(1));
             CollectorManagerFactory collectorManagerFactory = collectorManagerFactoryOp.orElseGet(() -> new CollectorManagerFactory(channelManager));
             TestMsbContext msbContext = new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager, collectorManagerFactory);
-            
+
             ObjectFactory objectFactory = objectFactoryOp.orElseGet(() -> new ObjectFactoryImpl(msbContext));
             msbContext.setFactory(objectFactory);
             return msbContext;
@@ -251,12 +245,11 @@ public class TestUtils {
                     ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager, CollectorManagerFactory collectorManagerFactory) {
                 super(msbConfig, messageFactory, channelManager, clock, timeoutManager, createMessageMapper(), collectorManagerFactory);
             }
-            
+
             public void setFactory(ObjectFactory objectFactory) {
                 super.setObjectFactory(objectFactory);
             }
         }
 
     }
-
 }

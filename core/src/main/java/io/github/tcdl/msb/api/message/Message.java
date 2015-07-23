@@ -12,7 +12,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS;
  * {@link Message} contains protocol information used by Msb and also provided Acknowledgement (if message {@link Acknowledge}  property is set)
  * and Payload (if message {@link Payload}  property is set).
  */
-public final class Message {
+public final class Message<P extends Payload> {
 
     @JsonInclude(ALWAYS)
     private final String id;// This identifies this message
@@ -25,11 +25,11 @@ public final class Message {
     @JsonInclude(ALWAYS)
     private final Acknowledge ack; // To be filled on ack or response
     @JsonInclude(ALWAYS)
-    private final Payload payload;
+    private final P payload;
 
     @JsonCreator
     private Message(@JsonProperty("id") String id, @JsonProperty("correlationId") String correlationId, @JsonProperty("topics") Topics topics,
-            @JsonProperty("meta") MetaMessage meta, @JsonProperty("ack") Acknowledge ack, @JsonProperty("payload") Payload payload) {
+            @JsonProperty("meta") MetaMessage meta, @JsonProperty("ack") Acknowledge ack, @JsonProperty("payload") P payload) {
         Validate.notNull(id, "the 'id' must not be null");
         Validate.notNull(correlationId, "the 'correlationId' must not be null");
         Validate.notNull(topics, "the 'topics' must not be null");

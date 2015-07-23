@@ -55,11 +55,11 @@ public class MultipleRequester {
         CompletableFuture.supplyAsync(() -> {
             msbContext.getObjectFactory().createRequester(namespace, options)
                     .onAcknowledge(acknowledge ->
-                            System.out.println(">>> ACK timeout: " + acknowledge.getTimeoutMs())
+                                    System.out.println(">>> ACK timeout: " + acknowledge.getTimeoutMs())
                     )
                     .onResponse(payload -> {
-                        System.out.println(">>> RESPONSE body: " + payload.getBodyAs(Map.class).toString());
-                        callback.accept(payload.getBodyAs(Map.class));
+                        System.out.println(">>> RESPONSE body: " + payload.getBody());
+                        callback.accept((Map) payload.getBody());
                     })
                     .publish(requestPayload);
             return null;

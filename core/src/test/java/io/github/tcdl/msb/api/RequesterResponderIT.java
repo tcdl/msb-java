@@ -4,6 +4,8 @@ import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.impl.MsbContextImpl;
+import io.github.tcdl.msb.message.payload.Body;
+import io.github.tcdl.msb.message.payload.MyPayload;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
 import org.junit.Before;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -58,6 +61,31 @@ public class RequesterResponderIT {
         requester.publish(requestPayload);
 
         assertTrue("Message was not received", requestReceived.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    public void testResponderServerReceiveCustomPayloadMessageSendByRequester() throws Exception {
+        String namespace = "test:requester-responder-test-custom-request-received";
+        RequestOptions requestOptions = TestUtils.createSimpleRequestOptions();
+        CountDownLatch requestReceived = new CountDownLatch(1);
+
+        //Create and send request message
+        Requester requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Body sentBody = new Body("test:requester-responder-test-body");
+        Payload requestPayload = new Payload.Builder().withBody(sentBody).build();
+
+        Body receivedBody = new Body();
+        msbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
+            MyPayload payload = (MyPayload) request;
+            receivedBody.setBody(payload.getBody().getBody());
+            requestReceived.countDown();
+        }, MyPayload.class)
+                .listen();
+
+        requester.publish(requestPayload);
+
+        assertTrue("Message was not received", requestReceived.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
+        assertEquals(receivedBody, sentBody);
     }
 
     @Test
@@ -122,14 +150,14 @@ public class RequesterResponderIT {
 
         //listen for message and send response
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
+        Map bodyMap = new HashMap<String, String>();
+        bodyMap.put("body", "payload from test testResponderAnswerWithResponseRequesterReceiveResponse");
         serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, response) -> {
-            Payload payload = new Payload.Builder().withBody(
-                    new HashMap<String, String>().put("body", "payload from test : testResponderAnswerWithResponseRequesterReceiveResponse"))
+            Payload payload = new Payload.Builder().withBody(bodyMap)
                     .withStatusCode(3333).build();
             response.send(payload);
             sentResponses.add(payload);
             respSend.countDown();
-
         })
                 .listen();
 
@@ -137,6 +165,53 @@ public class RequesterResponderIT {
         assertTrue("Message response not received", respReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         assertTrue("Expected one response", receivedResponses.size() == 1);
         assertEquals(sentResponses.poll().getStatusCode(), receivedResponses.poll().getStatusCode());
+    }
+
+    @Test
+    public void testResponderAnswerWithResponseRequesterReceiveCustomPayloadResponse() throws Exception {
+        String namespace = "test:requester-responder-test-get-custom-resp";
+        MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
+                .withWaitForResponses(1)
+                .withPayloadClass(MyPayload.class)
+                .build();
+
+        CountDownLatch respSend = new CountDownLatch(1);
+        CountDownLatch respReceived = new CountDownLatch(1);
+
+        ConcurrentLinkedQueue<Payload> sentResponses = new ConcurrentLinkedQueue<>();
+        ConcurrentLinkedQueue<Payload> receivedResponses = new ConcurrentLinkedQueue<>();
+
+        //Create and send request message directly to broker, wait for response
+        Payload requestPayload = TestUtils.createSimpleRequestPayload();
+        Body receivedBody = new Body();
+        msbContext.getObjectFactory().createRequester(namespace, requestOptions)
+                .onResponse(payload -> {
+                    receivedResponses.add(payload);
+                    MyPayload myPayload = (MyPayload)payload;
+                    receivedBody.setBody(myPayload.getBody().getBody());
+                    respReceived.countDown();
+                })
+                .publish(requestPayload);
+
+        //listen for message and send response
+        MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
+        Body responseBody = new Body("payload from test testResponderAnswerWithResponseRequesterReceiveResponse");
+        Payload responsePayload = new Payload.Builder().withBody(responseBody).build();
+
+        serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, response) -> {
+            response.send(responsePayload);
+            sentResponses.add(responsePayload);
+            respSend.countDown();
+        })
+                .listen();
+
+        assertTrue("Message response was not send", respSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
+        assertTrue("Message response not received", respReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
+        assertTrue("Expected one response", receivedResponses.size() == 1);
+        assertEquals(sentResponses.poll().getStatusCode(), receivedResponses.poll().getStatusCode());
+        assertEquals(responseBody, receivedBody);
     }
 
     @Test

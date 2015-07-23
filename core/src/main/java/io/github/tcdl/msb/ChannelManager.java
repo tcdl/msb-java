@@ -85,7 +85,7 @@ public class ChannelManager {
 
     /**
      * Stop consuming messages on specified topic.
-     * Calls to subscribe() and unsubscribe() have to be properly synchronized by client code not to lose messages.     *
+     * Calls to subscribe() and unsubscribe() have to be properly synchronized by client code not to lose messages.
      * @param topic
      */
     public void unsubscribe(String topic) {
