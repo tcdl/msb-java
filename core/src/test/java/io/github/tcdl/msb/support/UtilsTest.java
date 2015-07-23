@@ -7,6 +7,7 @@ import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.impl.MsbContextImpl;
+import io.github.tcdl.msb.message.payload.MyPayload;
 import org.junit.Test;
 
 import java.time.Instant;
@@ -89,6 +90,16 @@ public class UtilsTest {
 
         Utils.fromJson(jsonMessage, Message.class, messageMapper);
         verify(payloadMapperSpy).readValue(jsonPayload, Payload.class);
+    }
+
+    @Test
+    public void testToCustomParametricType() throws Exception {
+        ObjectMapper messageMapper = ((MsbContextImpl) new MsbContextBuilder().build()).getMessageMapper();
+
+        Message message = TestUtils.createMsbRequestMessageWithSimplePayload(TestUtils.getSimpleNamespace());
+        Message<MyPayload> customizedMessage = Utils.toCustomParametricType(message, Message.class, MyPayload.class, messageMapper);
+
+        assertTrue(customizedMessage.getPayload() instanceof MyPayload);
     }
 
     @Test

@@ -19,7 +19,6 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.collector.CollectorManagerFactory;
 import io.github.tcdl.msb.collector.TimeoutManager;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -165,7 +164,7 @@ public class TestUtils {
 
         body.put("body", "someRequestBody created at " + Clock.systemDefaultZone().millis());
 
-        return PayloadWrapper.wrap(new Payload.Builder().withBody(body).withHeaders(headers).build(), createMessageMapper());
+        return new Payload.Builder().withBody(body).withHeaders(headers).build();
     }
 
     public static Payload createSimpleBroadcastPayload() {

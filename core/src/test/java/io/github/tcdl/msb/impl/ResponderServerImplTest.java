@@ -49,7 +49,7 @@ public class ResponderServerImplTest {
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 
         ResponderServerImpl responderServer = ResponderServerImpl
-                .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler);
+                .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler, Payload.class);
 
         ResponderServerImpl spyResponderServer = (ResponderServerImpl) spy(responderServer).listen();
 
@@ -72,7 +72,7 @@ public class ResponderServerImplTest {
         ResponderServer.RequestHandler handler = (request, responder) -> { throw error; };
 
         ResponderServerImpl responderServer = ResponderServerImpl
-                .create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, handler);
+                .create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, handler, Payload.class);
         responderServer.listen();
 
         // simulate incoming request
