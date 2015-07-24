@@ -39,7 +39,7 @@ public class HeartbeatTask implements Runnable {
 
             Payload emptyPayload = new Payload.Builder().build();
 
-            objectFactory.createRequester(Utils.TOPIC_HEARTBEAT, requestOptions)
+            objectFactory.createRequester(Utils.TOPIC_HEARTBEAT, requestOptions, null)
                     .onEnd(heartbeatHandler)
                     .publish(emptyPayload);
 

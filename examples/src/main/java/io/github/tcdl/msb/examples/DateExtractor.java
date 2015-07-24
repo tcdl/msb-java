@@ -32,7 +32,7 @@ public class DateExtractor {
 
         msbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responder) -> {
 
-            Query query = ((Request)request).getQuery();
+            Query query = request.getQuery();
             String queryString = query.getQ();
             String year = DateExtractorUtils.retrieveYear(queryString);
 
@@ -54,9 +54,10 @@ public class DateExtractor {
 
                 ResponseBody responseBody = new ResponseBody();
                 responseBody.setResults(Arrays.asList(result));
-                Payload responsePayload = new Payload.Builder()
+                Payload responsePayload = new Payload.Builder<Object, Object, Object, ResponseBody>()
                         .withStatusCode(200)
-                        .withBody(responseBody).build();
+                        .withBody(responseBody)
+                        .build();
 
                 responder.send(responsePayload);
             }

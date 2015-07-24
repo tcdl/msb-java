@@ -27,19 +27,12 @@ public class RequestOptions {
      */
     private Integer waitForResponses;
 
-    /**
-     * Class to convert payload of response message to
-     */
-    private Class<? extends Payload> payloadClass;
-
     private MessageTemplate messageTemplate;
 
-    private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, Class<? extends Payload> payloadClass,
-            MessageTemplate messageTemplate) {
+    private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, MessageTemplate messageTemplate) {
         this.ackTimeout = ackTimeout;
         this.responseTimeout = responseTimeout;
         this.waitForResponses = waitForResponses;
-        this.payloadClass = payloadClass;
         this.messageTemplate = messageTemplate;
     }
 
@@ -63,10 +56,6 @@ public class RequestOptions {
         return getWaitForResponses() != 0;
     }
 
-    public Class<? extends Payload> getPayloadClass() {
-        return payloadClass;
-    }
-
     public MessageTemplate getMessageTemplate() {
         return messageTemplate;
     }
@@ -76,46 +65,39 @@ public class RequestOptions {
         return "RequestOptions [ackTimeout=" + ackTimeout
                 + ", responseTimeout=" + responseTimeout
                 + ", waitForResponses=" + waitForResponses
-                + ", payloadClass=" + payloadClass
                 + (messageTemplate != null ? messageTemplate : "")
                 + "]";
     }
 
-    public static class Builder {
+    public static class Builder<T extends Payload> {
 
         private Integer ackTimeout;
         private Integer responseTimeout;
         private Integer waitForResponses;
-        private Class<? extends Payload> payloadClass;
         private MessageTemplate messageTemplate;
 
-        public Builder withAckTimeout(Integer ackTimeout) {
+        public Builder<T> withAckTimeout(Integer ackTimeout) {
             this.ackTimeout = ackTimeout;
             return this;
         }
 
-        public Builder withResponseTimeout(Integer responseTimeout) {
+        public Builder<T> withResponseTimeout(Integer responseTimeout) {
             this.responseTimeout = responseTimeout;
             return this;
         }
 
-        public Builder withWaitForResponses(Integer waitForResponses) {
+        public Builder<T> withWaitForResponses(Integer waitForResponses) {
             this.waitForResponses = waitForResponses;
             return this;
         }
 
-        public Builder withPayloadClass(Class<? extends Payload> payloadClass) {
-            this.payloadClass = payloadClass;
-            return this;
-        }
-
-        public Builder withMessageTemplate(MessageTemplate messageTemplate) {
+        public Builder<T> withMessageTemplate(MessageTemplate messageTemplate) {
             this.messageTemplate = messageTemplate;
             return this;
         }
 
         public RequestOptions build() {
-            return new RequestOptions(ackTimeout, responseTimeout, waitForResponses, payloadClass, messageTemplate);
+            return new RequestOptions(ackTimeout, responseTimeout, waitForResponses, messageTemplate);
         }
     }
 }

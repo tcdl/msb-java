@@ -14,7 +14,6 @@ import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 import io.github.tcdl.msb.config.ServiceDetails;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.monitor.agent.AgentTopicStats;
-import io.github.tcdl.msb.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +39,7 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
     public DefaultChannelMonitorAggregator(MsbContextImpl msbContext, ScheduledExecutorService scheduledExecutorService, Callback<AggregatorStats> aggregatorStatsHandler) {
         this.channelManager = msbContext.getChannelManager();
         this.objectFactory = msbContext.getObjectFactory();
-        this.messageMapper = msbContext.getMessageMapper();
+        this.messageMapper = msbContext.getPayloadMapper();
         this.scheduledExecutorService = scheduledExecutorService;
         this.handler = aggregatorStatsHandler;
     }
@@ -92,8 +91,9 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
         String instanceId = serviceDetails.getInstanceId();
         aggregatorStats.getServiceDetailsById().put(instanceId, serviceDetails);
 
-        Payload payload = message.getPayload();
-        Map <String, AgentTopicStats > agentTopicStatsMap = Utils.toCustomTypeReference(payload.getBody(), new TypeReference<Map<String, AgentTopicStats>>() {}, messageMapper);
+        Object rawPayload = message.getRawPayload();
+        Payload<?, ?, ?, Map<String, AgentTopicStats>> payload = messageMapper.convertValue(rawPayload, new TypeReference<Payload<Object, Object, Object, Map<String, AgentTopicStats>>>() {});
+        Map<String, AgentTopicStats> agentTopicStatsMap = payload.getBody();
 
         aggregateTopicStats(aggregatorStats, agentTopicStatsMap, instanceId);
     }

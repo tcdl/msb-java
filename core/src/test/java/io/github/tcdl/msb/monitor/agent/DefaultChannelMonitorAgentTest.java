@@ -17,7 +17,6 @@ import org.mockito.Mockito;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Map;
 
 import static io.github.tcdl.msb.support.Utils.TOPIC_ANNOUNCE;
 import static io.github.tcdl.msb.support.Utils.TOPIC_HEARTBEAT;
@@ -43,7 +42,7 @@ public class DefaultChannelMonitorAgentTest {
         mockChannelManager = mock(ChannelManager.class);
         Clock clock = Clock.fixed(CLOCK_INSTANT, ZoneId.systemDefault());
         ServiceDetails serviceDetails = new ServiceDetails.Builder().build();
-        MessageFactory messageFactory = new MessageFactory(serviceDetails, clock);
+        MessageFactory messageFactory = new MessageFactory(serviceDetails, clock, TestUtils.createMessageMapper());
         TimeoutManager mockTimeoutManager = mock(TimeoutManager.class);
         MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
                 .withMessageFactory(messageFactory)
@@ -151,8 +150,8 @@ public class DefaultChannelMonitorAgentTest {
     }
 
     private void verifyMessageContainsTopic(Message message, String topicName) {
-        assertNotNull(message.getPayload());
-        assertNotNull(message.getPayload().getBody());
-        assertTrue(((Map)message.getPayload().getBody()).containsKey(topicName));
+        assertNotNull(message.getRawPayload());
+        assertNotNull(message.getRawPayload().get("body"));
+        assertTrue(message.getRawPayload().get("body").has(topicName));
     }
 }

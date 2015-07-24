@@ -7,6 +7,7 @@ import io.github.tcdl.msb.api.PayloadConverter;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.ResponderServer;
+import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.monitor.aggregator.DefaultChannelMonitorAggregator;
 import io.github.tcdl.msb.support.TestUtils;
@@ -15,9 +16,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -39,7 +37,7 @@ public class ObjectFactoryImplTest {
     @Test
     public void testCreateRequester() {
         ObjectFactory objectFactory = new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build());
-        Requester expectedRequester = objectFactory.createRequester(NAMESPACE, mock(RequestOptions.class));
+        Requester expectedRequester = objectFactory.createRequester(NAMESPACE, mock(RequestOptions.class), null);
         assertNotNull(expectedRequester);
     }
 
@@ -47,13 +45,14 @@ public class ObjectFactoryImplTest {
     public void testCreateRequesterWithOriginalMessage() {
         ObjectFactory objectFactory = new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build());
         Requester expectedRequester = objectFactory
-                .createRequester(NAMESPACE, mock(RequestOptions.class), TestUtils.createMsbRequestMessageNoPayload("test:object-factory-incoming"));
+                .createRequester(NAMESPACE, mock(RequestOptions.class), TestUtils.createMsbRequestMessageNoPayload("test:object-factory-incoming"), Payload.class);
         assertNotNull(expectedRequester);
     }
 
     @Test
     public void testCreateResponderServer() {
         ObjectFactory objectFactory = new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build());
+        @SuppressWarnings("unchecked")
         ResponderServer expectedResponderServer = objectFactory
                 .createResponderServer(NAMESPACE, mock(MessageTemplate.class), mock(ResponderServer.RequestHandler.class));
         assertNotNull(expectedResponderServer);

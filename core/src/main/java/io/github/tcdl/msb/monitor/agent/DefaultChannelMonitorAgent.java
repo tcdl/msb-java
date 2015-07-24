@@ -59,7 +59,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
         channelManager.subscribe(Utils.TOPIC_HEARTBEAT, // Launch listener for heartbeat topic
                 message -> {
                         Responder responder = new ResponderImpl(null, message, msbContext);
-                        Payload payload = new Payload.Builder()
+                        Payload payload = new Payload.Builder<Object, Object, Object, Map<String, AgentTopicStats>>()
                                 .withBody(topicInfoMap)
                                 .build();
                         responder.send(payload);
@@ -140,7 +140,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
      * Makes broadcast of the current statistics.
      */
     private void doAnnounce() {
-        Payload payload = new Payload.Builder()
+        Payload payload = new Payload.Builder<Object, Object, Object, Map<String, AgentTopicStats>>()
                 .withBody(topicInfoMap)
                 .build();
 

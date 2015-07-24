@@ -27,20 +27,20 @@ public class MsbContextImpl implements MsbContext {
     private ChannelManager channelManager;
     private Clock clock;
     private TimeoutManager timeoutManager;
-    private ObjectMapper messageMapper;
+    private ObjectMapper payloadMapper;
     private CollectorManagerFactory collectorManagerFactory;
 
     public MsbContextImpl(MsbConfig msbConfig, MessageFactory messageFactory, ChannelManager channelManager,
             Clock clock,
             TimeoutManager timeoutManager,
-            ObjectMapper messageMapper,
+            ObjectMapper payloadMapper,
             CollectorManagerFactory collectorManagerFactory) {
         this.msbConfig = msbConfig;
         this.messageFactory = messageFactory;
         this.channelManager = channelManager;
         this.clock = clock;
         this.timeoutManager = timeoutManager;
-        this.messageMapper = messageMapper;
+        this.payloadMapper = payloadMapper;
         this.collectorManagerFactory = collectorManagerFactory;
     }
 
@@ -94,8 +94,8 @@ public class MsbContextImpl implements MsbContext {
     /**
      * @return object of class {@link ObjectMapper} which will be used to deserialize/serialize message
      */
-    public ObjectMapper getMessageMapper() {
-        return messageMapper;
+    public ObjectMapper getPayloadMapper() {
+        return payloadMapper;
     }
 
     /**
