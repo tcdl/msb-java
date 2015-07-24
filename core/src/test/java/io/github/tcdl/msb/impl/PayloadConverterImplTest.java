@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
@@ -19,6 +20,7 @@ public class PayloadConverterImplTest {
     @Before
     public void setUp() {
         MsbContext msbContext = new MsbContextBuilder()
+                .withPayloadMapper(new ObjectMapper())
                 .enableChannelMonitorAgent(true)
                 .enableShutdownHook(true)
                 .build();

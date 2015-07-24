@@ -50,7 +50,7 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
 
         msbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
@@ -70,14 +70,15 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
         Body sentBody = new Body("test:requester-responder-test-body");
-        Payload requestPayload = new Payload.Builder().withBody(sentBody).build();
+        Payload<Object, Object, Object, Body> requestPayload = new Payload.Builder<Object, Object, Object, Body>()
+                .withBody(sentBody)
+                .build();
 
         Body receivedBody = new Body();
         msbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
-            MyPayload payload = (MyPayload) request;
-            receivedBody.setBody(payload.getBody().getBody());
+            receivedBody.setBody(request.getBody().getBody());
             requestReceived.countDown();
         }, MyPayload.class)
                 .listen();
@@ -95,9 +96,11 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
         Body sentBody = new Body("test:requester-responder-test-body");
-        Payload requestPayload = new Payload.Builder().withBody(sentBody).build();
+        Payload<Object, Object, Object, Body> requestPayload = new Payload.Builder<Object, Object, Object, Body>()
+                .withBody(sentBody)
+                .build();
 
         Body receivedBody = new Body();
         msbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
@@ -166,7 +169,7 @@ public class RequesterResponderIT {
 
         //Create and send request message directly to broker, wait for response
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        msbContext.getObjectFactory().createRequester(namespace, requestOptions)
+        msbContext.getObjectFactory().createRequester(namespace, requestOptions, Payload.class)
                 .onResponse(payload -> {
                     receivedResponses.add(payload);
                     respReceived.countDown();
@@ -175,11 +178,13 @@ public class RequesterResponderIT {
 
         //listen for message and send response
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
-        Map bodyMap = new HashMap<String, String>();
+        Map<String, String> bodyMap = new HashMap<>();
         bodyMap.put("body", "payload from test testResponderAnswerWithResponseRequesterReceiveResponse");
         serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, response) -> {
-            Payload payload = new Payload.Builder().withBody(bodyMap)
-                    .withStatusCode(3333).build();
+            Payload payload = new Payload.Builder<Object, Object, Object, Map<String, String>>()
+                    .withBody(bodyMap)
+                    .withStatusCode(3333)
+                    .build();
             response.send(payload);
             sentResponses.add(payload);
             respSend.countDown();
@@ -199,7 +204,6 @@ public class RequesterResponderIT {
         RequestOptions requestOptions = new RequestOptions.Builder()
                 .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
                 .withWaitForResponses(1)
-                .withPayloadClass(MyPayload.class)
                 .build();
 
         CountDownLatch respSend = new CountDownLatch(1);
@@ -211,11 +215,10 @@ public class RequesterResponderIT {
         //Create and send request message directly to broker, wait for response
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
         Body receivedBody = new Body();
-        msbContext.getObjectFactory().createRequester(namespace, requestOptions)
+        msbContext.getObjectFactory().createRequester(namespace, requestOptions, MyPayload.class)
                 .onResponse(payload -> {
                     receivedResponses.add(payload);
-                    MyPayload myPayload = (MyPayload)payload;
-                    receivedBody.setBody(myPayload.getBody().getBody());
+                    receivedBody.setBody(payload.getBody().getBody());
                     respReceived.countDown();
                 })
                 .publish(requestPayload);
@@ -223,7 +226,9 @@ public class RequesterResponderIT {
         //listen for message and send response
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
         Body responseBody = new Body("payload from test testResponderAnswerWithResponseRequesterReceiveResponse");
-        Payload responsePayload = new Payload.Builder().withBody(responseBody).build();
+        Payload responsePayload = new Payload.Builder<Object, Object, Object, Body>()
+                .withBody(responseBody)
+                .build();
 
         serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, response) -> {
             response.send(responsePayload);
@@ -258,7 +263,7 @@ public class RequesterResponderIT {
         serverOneMsbContext.getObjectFactory().createResponderServer(namespace1, responderServerOneMessageOptions, (request, response) -> {
 
             //Create and send request message, wait for ack
-            Requester requester = msbContext.getObjectFactory().createRequester(namespace2, requestAwaitAckMessageOptions);
+            Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace2, requestAwaitAckMessageOptions);
             Payload requestPayload = TestUtils.createSimpleRequestPayload();
             requester.onAcknowledge((Acknowledge a) -> ackReceived.countDown());
             requester.publish(requestPayload);
@@ -273,7 +278,7 @@ public class RequesterResponderIT {
                 .listen();
 
         MockAdapter.pushRequestMessage(namespace1,
-                Utils.toJson(TestUtils.createMsbRequestMessageWithSimplePayload(namespace1), msbContext.getMessageMapper()));
+                Utils.toJson(TestUtils.createMsbRequestMessageWithSimplePayload(namespace1), msbContext.getPayloadMapper()));
 
         assertTrue("Message ack was not send", ackSent.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         assertTrue("Message ack was not received", ackReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
@@ -341,9 +346,11 @@ public class RequesterResponderIT {
 
         Thread serverListenThread = new Thread(() -> {
             msbContext.getObjectFactory().createResponderServer(namespace, requestOptionsWaitResponse.getMessageTemplate(), (request, response) -> {
-                Payload payload = new Payload.Builder().withBody(
-                        new HashMap<String, String>().put("body", "payload from test : testRequestMessageCollectorUnsubscribeAfterResponsesAndSubscribeAgain"))
-                        .withStatusCode(4444).build();
+                Payload payload = new Payload.Builder<Object, Object, Object, String>()
+                        .withBody(new HashMap<String, String>()
+                                .put("body", "payload from test : testRequestMessageCollectorUnsubscribeAfterResponsesAndSubscribeAgain"))
+                        .withStatusCode(4444)
+                        .build();
                 response.send(payload);
             })
                     .listen();
@@ -356,7 +363,7 @@ public class RequesterResponderIT {
         CountDownLatch endConversation2 = new CountDownLatch(1);
 
         //Create and send request message
-        Requester requester = msbContext.getObjectFactory().createRequester(namespace, requestOptionsWaitResponse).onEnd(arg -> endConversation1.countDown());
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptionsWaitResponse).onEnd(arg -> endConversation1.countDown());
         requester.publish(TestUtils.createSimpleRequestPayload());
         assertTrue("Message was not received", endConversation1.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
 

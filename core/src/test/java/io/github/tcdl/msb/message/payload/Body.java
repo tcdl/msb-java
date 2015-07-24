@@ -19,7 +19,8 @@ public class Body {
         this.body = body;
     }
 
-    @Override public boolean equals(Object o) {
+    @Override
+    public boolean equals(Object o) {
         if (this == o)
             return true;
         if (o == null || getClass() != o.getClass())
@@ -31,7 +32,8 @@ public class Body {
 
     }
 
-    @Override public int hashCode() {
+    @Override
+    public int hashCode() {
         return body != null ? body.hashCode() : 0;
     }
 }

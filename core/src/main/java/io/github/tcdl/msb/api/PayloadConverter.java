@@ -7,20 +7,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
  */
 public interface PayloadConverter {
     /**
-     * Converts object to instance of given class
-     *
-     * @param obj object to convert
-     * @param clazz class to convert to
-     * @return instance of class clazz
+     * Convenience method that allows to specify target type as {@link Class}
      */
-    <T> T getAs(Object obj, Class<T> clazz);
+    <T> T getAs(Object source, Class<T> destClass);
 
     /**
      * Converts object to instance of type
      *
-     * @param obj object to convert
-     * @param typeReference type to convert to
+     * @param source object to convert
+     * @param destTypeReference type to convert to
      * @return instance of class clazz
      */
-    <T> T getAs(Object obj, TypeReference<T> typeReference);
+    <T> T getAs(Object source, TypeReference<T> destTypeReference);
 }

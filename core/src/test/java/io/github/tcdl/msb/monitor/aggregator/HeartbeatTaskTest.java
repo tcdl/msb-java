@@ -24,7 +24,8 @@ import static org.mockito.Mockito.when;
 public class HeartbeatTaskTest {
 
     private ObjectFactory mockObjectFactory = mock(ObjectFactory.class);
-    private Requester mockRequester = mock(Requester.class);
+    @SuppressWarnings("unchecked")
+    private Requester<Payload> mockRequester = mock(Requester.class);
     @SuppressWarnings("unchecked")
     private Callback<List<Message>> mockMessageHandler = mock(Callback.class);
     private HeartbeatTask heartbeatTask = new HeartbeatTask(ChannelMonitorAggregator.DEFAULT_HEARTBEAT_TIMEOUT_MS, mockObjectFactory, mockMessageHandler);

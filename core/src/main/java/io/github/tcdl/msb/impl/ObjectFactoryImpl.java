@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.ObjectFactory;
@@ -32,39 +33,28 @@ public class ObjectFactoryImpl implements ObjectFactory {
     public ObjectFactoryImpl(MsbContextImpl msbContext) {
         super();
         this.msbContext = msbContext;
+        payloadConverter = new PayloadConverterImpl(msbContext.getPayloadMapper());
+    }
+
+    @Override
+    public <T extends Payload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference) {
+        return RequesterImpl.create(namespace, requestOptions, msbContext, payloadTypeReference);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Requester createRequester(String namespace, RequestOptions requestOptions) {
-        return RequesterImpl.create(namespace, requestOptions, msbContext);
+    public <T extends Payload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
+        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, payloadTypeReference);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public ResponderServer createResponderServer(String namespace,  MessageTemplate messageTemplate, ResponderServer.RequestHandler requestHandler) {
-        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, null);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override public ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate, ResponderServer.RequestHandler requestHandler,
-            Class<? extends Payload> payloadClass) {
-        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, payloadClass);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override public PayloadConverter getPayloadConverter() {
-        if (payloadConverter == null) {
-            payloadConverter = new PayloadConverterImpl(msbContext.getMessageMapper());
-        }
+    public PayloadConverter getPayloadConverter() {
         return payloadConverter;
     }
 

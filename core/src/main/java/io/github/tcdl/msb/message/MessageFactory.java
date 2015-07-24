@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.message;
 
-import java.time.Clock;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
@@ -13,31 +13,39 @@ import io.github.tcdl.msb.config.ServiceDetails;
 import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
 
+import java.time.Clock;
+
 public class MessageFactory {
 
     private ServiceDetails serviceDetails;
     private Clock clock;
+    private ObjectMapper payloadMapper;
 
-    public MessageFactory(ServiceDetails serviceDetails, Clock clock) {
+    public MessageFactory(ServiceDetails serviceDetails, Clock clock, ObjectMapper payloadMapper) {
         Validate.notNull(serviceDetails, "'serviceDetails' must not be null");
         Validate.notNull(clock, "'clock' must not be null");
+        Validate.notNull(clock, "'payloadMapper' must not be null");
         this.serviceDetails = serviceDetails;
         this.clock = clock;
+        this.payloadMapper = payloadMapper;
     }
 
     public Message createRequestMessage(Message.Builder messageBuilder, Payload payload) {
-        messageBuilder.withPayload(payload);
+        JsonNode convertedPayload = Utils.convert(payload, JsonNode.class, payloadMapper);
+        messageBuilder.withPayload(convertedPayload);
         return messageBuilder.build();
     }
 
-    public Message createResponseMessage(Message.Builder messageBuilder, Acknowledge ack, Payload payload) {
-        messageBuilder.withPayload(payload);
+    public Message createResponseMessage(Message.Builder messageBuilder, Acknowledge ack, Payload<?, ?, ?, ?> payload) {
+        JsonNode convertedPayload = Utils.convert(payload, JsonNode.class, payloadMapper);
+        messageBuilder.withPayload(convertedPayload);
         messageBuilder.withAck(ack);
         return messageBuilder.build();
     }
 
     public Message createBroadcastMessage(Message.Builder messageBuilder, Payload payload) {
-        messageBuilder.withPayload(payload);
+        JsonNode convertedPayload = Utils.convert(payload, JsonNode.class, payloadMapper);
+        messageBuilder.withPayload(convertedPayload);
         return messageBuilder.build();
     }
 

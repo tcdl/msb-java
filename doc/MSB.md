@@ -175,7 +175,7 @@ public class PingService {
 
     public static void main(String[] args) {
         MsbContext msbContext = new MsbContextBuilder().
-                withShutdownHook(true).
+                enableShutdownHook(true).
                 build();
 
         RequestOptions requestOptions = new RequestOptions.Builder()
@@ -185,11 +185,11 @@ public class PingService {
                 .build();
 
         ObjectFactory objectFactory = msbContext.getObjectFactory();
-        Requester requester = objectFactory.createRequester("pingpong:namespace", requestOptions)
-                .onResponse(payload -> LOG.info(String.format("Received response '%s'", payload.getBodyAs(String.class)))) // Handling the one response
+        Requester<Payload> requester = objectFactory.createRequester("pingpong:namespace", requestOptions)
+                .onResponse(payload -> LOG.info(String.format("Received response '%s'", payload.getBody()))) // Handling the one response
                 .onEnd(arg -> LOG.info("Received all expected responses")); // Handling all response arrival or timeout
 
-        Payload pingPayload = new Payload.Builder()
+        Payload pingPayload = new Payload.Builder<Object, Object, Object, String>()
                 .withBody("PING")
                 .build();
 
@@ -217,15 +217,15 @@ public class PongService {
 
     public static void main(String[] args) {
         MsbContext msbContext = new MsbContextBuilder().
-                withShutdownHook(true). // Instruct the builder to auto-register hook that does graceful shutdown
+                enableShutdownHook(true). // Instruct the builder to auto-register hook that does graceful shutdown
                 build();
 
         ObjectFactory objectFactory = msbContext.getObjectFactory();
         ResponderServer responderServer = objectFactory.createResponderServer("pingpong:namespace", new MessageTemplate(), (request, responder) -> {
             // Response handling logic
-            LOG.info(String.format("Handling %s...", request.getBodyAs(String.class)));
+            LOG.info(String.format("Handling %s...", request.getBody()));
 
-            Payload pongPayload = new Payload.Builder()
+            Payload pongPayload = new Payload.Builder<Object, Object, Object, String>()
                     .withBody("PONG")
                     .build();
 

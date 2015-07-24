@@ -10,25 +10,25 @@ import io.github.tcdl.msb.support.Utils;
  */
 public class PayloadConverterImpl implements PayloadConverter {
 
-    private ObjectMapper messageMapper;
+    private ObjectMapper payloadMapper;
 
-    protected PayloadConverterImpl(ObjectMapper messageMapper) {
-        this.messageMapper = messageMapper;
+    protected PayloadConverterImpl(ObjectMapper payloadMapper) {
+        this.payloadMapper = payloadMapper;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public <T> T getAs(Object obj, Class<T> clazz) {
-        return Utils.fromJson(Utils.toJson(obj, messageMapper), clazz, messageMapper);
+    public <T> T getAs(Object source, Class<T> destClass) {
+        return Utils.convert(source, destClass, payloadMapper);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public <T> T getAs(Object obj, TypeReference<T> typeReference) {
-        return Utils.toCustomTypeReference(obj, typeReference, messageMapper);
+    public <T> T getAs(Object source, TypeReference<T> destTypeReference) {
+        return Utils.convert(source, destTypeReference, payloadMapper);
     }
 }

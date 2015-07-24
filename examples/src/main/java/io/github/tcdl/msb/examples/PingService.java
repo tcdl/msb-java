@@ -24,11 +24,11 @@ public class PingService {
                 .build();
 
         ObjectFactory objectFactory = msbContext.getObjectFactory();
-        Requester requester = objectFactory.createRequester("pingpong:namespace", requestOptions)
+        Requester<Payload> requester = objectFactory.createRequester("pingpong:namespace", requestOptions)
                 .onResponse(payload -> LOG.info(String.format("Received response '%s'", payload.getBody()))) // Handling the one response
                 .onEnd(arg -> LOG.info("Received all expected responses")); // Handling all response arrival or timeout
 
-        Payload pingPayload = new Payload.Builder()
+        Payload pingPayload = new Payload.Builder<Object, Object, Object, String>()
                 .withBody("PING")
                 .build();
 

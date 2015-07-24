@@ -54,9 +54,10 @@ public class FacetsAggregator {
 
                 responseBodyAny.setFacets(Arrays.asList(facet));
 
-                Payload responsePayloadAny = new Payload.Builder()
+                Payload responsePayloadAny = new Payload.Builder<Object, Object, Object, ResponseBodyAny>()
                         .withStatusCode(200)
-                        .withBody(responseBodyAny).build();
+                        .withBody(responseBodyAny)
+                        .build();
 
                 responder.send(responsePayloadAny);
             } else {
@@ -66,8 +67,8 @@ public class FacetsAggregator {
                         .withResponseTimeout(600)
                         .build();
 
-                Requester requester = msbContext.getObjectFactory().createRequester("search:parsers:facets:v1",
-                        requestOptions);
+                Requester<Payload> requester = msbContext.getObjectFactory().createRequester("search:parsers:facets:v1",
+                        requestOptions, Payload.class);
 
                 final String[] result = {""};
 
@@ -78,11 +79,12 @@ public class FacetsAggregator {
 
                 requester.onEnd(listOfMessages -> {
                     for (Message message : listOfMessages)
-                        System.out.println(">>> MESSAGE: " + message.getPayload().getBody());
+                        System.out.println(">>> MESSAGE: " + message.getRawPayload());
 
-                    Payload responsePayload = new Payload.Builder()
+                    Payload responsePayload = new Payload.Builder<Object, Object, Object, String>()
                             .withStatusCode(200)
-                            .withBody(result[0]).build();
+                            .withBody(result[0])
+                            .build();
 
                     responder.send(responsePayload);
                 });

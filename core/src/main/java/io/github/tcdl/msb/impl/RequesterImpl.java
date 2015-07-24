@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.api.Callback;
@@ -18,14 +19,15 @@ import java.util.List;
 /**
  * Internal implementations of Requester interface.
  */
-public class RequesterImpl implements Requester {
+public class RequesterImpl<T extends Payload> implements Requester<T> {
 
     private RequestOptions requestOptions;
     private MsbContextImpl context;
 
     private MessageFactory messageFactory;
     private String namespace;
-    EventHandlers eventHandlers;
+    EventHandlers<T> eventHandlers;
+    private TypeReference<T> payloadTypeReference;
 
     /**
      * Creates a new instance of a requester.
@@ -35,11 +37,11 @@ public class RequesterImpl implements Requester {
      * @param context        shared by all Requester instances
      * @return instance of a requester
      */
-    static RequesterImpl create(String namespace, RequestOptions requestOptions, MsbContextImpl context) {
-        return new RequesterImpl(namespace, requestOptions, context);
+    static <T extends  Payload> RequesterImpl<T> create(String namespace, RequestOptions requestOptions, MsbContextImpl context, TypeReference<T> payloadTypeReference) {
+        return new RequesterImpl<>(namespace, requestOptions, context, payloadTypeReference);
     }
 
-    private RequesterImpl(String namespace, RequestOptions requestOptions, MsbContextImpl context) {
+    private RequesterImpl(String namespace, RequestOptions requestOptions, MsbContextImpl context, TypeReference<T> payloadTypeReference) {
         Validate.notNull(namespace, "the 'namespace' must not be null");
         Validate.notNull(requestOptions, "the 'messageOptions' must not be null");
         Validate.notNull(context, "the 'context' must not be null");
@@ -47,7 +49,9 @@ public class RequesterImpl implements Requester {
         this.namespace = namespace;
         this.requestOptions = requestOptions;
         this.context = context;
-        this.eventHandlers = new EventHandlers();
+        this.payloadTypeReference = payloadTypeReference;
+
+        this.eventHandlers = new EventHandlers<>();
         this.messageFactory = context.getMessageFactory();
     }
 
@@ -55,7 +59,7 @@ public class RequesterImpl implements Requester {
      * {@inheritDoc}
      */
     @Override
-    public void publish(Payload requestPayload) {
+    public void publish(Payload<?, ?, ?, ?> requestPayload) {
         publish(requestPayload, null);
 
     }
@@ -63,7 +67,7 @@ public class RequesterImpl implements Requester {
      * {@inheritDoc}
      */
     @Override
-    public void publish(Payload requestPayload, Message originalMessage) {
+    public void publish(Payload<?, ?, ?, ?> requestPayload, Message originalMessage) {
         Message.Builder messageBuilder = messageFactory.createRequestMessageBuilder(namespace, requestOptions.getMessageTemplate(), originalMessage);
         Message message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
@@ -88,7 +92,7 @@ public class RequesterImpl implements Requester {
      * {@inheritDoc}
      */
     @Override
-    public Requester onAcknowledge(Callback<Acknowledge> acknowledgeHandler) {
+    public Requester<T> onAcknowledge(Callback<Acknowledge> acknowledgeHandler) {
         eventHandlers.onAcknowledge(acknowledgeHandler);
         return this;
     }
@@ -97,7 +101,7 @@ public class RequesterImpl implements Requester {
      * {@inheritDoc}
      */
     @Override
-    public Requester onResponse(Callback<Payload> responseHandler) {
+    public Requester<T> onResponse(Callback<T> responseHandler) {
         eventHandlers.onResponse(responseHandler);
         return this;
     }
@@ -106,7 +110,7 @@ public class RequesterImpl implements Requester {
      * {@inheritDoc}
      */
     @Override
-    public Requester onEnd(Callback<List<Message>> endHandler) {
+    public Requester<T> onEnd(Callback<List<Message>> endHandler) {
         eventHandlers.onEnd(endHandler);
         return this;
     }
@@ -115,7 +119,7 @@ public class RequesterImpl implements Requester {
         return context.getChannelManager();
     }
 
-    Collector createCollector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl context, EventHandlers eventHandlers) {
-        return new Collector(topic, requestMessage, requestOptions, context, eventHandlers);
+    Collector<T> createCollector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl context, EventHandlers<T> eventHandlers) {
+        return new Collector<>(topic, requestMessage, requestOptions, context, eventHandlers, payloadTypeReference);
     }
 }

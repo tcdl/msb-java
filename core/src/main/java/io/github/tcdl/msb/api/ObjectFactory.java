@@ -1,8 +1,11 @@
 package io.github.tcdl.msb.api;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
+
+import java.lang.reflect.Type;
 
 /**
  * Provides methods for creation client-facing API classes.
@@ -10,30 +13,70 @@ import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 public interface ObjectFactory {
 
     /**
-     * @param namespace      topic name to send a request to
-     * @param requestOptions options to configure a requester
-     * @return instance of a {@link Requester}
+     * Convenience method that specifies response payload type as {@link Payload}
+     *
+     * See {@link #createRequester(String, RequestOptions, TypeReference)}
      */
-    Requester createRequester(String namespace, RequestOptions requestOptions);
+    default Requester<Payload> createRequester(String namespace, RequestOptions requestOptions) {
+        return createRequester(namespace, requestOptions, Payload.class);
+    }
 
     /**
-     * @param namespace       topic on a bus for listening on incoming requests
-     * @param messageTemplate template used for creating response messages
-     * @param requestHandler  handler for processing the request
-     * @return new instance of a {@link ResponderServer} that unmarshals payload into default {@link Payload}
+     * Convenience method that allows to specify response payload type via {@link Class}
+     *
+     * See {@link #createRequester(String, RequestOptions, TypeReference)}
      */
-    ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
-            ResponderServer.RequestHandler requestHandler);
+    default <T extends Payload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, Class<T> payloadClass) {
+        return createRequester(namespace, requestOptions, new TypeReference<T>() {
+            @Override
+            public Type getType() {
+                return payloadClass;
+            }
+        });
+    }
 
     /**
-     * @param namespace       topic on a bus for listening on incoming requests
-     * @param messageTemplate template used for creating response messages
-     * @param requestHandler  handler for processing the request
-     * @param payloadClass    defines custom payload type
+     * @param namespace             topic name to send a request to
+     * @param requestOptions        options to configure a requester
+     * @param payloadTypeReference  expected payload type of response messages
+     * @return new instance of a {@link Requester} with original message
+     */
+    <T extends Payload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference);
+
+    /**
+     * Convenience method that specifies incoming payload type as {@link Payload}
+     *
+     * See {@link #createRequester(String, RequestOptions, TypeReference)}
+     */
+    default ResponderServer<Payload> createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<Payload> requestHandler) {
+        return createResponderServer(namespace, messageTemplate, requestHandler, Payload.class);
+    }
+
+    /**
+     * Convenience method that allows to specify incoming payload type via {@link Class}
+     *
+     * See {@link #createRequester(String, RequestOptions, TypeReference)}
+     */
+    default <T extends Payload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {
+        return createResponderServer(namespace, messageTemplate, requestHandler, new TypeReference<T>() {
+            @Override
+            public Type getType() {
+                return payloadClass;
+            }
+        });
+    }
+
+    /**
+     * @param namespace                 topic on a bus for listening on incoming requests
+     * @param messageTemplate           template used for creating response messages
+     * @param requestHandler            handler for processing the request
+     * @param payloadTypeReference      expected payload type of incoming messages
      * @return new instance of a {@link ResponderServer} that unmarshals payload into specified payload type
      */
-    ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
-            ResponderServer.RequestHandler requestHandler, Class<? extends Payload> payloadClass);
+    <T extends Payload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference);
 
     /**
      * @return instance of converter to convert any objects

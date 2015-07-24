@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public class RequesterResponderSteps extends MsbSteps {
 
-    private Requester requester;
+    private Requester<Payload<Object, Object, Object, Map<String, Object>>> requester;
     private String responseBody;
     private Map<String, Object> receivedResponse;
 
@@ -29,7 +29,9 @@ public class RequesterResponderSteps extends MsbSteps {
         ObjectMapper mapper = super.helper.getObjectMapper();
         helper.createResponderServer(namespace, (request, responder) -> {
             if (responseBody != null) {
-                Payload payload = new Payload.Builder().withBody(Utils.fromJson(responseBody, Map.class, mapper)).build();
+                Payload payload = new Payload.Builder<Object, Object, Object, Map>()
+                        .withBody(Utils.fromJson(responseBody, Map.class, mapper))
+                        .build();
                 responder.send(payload);
             }
         })
@@ -62,8 +64,8 @@ public class RequesterResponderSteps extends MsbSteps {
         helper.sendRequest(requester, null, body, true, 1, null, this::onResponse);
     }
 
-    private void onResponse(Payload payload) {
-        receivedResponse = (Map) payload.getBody();
+    private void onResponse(Payload<Object, Object, Object, Map<String, Object>> payload) {
+        receivedResponse = payload.getBody();
     }
 
     @Then("requester gets response in $timeout ms")

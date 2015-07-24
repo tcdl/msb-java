@@ -39,13 +39,13 @@ public class RequesterIT {
         this.requestOptions = TestUtils.createSimpleRequestOptions();
         this.msbContext = TestUtils.createSimpleMsbContext();
         this.validator = new JsonValidator();
-        this.messageMapper = msbContext.getMessageMapper();
+        this.messageMapper = msbContext.getPayloadMapper();
     }
 
     @Test
     public void testRequestMessage() throws Exception {
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);

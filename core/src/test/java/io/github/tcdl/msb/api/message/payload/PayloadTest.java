@@ -40,8 +40,8 @@ public class PayloadTest {
         assertNotEquals(bob.build().hashCode(), payload().withStatusMessage("found").build().hashCode());
     }
 
-    private Builder payload() {
-        return new Payload.Builder()
+    private Builder<String, String, String, String> payload() {
+        return new Payload.Builder<String, String, String, String>()
             .withBody("some-body")
             .withBodyBuffer("a-body-buffer")
             .withHeaders("headers")

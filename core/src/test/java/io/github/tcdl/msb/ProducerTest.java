@@ -1,13 +1,6 @@
 package io.github.tcdl.msb;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import java.time.Clock;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
@@ -28,6 +21,18 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.time.Clock;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
+/**
+ * Created by rdro on 4/28/2015.
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class ProducerTest {
 
@@ -101,14 +106,22 @@ public class ProducerTest {
     private  Message createBrokenRequestMessageWithAndTopicTo(String topicTo) {
         MsbConfig msbConf = new MsbConfig(ConfigFactory.load());
         Clock clock = Clock.systemDefaultZone();
+        ObjectMapper payloadMapper = TestUtils.createMessageMapper();
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
-        Map<String, String> body = new HashMap<String, String>();
+        Map<String, String> body = new HashMap<>();
         body.put("body", "{\\\"x\\\" : 3} garbage");
-        Payload payload = new Payload.Builder().withBody(body).build();
+        Payload<?, ?, ?, Map<String, String>> payload = new Payload.Builder<Object, Object, Object, Map<String, String>>()
+                .withBody(body)
+                .build();
+        JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
         MetaMessage.Builder metaBuilder = new MetaMessage.Builder(null,  clock.instant(), msbConf.getServiceDetails(), clock);
-        return new Message.Builder().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic).withMetaBuilder(
-                metaBuilder).withPayload(payload)
+        return new Message.Builder()
+                .withCorrelationId(Utils.generateId())
+                .withId(Utils.generateId())
+                .withTopics(topic)
+                .withMetaBuilder(metaBuilder)
+                .withPayload(payloadNode)
                 .build();
     }
 }

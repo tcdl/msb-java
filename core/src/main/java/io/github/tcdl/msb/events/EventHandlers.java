@@ -11,10 +11,10 @@ import java.util.List;
 /**
  * {@link EventHandlers} is a component that allows to register custom event handlers for {@link Requester} specific events.
  */
-public class EventHandlers {
+public class EventHandlers<T extends Payload> {
 
     private Callback<Acknowledge> onAcknowledge = acknowledge -> {};
-    private Callback<Payload> onResponse = response -> {};
+    private Callback<T> onResponse = response -> {};
     private Callback<List<Message>> onEnd = messages -> {};
 
     /**
@@ -41,7 +41,7 @@ public class EventHandlers {
      *
      * @return response callback
      */
-    public Callback<Payload> onResponse() {
+    public Callback<T> onResponse() {
         return onResponse;
     }
 
@@ -50,7 +50,7 @@ public class EventHandlers {
      *
      * @param onResponse callback
      */
-    public EventHandlers onResponse(Callback<Payload> onResponse) {
+    public EventHandlers onResponse(Callback<T> onResponse) {
         this.onResponse = onResponse;
         return this;
     }
