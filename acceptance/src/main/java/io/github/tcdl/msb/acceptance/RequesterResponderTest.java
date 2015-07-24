@@ -33,8 +33,7 @@ public class RequesterResponderTest {
         helper.initDefault();
         // running responder server
         helper.createResponderServer(NAMESPACE, (request, responder) -> {
-            MyPayload payload = (MyPayload)request;
-            System.out.println(">>> QUERY: " + payload.getQuery().getQ());
+            System.out.println(">>> QUERY: " + request.getQuery().getQ());
             responder.sendAck(1000, NUMBER_OF_RESPONSES);
             helper.respond(responder);
         }, MyPayload.class)

@@ -76,8 +76,7 @@ public class RequesterResponderIT {
 
         Body receivedBody = new Body();
         msbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
-            MyPayload payload = (MyPayload) request;
-            receivedBody.setBody(payload.getBody().getBody());
+            receivedBody.setBody(request.getBody().getBody());
             requestReceived.countDown();
         }, MyPayload.class)
                 .listen();

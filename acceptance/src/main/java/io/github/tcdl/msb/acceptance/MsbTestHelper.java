@@ -100,13 +100,13 @@ public class MsbTestHelper {
         requester.publish(createPayload(query, body));
     }
 
-    public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler requestHandler) {
+    public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler<Payload> requestHandler) {
         MessageTemplate options = new MessageTemplate();
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
         return context.getObjectFactory().createResponderServer(namespace, options, requestHandler);
     }
 
-    public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler requestHandler, Class payloadClass) {
+    public <T extends Payload> ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {
         MessageTemplate options = new MessageTemplate();
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
         return context.getObjectFactory().createResponderServer(namespace, options, requestHandler, payloadClass);
