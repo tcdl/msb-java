@@ -31,8 +31,10 @@ public interface ObjectFactory {
      * @param requestHandler  handler for processing the request
      * @return new instance of a {@link ResponderServer} that unmarshals payload into default {@link Payload}
      */
-    ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
-            ResponderServer.RequestHandler requestHandler);
+    default ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<Payload> requestHandler) {
+        return createResponderServer(namespace, messageTemplate, requestHandler, Payload.class);
+    }
 
     /**
      * @param namespace       topic on a bus for listening on incoming requests
@@ -41,8 +43,8 @@ public interface ObjectFactory {
      * @param payloadClass    defines custom payload type
      * @return new instance of a {@link ResponderServer} that unmarshals payload into specified payload type
      */
-    ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
-            ResponderServer.RequestHandler requestHandler, Class<? extends Payload> payloadClass);
+    <T extends Payload> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass);
 
     /**
      * @return instance of converter to convert any objects

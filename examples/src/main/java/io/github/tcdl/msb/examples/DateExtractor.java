@@ -34,7 +34,7 @@ public class DateExtractor {
 
         msbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responder) -> {
 
-            Query query = ((Request)request).getQuery();
+            Query query = request.getQuery();
             String queryString = query.getQ();
             String year = DateExtractorUtils.retrieveYear(queryString);
 

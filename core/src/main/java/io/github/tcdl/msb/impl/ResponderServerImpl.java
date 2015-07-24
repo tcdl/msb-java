@@ -33,7 +33,8 @@ public class ResponderServerImpl implements ResponderServer {
     /**
      * {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(String, MessageTemplate, RequestHandler, Class)}
      */
-    static ResponderServerImpl create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler, Class payloadClass) {
+    static <T extends Payload> ResponderServerImpl create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext,
+            RequestHandler<T> requestHandler, Class<T> payloadClass) {
         return new ResponderServerImpl(namespace, messageTemplate, msbContext, requestHandler, payloadClass);
     }
 
