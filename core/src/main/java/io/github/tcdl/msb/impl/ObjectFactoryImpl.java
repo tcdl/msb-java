@@ -39,14 +39,6 @@ public class ObjectFactoryImpl implements ObjectFactory {
      * {@inheritDoc}
      */
     @Override
-    public Requester createRequester(String namespace, RequestOptions requestOptions) {
-        return RequesterImpl.create(namespace, requestOptions, msbContext);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public Requester createRequester(String namespace, RequestOptions requestOptions, Message originalMessage) {
         return RequesterImpl.create(namespace, requestOptions, originalMessage, msbContext);
     }

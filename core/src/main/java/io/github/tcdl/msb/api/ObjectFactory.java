@@ -15,7 +15,9 @@ public interface ObjectFactory {
      * @param requestOptions options to configure a requester
      * @return instance of a {@link Requester}
      */
-    Requester createRequester(String namespace, RequestOptions requestOptions);
+    default Requester createRequester(String namespace, RequestOptions requestOptions) {
+        return createRequester(namespace, requestOptions, null);
+    }
 
     /**
      * @param namespace       topic name to send a request to

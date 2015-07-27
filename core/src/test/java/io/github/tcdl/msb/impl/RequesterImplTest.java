@@ -152,7 +152,7 @@ public class RequesterImplTest {
                 .build();
 
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), msbContext);
+        Requester requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), null, msbContext);
         requester.publish(requestPayload);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
