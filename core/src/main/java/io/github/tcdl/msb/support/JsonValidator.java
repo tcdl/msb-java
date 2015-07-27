@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Validates json against json schema
- *
+ * 
  * Created by rdrozdov-tc on 6/11/15.
  */
 public class JsonValidator {
@@ -42,13 +42,13 @@ public class JsonValidator {
 
         try {
             JsonNode jsonNode = jsonReader.read(json);
-            JsonNode jsonSchemaNode;
-
-            if (!schemaCache.containsKey(schema)) {
-                jsonSchemaNode = jsonReader.read(schema);
-                schemaCache.putIfAbsent(schema, jsonSchemaNode);
-            }
-            jsonSchemaNode = schemaCache.get(schema);
+            JsonNode jsonSchemaNode = schemaCache.computeIfAbsent(schema, s -> {
+                try {
+                    return jsonReader.read(s);
+                } catch (IOException e) {
+                    throw new JsonSchemaValidationException(String.format("Failed reading schema"), e);
+                }
+            });
 
             JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
             JsonSchema jsonSchema = factory.getJsonSchema(jsonSchemaNode);
@@ -60,13 +60,13 @@ public class JsonValidator {
             }
 
         } catch (IOException | ProcessingException e) {
-            throw new JsonSchemaValidationException(String.format("Error while validating message '%s' using schema '%s'", json, schema) ,e);
+            throw new JsonSchemaValidationException(String.format("Error while validating message '%s' using schema '%s'", json, schema), e);
         }
     }
 
     public static class JsonReader {
 
-        public JsonNode read(String str) throws IOException{
+        public JsonNode read(String str) throws IOException {
             return new JsonNodeReader().fromReader(new StringReader(str));
         }
     }
