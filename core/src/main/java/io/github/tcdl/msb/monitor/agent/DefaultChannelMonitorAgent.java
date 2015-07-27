@@ -132,11 +132,8 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
     }
 
     private AgentTopicStats getOrCreateTopicStats(String topicName) {
-        if (!topicInfoMap.containsKey(topicName)) {
-            topicInfoMap.put(topicName, new AgentTopicStats());
-        }
-
-        return topicInfoMap.get(topicName);
+        AgentTopicStats topicStats = topicInfoMap.computeIfAbsent(topicName, topic -> new AgentTopicStats());
+        return topicStats;
     }
 
     /**
