@@ -224,7 +224,7 @@
                 <version>0.7.5.201505241946</version>
                 <configuration>
                     <excludes>
-                        <exclude>io.github.tcdl.msb.examples.*</exclude>
+                        <exclude>**/examples/*</exclude>
                     </excludes>
                 </configuration>
                 <executions>
