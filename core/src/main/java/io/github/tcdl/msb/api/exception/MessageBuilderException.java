@@ -1,9 +1,7 @@
 package io.github.tcdl.msb.api.exception;
 
 /**
- * Wraps any exception thrown while converting to/from json/object during building message objects
- *
- * Created by rdro on 5/21/2015.
+ * Wraps any exception thrown while converting Java object to/from during building {@link io.github.tcdl.msb.api.message.Message}.
  */
 public class MessageBuilderException extends MsbException {
 

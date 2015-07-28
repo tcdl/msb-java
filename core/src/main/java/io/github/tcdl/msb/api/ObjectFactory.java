@@ -40,13 +40,13 @@ public interface ObjectFactory {
 
     /**
      * @param aggregatorStatsHandler this handler is invoked whenever statistics is updated via announcement channel or heartbeats.
-     *                               THE HANDLER SHOULD BE THREAD SAFE because it may be invoked from parallel threads
+     *                               THE HANDLER SHOULD BE THREAD SAFE because it may be invoked from parallel threads.
      * @return new instance of {@link ChannelMonitorAggregator}
      */
     ChannelMonitorAggregator createChannelMonitorAggregator(Callback<AggregatorStats> aggregatorStatsHandler);
 
     /**
-     * Shuts down the factory and all the objects that were created by it
+     * Shuts down the factory and all the objects that were created by it.
      */
     void shutdown();
 }

@@ -12,9 +12,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-/**
- * Created by rdrozdov-tc on 6/8/15.
- */
 public class MultipleRequester {
 
     public static void main(String... args) throws Exception {

@@ -1,17 +1,13 @@
 package io.github.tcdl.msb.acceptance;
 
-import io.github.tcdl.msb.api.Requester;
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-/**
- * Created by anstr on 6/9/2015.
- */
+import io.github.tcdl.msb.api.Requester;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+
 public class MultipleRequesterResponder {
 
     private static final Integer NUMBER_OF_RESPONSES = 1;

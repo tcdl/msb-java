@@ -1,11 +1,9 @@
 package io.github.tcdl.msb.api;
 
 /**
- * General purpose interface for callbacks
+ * General purpose interface for callbacks.
  *
- * @param <T> the type of parameter passed to callback during invocation
- *
- * Created by rdro on 5/28/2015.
+ * @param <T> the type of parameter passed to callback during invocation.
  */
 @FunctionalInterface
 public interface Callback<T> {

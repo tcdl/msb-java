@@ -12,9 +12,7 @@ import java.util.Map;
 
 /**
  * Simple example of date parser micro-service
- * It listens requests from facets-aggregator and parses year from query string
- * <p>
- * Created by rdro on 5/20/2015.
+ * It listens requests from facets-aggregator and parses year from query string.
  */
 public class DateExtractor {
 

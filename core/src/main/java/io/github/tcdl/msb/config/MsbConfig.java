@@ -13,7 +13,7 @@ import static io.github.tcdl.msb.config.ConfigurationUtil.getInt;
 import static io.github.tcdl.msb.config.ConfigurationUtil.getString;
 
 /**
- * {@link MsbConfig} class provides access to configuration properties
+ * {@link MsbConfig} class provides access to configuration properties.
  */
 public class MsbConfig {
 

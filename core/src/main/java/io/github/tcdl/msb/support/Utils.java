@@ -1,23 +1,18 @@
 package io.github.tcdl.msb.support;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.tcdl.msb.api.exception.JsonConversionException;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-/**
- * Created by rdro on 4/22/2015.
- */
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.tcdl.msb.api.exception.JsonConversionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Utils {
 
     private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
@@ -38,10 +33,6 @@ public class Utils {
         throw new IllegalArgumentException("\"" + topic + "\" must be an alpha-numeric, colon-delimited string");
     }
 
-    public static Integer getPid() {
-        return Integer.valueOf(StringUtils.substringBefore(ManagementFactory.getRuntimeMXBean().getName(), "@"));
-    }
-
     public static <T> T ifNull(T value, T other) {
         return value != null ? value : other;
     }
@@ -59,7 +50,7 @@ public class Utils {
     }
 
     /**
-     * @throws JsonConversionException if some problems during parsing JSON
+     * @throws JsonConversionException if problem encountered during parsing JSON
      */
     public static <T> T fromJson(String json, Class<T> clazz, ObjectMapper objectMapper) {
         if (json == null) return null;
@@ -72,7 +63,7 @@ public class Utils {
     }
 
     /**
-     * @throws JsonConversionException if some problems during parsing JSON
+     * @throws JsonConversionException if problem encountered during parsing JSON
      */
     public static <T> T fromJson(String json, TypeReference<T> typeReference, ObjectMapper objectMapper) {
         if (json == null) return null;

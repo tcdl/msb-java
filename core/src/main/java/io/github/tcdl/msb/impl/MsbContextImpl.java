@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Clock;
 
 /**
- * Specifies the context of the MSB message processing.
+ * Specifies the context for MSB message processing.
  */
 public class MsbContextImpl implements MsbContext {
 

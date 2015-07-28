@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * {@link Producer} is a component responsible for producing messages to the bus.
- *
- * Created by rdro on 4/23/2015.
  */
 public class Producer {
 

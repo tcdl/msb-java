@@ -12,11 +12,6 @@ import org.junit.Test;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-/**
- * AdapterFactoryLoaderTest.
- * @author ysavchuk
- *
- */
 public class AdapterFactoryLoaderTest {
 
     private String basicConfigWithoutAdapterFactory = "msbConfig { %s timerThreadPoolSize = 1, validateMessage = true, "

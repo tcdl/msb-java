@@ -22,10 +22,6 @@ import io.github.tcdl.msb.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * @author rdro
- * @since 4/24/2015
- */
 public class ChannelManagerTest {
 
     private ChannelManager channelManager;

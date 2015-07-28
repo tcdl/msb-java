@@ -14,9 +14,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-/**
- * Created by rdrozdov-tc on 6/11/15.
- */
 public class JsonValidatorTest {
 
     private String schema = "{\"properties\":{\"id\":{\"type\":\"string\"}}, \"required\": [\"id\"]}";

@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class contains configuration data related to service instance *
+ * Class contains configuration data related to service instance.
  */
 public final class ServiceDetails {
     public final static Logger LOG = LoggerFactory.getLogger(ServiceDetails.class);

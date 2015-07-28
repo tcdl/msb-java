@@ -10,9 +10,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-/**
- * Created by ruslan on 03.06.15.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class TimeoutManagerTest {
 

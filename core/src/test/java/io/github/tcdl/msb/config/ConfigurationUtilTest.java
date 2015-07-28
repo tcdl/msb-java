@@ -15,9 +15,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-/**
- * Created by rdrozdov-tc on 6/11/15.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class ConfigurationUtilTest {
 

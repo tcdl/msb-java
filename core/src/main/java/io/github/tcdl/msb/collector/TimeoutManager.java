@@ -11,8 +11,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * {@link  TimeoutManager} class is responsible for scheduling tasks for execution and returning scheduled future for this tasks.
- *
- * Created by ruslan
  */
 public class TimeoutManager {
 

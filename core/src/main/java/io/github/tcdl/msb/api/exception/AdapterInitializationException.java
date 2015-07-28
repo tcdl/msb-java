@@ -1,8 +1,7 @@
 package io.github.tcdl.msb.api.exception;
 
 /**
- * Created by anstr on 6/22/2015.
- * Exception which will be thrown in case some problems during creation Adapter Factory object were occurred
+ * Exception is thrown in case problem occurred during creation of Adapter Factory object.
  */
 public class AdapterInitializationException extends MsbException{
     public AdapterInitializationException(String message) {

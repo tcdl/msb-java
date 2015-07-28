@@ -5,7 +5,9 @@ import io.github.tcdl.msb.api.message.Message;
 public interface MessageHandler {
 
     /**
-     * Invoked when a message is successfully parsed and is ready for processing
+     * The handleMessage method is invoked when a message is successfully parsed and is ready for processing.
+     *
+     * @param message the message content
      */
     void handleMessage(Message message);
 }
