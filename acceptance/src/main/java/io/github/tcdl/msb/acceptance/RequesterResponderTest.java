@@ -5,9 +5,6 @@ import io.github.tcdl.msb.api.Requester;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by rdrozdov-tc on 6/15/15.
- */
 public class RequesterResponderTest {
 
     private static final Integer NUMBER_OF_RESPONSES = 1;

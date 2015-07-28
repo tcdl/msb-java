@@ -2,9 +2,6 @@ package io.github.tcdl.msb.acceptance;
 
 import java.util.Map;
 
-/**
- * Created by anstr on 6/9/2015.
- */
 public class SimpleResponder {
 
     private String namespace;

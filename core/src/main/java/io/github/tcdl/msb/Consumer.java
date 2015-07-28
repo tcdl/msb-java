@@ -20,8 +20,6 @@ import java.time.temporal.ChronoUnit;
 
 /**
  * {@link Consumer} is a component responsible for consuming messages from the bus.
- *
- * Created by rdro on 4/23/2015.
  */
 public class Consumer {
 
@@ -37,7 +35,6 @@ public class Consumer {
     private ObjectMapper messageMapper;
 
     /**
-     *
      * @param rawAdapter instance of {@link ConsumerAdapter} that allows to receive messages from message bus
      * @param topic
      * @param messageHandler interface that user can implement to handle received message
@@ -73,13 +70,18 @@ public class Consumer {
     }
 
     /**
-     * Stop consuming messages for specified topic
+     * Stop consuming messages for specified topic.
      */
     public void end() {
         LOG.debug("Shutting down consumer for topic {}", topic);
         rawAdapter.unsubscribe();
     }
 
+    /**
+     * Process incoming message.
+     *
+     * @param jsonMessage message to process
+     */
     protected void handleRawMessage(String jsonMessage) {
         LOG.debug("Topic [{}] message received [{}]", this.topic, jsonMessage);
         channelMonitorAgent.consumerMessageReceived(topic);

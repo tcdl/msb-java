@@ -23,8 +23,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
- *
- * Created by rdro on 4/23/2015.
  */
 public class Collector {
 

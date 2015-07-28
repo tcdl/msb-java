@@ -26,7 +26,7 @@ public class CollectorManager implements MessageHandler {
     }
 
     /**
-     * Determines correlation id from the incoming message and invokes the relevant {@link Collector} instance
+     * Determines correlationId from the incoming message and invokes the relevant {@link Collector} instance.
      */
     @Override
     public void handleMessage(Message message) {
@@ -47,7 +47,7 @@ public class CollectorManager implements MessageHandler {
     }
 
     /**
-     * Remove this collector from collector's map. If map is empty(no more collectors await on consumer topic) unsubscribe from consumer.
+     * Remove this collector from collector's map, if it is present. If map is empty (no more collectors await on consumer topic) unsubscribe from consumer.
      */
     public synchronized void unsubscribe(Collector collector) {
         collectorsByCorrelationId.remove(collector.getRequestMessage().getCorrelationId());

@@ -9,9 +9,6 @@ import org.apache.commons.lang3.Validate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Created by rdro on 4/22/2015.
- */
 public final class MetaMessage {
 
     private final Integer ttl;

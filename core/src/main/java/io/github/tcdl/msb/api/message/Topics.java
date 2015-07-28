@@ -4,9 +4,6 @@ import org.apache.commons.lang3.Validate;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Created by rdro on 4/23/2015.
- */
 public final class Topics {
 
     private final String to;

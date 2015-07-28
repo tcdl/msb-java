@@ -7,7 +7,7 @@ import io.github.tcdl.msb.api.exception.MessageBuilderException;
 import io.github.tcdl.msb.support.Utils;
 
 /**
- * Wraps payload to provide possibilities to convert payload parts
+ * Wraps payload to provide possibilities to convert payload parts.
  */
 public class PayloadWrapper extends Payload {
 

@@ -27,14 +27,6 @@ import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ObjectFactoryImpl;
 import io.github.tcdl.msb.message.MessageFactory;
 
-import java.time.Clock;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-/**
- * Created by rdro on 4/28/2015.
- */
 public class TestUtils {
 
     public static MsbContextImpl createSimpleMsbContext() {

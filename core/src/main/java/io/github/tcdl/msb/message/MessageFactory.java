@@ -14,10 +14,6 @@ import org.apache.commons.lang3.Validate;
 import javax.annotation.Nullable;
 import java.time.Clock;
 
-
-/**
- * Created by rdro on 4/22/2015.
- */
 public class MessageFactory {
 
     private ServiceDetails serviceDetails;

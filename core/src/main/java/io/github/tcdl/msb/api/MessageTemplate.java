@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.api;
 
 /**
- * A message template to be used to construct a request/response message
+ * A message template to be used to construct a request/response message.
  */
 public class MessageTemplate {
     

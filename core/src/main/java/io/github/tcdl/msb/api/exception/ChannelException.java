@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.api.exception;
 
 /**
- * Created by rdro on 4/27/2015.
+ * Exception is thrown in case problem occurred during communication with broker provider.
  */
 public class ChannelException extends MsbException {
 

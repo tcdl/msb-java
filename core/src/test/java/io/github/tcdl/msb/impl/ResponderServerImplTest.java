@@ -19,9 +19,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-/**
- * Created by rdro on 4/30/2015.
- */
 public class ResponderServerImplTest {
 
     private RequestOptions requestOptions;

@@ -4,9 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.Validate;
 
-/**
- * Created by rdro on 4/22/2015.
- */
 public final class Acknowledge {
 
     private final String responderId;

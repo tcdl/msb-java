@@ -27,9 +27,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by rdro on 4/28/2015.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class ConsumerTest {
 

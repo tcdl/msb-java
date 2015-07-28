@@ -16,7 +16,7 @@ import org.apache.commons.lang3.Validate;
 import java.util.List;
 
 /**
- * Internal implementations of Requester interface
+ * Internal implementations of Requester interface.
  */
 public class RequesterImpl implements Requester {
 

@@ -34,9 +34,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-/**
- * Created by rdro on 4/27/2015.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class CollectorTest {
 

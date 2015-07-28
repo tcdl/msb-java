@@ -28,9 +28,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-/**
- * Created by rdro on 4/28/2015.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class ProducerTest {
 

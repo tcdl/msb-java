@@ -7,9 +7,6 @@ import io.github.tcdl.msb.api.message.payload.Payload;
 
 import java.util.Map;
 
-/**
- * Created by rdrozdov-tc on 6/8/15.
- */
 public class MultipleResponder {
 
     public static void main(String... args) {

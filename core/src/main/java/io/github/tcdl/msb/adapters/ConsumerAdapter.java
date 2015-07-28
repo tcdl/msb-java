@@ -11,7 +11,7 @@ public interface ConsumerAdapter {
     /**
      * Subscribes the given message handler to the associated topic
      * @param onMessageHandler this handler is invoked once message arrives on the topic.
-     *                         THE IMPLEMENTATION OF THIS CLASS SHOULD BE THREAD-SAFE BECAUSE IT CAN BE INVOKED FROM PARALLEL THREADS SIMULTANEOUSLY
+     *                         SHOULD BE THREAD-SAFE BECAUSE IT CAN BE INVOKED FROM PARALLEL THREADS SIMULTANEOUSLY
      * @throws ChannelException if some problems during subscribing to topic were occurred
      */
     void subscribe(RawMessageHandler onMessageHandler);

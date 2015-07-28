@@ -15,9 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Validates json against json schema
- * 
- * Created by rdrozdov-tc on 6/11/15.
+ * Validates JSON against JSON Schema
  */
 public class JsonValidator {
 
@@ -33,7 +31,7 @@ public class JsonValidator {
     }
 
     /**
-     * @throws JsonSchemaValidationException if some problems during validation
+     * @throws JsonSchemaValidationException if problem encountered during validation.
      */
     public void validate(String json, String schema) {
 

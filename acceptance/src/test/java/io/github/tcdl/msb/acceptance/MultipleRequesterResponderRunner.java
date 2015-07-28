@@ -5,9 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
-/**
- * Created by anstr on 6/10/2015.
- */
 
 public class MultipleRequesterResponderRunner {
 

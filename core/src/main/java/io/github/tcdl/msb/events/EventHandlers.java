@@ -9,8 +9,7 @@ import io.github.tcdl.msb.api.message.payload.Payload;
 import java.util.List;
 
 /**
- * {@link EventHandlers} is a component that allows to register custom event handlers for {@link Requester} specific events .
- * Created by rdrozdov-tc on 6/2/15.
+ * {@link EventHandlers} is a component that allows to register custom event handlers for {@link Requester} specific events.
  */
 public class EventHandlers {
 
