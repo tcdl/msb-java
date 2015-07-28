@@ -63,24 +63,21 @@ public class ChannelManager {
     /**
      * Start consuming messages on specified topic with handler.
      * Calls to subscribe() and unsubscribe() have to be properly synchronized by client code not to lose messages.
-     *
      * @param topic
      * @param messageHandler handler for processing messages
+     * @throws IllegalStateException if subscriber for topic already exist
      */
-    public void subscribe(String topic, MessageHandler messageHandler) {
+    public synchronized boolean subscribe(String topic, MessageHandler messageHandler) {
         Validate.notNull(topic, "field 'topic' is null");
         Validate.notNull(messageHandler, "field 'messageHandler' is null");
-        findOrCreateConsumer(topic, messageHandler);
-    }
-
-    Consumer findOrCreateConsumer(final String topic, MessageHandler messageHandler) {
-        Consumer consumer = consumersByTopic.computeIfAbsent(topic, key -> {
-            Consumer newConsumer = createConsumer(key, messageHandler);
-            channelMonitorAgent.consumerTopicCreated(key);
-            return newConsumer;
-        });
-
-        return consumer;
+        if (consumersByTopic.get(topic) != null) {
+            throw new IllegalStateException("Subscriber for this topic:" + topic +" already exist");
+        } else {
+            Consumer newConsumer = createConsumer(topic, messageHandler);
+            channelMonitorAgent.consumerTopicCreated(topic);
+            consumersByTopic.put(topic, newConsumer);
+            return false;
+        }
     }
 
     /**
