@@ -2,11 +2,13 @@ package io.github.tcdl.msb.support;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.impl.MsbContextImpl;
+import io.github.tcdl.msb.message.payload.MyPayload;
 import org.junit.Test;
 
 import java.time.Instant;
@@ -92,11 +94,24 @@ public class UtilsTest {
     }
 
     @Test
-    public void testDeserializationViaTypeReference() {
-        Map<String, TestPojo> deserializedObject = Utils.fromJson("{\"key1\":{\"field\": 10}}", new TypeReference<Map<String, TestPojo>>() {}, TestUtils.createMessageMapper());
-        assertEquals(1, deserializedObject.size());
-        assertTrue(deserializedObject.containsKey("key1"));
-        assertEquals(10, deserializedObject.get("key1").field);
+    public void testToCustomParametricType() throws Exception {
+        ObjectMapper messageMapper = ((MsbContextImpl) new MsbContextBuilder().build()).getMessageMapper();
+
+        Message message = TestUtils.createMsbRequestMessageWithSimplePayload(TestUtils.getSimpleNamespace());
+        Message<MyPayload> customizedMessage = Utils.toCustomParametricType(message, Message.class, MyPayload.class, messageMapper);
+
+        assertTrue(customizedMessage.getPayload() instanceof MyPayload);
     }
 
+    @Test
+    public void testToCustomTypeReference() {
+        int transferedValue = 10;
+        Map<String, Map<String, Integer>> rawObject = ImmutableMap.of("key1", ImmutableMap.of("field", transferedValue));
+
+        Map<String,TestPojo> deserializedObjectMap = Utils.toCustomTypeReference(rawObject, new TypeReference<Map<String, TestPojo>>() {
+        }, TestUtils.createMessageMapper());
+        assertEquals(1, deserializedObjectMap.size());
+        assertTrue(deserializedObjectMap.containsKey("key1"));
+        assertEquals(transferedValue, deserializedObjectMap.get("key1").field);
+    }
 }

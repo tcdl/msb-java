@@ -3,10 +3,12 @@ package io.github.tcdl.msb.impl;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.ObjectFactory;
+import io.github.tcdl.msb.api.PayloadConverter;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 import io.github.tcdl.msb.monitor.aggregator.DefaultChannelMonitorAggregator;
@@ -25,7 +27,7 @@ public class ObjectFactoryImpl implements ObjectFactory {
     private static Logger LOG = LoggerFactory.getLogger(ObjectFactoryImpl.class);
 
     private MsbContextImpl msbContext;
-
+    private PayloadConverter payloadConverter;
     private ChannelMonitorAggregator channelMonitorAggregator;
 
     public ObjectFactoryImpl(MsbContextImpl msbContext) {
@@ -54,7 +56,25 @@ public class ObjectFactoryImpl implements ObjectFactory {
      */
     @Override
     public ResponderServer createResponderServer(String namespace,  MessageTemplate messageTemplate, ResponderServer.RequestHandler requestHandler) {
-        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler);
+        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override public ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate, ResponderServer.RequestHandler requestHandler,
+            Class<? extends Payload> payloadClass) {
+        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, payloadClass);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override public PayloadConverter getPayloadConverter() {
+        if (payloadConverter == null) {
+            payloadConverter = new PayloadConverterImpl(msbContext.getMessageMapper());
+        }
+        return payloadConverter;
     }
 
     /**

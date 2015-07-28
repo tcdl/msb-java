@@ -22,7 +22,7 @@ public class MultipleResponder {
     public static void runResponder(String namespace, MsbContext msbContext) {
         MessageTemplate options = new MessageTemplate();
         msbContext.getObjectFactory().createResponderServer(namespace, options, (request, responder) -> {
-            Map requestBody = request.getBodyAs(Map.class);
+            Map requestBody = (Map) request.getBody();
             System.out.println(">>> GOT request: " + requestBody);
 
             String requestId = (String) requestBody.get("requestId");

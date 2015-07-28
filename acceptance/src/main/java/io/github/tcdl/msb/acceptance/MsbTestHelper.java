@@ -52,7 +52,7 @@ public class MsbTestHelper {
     }
 
     public ObjectMapper getObjectMapper() {
-        return ((MsbContextImpl)(getContext())).getMessageMapper();
+        return ((MsbContextImpl) (getContext())).getMessageMapper();
     }
 
     public Requester createRequester(String namespace, Integer numberOfResponses) {
@@ -65,10 +65,10 @@ public class MsbTestHelper {
 
     public Requester createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout) {
         RequestOptions options = new RequestOptions.Builder()
-            .withWaitForResponses(numberOfResponses)
-            .withAckTimeout(Utils.ifNull(ackTimeout, 5000))
-            .withResponseTimeout(Utils.ifNull(responseTimeout, 15000))
-            .build();
+                .withWaitForResponses(numberOfResponses)
+                .withAckTimeout(Utils.ifNull(ackTimeout, 5000))
+                .withResponseTimeout(Utils.ifNull(responseTimeout, 15000))
+                .build();
         return context.getObjectFactory().createRequester(namespace, options);
     }
 
@@ -84,17 +84,18 @@ public class MsbTestHelper {
             Callback<Acknowledge> ackCallback,
             Callback<Payload> responseCallback) throws Exception {
 
-            requester.onAcknowledge(acknowledge -> {
-                System.out.println(">>> ACKNOWLEDGE: " + acknowledge);
-                if (waitForAck && ackCallback!= null) ackCallback.call(acknowledge);
-            });
+        requester.onAcknowledge(acknowledge -> {
+            System.out.println(">>> ACKNOWLEDGE: " + acknowledge);
+            if (waitForAck && ackCallback != null)
+                ackCallback.call(acknowledge);
+        });
 
-            requester.onResponse(response -> {
-                System.out.println(">>> RESPONSE: " + response);
-                if (waitForResponses != null && waitForResponses > 0 && responseCallback != null) {
-                    responseCallback.call(response);
-                }
-            });
+        requester.onResponse(response -> {
+            System.out.println(">>> RESPONSE: " + response);
+            if (waitForResponses != null && waitForResponses > 0 && responseCallback != null) {
+                responseCallback.call(response);
+            }
+        });
 
         requester.publish(createPayload(query, body));
     }
@@ -103,6 +104,12 @@ public class MsbTestHelper {
         MessageTemplate options = new MessageTemplate();
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
         return context.getObjectFactory().createResponderServer(namespace, options, requestHandler);
+    }
+
+    public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler requestHandler, Class payloadClass) {
+        MessageTemplate options = new MessageTemplate();
+        System.out.println(">>> RESPONDER SERVER on: " + namespace);
+        return context.getObjectFactory().createResponderServer(namespace, options, requestHandler, payloadClass);
     }
 
     public void respond(Responder responder) {

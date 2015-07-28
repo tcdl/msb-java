@@ -1,6 +1,17 @@
 package io.github.tcdl.msb.collector;
 
-import static io.github.tcdl.msb.support.Utils.ifNull;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.tcdl.msb.api.Callback;
+import io.github.tcdl.msb.api.RequestOptions;
+import io.github.tcdl.msb.api.message.Acknowledge;
+import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.events.EventHandlers;
+import io.github.tcdl.msb.impl.MsbContextImpl;
+import io.github.tcdl.msb.support.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -11,15 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 
-import io.github.tcdl.msb.api.Callback;
-import io.github.tcdl.msb.api.RequestOptions;
-import io.github.tcdl.msb.api.message.Acknowledge;
-import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.events.EventHandlers;
-import io.github.tcdl.msb.impl.MsbContextImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static io.github.tcdl.msb.support.Utils.ifNull;
 
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
@@ -42,22 +45,23 @@ public class Collector {
     private int currentTimeoutMs;
     private long waitForAcksUntil;
     private int waitForResponses;
+    private Class<? extends Payload> payloadClass;
     private int responsesRemaining;
 
     private Long startedAt;
     private TimeoutManager timeoutManager;
+    private ObjectMapper messageMapper;
 
     private Clock clock;
     private Message requestMessage;
-
 
     private Optional<Callback<Payload>> onResponse = Optional.empty();
     private Optional<Callback<Acknowledge>> onAcknowledge = Optional.empty();
     private Optional<Callback<List<Message>>> onEnd = Optional.empty();
 
-    private  ScheduledFuture ackTimeoutFuture;
-    private  ScheduledFuture responseTimeoutFuture;
-    private  CollectorManager collectorManager;
+    private ScheduledFuture ackTimeoutFuture;
+    private ScheduledFuture responseTimeoutFuture;
+    private CollectorManager collectorManager;
     private boolean shouldWaitUntilResponseTimeout;
 
     public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers eventHandlers) {
@@ -66,6 +70,7 @@ public class Collector {
         this.clock = msbContext.getClock();
         this.collectorManager = msbContext.getCollectorManagerFactory().findOrCreateCollectorManager(topic);
         this.timeoutManager = msbContext.getTimeoutManager();
+        this.messageMapper = msbContext.getMessageMapper();
 
         this.startedAt = clock.instant().toEpochMilli();
         this.ackMessages = new LinkedList<>();
@@ -79,6 +84,7 @@ public class Collector {
         this.waitForAcksUntil = getWaitForAckUntilFromConfigs(requestOptions);
         this.waitForResponses = requestOptions.getWaitForResponses();
         this.responsesRemaining = waitForResponses;
+        this.payloadClass = requestOptions.getPayloadClass();
         this.shouldWaitUntilResponseTimeout = requestOptions.getWaitForResponses() == WAIT_FOR_RESPONSES_UNTIL_TIMEOUT;
 
         if (eventHandlers != null) {
@@ -100,8 +106,9 @@ public class Collector {
         collectorManager.registerCollector(this);
     }
 
-    public void handleMessage(Message message) {
-        LOG.debug("Received {}", message);
+    public void handleMessage(Message incomingMessage) {
+        LOG.debug("Received {}", incomingMessage);
+        Message message = Utils.toCustomParametricType(incomingMessage, Message.class, payloadClass, messageMapper);
 
         if (message.getPayload() != null) {
             LOG.debug("Received {}", message.getPayload());
@@ -110,8 +117,8 @@ public class Collector {
             onResponse.ifPresent(handler -> handler.call(message.getPayload()));
             incResponsesRemaining(-1);
         } else {
-            LOG.debug("Received {}", message.getAck());
-            ackMessages.add(message);
+            LOG.debug("Received {}", incomingMessage.getAck());
+            ackMessages.add(incomingMessage);
             onAcknowledge.ifPresent(handler -> handler.call((message.getAck())));
         }
 
@@ -149,7 +156,7 @@ public class Collector {
         if (ackTimeoutFuture == null) {
             LOG.debug("Waiting for ack until {}.", Instant.ofEpochMilli(this.waitForAcksUntil));
             long ackTimeoutMs = waitForAcksUntil - clock.instant().toEpochMilli();
-            ackTimeoutFuture =  timeoutManager.enableAckTimeout(ackTimeoutMs, this);
+            ackTimeoutFuture = timeoutManager.enableAckTimeout(ackTimeoutMs, this);
         } else {
             LOG.debug("Ack timeout is already scheduled");
         }
@@ -159,7 +166,7 @@ public class Collector {
         if (acknowledge == null)
             return;
 
-        if (acknowledge.getTimeoutMs() != null && acknowledge.getResponderId()!= null) {
+        if (acknowledge.getTimeoutMs() != null && acknowledge.getResponderId() != null) {
             Integer newTimeoutMs = setTimeoutMsForResponderId(acknowledge.getResponderId(), acknowledge.getTimeoutMs());
             if (newTimeoutMs != null) {
                 int prevTimeoutMs = this.currentTimeoutMs;

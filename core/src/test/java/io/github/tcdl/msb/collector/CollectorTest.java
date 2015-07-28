@@ -138,7 +138,7 @@ public class CollectorTest {
 
         verify(onResponse).call(originalMessageWithPayload.getPayload());
         verify(collectorManagerMock).unsubscribe(collector);
-        assertTrue(collector.getPayloadMessages().contains(originalMessageWithPayload));
+        assertTrue(collector.getPayloadMessages().stream().anyMatch(message -> message.getId().equals(originalMessageWithPayload.getId())));
         assertFalse(collector.getAckMessages().contains(originalMessageWithPayload));
     }
 
