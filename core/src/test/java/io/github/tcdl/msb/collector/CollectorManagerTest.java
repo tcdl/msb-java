@@ -1,11 +1,7 @@
 package io.github.tcdl.msb.collector;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.message.Message;
@@ -67,6 +63,15 @@ public class CollectorManagerTest {
 
     @Test
     public void testRegisterCollector() {
+        CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
+        collectorManager.registerCollector(collectorMock);
+
+        assertEquals(1, collectorManager.collectorsByCorrelationId.size());
+        verify(channelManagerMock, times(1)).subscribe(TOPIC, collectorManager);
+    }
+
+    @Test
+    public void testRegisterMultipleCollectors() {
         Collector secondCollectorMock = mock(Collector.class);
         when(secondCollectorMock.getRequestMessage()).thenReturn(TestUtils.createMsbResponseMessage(TOPIC));
 
@@ -75,11 +80,23 @@ public class CollectorManagerTest {
         collectorManager.registerCollector(secondCollectorMock);
 
         assertEquals(2, collectorManager.collectorsByCorrelationId.size());
-        verify(channelManagerMock, times(2)).subscribe(TOPIC, collectorManager);
+        verify(channelManagerMock, times(1)).subscribe(TOPIC, collectorManager);
     }
 
     @Test
-    public void testUnsubscribeMoreCollectorsExist() {
+    public void testRegisterTheSameCollectorsMultipletTimes() {
+        CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
+        collectorManager.registerCollector(collectorMock);
+
+        verify(channelManagerMock, times(1)).subscribe(TOPIC, collectorManager);
+
+        reset(channelManagerMock);
+        collectorManager.registerCollector(collectorMock);
+        verify(channelManagerMock, never()).subscribe(TOPIC, collectorManager);
+    }
+
+    @Test
+    public void testUnregisterMoreCollectorsExist() {
         Collector secondCollectorMock = mock(Collector.class);
         when(secondCollectorMock.getRequestMessage()).thenReturn(TestUtils.createMsbResponseMessage(TOPIC));
 
@@ -87,15 +104,15 @@ public class CollectorManagerTest {
         collectorManager.registerCollector(collectorMock);
         collectorManager.registerCollector(secondCollectorMock);
 
-        collectorManager.unsubscribe(collectorMock);
+        collectorManager.unregisterCollector(collectorMock);
         verify(channelManagerMock, never()).unsubscribe(TOPIC);
 
-        collectorManager.unsubscribe(secondCollectorMock);
+        collectorManager.unregisterCollector(secondCollectorMock);
         verify(channelManagerMock).unsubscribe(TOPIC);
     }
 
     @Test
-    public void testUnsubscribeLastCollector() {
+    public void testUnregisterLastCollector() {
         Collector secondCollectorMock = mock(Collector.class);
         when(secondCollectorMock.getRequestMessage()).thenReturn(TestUtils.createMsbResponseMessage(TOPIC));
 
@@ -103,10 +120,35 @@ public class CollectorManagerTest {
         collectorManager.registerCollector(collectorMock);
         collectorManager.registerCollector(secondCollectorMock);
 
-        collectorManager.unsubscribe(collectorMock);
-        collectorManager.unsubscribe(secondCollectorMock);
+        collectorManager.unregisterCollector(collectorMock);
+        collectorManager.unregisterCollector(secondCollectorMock);
 
         verify(channelManagerMock).unsubscribe(TOPIC);
     }
 
+    @Test
+    public void testUnregisterTheSameCollectorsMultipletTimes() {
+        CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
+        collectorManager.registerCollector(collectorMock);
+
+        collectorManager.unregisterCollector(collectorMock);
+        verify(channelManagerMock, times(1)).unsubscribe(TOPIC);
+
+        reset(channelManagerMock);
+        collectorManager.unregisterCollector(collectorMock);
+        verify(channelManagerMock, never()).unsubscribe(TOPIC);
+    }
+
+    @Test
+    public void testRegisterCollectorAfterUnregisterLast() {
+        CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
+        collectorManager.registerCollector(collectorMock);
+
+        collectorManager.unregisterCollector(collectorMock);
+        verify(channelManagerMock, times(1)).unsubscribe(TOPIC);
+
+        reset(channelManagerMock);
+        collectorManager.registerCollector(collectorMock);
+        verify(channelManagerMock, times(1)).subscribe(TOPIC, collectorManager);
+    }
 }

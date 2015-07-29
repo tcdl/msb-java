@@ -134,7 +134,7 @@ public class Collector {
         cancelAckTimeoutTask();
         cancelResponseTimeoutTask();
 
-        collectorManager.unsubscribe(this);
+        collectorManager.unregisterCollector(this);
         onEnd.ifPresent(handler -> handler.call(payloadMessages));
     }
 

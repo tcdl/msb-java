@@ -57,17 +57,15 @@ public class ChannelManagerTest {
         verifyNoMoreInteractions(mockChannelMonitorAgent);
     }
 
-    @Test
-    public void testConsumerCached() throws Exception {
+    @Test(expected = IllegalStateException.class)
+    public void testConsumerSubscribeMultipleSameTopic() {
         String topic = "topic:test-consumer-cached";
 
         // Consumer was created and monitor agent notified
         channelManager.subscribe(topic, messageHandlerMock);
         verify(mockChannelMonitorAgent).consumerTopicCreated(topic);
 
-        // Cached consumer was returned and monitor agent wasn't notified
         channelManager.subscribe(topic, messageHandlerMock);
-        verifyNoMoreInteractions(mockChannelMonitorAgent);
     }
 
     @Test

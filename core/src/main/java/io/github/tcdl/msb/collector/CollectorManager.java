@@ -16,6 +16,8 @@ public class CollectorManager implements MessageHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(CollectorManager.class);
 
+    private boolean isSubscribed = false;
+
     private String topic;
     private ChannelManager channelManager;
     Map<String, Collector> collectorsByCorrelationId  = new ConcurrentHashMap<>();
@@ -41,19 +43,22 @@ public class CollectorManager implements MessageHandler {
     }
 
     public synchronized void registerCollector(Collector collector) {
-        //make sure consumer is listening on topic
-        channelManager.subscribe(topic, this);
+        if (!isSubscribed) {
+            channelManager.subscribe(topic, this);
+            isSubscribed = true;
+        }
         collectorsByCorrelationId.putIfAbsent(collector.getRequestMessage().getCorrelationId(), collector);
     }
 
     /**
      * Remove this collector from collector's map, if it is present. If map is empty (no more collectors await on consumer topic) unsubscribe from consumer.
      */
-    public synchronized void unsubscribe(Collector collector) {
+    public synchronized void unregisterCollector(Collector collector) {
         collectorsByCorrelationId.remove(collector.getRequestMessage().getCorrelationId());
 
-        if (collectorsByCorrelationId.isEmpty()) {
+        if (collectorsByCorrelationId.isEmpty() && isSubscribed) {
             channelManager.unsubscribe(topic);
+            isSubscribed = false;
         }
     }
 }

@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.junittoolbox.MultithreadingTester;
+import io.github.tcdl.msb.api.RequesterResponderIT;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.collector.CollectorManager;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -51,16 +52,6 @@ public class ChannelManagerConcurrentTest {
     }
 
     @Test
-    public void testConsumerCachedMultithreadInteraction() throws Exception {
-        String topic = "topic:test-consumer-cached-multithreaded";
-
-        new MultithreadingTester().add(() -> {
-            channelManager.subscribe(topic, messageHandlerMock);
-            verify(mockChannelMonitorAgent).consumerTopicCreated(topic);
-        }).run();
-    }
-
-    @Test
     public void testConsumerUnsubscribeMultithreadInteraction() {
         String topic = "topic:test-remove-consumer-multithreaded";
 
@@ -96,7 +87,7 @@ public class ChannelManagerConcurrentTest {
     @Test
     public void testReceiveMessageInvokesAgentAndEmitsEventMultithreadInteraction() throws InterruptedException {
         String topic = "topic:test-agent-consumer-multithreaded";
-        int numberOfThreads = 10;
+        int numberOfThreads = 4;
         int numberOfInvocationsPerThread = 20;
 
         Producer producer = channelManager.findOrCreateProducer(topic);
@@ -114,7 +105,7 @@ public class ChannelManagerConcurrentTest {
             producer.publish(message);
         }).run();
 
-        assertTrue(messagesReceived.await(4000, TimeUnit.MILLISECONDS));
+        assertTrue(messagesReceived.await(RequesterResponderIT.MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         verify(mockChannelMonitorAgent, times(numberOfThreads * numberOfInvocationsPerThread)).consumerMessageReceived(topic);
     }
 

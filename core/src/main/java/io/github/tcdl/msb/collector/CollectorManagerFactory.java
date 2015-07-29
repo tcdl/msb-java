@@ -18,7 +18,6 @@ public class CollectorManagerFactory {
     public CollectorManager findOrCreateCollectorManager(final String topic) {
         CollectorManager collectorManager = collectorManagersByTopic.computeIfAbsent(topic, key -> {
             CollectorManager newCollectorManager =  new CollectorManager(topic, channelManager);
-            channelManager.subscribe(topic, newCollectorManager);
             return newCollectorManager;
         });
 
