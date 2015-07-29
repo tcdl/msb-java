@@ -54,6 +54,7 @@ public class ObjectFactoryImplTest {
     @Test
     public void testCreateResponderServer() {
         ObjectFactory objectFactory = new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build());
+        @SuppressWarnings("unchecked")
         ResponderServer expectedResponderServer = objectFactory
                 .createResponderServer(NAMESPACE, mock(MessageTemplate.class), mock(ResponderServer.RequestHandler.class));
         assertNotNull(expectedResponderServer);

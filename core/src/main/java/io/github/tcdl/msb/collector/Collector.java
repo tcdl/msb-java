@@ -1,6 +1,8 @@
 package io.github.tcdl.msb.collector;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.message.Acknowledge;
@@ -8,7 +10,6 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.impl.MsbContextImpl;
-import io.github.tcdl.msb.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +51,7 @@ public class Collector {
 
     private Long startedAt;
     private TimeoutManager timeoutManager;
-    private ObjectMapper messageMapper;
+    private ObjectMapper payloadMapper;
 
     private Clock clock;
     private Message requestMessage;
@@ -70,7 +71,7 @@ public class Collector {
         this.clock = msbContext.getClock();
         this.collectorManager = msbContext.getCollectorManagerFactory().findOrCreateCollectorManager(topic);
         this.timeoutManager = msbContext.getTimeoutManager();
-        this.messageMapper = msbContext.getMessageMapper();
+        this.payloadMapper = msbContext.getPayloadMapper();
 
         this.startedAt = clock.instant().toEpochMilli();
         this.ackMessages = new LinkedList<>();
@@ -108,21 +109,23 @@ public class Collector {
 
     public void handleMessage(Message incomingMessage) {
         LOG.debug("Received {}", incomingMessage);
-        Message message = Utils.toCustomParametricType(incomingMessage, Message.class, payloadClass, messageMapper);
 
-        if (message.getPayload() != null) {
-            LOG.debug("Received {}", message.getPayload());
-            payloadMessages.add(message);
+        JsonNode rawPayload = incomingMessage.getRawPayload();
+        if (isPayloadPresent(rawPayload)) {
+            LOG.debug("Received {}", rawPayload);
+            payloadMessages.add(incomingMessage);
 
-            onResponse.ifPresent(handler -> handler.call(message.getPayload()));
+            Payload payload = payloadMapper.convertValue(rawPayload, payloadClass);
+
+            onResponse.ifPresent(handler -> handler.call(payload));
             incResponsesRemaining(-1);
         } else {
             LOG.debug("Received {}", incomingMessage.getAck());
             ackMessages.add(incomingMessage);
-            onAcknowledge.ifPresent(handler -> handler.call((message.getAck())));
+            onAcknowledge.ifPresent(handler -> handler.call((incomingMessage.getAck())));
         }
 
-        processAck(message.getAck());
+        processAck(incomingMessage.getAck());
 
         if (isAwaitingResponses()) {
             return;
@@ -135,6 +138,10 @@ public class Collector {
         }
 
         end();
+    }
+
+    private boolean isPayloadPresent(JsonNode rawPayload) {
+        return rawPayload != null && !(rawPayload instanceof NullNode);
     }
 
     protected void end() {

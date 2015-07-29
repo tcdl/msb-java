@@ -1,16 +1,5 @@
 package io.github.tcdl.msb.impl;
 
-import static junit.framework.TestCase.assertEquals;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.time.Clock;
-
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.MessageTemplate;
@@ -24,6 +13,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.time.Clock;
+
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.TestCase.assertEquals;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 public class ResponderImplTest {
 
     private MessageTemplate config;
@@ -32,7 +34,7 @@ public class ResponderImplTest {
 
     private ChannelManager mockChannelManager;
     private Producer mockProducer;
-    private Payload payload;
+    private Payload emptyPayload;
     private Message originalMessage;
     private Responder responder;
 
@@ -43,14 +45,14 @@ public class ResponderImplTest {
         msbConf = TestUtils.createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
-        MessageFactory messageFactory = new MessageFactory(msbConf.getServiceDetails(), clock);
+        MessageFactory messageFactory = new MessageFactory(msbConf.getServiceDetails(), clock, TestUtils.createMessageMapper());
         MessageFactory spyMessageFactory = spy(messageFactory);
 
         MsbContextImpl msbContext = TestUtils.createSimpleMsbContext();
         MsbContextImpl msbContextSpy = spy(msbContext);
         mockChannelManager = mock(ChannelManager.class);
         mockProducer = mock(Producer.class);
-        payload = new Payload.Builder().build();
+        emptyPayload = new Payload.Builder().build();
         originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(TOPIC);
 
         when(msbContextSpy.getChannelManager()).thenReturn(mockChannelManager);
@@ -70,7 +72,7 @@ public class ResponderImplTest {
     @Test
     public void testProducerWasCreatedForProperTopic() {
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-        responder.send(payload);
+        responder.send(emptyPayload);
 
         verify(mockChannelManager).findOrCreateProducer(argument.capture());
 
@@ -79,19 +81,23 @@ public class ResponderImplTest {
 
     @Test
     public void testProducerPublishMethodInvoked() {
-        responder.send(payload);
+        responder.send(emptyPayload);
 
         verify(mockProducer, times(1)).publish(anyObject());
     }
 
     @Test
     public void testProducerPublishUseCorrectPayload() {
+        String bodyText = "This is body";
+        Payload<?, ?, ?, String> simplePayload = TestUtils.createPayloadWithTextBody(bodyText);
+
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
-        responder.send(payload);
+        responder.send(simplePayload);
 
         verify(mockProducer).publish(argument.capture());
 
-        assertEquals(payload, argument.getValue().getPayload());
+        assertNotNull(argument.getValue().getRawPayload());
+        TestUtils.assertRawPayloadContainsBodyText(bodyText, argument.getValue());
     }
 
     @Test

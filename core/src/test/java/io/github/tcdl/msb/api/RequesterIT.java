@@ -39,7 +39,7 @@ public class RequesterIT {
         this.requestOptions = TestUtils.createSimpleRequestOptions();
         this.msbContext = TestUtils.createSimpleMsbContext();
         this.validator = new JsonValidator();
-        this.messageMapper = msbContext.getMessageMapper();
+        this.messageMapper = msbContext.getPayloadMapper();
     }
 
     @Test

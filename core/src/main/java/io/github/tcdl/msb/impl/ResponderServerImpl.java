@@ -7,7 +7,6 @@ import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +18,7 @@ public class ResponderServerImpl implements ResponderServer {
     private MsbContextImpl msbContext;
     private MessageTemplate messageTemplate;
     private RequestHandler requestHandler;
+    private ObjectMapper payloadMapper;
     private Class<? extends Payload> payloadClass;
 
     private ResponderServerImpl(String namespace, MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler, Class<? extends Payload> payloadClass) {
@@ -26,6 +26,7 @@ public class ResponderServerImpl implements ResponderServer {
         this.messageTemplate = messageTemplate;
         this.msbContext = msbContext;
         this.requestHandler = requestHandler;
+        this.payloadMapper = msbContext.getPayloadMapper();
         this.payloadClass = payloadClass;
         Validate.notNull(requestHandler, "requestHandler must not be null");
     }
@@ -44,13 +45,11 @@ public class ResponderServerImpl implements ResponderServer {
     @Override
     public ResponderServer listen() {
         ChannelManager channelManager = msbContext.getChannelManager();
-        ObjectMapper messageMapper = msbContext.getMessageMapper();
 
         channelManager.subscribe(namespace,
                 incomingMessage -> {
                     LOG.debug("[{}] Received message with id: [{}]", namespace, incomingMessage.getId());
-                    Message message = Utils.toCustomParametricType(incomingMessage, Message.class, payloadClass, messageMapper);
-                    ResponderImpl responder = new ResponderImpl(messageTemplate, message, msbContext);
+                    ResponderImpl responder = new ResponderImpl(messageTemplate, incomingMessage, msbContext);
                     onResponder(responder);
                 });
 
@@ -59,7 +58,8 @@ public class ResponderServerImpl implements ResponderServer {
 
     void onResponder(ResponderImpl responder) {
         Message originalMessage = responder.getOriginalMessage();
-        Payload request = originalMessage.getPayload();
+        Object rawPayload = originalMessage.getRawPayload();
+        Payload request = payloadMapper.convertValue(rawPayload, payloadClass);
         LOG.debug("[{}] Process message with id: [{}]", namespace, originalMessage.getId());
         try {
             requestHandler.process(request, responder);

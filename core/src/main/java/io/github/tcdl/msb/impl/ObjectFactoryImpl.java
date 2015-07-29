@@ -55,9 +55,10 @@ public class ObjectFactoryImpl implements ObjectFactory {
     /**
      * {@inheritDoc}
      */
-    @Override public PayloadConverter getPayloadConverter() {
+    @Override
+    public PayloadConverter getPayloadConverter() {
         if (payloadConverter == null) {
-            payloadConverter = new PayloadConverterImpl(msbContext.getMessageMapper());
+            payloadConverter = new PayloadConverterImpl(msbContext.getPayloadMapper());
         }
         return payloadConverter;
     }

@@ -41,7 +41,7 @@ public class ResponderServerImplTest {
     @Test
     public void testResponderServerProcessCustomPayloadSuccess() throws Exception {
         String namespace = TestUtils.getSimpleNamespace();
-        ResponderServer.RequestHandler handler = (request, responder) -> {
+        ResponderServer.RequestHandler<MyPayload> handler = (request, responder) -> {
         };
 
         ArgumentCaptor<MessageHandler> subscriberCaptor = ArgumentCaptor.forClass(MessageHandler.class);
@@ -66,7 +66,7 @@ public class ResponderServerImplTest {
     @Test
     public void testResponderServerProcessDefaultPayloadSuccess() throws Exception {
         String namespace = TestUtils.getSimpleNamespace();
-        ResponderServer.RequestHandler handler = (request, responder) -> {
+        ResponderServer.RequestHandler<Payload> handler = (request, responder) -> {
         };
 
         ArgumentCaptor<MessageHandler> subscriberCaptor = ArgumentCaptor.forClass(MessageHandler.class);
@@ -76,7 +76,7 @@ public class ResponderServerImplTest {
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 
         ResponderServerImpl responderServer = ResponderServerImpl
-                .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler, null);
+                .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler, Payload.class);
 
         ResponderServerImpl spyResponderServer = (ResponderServerImpl) spy(responderServer).listen();
 
@@ -96,7 +96,7 @@ public class ResponderServerImplTest {
     @Test
     public void testResponderServerProcessWithError() throws Exception {
         Exception error = new Exception();
-        ResponderServer.RequestHandler handler = (request, responder) -> {
+        ResponderServer.RequestHandler<MyPayload> handler = (request, responder) -> {
             throw error;
         };
 

@@ -1,19 +1,5 @@
 package io.github.tcdl.msb.impl;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.time.Clock;
-
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Consumer;
 import io.github.tcdl.msb.Producer;
@@ -31,6 +17,21 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.time.Clock;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by rdro on 4/27/2015.
@@ -78,15 +79,16 @@ public class RequesterImplTest {
     }
 
     @Test
-    public void testPublishCallProducerPublishWithPayload() throws Exception {
+    public void testProducerPublishWithPayload() throws Exception {
+        String bodyText = "Body text";
         RequesterImpl requester = initRequesterForResponsesWithTimeout(0);
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-        Payload payload = TestUtils.createSimpleRequestPayload();
+        Payload payload = TestUtils.createPayloadWithTextBody(bodyText);
 
         requester.publish(payload);
 
         verify(producerMock).publish(messageCaptor.capture());
-        assertThat(payload, is(messageCaptor.getValue().getPayload()));
+        TestUtils.assertRawPayloadContainsBodyText(bodyText, messageCaptor.getValue());
     }
 
     @Test
@@ -159,7 +161,7 @@ public class RequesterImplTest {
         Message requestMessage = messageArgumentCaptor.getValue();
         assertNotNull(requestMessage);
         assertNotNull(requestMessage.getMeta());
-        assertNotNull(requestMessage.getPayload());
+        assertNotNull(requestMessage.getRawPayload());
     }
 
     private RequesterImpl initRequesterForResponsesWithTimeout(int numberOfResponses) throws Exception {

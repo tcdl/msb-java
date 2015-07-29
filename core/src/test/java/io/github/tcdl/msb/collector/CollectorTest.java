@@ -83,6 +83,7 @@ public class CollectorTest {
                 .build();
 
         when(collectorManagerFactoryMock.findOrCreateCollectorManager(TOPIC)).thenReturn(collectorManagerMock);
+        when(requestOptionsMock.getPayloadClass()).thenReturn(Payload.class);
     }
 
     @Test
@@ -128,18 +129,24 @@ public class CollectorTest {
     }
 
     @Test
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     public void testHandleResponse() {
+        String bodyText = "some body";
+        Message incomingMessage = TestUtils.createMsbRequestMessageWithPayloadTextBody(TOPIC, bodyText);
+        @SuppressWarnings("unchecked")
         Callback<Payload> onResponse = mock(Callback.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers);
+        Collector collector = new Collector(TOPIC, incomingMessage, requestOptionsMock, msbContext, eventHandlers);
 
-        collector.handleMessage(originalMessageWithPayload);
+        // method under test
+        collector.handleMessage(incomingMessage);
 
-        verify(onResponse).call(originalMessageWithPayload.getPayload());
+        Payload<?, ?, ?, String> expectedPayload = new Payload.Builder<Object, Object, Object, String>()
+                .withBody(bodyText)
+                .build();
+        verify(onResponse).call(expectedPayload);
         verify(collectorManagerMock).unsubscribe(collector);
-        assertTrue(collector.getPayloadMessages().stream().anyMatch(message -> message.getId().equals(originalMessageWithPayload.getId())));
-        assertFalse(collector.getAckMessages().contains(originalMessageWithPayload));
+        assertTrue(collector.getPayloadMessages().stream().anyMatch(message -> message.getId().equals(incomingMessage.getId())));
+        assertFalse(collector.getAckMessages().contains(incomingMessage));
     }
 
     @Test
@@ -175,6 +182,9 @@ public class CollectorTest {
     public void testHandleResponseLastResponse() {
         /*ackTimeout = 0, responseTimeout=200; waitForResponses = 1
         */
+        String bodyText = "some body";
+        Message incomingMessage = TestUtils.createMsbRequestMessageWithPayloadTextBody(TOPIC, bodyText);
+
         int responseTimeout = 200;
         when(requestOptionsMock.getAckTimeout()).thenReturn(0);
         when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
@@ -185,10 +195,13 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers);
-        collector.handleMessage(originalMessageWithPayload);
+        Collector collector = new Collector(TOPIC, incomingMessage, requestOptionsMock, msbContext, eventHandlers);
+        collector.handleMessage(incomingMessage);
 
-        verify(onResponse).call(originalMessageWithPayload.getPayload());
+        Payload<?, ?, ?, String> expectedPayload = new Payload.Builder<Object, Object, Object, String>()
+                .withBody(bodyText)
+                .build();
+        verify(onResponse).call(expectedPayload);
         verify(timeoutManagerMock, never()).enableResponseTimeout(eq(responseTimeout), eq(collector));
         verify(timeoutManagerMock, never()).enableAckTimeout(eq(0), eq(collector));
         verify(onEnd).call(anyList());
@@ -199,6 +212,8 @@ public class CollectorTest {
     public void testHandleResponseWaitForOneMoreResponse() {
         /*ackTimeout = 0, responseTimeout=200; waitForResponses = 2
         */
+        String bodyText = "some body";
+        Message incomingMessage = TestUtils.createMsbRequestMessageWithPayloadTextBody(TOPIC, bodyText);
         int responseTimeout = 200;
         when(requestOptionsMock.getAckTimeout()).thenReturn(0);
         when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
@@ -209,17 +224,21 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers);
+        Collector collector = new Collector(TOPIC, incomingMessage, requestOptionsMock, msbContext, eventHandlers);
         collector.listenForResponses();
 
+        Payload<?, ?, ?, String> expectedPayload = new Payload.Builder<Object, Object, Object, String>()
+                .withBody(bodyText)
+                .build();
+
         //send first response
-        collector.handleMessage(originalMessageWithPayload);
-        verify(onResponse).call(originalMessageWithPayload.getPayload());
+        collector.handleMessage(incomingMessage);
+        verify(onResponse).call(expectedPayload);
         verify(onEnd, never()).call(anyList());
 
         //send last response
-        collector.handleMessage(originalMessageWithPayload);
-        verify(onResponse, times(2)).call(originalMessageWithPayload.getPayload());
+        collector.handleMessage(incomingMessage);
+        verify(onResponse, times(2)).call(expectedPayload);
         verify(timeoutManagerMock, never()).enableResponseTimeout(eq(responseTimeout), eq(collector));
         verify(timeoutManagerMock, never()).enableAckTimeout(eq(0), eq(collector));
         verify(onEnd).call(anyList());

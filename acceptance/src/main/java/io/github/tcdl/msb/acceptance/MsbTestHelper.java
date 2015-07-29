@@ -52,7 +52,7 @@ public class MsbTestHelper {
     }
 
     public ObjectMapper getObjectMapper() {
-        return ((MsbContextImpl) (getContext())).getMessageMapper();
+        return ((MsbContextImpl) (getContext())).getPayloadMapper();
     }
 
     public Requester createRequester(String namespace, Integer numberOfResponses) {
@@ -64,10 +64,11 @@ public class MsbTestHelper {
     }
 
     public Requester createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout) {
-        RequestOptions options = new RequestOptions.Builder()
+        RequestOptions<Payload> options = new RequestOptions.Builder<>()
                 .withWaitForResponses(numberOfResponses)
                 .withAckTimeout(Utils.ifNull(ackTimeout, 5000))
                 .withResponseTimeout(Utils.ifNull(responseTimeout, 15000))
+                .withPayloadClass(Payload.class)
                 .build();
         return context.getObjectFactory().createRequester(namespace, options);
     }
@@ -129,8 +130,8 @@ public class MsbTestHelper {
     }
 
     public Payload createPayload(String query, String body) {
-        ObjectMapper mapper = ((MsbContextImpl) context).getMessageMapper();
-        return new Payload.Builder()
+        ObjectMapper mapper = ((MsbContextImpl) context).getPayloadMapper();
+        return new Payload.Builder<Map, Object, Object, Map>()
                 .withQuery(Utils.fromJson("{\"q\": \"" + query + "\"}", Map.class, mapper))
                 .withBody(Utils.fromJson("{\"body\": \"" + body + "\"}", Map.class, mapper))
                 .build();
