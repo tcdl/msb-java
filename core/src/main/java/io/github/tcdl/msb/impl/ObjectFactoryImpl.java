@@ -1,22 +1,21 @@
 package io.github.tcdl.msb.impl;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.ResponderServer;
-import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 import io.github.tcdl.msb.monitor.aggregator.DefaultChannelMonitorAggregator;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * Provides methods for creation {@link Requester} and {@link ResponderServer}.
@@ -39,14 +38,6 @@ public class ObjectFactoryImpl implements ObjectFactory {
     @Override
     public Requester createRequester(String namespace, RequestOptions requestOptions) {
         return RequesterImpl.create(namespace, requestOptions, msbContext);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Requester createRequester(String namespace, RequestOptions requestOptions, Message originalMessage) {
-        return RequesterImpl.create(namespace, requestOptions, originalMessage, msbContext);
     }
 
     /**

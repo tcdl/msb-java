@@ -10,6 +10,7 @@ import io.github.tcdl.msb.adapters.AdapterFactoryLoader;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.api.Callback;
+import io.github.tcdl.msb.api.exception.ConsumerSubscriptionException;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
@@ -63,15 +64,16 @@ public class ChannelManager {
     /**
      * Start consuming messages on specified topic with handler.
      * Calls to subscribe() and unsubscribe() have to be properly synchronized by client code not to lose messages.
+     *
      * @param topic
      * @param messageHandler handler for processing messages
-     * @throws IllegalStateException if subscriber for topic already exist
+     * @throws ConsumerSubscriptionException if subscriber for topic already exist
      */
     public synchronized boolean subscribe(String topic, MessageHandler messageHandler) {
         Validate.notNull(topic, "field 'topic' is null");
         Validate.notNull(messageHandler, "field 'messageHandler' is null");
         if (consumersByTopic.get(topic) != null) {
-            throw new IllegalStateException("Subscriber for this topic:" + topic +" already exist");
+            throw new ConsumerSubscriptionException("Subscriber for this topic: " + topic + " already exist");
         } else {
             Consumer newConsumer = createConsumer(topic, messageHandler);
             channelMonitorAgent.consumerTopicCreated(topic);
@@ -83,6 +85,7 @@ public class ChannelManager {
     /**
      * Stop consuming messages on specified topic.
      * Calls to subscribe() and unsubscribe() have to be properly synchronized by client code not to lose messages.
+     *
      * @param topic
      */
     public void unsubscribe(String topic) {

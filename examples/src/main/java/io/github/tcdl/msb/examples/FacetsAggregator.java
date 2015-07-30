@@ -66,7 +66,7 @@ public class FacetsAggregator {
                         .build();
 
                 Requester requester = msbContext.getObjectFactory().createRequester("search:parsers:facets:v1",
-                        requestOptions, responder.getOriginalMessage());
+                        requestOptions);
 
                 final String[] result = {""};
 
@@ -86,7 +86,7 @@ public class FacetsAggregator {
                     responder.send(responsePayload);
                 });
 
-                requester.publish(request);
+                requester.publish(request, responder.getOriginalMessage().getCorrelationId());
             }
         }).listen();
     }

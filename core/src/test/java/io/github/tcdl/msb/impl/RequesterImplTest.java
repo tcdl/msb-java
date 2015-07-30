@@ -172,7 +172,7 @@ public class RequesterImplTest {
                 .withChannelManager(channelManagerMock)
                 .build();
 
-        RequesterImpl requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, null, msbContext));
+        RequesterImpl requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, msbContext));
 
         collectorMock = spy(new Collector(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptionsMock, msbContext, eventHandlerMock));
 

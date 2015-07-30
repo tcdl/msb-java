@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.api.exception.DuplicateCollectorException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.support.TestUtils;
 import org.junit.Before;
@@ -51,7 +52,7 @@ public class CollectorManagerTest {
 
     @Test
     public void testHandleMessageUnregisteredProperCollectorForTopic() {
-        String topic = "test-handlemessage-collector-not";
+        String topic = "test-handle-message-collector-not";
         Message receivedMessage = TestUtils.createMsbResponseMessage(topic);
 
         CollectorManager collectorManager = new CollectorManager("some-other-topic", channelManagerMock);
@@ -83,8 +84,8 @@ public class CollectorManagerTest {
         verify(channelManagerMock, times(1)).subscribe(TOPIC, collectorManager);
     }
 
-    @Test
-    public void testRegisterTheSameCollectorsMultipletTimes() {
+    @Test(expected = DuplicateCollectorException.class)
+    public void testRegisterTheSameCollectorMultiplyTimes() {
         CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
         collectorManager.registerCollector(collectorMock);
 
@@ -92,7 +93,6 @@ public class CollectorManagerTest {
 
         reset(channelManagerMock);
         collectorManager.registerCollector(collectorMock);
-        verify(channelManagerMock, never()).subscribe(TOPIC, collectorManager);
     }
 
     @Test
@@ -127,7 +127,7 @@ public class CollectorManagerTest {
     }
 
     @Test
-    public void testUnregisterTheSameCollectorsMultipletTimes() {
+    public void testUnregisterTheSameCollectorsMultiplyTimes() {
         CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
         collectorManager.registerCollector(collectorMock);
 
@@ -151,4 +151,5 @@ public class CollectorManagerTest {
         collectorManager.registerCollector(collectorMock);
         verify(channelManagerMock, times(1)).subscribe(TOPIC, collectorManager);
     }
+
 }
