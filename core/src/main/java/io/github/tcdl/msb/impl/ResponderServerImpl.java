@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.MessageTemplate;
@@ -19,15 +20,15 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
     private MessageTemplate messageTemplate;
     private RequestHandler<T> requestHandler;
     private ObjectMapper payloadMapper;
-    private Class<T> payloadClass;
+    private TypeReference<T> payloadTypeReference;
 
-    private ResponderServerImpl(String namespace, MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler<T> requestHandler, Class<T> payloadClass) {
+    private ResponderServerImpl(String namespace, MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
         this.namespace = namespace;
         this.messageTemplate = messageTemplate;
         this.msbContext = msbContext;
         this.requestHandler = requestHandler;
         this.payloadMapper = msbContext.getPayloadMapper();
-        this.payloadClass = payloadClass;
+        this.payloadTypeReference = payloadTypeReference;
         Validate.notNull(requestHandler, "requestHandler must not be null");
     }
 
@@ -35,8 +36,8 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
      * {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(String, MessageTemplate, RequestHandler, Class)}
      */
     static <T extends Payload> ResponderServerImpl<T> create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext,
-            RequestHandler<T> requestHandler, Class<T> payloadClass) {
-        return new ResponderServerImpl<>(namespace, messageTemplate, msbContext, requestHandler, payloadClass);
+            RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
+        return new ResponderServerImpl<>(namespace, messageTemplate, msbContext, requestHandler, payloadTypeReference);
     }
 
     /**
@@ -59,7 +60,7 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
     void onResponder(ResponderImpl responder) {
         Message originalMessage = responder.getOriginalMessage();
         Object rawPayload = originalMessage.getRawPayload();
-        T request = payloadMapper.convertValue(rawPayload, payloadClass);
+        T request = payloadMapper.convertValue(rawPayload, payloadTypeReference);
         LOG.debug("[{}] Process message with id: [{}]", namespace, originalMessage.getId());
         try {
             requestHandler.process(request, responder);

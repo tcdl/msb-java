@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.acceptance;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import io.github.tcdl.msb.api.Callback;
@@ -55,34 +56,34 @@ public class MsbTestHelper {
         return ((MsbContextImpl) (getContext())).getPayloadMapper();
     }
 
-    public Requester createRequester(String namespace, Integer numberOfResponses) {
+    public Requester<Payload<Object, Object, Object, Map<String, Object>>> createRequester(String namespace, Integer numberOfResponses) {
         return createRequester(namespace, numberOfResponses, null, null);
     }
 
-    public Requester createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout) {
+    public Requester<Payload<Object, Object, Object, Map<String, Object>>> createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout) {
         return createRequester(namespace, numberOfResponses, ackTimeout, null);
     }
 
-    public Requester createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout) {
+    public Requester<Payload<Object, Object, Object, Map<String, Object>>> createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout) {
         RequestOptions options = new RequestOptions.Builder()
                 .withWaitForResponses(numberOfResponses)
                 .withAckTimeout(Utils.ifNull(ackTimeout, 5000))
                 .withResponseTimeout(Utils.ifNull(responseTimeout, 15000))
                 .build();
-        return context.getObjectFactory().createRequester(namespace, options);
+        return context.getObjectFactory().createRequester(namespace, options, null, new TypeReference<Payload<Object, Object, Object, Map<String, Object>>>() {});
     }
 
-    public void sendRequest(Requester requester, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
+    public void sendRequest(Requester<Payload<Object, Object, Object, Map<String, Object>>> requester, Integer waitForResponses, Callback<Payload<Object, Object, Object, Map<String, Object>>> responseCallback) throws Exception {
         sendRequest(requester, "QUERY", null, true, waitForResponses, null, responseCallback);
     }
 
-    public void sendRequest(Requester requester, String body, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
+    public void sendRequest(Requester<Payload<Object, Object, Object, Map<String, Object>>> requester, String body, Integer waitForResponses, Callback<Payload<Object, Object, Object, Map<String, Object>>> responseCallback) throws Exception {
         sendRequest(requester, null, body, false, waitForResponses, null, responseCallback);
     }
 
-    public void sendRequest(Requester<Payload> requester, String query, String body, boolean waitForAck, Integer waitForResponses,
+    public void sendRequest(Requester<Payload<Object, Object, Object, Map<String, Object>>> requester, String query, String body, boolean waitForAck, Integer waitForResponses,
             Callback<Acknowledge> ackCallback,
-            Callback<Payload> responseCallback) throws Exception {
+            Callback<Payload<Object, Object, Object, Map<String, Object>>> responseCallback) throws Exception {
 
         requester.onAcknowledge(acknowledge -> {
             System.out.println(">>> ACKNOWLEDGE: " + acknowledge);

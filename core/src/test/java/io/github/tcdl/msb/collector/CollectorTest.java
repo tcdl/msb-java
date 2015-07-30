@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.collector;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.RequestOptions;
@@ -89,42 +90,42 @@ public class CollectorTest {
     @Test
     public void testGetWaitForResponsesConfigsReturnFalse() {
         when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
-        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         assertFalse("expect false if MessageOptions.waitForResponses equals 0", collector.isAwaitingResponses());
     }
 
     @Test
     public void testGetWaitForResponsesConfigsReturnFalseMinusCase() {
         when(requestOptionsMock.getWaitForResponses()).thenReturn(-10);
-        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         assertFalse("expect false if MessageOptions.waitForResponses equals -10", collector.isAwaitingResponses());
     }
 
     @Test
     public void testGetWaitForResponsesConfigsReturnTrue() {
         when(requestOptionsMock.getWaitForResponses()).thenReturn(100);
-        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         assertTrue("expect true if MessageOptions.waitForResponses equals 100", collector.isAwaitingResponses());
     }
 
     @Test
     public void testGetWaitForResponsesConfigsReturnTrueMinusOne() {
         when(requestOptionsMock.getWaitForResponses()).thenReturn(-1);
-        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         assertTrue("expect true if MessageOptions.waitForResponses equals -1", collector.isAwaitingResponses());
     }
 
     @Test
     public void testIsAwaitingAcksConfigsNotSetAckTimeoutReturnFalse() {
         when(requestOptionsMock.getAckTimeout()).thenReturn(null);
-        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         assertFalse("expect false if MessageOptions.ackTimeout null", collector.isAwaitingAcks());
     }
 
     @Test
     public void testIsAwaitingAcksReturnTrue() {
         when(requestOptionsMock.getAckTimeout()).thenReturn(200);
-        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         assertTrue("expect true if MessageOptions.ackTimeout equals 200", collector.isAwaitingAcks());
     }
 
@@ -135,7 +136,7 @@ public class CollectorTest {
         @SuppressWarnings("unchecked")
         Callback<Payload> onResponse = mock(Callback.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
-        Collector<Payload> collector = new Collector<>(TOPIC, incomingMessage, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector<Payload> collector = new Collector<>(TOPIC, incomingMessage, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
 
         // method under test
         collector.handleMessage(incomingMessage);
@@ -154,7 +155,7 @@ public class CollectorTest {
     public void testHandleResponseReceivedAck() {
         Callback<Acknowledge> onAck = mock(Callback.class);
         when(eventHandlers.onAcknowledge()).thenReturn(onAck);
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
 
         collector.handleMessage(originalMessageWithAck);
 
@@ -168,7 +169,7 @@ public class CollectorTest {
     public void testHandleResponseEndEventNoResponsesRemaining() {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
 
         collector.handleMessage(originalMessageWithAck);
 
@@ -195,7 +196,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(TOPIC, incomingMessage, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector collector = new Collector(TOPIC, incomingMessage, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         collector.handleMessage(incomingMessage);
 
         Payload<?, ?, ?, String> expectedPayload = new Payload.Builder<Object, Object, Object, String>()
@@ -224,7 +225,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(TOPIC, incomingMessage, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector collector = new Collector(TOPIC, incomingMessage, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         collector.listenForResponses();
 
         Payload<?, ?, ?, String> expectedPayload = new Payload.Builder<Object, Object, Object, String>()
@@ -259,7 +260,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         collector.listenForResponses();
 
         //send payload response
@@ -284,7 +285,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         collector.listenForResponses();
 
         //send payload response
@@ -309,7 +310,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         collector.listenForResponses();
 
         //send payload response
@@ -332,7 +333,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         collector.listenForResponses();
 
         Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMs).build();
@@ -358,7 +359,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         collector.listenForResponses();
 
         Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMsInAck)
@@ -386,7 +387,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         collector.listenForResponses();
 
         Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemaining)
@@ -416,7 +417,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         collector.listenForResponses();
 
         Acknowledge ackRespOne = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(responsesRemainingResponderOne)
@@ -456,7 +457,7 @@ public class CollectorTest {
         Callback<List<Message>> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
-        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector collector = new Collector(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         collector.listenForResponses();
 
         assertEquals(responsesRemaining, collector.getResponsesRemaining());
@@ -474,7 +475,7 @@ public class CollectorTest {
 
     @Test
     public void testListenForResponses() {
-        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, Payload.class);
+        Collector<Payload> collector = new Collector<>(TOPIC, originalMessageWithPayload, requestOptionsMock, msbContext, eventHandlers, new TypeReference<Payload>() {});
         collector.listenForResponses();
 
         verify(collectorManagerMock).registerCollector(collector);

@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.ObjectFactory;
@@ -35,12 +36,10 @@ public class ObjectFactoryImpl implements ObjectFactory {
         this.msbContext = msbContext;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public <T extends Payload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, Message originalMessage, Class<T> payloadClass) {
-        return RequesterImpl.create(namespace, requestOptions, originalMessage, msbContext, payloadClass);
+    public <T extends Payload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, Message originalMessage,
+            TypeReference<T> payloadTypeReference) {
+        return RequesterImpl.create(namespace, requestOptions, originalMessage, msbContext, payloadTypeReference);
     }
 
     /**
@@ -48,8 +47,8 @@ public class ObjectFactoryImpl implements ObjectFactory {
      */
     @Override
     public <T extends Payload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
-            ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {
-        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, payloadClass);
+            ResponderServer.RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
+        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, payloadTypeReference);
     }
 
     /**

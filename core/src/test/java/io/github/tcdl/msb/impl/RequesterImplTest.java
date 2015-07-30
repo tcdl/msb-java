@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Consumer;
 import io.github.tcdl.msb.Producer;
@@ -154,7 +155,7 @@ public class RequesterImplTest {
                 .build();
 
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), null, msbContext, Payload.class);
+        Requester requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), null, msbContext, new TypeReference<Payload>() {});
         requester.publish(requestPayload);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
@@ -177,14 +178,14 @@ public class RequesterImplTest {
                 .withChannelManager(channelManagerMock)
                 .build();
 
-        RequesterImpl<Payload> requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, null, msbContext, Payload.class));
+        RequesterImpl<Payload> requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, null, msbContext, new TypeReference<Payload>() {}));
 
         collectorMock = spy(new Collector<>(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptionsMock, msbContext, eventHandlerMock,
-                Payload.class));
+                new TypeReference<Payload>() {}));
 
         doReturn(collectorMock)
                 .when(requester)
-                .createCollector(anyString(), any(Message.class), any(RequestOptions.class), any(MsbContextImpl.class), any(EventHandlers.class));
+                .createCollector(anyString(), any(Message.class), any(RequestOptions.class), any(MsbContextImpl.class), any());
 
         return requester;
     }

@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.acceptance;
 
 import io.github.tcdl.msb.api.Requester;
+import io.github.tcdl.msb.api.message.payload.Payload;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -32,7 +33,7 @@ public class SimpleRequester {
     }
 
     public void runSimpleRequesterExample(String... expectedResponses) throws Exception {
-        Requester requester = helper.createRequester(namespace, NUMBER_OF_RESPONSES);
+        Requester<Payload<Object, Object, Object, Map<String, Object>>> requester = helper.createRequester(namespace, NUMBER_OF_RESPONSES);
 
         passedLatch = new CountDownLatch(expectedResponses != null ? expectedResponses.length : 0);
 

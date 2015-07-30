@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.collector;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
@@ -46,7 +47,7 @@ public class Collector<T extends Payload> {
     private int currentTimeoutMs;
     private long waitForAcksUntil;
     private int waitForResponses;
-    private Class<T> payloadClass;
+    private TypeReference<T> payloadTypeReference;
     private int responsesRemaining;
 
     private Long startedAt;
@@ -65,7 +66,7 @@ public class Collector<T extends Payload> {
     private CollectorManager collectorManager;
     private boolean shouldWaitUntilResponseTimeout;
 
-    public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers<T> eventHandlers, Class<T> payloadClass) {
+    public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers<T> eventHandlers, TypeReference<T> payloadTypeReference) {
         this.requestMessage = requestMessage;
 
         this.clock = msbContext.getClock();
@@ -85,7 +86,7 @@ public class Collector<T extends Payload> {
         this.waitForAcksUntil = getWaitForAckUntilFromConfigs(requestOptions);
         this.waitForResponses = requestOptions.getWaitForResponses();
         this.responsesRemaining = waitForResponses;
-        this.payloadClass = payloadClass;
+        this.payloadTypeReference = payloadTypeReference;
         this.shouldWaitUntilResponseTimeout = requestOptions.getWaitForResponses() == WAIT_FOR_RESPONSES_UNTIL_TIMEOUT;
 
         if (eventHandlers != null) {
@@ -115,7 +116,7 @@ public class Collector<T extends Payload> {
             LOG.debug("Received {}", rawPayload);
             payloadMessages.add(incomingMessage);
 
-            T payload = payloadMapper.convertValue(rawPayload, payloadClass);
+            T payload = payloadMapper.convertValue(rawPayload, payloadTypeReference);
 
             onResponse.ifPresent(handler -> handler.call(payload));
             incResponsesRemaining(-1);

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.api.MessageTemplate;
@@ -51,7 +52,7 @@ public class ResponderServerImplTest {
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 
         ResponderServerImpl responderServer = ResponderServerImpl
-                .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler, MyPayload.class);
+                .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler, new TypeReference<MyPayload>() {});
 
         ResponderServerImpl spyResponderServer = (ResponderServerImpl) spy(responderServer).listen();
 
@@ -76,7 +77,7 @@ public class ResponderServerImplTest {
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 
         ResponderServerImpl responderServer = ResponderServerImpl
-                .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler, Payload.class);
+                .create(namespace, requestOptions.getMessageTemplate(), spyMsbContext, handler, new TypeReference<Payload>() {});
 
         ResponderServerImpl spyResponderServer = (ResponderServerImpl) spy(responderServer).listen();
 
@@ -101,7 +102,7 @@ public class ResponderServerImplTest {
         };
 
         ResponderServerImpl responderServer = ResponderServerImpl
-                .create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, handler, MyPayload.class);
+                .create(TestUtils.getSimpleNamespace(), messageTemplate, msbContext, handler, new TypeReference<MyPayload>() {});
         responderServer.listen();
 
         // simulate incoming request

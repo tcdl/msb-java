@@ -5,6 +5,7 @@ import io.github.tcdl.msb.api.message.payload.Payload;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +25,7 @@ public class AsyncRequesterSteps extends MsbSteps {
 
         for (int i = 0; i < numberOfRequesters; i++) {
             CompletableFuture.supplyAsync(() -> {
-                Requester requester = helper.createRequester(namespace, 1);
+                Requester<Payload<Object, Object, Object, Map<String, Object>>> requester = helper.createRequester(namespace, 1);
                 try {
                     helper.sendRequest(requester, query, null, true, 1, null, this::onResponse);
                 } catch (Exception e) {

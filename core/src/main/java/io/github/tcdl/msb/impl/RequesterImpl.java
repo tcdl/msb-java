@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.api.Callback;
@@ -26,7 +27,7 @@ public class RequesterImpl<T extends Payload> implements Requester<T> {
     private MessageFactory messageFactory;
     private Message.Builder messageBuilder;
     EventHandlers<T> eventHandlers;
-    private Class<T> payloadClass;
+    private TypeReference<T> payloadTypeReference;
 
     /**
      * Creates a new instance of a requester with originalMessage.
@@ -37,18 +38,18 @@ public class RequesterImpl<T extends Payload> implements Requester<T> {
      * @param context         shared by all Requester instances
      * @return instance of a requester
      */
-    static <T extends  Payload> RequesterImpl<T> create(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContextImpl context, Class<T> payloadClass) {
-        return new RequesterImpl<>(namespace, requestOptions, originalMessage, context, payloadClass);
+    static <T extends  Payload> RequesterImpl<T> create(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContextImpl context, TypeReference<T> payloadTypeReference) {
+        return new RequesterImpl<>(namespace, requestOptions, originalMessage, context, payloadTypeReference);
     }
 
-    private RequesterImpl(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContextImpl context, Class<T> payloadClass) {
+    private RequesterImpl(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContextImpl context, TypeReference<T> payloadTypeReference) {
         Validate.notNull(namespace, "the 'namespace' must not be null");
         Validate.notNull(requestOptions, "the 'messageOptions' must not be null");
         Validate.notNull(context, "the 'context' must not be null");
 
         this.requestOptions = requestOptions;
         this.context = context;
-        this.payloadClass = payloadClass;
+        this.payloadTypeReference = payloadTypeReference;
 
         this.eventHandlers = new EventHandlers<>();
         this.messageFactory = context.getMessageFactory();
@@ -111,6 +112,6 @@ public class RequesterImpl<T extends Payload> implements Requester<T> {
     }
 
     Collector<T> createCollector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl context, EventHandlers<T> eventHandlers) {
-        return new Collector<T>(topic, requestMessage, requestOptions, context, eventHandlers, payloadClass);
+        return new Collector<T>(topic, requestMessage, requestOptions, context, eventHandlers, payloadTypeReference);
     }
 }
