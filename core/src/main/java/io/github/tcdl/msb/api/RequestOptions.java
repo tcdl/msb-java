@@ -5,7 +5,7 @@ import io.github.tcdl.msb.api.message.payload.Payload;
 /**
  * Specifies waiting policy (for acknowledgements and responses) for requests sent using {@link Requester}.
  */
-public class RequestOptions<T extends Payload> {
+public class RequestOptions {
 
     /**
      * Min time (in milliseconds) to wait for acknowledgements.
@@ -27,19 +27,12 @@ public class RequestOptions<T extends Payload> {
      */
     private Integer waitForResponses;
 
-    /**
-     * Class to convert payload of response message to
-     */
-    private Class<T> payloadClass;
-
     private MessageTemplate messageTemplate;
 
-    private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, Class<T> payloadClass,
-            MessageTemplate messageTemplate) {
+    private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, MessageTemplate messageTemplate) {
         this.ackTimeout = ackTimeout;
         this.responseTimeout = responseTimeout;
         this.waitForResponses = waitForResponses;
-        this.payloadClass = payloadClass;
         this.messageTemplate = messageTemplate;
     }
 
@@ -63,10 +56,6 @@ public class RequestOptions<T extends Payload> {
         return getWaitForResponses() != 0;
     }
 
-    public Class<T> getPayloadClass() {
-        return payloadClass;
-    }
-
     public MessageTemplate getMessageTemplate() {
         return messageTemplate;
     }
@@ -76,7 +65,6 @@ public class RequestOptions<T extends Payload> {
         return "RequestOptions [ackTimeout=" + ackTimeout
                 + ", responseTimeout=" + responseTimeout
                 + ", waitForResponses=" + waitForResponses
-                + ", payloadClass=" + payloadClass
                 + (messageTemplate != null ? messageTemplate : "")
                 + "]";
     }
@@ -86,7 +74,6 @@ public class RequestOptions<T extends Payload> {
         private Integer ackTimeout;
         private Integer responseTimeout;
         private Integer waitForResponses;
-        private Class<T> payloadClass;
         private MessageTemplate messageTemplate;
 
         public Builder<T> withAckTimeout(Integer ackTimeout) {
@@ -104,18 +91,13 @@ public class RequestOptions<T extends Payload> {
             return this;
         }
 
-        public Builder<T> withPayloadClass(Class<T> payloadClass) {
-            this.payloadClass = payloadClass;
-            return this;
-        }
-
         public Builder<T> withMessageTemplate(MessageTemplate messageTemplate) {
             this.messageTemplate = messageTemplate;
             return this;
         }
 
-        public RequestOptions<T> build() {
-            return new RequestOptions<>(ackTimeout, responseTimeout, waitForResponses, payloadClass, messageTemplate);
+        public RequestOptions build() {
+            return new RequestOptions(ackTimeout, responseTimeout, waitForResponses, messageTemplate);
         }
     }
 }

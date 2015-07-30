@@ -30,7 +30,7 @@ import static io.github.tcdl.msb.support.Utils.ifNull;
  *
  * Created by rdro on 4/23/2015.
  */
-public class Collector {
+public class Collector<T extends Payload> {
 
     private static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
@@ -46,7 +46,7 @@ public class Collector {
     private int currentTimeoutMs;
     private long waitForAcksUntil;
     private int waitForResponses;
-    private Class<? extends Payload> payloadClass;
+    private Class<T> payloadClass;
     private int responsesRemaining;
 
     private Long startedAt;
@@ -56,7 +56,7 @@ public class Collector {
     private Clock clock;
     private Message requestMessage;
 
-    private Optional<Callback<Payload>> onResponse = Optional.empty();
+    private Optional<Callback<T>> onResponse = Optional.empty();
     private Optional<Callback<Acknowledge>> onAcknowledge = Optional.empty();
     private Optional<Callback<List<Message>>> onEnd = Optional.empty();
 
@@ -65,7 +65,7 @@ public class Collector {
     private CollectorManager collectorManager;
     private boolean shouldWaitUntilResponseTimeout;
 
-    public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers eventHandlers) {
+    public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers<T> eventHandlers, Class<T> payloadClass) {
         this.requestMessage = requestMessage;
 
         this.clock = msbContext.getClock();
@@ -85,7 +85,7 @@ public class Collector {
         this.waitForAcksUntil = getWaitForAckUntilFromConfigs(requestOptions);
         this.waitForResponses = requestOptions.getWaitForResponses();
         this.responsesRemaining = waitForResponses;
-        this.payloadClass = requestOptions.getPayloadClass();
+        this.payloadClass = payloadClass;
         this.shouldWaitUntilResponseTimeout = requestOptions.getWaitForResponses() == WAIT_FOR_RESPONSES_UNTIL_TIMEOUT;
 
         if (eventHandlers != null) {
@@ -115,7 +115,7 @@ public class Collector {
             LOG.debug("Received {}", rawPayload);
             payloadMessages.add(incomingMessage);
 
-            Payload payload = payloadMapper.convertValue(rawPayload, payloadClass);
+            T payload = payloadMapper.convertValue(rawPayload, payloadClass);
 
             onResponse.ifPresent(handler -> handler.call(payload));
             incResponsesRemaining(-1);

@@ -9,7 +9,7 @@ import io.github.tcdl.msb.api.message.payload.Payload;
  * business logic processed by microservice. Inside this logic we can use instance of {@link Responder} created by {@code ResponderServer}
  * for each message from bus, and can be used for sending responses back to bus.
  */
-public interface ResponderServer {
+public interface ResponderServer<T extends Payload> {
 
     /**
      * Start listening for message on specified topic.

@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.api;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
@@ -15,8 +16,8 @@ public interface ObjectFactory {
      * @param requestOptions options to configure a requester
      * @return instance of a {@link Requester}
      */
-    default Requester createRequester(String namespace, RequestOptions requestOptions) {
-        return createRequester(namespace, requestOptions, null);
+    default Requester<Payload> createRequester(String namespace, RequestOptions requestOptions) {
+        return createRequester(namespace, requestOptions, null, Payload.class); // TODO reconsider the set of methods for createRequester
     }
 
     /**
@@ -25,7 +26,7 @@ public interface ObjectFactory {
      * @param originalMessage original message (to take correlation id from)
      * @return new instance of a {@link Requester} with original message
      */
-    Requester createRequester(String namespace, RequestOptions requestOptions, Message originalMessage);
+    <T extends Payload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, Message originalMessage, Class<T> payloadClass);
 
     /**
      * @param namespace       topic on a bus for listening on incoming requests
@@ -33,7 +34,7 @@ public interface ObjectFactory {
      * @param requestHandler  handler for processing the request
      * @return new instance of a {@link ResponderServer} that unmarshals payload into default {@link Payload}
      */
-    default ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+    default ResponderServer<Payload> createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<Payload> requestHandler) {
         return createResponderServer(namespace, messageTemplate, requestHandler, Payload.class);
     }
@@ -45,7 +46,7 @@ public interface ObjectFactory {
      * @param payloadClass    defines custom payload type
      * @return new instance of a {@link ResponderServer} that unmarshals payload into specified payload type
      */
-    <T extends Payload> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+    <T extends Payload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass);
 
     /**

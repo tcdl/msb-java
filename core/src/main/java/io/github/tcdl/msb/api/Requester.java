@@ -20,7 +20,7 @@ import java.util.List;
  * Please note: RequestOptions.waitForResponses represent number of response messages  with {@link Payload} set and in case we received
  * all expected before RequestOptions.responseTimeout we don't wait for Acknowledgement response and RequestOptions.ackTimeout is not used.
  */
-public interface Requester {
+public interface Requester<T extends Payload> {
 
     /**
      * Wraps a payload with protocol information and sends to bus.
@@ -30,6 +30,7 @@ public interface Requester {
      * @throws ChannelException if an error is encountered during publishing to bus
      * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
+    // todo Could we try <?> here?
     void publish(Payload requestPayload);
     
     /**
@@ -38,7 +39,7 @@ public interface Requester {
      * @param acknowledgeHandler callback to be called
      * @return requester
      */
-    Requester onAcknowledge(Callback<Acknowledge> acknowledgeHandler);
+    Requester<T> onAcknowledge(Callback<Acknowledge> acknowledgeHandler);
 
     /**
      * Registers a callback to be called when response {@link Message} with {@link Payload} property set is received.
@@ -46,7 +47,7 @@ public interface Requester {
      * @param responseHandler callback to be called
      * @return requester
      */
-    Requester onResponse(Callback<Payload> responseHandler);
+    Requester<T> onResponse(Callback<T> responseHandler);
     
     /**
      * Registers a callback to be called when all expected responses for request message are processes or awaiting timeout for responses occurred.
@@ -54,5 +55,5 @@ public interface Requester {
      * @param endHandler callback to be called
      * @return requester
      */
-    Requester onEnd(Callback<List<Message>> endHandler);
+    Requester<T> onEnd(Callback<List<Message>> endHandler);
 }

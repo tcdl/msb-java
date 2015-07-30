@@ -67,8 +67,8 @@ public class FacetsAggregator {
                         .withResponseTimeout(600)
                         .build();
 
-                Requester requester = msbContext.getObjectFactory().createRequester("search:parsers:facets:v1",
-                        requestOptions, responder.getOriginalMessage());
+                Requester<Payload> requester = msbContext.getObjectFactory().createRequester("search:parsers:facets:v1",
+                        requestOptions, responder.getOriginalMessage(), Payload.class);
 
                 final String[] result = {""};
 

@@ -39,15 +39,15 @@ public class ObjectFactoryImpl implements ObjectFactory {
      * {@inheritDoc}
      */
     @Override
-    public Requester createRequester(String namespace, RequestOptions requestOptions, Message originalMessage) {
-        return RequesterImpl.create(namespace, requestOptions, originalMessage, msbContext);
+    public <T extends Payload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, Message originalMessage, Class<T> payloadClass) {
+        return RequesterImpl.create(namespace, requestOptions, originalMessage, msbContext, payloadClass);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public <T extends Payload> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+    public <T extends Payload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {
         return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, payloadClass);
     }

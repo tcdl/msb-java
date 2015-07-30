@@ -42,7 +42,7 @@ public class RequesterImplTest {
     private static final String NAMESPACE = "test:requester";
 
     @Mock
-    private EventHandlers eventHandlerMock;
+    private EventHandlers<Payload> eventHandlerMock;
 
     @Mock
     private ChannelManager channelManagerMock;
@@ -154,7 +154,7 @@ public class RequesterImplTest {
                 .build();
 
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), null, msbContext);
+        Requester requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), null, msbContext, Payload.class);
         requester.publish(requestPayload);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
@@ -177,9 +177,10 @@ public class RequesterImplTest {
                 .withChannelManager(channelManagerMock)
                 .build();
 
-        RequesterImpl requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, null, msbContext));
+        RequesterImpl<Payload> requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, null, msbContext, Payload.class));
 
-        collectorMock = spy(new Collector(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptionsMock, msbContext, eventHandlerMock));
+        collectorMock = spy(new Collector<>(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptionsMock, msbContext, eventHandlerMock,
+                Payload.class));
 
         doReturn(collectorMock)
                 .when(requester)

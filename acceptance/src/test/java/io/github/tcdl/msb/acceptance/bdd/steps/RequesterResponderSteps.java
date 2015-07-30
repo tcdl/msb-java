@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public class RequesterResponderSteps extends MsbSteps {
 
-    private Requester requester;
+    private Requester<Payload> requester;
     private String responseBody;
     private Map<String, Object> receivedResponse;
 

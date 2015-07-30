@@ -11,17 +11,17 @@ import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ResponderServerImpl implements ResponderServer {
+public class ResponderServerImpl<T extends Payload> implements ResponderServer<T> {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServerImpl.class);
 
     private String namespace;
     private MsbContextImpl msbContext;
     private MessageTemplate messageTemplate;
-    private RequestHandler requestHandler;
+    private RequestHandler<T> requestHandler;
     private ObjectMapper payloadMapper;
-    private Class<? extends Payload> payloadClass;
+    private Class<T> payloadClass;
 
-    private ResponderServerImpl(String namespace, MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler requestHandler, Class<? extends Payload> payloadClass) {
+    private ResponderServerImpl(String namespace, MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler<T> requestHandler, Class<T> payloadClass) {
         this.namespace = namespace;
         this.messageTemplate = messageTemplate;
         this.msbContext = msbContext;
@@ -34,9 +34,9 @@ public class ResponderServerImpl implements ResponderServer {
     /**
      * {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(String, MessageTemplate, RequestHandler, Class)}
      */
-    static <T extends Payload> ResponderServerImpl create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext,
+    static <T extends Payload> ResponderServerImpl<T> create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext,
             RequestHandler<T> requestHandler, Class<T> payloadClass) {
-        return new ResponderServerImpl(namespace, messageTemplate, msbContext, requestHandler, payloadClass);
+        return new ResponderServerImpl<>(namespace, messageTemplate, msbContext, requestHandler, payloadClass);
     }
 
     /**
@@ -59,7 +59,7 @@ public class ResponderServerImpl implements ResponderServer {
     void onResponder(ResponderImpl responder) {
         Message originalMessage = responder.getOriginalMessage();
         Object rawPayload = originalMessage.getRawPayload();
-        Payload request = payloadMapper.convertValue(rawPayload, payloadClass);
+        T request = payloadMapper.convertValue(rawPayload, payloadClass);
         LOG.debug("[{}] Process message with id: [{}]", namespace, originalMessage.getId());
         try {
             requestHandler.process(request, responder);

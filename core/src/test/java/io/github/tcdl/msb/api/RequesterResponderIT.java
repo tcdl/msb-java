@@ -120,10 +120,9 @@ public class RequesterResponderIT {
     public void testResponderAnswerWithAckRequesterReceiveAck() throws Exception {
         String namespace = "test:requester-responder-test-get-ack";
         MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
-        RequestOptions<Payload> requestOptions = new RequestOptions.Builder<>()
+        RequestOptions requestOptions = new RequestOptions.Builder()
                 .withAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
                 .withWaitForResponses(1)
-                .withPayloadClass(Payload.class)
                 .build();
 
         CountDownLatch ackSend = new CountDownLatch(1);
@@ -157,10 +156,9 @@ public class RequesterResponderIT {
     public void testResponderAnswerWithResponseRequesterReceiveResponse() throws Exception {
         String namespace = "test:requester-responder-test-get-resp";
         MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
-        RequestOptions<Payload> requestOptions = new RequestOptions.Builder<>()
+        RequestOptions requestOptions = new RequestOptions.Builder()
                 .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
                 .withWaitForResponses(1)
-                .withPayloadClass(Payload.class)
                 .build();
 
         CountDownLatch respSend = new CountDownLatch(1);
@@ -171,7 +169,7 @@ public class RequesterResponderIT {
 
         //Create and send request message directly to broker, wait for response
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        msbContext.getObjectFactory().createRequester(namespace, requestOptions)
+        msbContext.getObjectFactory().createRequester(namespace, requestOptions, null, Payload.class)
                 .onResponse(payload -> {
                     receivedResponses.add(payload);
                     respReceived.countDown();
@@ -203,10 +201,9 @@ public class RequesterResponderIT {
     public void testResponderAnswerWithResponseRequesterReceiveCustomPayloadResponse() throws Exception {
         String namespace = "test:requester-responder-test-get-custom-resp";
         MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate();
-        RequestOptions requestOptions = new RequestOptions.Builder<MyPayload>()
+        RequestOptions requestOptions = new RequestOptions.Builder()
                 .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
                 .withWaitForResponses(1)
-                .withPayloadClass(MyPayload.class)
                 .build();
 
         CountDownLatch respSend = new CountDownLatch(1);
@@ -218,11 +215,10 @@ public class RequesterResponderIT {
         //Create and send request message directly to broker, wait for response
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
         Body receivedBody = new Body();
-        msbContext.getObjectFactory().createRequester(namespace, requestOptions)
+        msbContext.getObjectFactory().createRequester(namespace, requestOptions, null, MyPayload.class)
                 .onResponse(payload -> {
                     receivedResponses.add(payload);
-                    MyPayload myPayload = (MyPayload)payload;
-                    receivedBody.setBody(myPayload.getBody().getBody());
+                    receivedBody.setBody(payload.getBody().getBody());
                     respReceived.countDown();
                 })
                 .publish(requestPayload);
@@ -255,10 +251,9 @@ public class RequesterResponderIT {
         MessageTemplate responderServerOneMessageOptions = TestUtils.createSimpleMessageTemplate();
         MessageTemplate responderServerTwoMessageOptions = TestUtils.createSimpleMessageTemplate();
 
-        RequestOptions<Payload> requestAwaitAckMessageOptions = new RequestOptions.Builder<>()
+        RequestOptions requestAwaitAckMessageOptions = new RequestOptions.Builder()
                 .withAckTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
                 .withWaitForResponses(1)
-                .withPayloadClass(Payload.class)
                 .build();
 
         CountDownLatch ackSent = new CountDownLatch(1);
@@ -268,7 +263,7 @@ public class RequesterResponderIT {
         serverOneMsbContext.getObjectFactory().createResponderServer(namespace1, responderServerOneMessageOptions, (request, response) -> {
 
             //Create and send request message, wait for ack
-            Requester requester = msbContext.getObjectFactory().createRequester(namespace2, requestAwaitAckMessageOptions);
+            Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace2, requestAwaitAckMessageOptions);
             Payload requestPayload = TestUtils.createSimpleRequestPayload();
             requester.onAcknowledge((Acknowledge a) -> ackReceived.countDown());
             requester.publish(requestPayload);
@@ -292,11 +287,10 @@ public class RequesterResponderIT {
     @Test
     public void testMultipleRequesterListenForAcks() throws Exception {
         String namespace = "test:requester-responder-test-send-multiple-requests-get-ack";
-        RequestOptions<Payload> requestOptions = new RequestOptions.Builder<>()
+        RequestOptions requestOptions = new RequestOptions.Builder()
                 .withAckTimeout(100)
                 .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
                 .withWaitForResponses(1)
-                .withPayloadClass(Payload.class)
                 .build();
 
         int requestsToSendDuringTest = 5;
@@ -344,11 +338,10 @@ public class RequesterResponderIT {
     @Test
     public void testRequestMessageCollectorUnsubscribeAfterResponsesAndSubscribeAgain() throws Exception {
         String namespace = "test:requester-message-collector-resubscribe-onmessage";
-        RequestOptions<Payload> requestOptionsWaitResponse = new RequestOptions.Builder<>()
+        RequestOptions requestOptionsWaitResponse = new RequestOptions.Builder()
                 .withMessageTemplate(new MessageTemplate())
                 .withResponseTimeout(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME)
                 .withWaitForResponses(1)
-                .withPayloadClass(Payload.class)
                 .build();
 
         Thread serverListenThread = new Thread(() -> {
@@ -370,7 +363,7 @@ public class RequesterResponderIT {
         CountDownLatch endConversation2 = new CountDownLatch(1);
 
         //Create and send request message
-        Requester requester = msbContext.getObjectFactory().createRequester(namespace, requestOptionsWaitResponse).onEnd(arg -> endConversation1.countDown());
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptionsWaitResponse).onEnd(arg -> endConversation1.countDown());
         requester.publish(TestUtils.createSimpleRequestPayload());
         assertTrue("Message was not received", endConversation1.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
 

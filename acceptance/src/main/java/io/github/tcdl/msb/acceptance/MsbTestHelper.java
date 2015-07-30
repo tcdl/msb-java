@@ -64,11 +64,10 @@ public class MsbTestHelper {
     }
 
     public Requester createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout) {
-        RequestOptions<Payload> options = new RequestOptions.Builder<>()
+        RequestOptions options = new RequestOptions.Builder()
                 .withWaitForResponses(numberOfResponses)
                 .withAckTimeout(Utils.ifNull(ackTimeout, 5000))
                 .withResponseTimeout(Utils.ifNull(responseTimeout, 15000))
-                .withPayloadClass(Payload.class)
                 .build();
         return context.getObjectFactory().createRequester(namespace, options);
     }
@@ -81,7 +80,7 @@ public class MsbTestHelper {
         sendRequest(requester, null, body, false, waitForResponses, null, responseCallback);
     }
 
-    public void sendRequest(Requester requester, String query, String body, boolean waitForAck, Integer waitForResponses,
+    public void sendRequest(Requester<Payload> requester, String query, String body, boolean waitForAck, Integer waitForResponses,
             Callback<Acknowledge> ackCallback,
             Callback<Payload> responseCallback) throws Exception {
 

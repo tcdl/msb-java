@@ -51,7 +51,6 @@ public class TestUtils {
     public static RequestOptions createSimpleRequestOptions() {
         return new RequestOptions.Builder<>()
                 .withMessageTemplate(createSimpleMessageTemplate())
-                .withPayloadClass(Payload.class)
                 .build();
     }
 
