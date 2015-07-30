@@ -5,6 +5,7 @@ import io.github.tcdl.msb.api.exception.JsonConversionException;
 import org.junit.Test;
 
 import java.time.Instant;
+import java.util.Map;
 
 import static io.github.tcdl.msb.support.Utils.TOPIC_ANNOUNCE;
 import static io.github.tcdl.msb.support.Utils.TOPIC_HEARTBEAT;
@@ -52,4 +53,27 @@ public class UtilsTest {
 
         assertEquals("value", bean.getField());
     }
+
+    @Test
+    public void testConvert() {
+        int VALUE = 10;
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        TestPojo pojo = new TestPojo();
+        pojo.field = VALUE;
+
+        Map map = Utils.convert(pojo, Map.class, objectMapper);
+
+        assertEquals(VALUE, map.get("field"));
+    }
+
+    @Test(expected = JsonConversionException.class)
+    public void testConversionError() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        TestPojo pojo = new TestPojo();
+        pojo.field = 10;
+
+        Utils.convert(pojo, Integer.class, objectMapper);
+    }
+
 }

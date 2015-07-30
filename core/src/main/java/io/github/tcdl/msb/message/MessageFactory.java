@@ -56,14 +56,14 @@ public class MessageFactory {
 
     public Message createRequestMessage(Message.Builder messageBuilder, Payload<?, ?, ?, ?> payload) {
         if (payload != null) {
-            JsonNode convertedPayload = payloadMapper.convertValue(payload, JsonNode.class);
+            JsonNode convertedPayload = Utils.convert(payload, JsonNode.class, payloadMapper);
             messageBuilder.withPayload(convertedPayload);
         }
         return messageBuilder.build();
     }
 
     public Message createResponseMessage(Message.Builder messageBuilder, Acknowledge ack, Payload<?, ?, ?, ?> payload) {
-        JsonNode convertedPayload = payloadMapper.convertValue(payload, JsonNode.class);
+        JsonNode convertedPayload = Utils.convert(payload, JsonNode.class, payloadMapper);
         messageBuilder.withPayload(convertedPayload);
         messageBuilder.withAck(ack);
         return messageBuilder.build();
@@ -79,7 +79,7 @@ public class MessageFactory {
     }
 
     public Message.Builder createBroadcastMessageBuilder(MessageTemplate config, String topicTo, Payload payload) {
-        JsonNode convertedPayload = payloadMapper.convertValue(payload, JsonNode.class);
+        JsonNode convertedPayload = Utils.convert(payload, JsonNode.class, payloadMapper);
         Message.Builder messageBuilder = createBaseMessage(null);
         Builder metaBuilder = createMetaBuilder(config);
         messageBuilder.withMetaBuilder(metaBuilder);

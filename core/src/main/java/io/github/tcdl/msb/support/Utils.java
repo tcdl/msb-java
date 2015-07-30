@@ -85,6 +85,26 @@ public class Utils {
         }
     }
 
+    public static <T> T convert(Object srcObject, Class<T> destClass, ObjectMapper objectMapper) {
+        return convert(srcObject,
+                new TypeReference<T>() {
+                    @Override
+                    public Type getType() {
+                        return destClass;
+                    }
+                },
+                objectMapper);
+    }
+
+    public static <T> T convert(Object srcObject, TypeReference<T> typeReference, ObjectMapper objectMapper) {
+        try {
+            return objectMapper.convertValue(srcObject, typeReference);
+        } catch (Exception e) {
+            LOG.error("Failed to convert object {} to type: {}", srcObject, typeReference, e);
+            throw new JsonConversionException(e.getMessage());
+        }
+    }
+
     public static boolean isServiceTopic(String topic) {
         return topic.charAt(0) == '_';
     }

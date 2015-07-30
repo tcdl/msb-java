@@ -114,7 +114,7 @@ public class ProducerTest {
         Payload<?, ?, ?, Map<String, String>> payload = new Payload.Builder<Object, Object, Object, Map<String, String>>()
                 .withBody(body)
                 .build();
-        JsonNode payloadNode = payloadMapper.convertValue(payload, JsonNode.class);
+        JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
         MetaMessage.Builder metaBuilder = new MetaMessage.Builder(null,  clock.instant(), msbConf.getServiceDetails(), clock);
         return new Message.Builder()
                 .withCorrelationId(Utils.generateId())

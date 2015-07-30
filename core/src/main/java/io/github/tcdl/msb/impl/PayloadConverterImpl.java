@@ -21,7 +21,7 @@ public class PayloadConverterImpl implements PayloadConverter {
      */
     @Override
     public <T> T getAs(Object obj, Class<T> clazz) {
-        return Utils.fromJson(Utils.toJson(obj, payloadMapper), clazz, payloadMapper);
+        return Utils.convert(obj, clazz, payloadMapper);
     }
 
     /**
@@ -29,6 +29,6 @@ public class PayloadConverterImpl implements PayloadConverter {
      */
     @Override
     public <T> T getAs(Object obj, TypeReference<T> typeReference) {
-        return Utils.fromJson(Utils.toJson(obj, payloadMapper), typeReference, payloadMapper);
+        return Utils.convert(obj, typeReference, payloadMapper);
     }
 }

@@ -21,7 +21,6 @@ import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ObjectFactoryImpl;
 import io.github.tcdl.msb.message.MessageFactory;
-import junit.framework.Assert;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -29,7 +28,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -66,7 +67,7 @@ public class TestUtils {
         ObjectMapper payloadMapper = createMessageMapper();
         MsbConfig msbConf = createMsbConfigurations(instanceId);
         Clock clock = Clock.systemDefaultZone();
-        JsonNode payloadNode = payloadMapper.convertValue(payload, JsonNode.class);
+        JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
@@ -149,7 +150,7 @@ public class TestUtils {
                 msbConf.getServiceDetails().getInstanceId());
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
         Payload payload = createSimpleResponsePayload();
-        JsonNode payloadNode = payloadMapper.convertValue(payload, JsonNode.class);
+        JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
         return new Message.Builder()
                 .withCorrelationId(Utils.generateId())
                 .withId(Utils.generateId())
