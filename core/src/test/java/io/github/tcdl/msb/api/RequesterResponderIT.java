@@ -70,7 +70,7 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
         Body sentBody = new Body("test:requester-responder-test-body");
         Payload<Object, Object, Object, Body> requestPayload = new Payload.Builder<Object, Object, Object, Body>()
                 .withBody(sentBody)
@@ -96,7 +96,7 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
         Body sentBody = new Body("test:requester-responder-test-body");
         Payload<Object, Object, Object, Body> requestPayload = new Payload.Builder<Object, Object, Object, Body>()
                 .withBody(sentBody)

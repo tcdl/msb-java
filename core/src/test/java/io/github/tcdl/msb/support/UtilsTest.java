@@ -1,13 +1,10 @@
 package io.github.tcdl.msb.support;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import org.junit.Test;
 
 import java.time.Instant;
-import java.util.Map;
 
 import static io.github.tcdl.msb.support.Utils.TOPIC_ANNOUNCE;
 import static io.github.tcdl.msb.support.Utils.TOPIC_HEARTBEAT;
@@ -54,17 +51,5 @@ public class UtilsTest {
         SimpleBean bean = Utils.fromJson("{\"field\":\"value\"}", SimpleBean.class, objectMapper);
 
         assertEquals("value", bean.getField());
-    }
-
-    @Test
-    public void testToCustomTypeReference() {
-        int transferredValue = 10;
-        Map<String, Map<String, Integer>> rawObject = ImmutableMap.of("key1", ImmutableMap.of("field", transferredValue));
-
-        Map<String,TestPojo> deserializedObjectMap = Utils.toCustomTypeReference(rawObject, new TypeReference<Map<String, TestPojo>>() {
-        }, TestUtils.createMessageMapper());
-        assertEquals(1, deserializedObjectMap.size());
-        assertTrue(deserializedObjectMap.containsKey("key1"));
-        assertEquals(transferredValue, deserializedObjectMap.get("key1").field);
     }
 }

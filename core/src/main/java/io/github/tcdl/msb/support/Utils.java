@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Type;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -63,24 +64,17 @@ public class Utils {
      * @throws JsonConversionException if some problems during parsing JSON
      */
     public static <T> T fromJson(String json, Class<T> clazz, ObjectMapper objectMapper) {
-        if (json == null)
-            return null;
-        try {
-            return objectMapper.readValue(json, clazz);
-        } catch (IOException e) {
-            LOG.error("Failed parse JSON: {} to object of type: {}", json, clazz, e);
-            throw new JsonConversionException(e.getMessage());
-        }
+        return fromJson(json,
+                new TypeReference<T>() {
+                    @Override
+                    public Type getType() {
+                        return clazz;
+                    }
+                },
+                objectMapper);
     }
 
-    /**
-     * @throws JsonConversionException if some problems during parsing JSON
-     */
-    public static <T> T toCustomTypeReference(Object from, TypeReference<T> typeReference, ObjectMapper objectMapper) {
-        return Utils.fromJson(Utils.toJson(from, objectMapper), typeReference, objectMapper);
-    }
-
-    private static <T> T fromJson(String json, TypeReference<T> typeReference, ObjectMapper objectMapper) {
+    public static <T> T fromJson(String json, TypeReference<T> typeReference, ObjectMapper objectMapper) {
         if (json == null)
             return null;
         try {

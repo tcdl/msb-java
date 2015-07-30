@@ -54,7 +54,7 @@ public class MessageFactory {
         return messageBuilder.withMetaBuilder(metaBuilder);
     }
 
-    public Message createRequestMessage(Message.Builder messageBuilder, Payload payload) {
+    public Message createRequestMessage(Message.Builder messageBuilder, Payload<?, ?, ?, ?> payload) {
         if (payload != null) {
             JsonNode convertedPayload = payloadMapper.convertValue(payload, JsonNode.class);
             messageBuilder.withPayload(convertedPayload);
@@ -62,7 +62,7 @@ public class MessageFactory {
         return messageBuilder.build();
     }
 
-    public Message createResponseMessage(Message.Builder messageBuilder, Acknowledge ack, Payload payload) {
+    public Message createResponseMessage(Message.Builder messageBuilder, Acknowledge ack, Payload<?, ?, ?, ?> payload) {
         JsonNode convertedPayload = payloadMapper.convertValue(payload, JsonNode.class);
         messageBuilder.withPayload(convertedPayload);
         messageBuilder.withAck(ack);

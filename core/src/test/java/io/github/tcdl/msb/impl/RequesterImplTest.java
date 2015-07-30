@@ -59,7 +59,7 @@ public class RequesterImplTest {
 
     @Test
     public void testPublishNoWaitForResponses() throws Exception {
-        RequesterImpl requester = initRequesterForResponsesWithTimeout(0);
+        RequesterImpl<Payload> requester = initRequesterForResponsesWithTimeout(0);
 
         requester.publish(TestUtils.createSimpleRequestPayload());
 
@@ -69,7 +69,7 @@ public class RequesterImplTest {
 
     @Test
     public void testPublishWaitForResponses() throws Exception {
-        RequesterImpl requester = initRequesterForResponsesWithTimeout(1);
+        RequesterImpl<Payload> requester = initRequesterForResponsesWithTimeout(1);
 
         //doReturn(mock(CollectorManager.class)).when(collectorMock).findOrCreateCollectorManager(anyString());
 
@@ -82,7 +82,7 @@ public class RequesterImplTest {
     @Test
     public void testProducerPublishWithPayload() throws Exception {
         String bodyText = "Body text";
-        RequesterImpl requester = initRequesterForResponsesWithTimeout(0);
+        RequesterImpl<Payload> requester = initRequesterForResponsesWithTimeout(0);
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
         Payload payload = TestUtils.createPayloadWithTextBody(bodyText);
 
@@ -155,7 +155,7 @@ public class RequesterImplTest {
                 .build();
 
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), null, msbContext, new TypeReference<Payload>() {});
+        Requester<Payload> requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), null, msbContext, new TypeReference<Payload>() {});
         requester.publish(requestPayload);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
@@ -165,7 +165,7 @@ public class RequesterImplTest {
         assertNotNull(requestMessage.getRawPayload());
     }
 
-    private RequesterImpl initRequesterForResponsesWithTimeout(int numberOfResponses) throws Exception {
+    private RequesterImpl<Payload> initRequesterForResponsesWithTimeout(int numberOfResponses) throws Exception {
 
         MessageTemplate messageTemplateMock = mock(MessageTemplate.class);
 

@@ -30,8 +30,7 @@ public interface Requester<T extends Payload> {
      * @throws ChannelException if an error is encountered during publishing to bus
      * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
-    // todo Could we try <?> here?
-    void publish(Payload requestPayload);
+    void publish(Payload<?, ?, ?, ?> requestPayload);
     
     /**
      * Registers a callback to be called when {@link Message} with {@link Acknowledge} property set is received.

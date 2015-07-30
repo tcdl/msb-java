@@ -60,7 +60,7 @@ public class RequesterImpl<T extends Payload> implements Requester<T> {
      * {@inheritDoc}
      */
     @Override
-    public void publish(Payload requestPayload) {
+    public void publish(Payload<?, ?, ?, ?> requestPayload) {
         Message message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
         //use Collector instance to handle expected responses/acks
