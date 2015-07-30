@@ -34,7 +34,7 @@ public class ResponderIT {
     public void setUp() throws Exception {
         msbContext = (MsbContextImpl) new MsbContextBuilder().build();
         validator = new JsonValidator();
-        this.messageMapper = msbContext.getMessageMapper();
+        this.messageMapper = msbContext.getPayloadMapper();
     }
 
     @Test

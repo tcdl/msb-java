@@ -13,7 +13,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.PROTECT
  */
 // Workaround to using setFieldVisibility on object mapper. It caused infinite recursion
 @JsonAutoDetect(getterVisibility = PROTECTED_AND_PUBLIC, setterVisibility = PROTECTED_AND_PUBLIC)
-public class Payload<H, Q, P, B> {
+public class Payload<Q, H, P, B> {
 
     /**
      * Response status code
@@ -127,53 +127,53 @@ public class Payload<H, Q, P, B> {
         this.bodyBuffer = bodyBuffer;
     }
 
-    public static class Builder {
+    public static class Builder<Q, H, P, B> {
 
         private Integer statusCode;
         private String statusMessage;
-        private Object headers;
-        private Object query;
-        private Object params;
-        private Object body;
+        private H headers;
+        private Q query;
+        private P params;
+        private B body;
         private String bodyBuffer;
 
-        public Builder withStatusCode(Integer statusCode) {
+        public Builder<Q, H, P, B> withStatusCode(Integer statusCode) {
             this.statusCode = statusCode;
             return this;
         }
 
-        public Builder withStatusMessage(String statusMessage) {
+        public Builder<Q, H, P, B> withStatusMessage(String statusMessage) {
             this.statusMessage = statusMessage;
             return this;
         }
 
-        public Builder withHeaders(Object headers) {
+        public Builder<Q, H, P, B> withHeaders(H headers) {
             this.headers = headers;
             return this;
         }
 
-        public Builder withQuery(Object query) {
+        public Builder<Q, H, P, B> withQuery(Q query) {
             this.query = query;
             return this;
         }
 
-        public Builder withParams(Object params) {
+        public Builder<Q, H, P, B> withParams(P params) {
             this.params = params;
             return this;
         }
 
-        public Builder withBody(Object body) {
+        public Builder<Q, H, P, B> withBody(B body) {
             this.body = body;
             return this;
         }
 
-        public Builder withBodyBuffer(String bodyBuffer) {
+        public Builder<Q, H, P, B> withBodyBuffer(String bodyBuffer) {
             this.bodyBuffer = bodyBuffer;
             return this;
         }
 
-        public Payload build() {
-            return new Payload(statusCode, statusMessage, headers, query, params, body, bodyBuffer);
+        public Payload<Q, H, P, B> build() {
+            return new Payload<>(statusCode, statusMessage, headers, query, params, body, bodyBuffer);
         }
     }
 
@@ -186,7 +186,7 @@ public class Payload<H, Q, P, B> {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Payload) {
-            Payload other = (Payload) obj;
+            Payload<?, ?, ?, ?> other = (Payload<?, ?, ?, ?>) obj;
             return Objects.equals(body, other.body)
                     && Objects.equals(bodyBuffer, other.bodyBuffer)
                     && Objects.equals(bodyBuffer, other.bodyBuffer)

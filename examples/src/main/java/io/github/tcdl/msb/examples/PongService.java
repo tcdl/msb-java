@@ -22,7 +22,7 @@ public class PongService {
             // Response handling logic
             LOG.info(String.format("Handling %s...", request.getBody()));
 
-            Payload pongPayload = new Payload.Builder()
+            Payload pongPayload = new Payload.Builder<Object, Object, Object, String>()
                     .withBody("PONG")
                     .build();
 

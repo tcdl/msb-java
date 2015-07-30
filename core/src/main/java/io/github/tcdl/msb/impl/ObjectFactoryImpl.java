@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.ObjectFactory;
@@ -35,44 +36,28 @@ public class ObjectFactoryImpl implements ObjectFactory {
         this.msbContext = msbContext;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public Requester createRequester(String namespace, RequestOptions requestOptions) {
-        return RequesterImpl.create(namespace, requestOptions, msbContext);
+    public <T extends Payload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, Message originalMessage,
+            TypeReference<T> payloadTypeReference) {
+        return RequesterImpl.create(namespace, requestOptions, originalMessage, msbContext, payloadTypeReference);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Requester createRequester(String namespace, RequestOptions requestOptions, Message originalMessage) {
-        return RequesterImpl.create(namespace, requestOptions, originalMessage, msbContext);
+    public <T extends Payload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
+        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, payloadTypeReference);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public ResponderServer createResponderServer(String namespace,  MessageTemplate messageTemplate, ResponderServer.RequestHandler requestHandler) {
-        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, null);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override public ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate, ResponderServer.RequestHandler requestHandler,
-            Class<? extends Payload> payloadClass) {
-        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, payloadClass);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override public PayloadConverter getPayloadConverter() {
+    public PayloadConverter getPayloadConverter() {
         if (payloadConverter == null) {
-            payloadConverter = new PayloadConverterImpl(msbContext.getMessageMapper());
+            payloadConverter = new PayloadConverterImpl(msbContext.getPayloadMapper());
         }
         return payloadConverter;
     }

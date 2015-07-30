@@ -21,7 +21,7 @@ public interface Responder {
      *
      * @param responsePayload payload which will be used to create response message
      */
-    void send(Payload responsePayload);
+    void send(Payload<?, ?, ?, ?> responsePayload);
 
     /**
      * @return original message to send a response to

@@ -40,7 +40,7 @@ public class MessageFactoryTest {
 
     private ServiceDetails serviceDetails = TestUtils.createMsbConfigurations().getServiceDetails();
 
-    private MessageFactory messageFactory = new MessageFactory(serviceDetails, FIXED_CLOCK);
+    private MessageFactory messageFactory = new MessageFactory(serviceDetails, FIXED_CLOCK, TestUtils.createMessageMapper());
 
     @Test
     public void testCreateRequestMessageHasBasicFieldsSet() {
@@ -64,9 +64,9 @@ public class MessageFactoryTest {
     public void testCreateResponseMessageHasBasicFieldsSet() {
         String namespace = "test:request-basic-fields";
         Message originalMessage = TestUtils.createMsbRequestMessageNoPayload(namespace);
-        Builder responseMesageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
+        Builder responseMessageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
 
-        Message message = responseMesageBuilder.build();
+        Message message = responseMessageBuilder.build();
 
         assertThat(message.getCorrelationId(), is(originalMessage.getCorrelationId()));
         assertThat(message.getTopics().getTo(), not(namespace));
@@ -76,44 +76,50 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateRequestMessageWithPayload() {
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Builder requestMesageBuilder = TestUtils.createMessageBuilder();
+        String bodyText = "body text";
+        Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
 
-        Message message = messageFactory.createRequestMessage(requestMesageBuilder, requestPayload);
+        Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
 
-        assertEquals("Message payload is not set correctly", requestPayload, message.getPayload());
+        TestUtils.assertRawPayloadContainsBodyText(bodyText, message);
         assertNull(message.getAck());
     }
 
     @Test
     public void testCreateRequestMessageWithoutPayload() {
-        Builder requestMesageBuilder = TestUtils.createMessageBuilder();
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
 
-        Message message = messageFactory.createRequestMessage(requestMesageBuilder, null);
+        Message message = messageFactory.createRequestMessage(requestMessageBuilder, null);
 
-        assertNull(message.getPayload());
+        assertNull(message.getRawPayload());
         assertNull(message.getAck());
     }
 
     @Test
     public void testCreateResponseMessageWithPayloadAndAck() {
-        Builder responseMesageBuilder = TestUtils.createMessageBuilder();
-        Payload responsePayload = TestUtils.createSimpleResponsePayload();
-        Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(3).withTimeoutMs(100).build();
+        String bodyText = "body text";
+        Builder responseMessageBuilder = TestUtils.createMessageBuilder();
+        Payload responsePayload = TestUtils.createPayloadWithTextBody(bodyText);
+        Acknowledge ack = new Acknowledge.Builder()
+                .withResponderId(Utils.generateId())
+                .withResponsesRemaining(3)
+                .withTimeoutMs(100)
+                .build();
 
-        Message message = messageFactory.createResponseMessage(responseMesageBuilder, ack, responsePayload);
+        Message message = messageFactory.createResponseMessage(responseMessageBuilder, ack, responsePayload);
 
-        assertEquals("Message payload is not set correctly", responsePayload, message.getPayload());
+        TestUtils.assertRawPayloadContainsBodyText(bodyText, message);
         assertEquals("Message ack is not set correctly", ack, message.getAck());
     }
 
     @Test
     public void testCreateResponseMessageWithoutPayloadAndAck() {
-        Builder responseMesageBuilder = TestUtils.createMessageBuilder();
+        Builder responseMessageBuilder = TestUtils.createMessageBuilder();
 
-        Message message = messageFactory.createResponseMessage(responseMesageBuilder, null, null);
+        Message message = messageFactory.createResponseMessage(responseMessageBuilder, null, null);
 
-        assertNull("Message payload is not expected", message.getPayload());
+        assertNull("Message payload is not expected", message.getRawPayload());
         assertNull("Message ack is not expected", message.getAck());
     }
 
@@ -125,15 +131,16 @@ public class MessageFactoryTest {
 
     @Test
     public void testBroadcastMessage() {
+        String bodyText = "body text";
         String topic = "topic:target";
 
-        Payload broadcastPayload = TestUtils.createSimpleBroadcastPayload();
+        Payload broadcastPayload = TestUtils.createPayloadWithTextBody(bodyText);
         Builder messageBuilder = messageFactory.createBroadcastMessageBuilder(messageOptions, topic, broadcastPayload);
 
         Message message = messageBuilder.build();
 
         assertEquals(topic, message.getTopics().getTo());
         assertNull(message.getTopics().getResponse());
-        assertEquals(broadcastPayload, message.getPayload());
+        TestUtils.assertRawPayloadContainsBodyText(bodyText, message);
     }
 }
