@@ -50,7 +50,7 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions, null);
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
 
         msbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
@@ -70,7 +70,7 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions, null);
         Body sentBody = new Body("test:requester-responder-test-body");
         Payload<Object, Object, Object, Body> requestPayload = new Payload.Builder<Object, Object, Object, Body>()
                 .withBody(sentBody)
@@ -96,7 +96,7 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions, null);
         Body sentBody = new Body("test:requester-responder-test-body");
         Payload<Object, Object, Object, Body> requestPayload = new Payload.Builder<Object, Object, Object, Body>()
                 .withBody(sentBody)
@@ -132,7 +132,7 @@ public class RequesterResponderIT {
 
         //Create and send request message directly to broker, wait for ack  
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        msbContext.getObjectFactory().createRequester(namespace, requestOptions).
+        msbContext.getObjectFactory().createRequester(namespace, requestOptions, null).
                 onAcknowledge((Acknowledge ack) -> {
                     receivedResponseAcks.add(ack);
                     ackResponseReceived.countDown();
@@ -263,7 +263,7 @@ public class RequesterResponderIT {
         serverOneMsbContext.getObjectFactory().createResponderServer(namespace1, responderServerOneMessageOptions, (request, response) -> {
 
             //Create and send request message, wait for ack
-            Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace2, requestAwaitAckMessageOptions);
+            Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace2, requestAwaitAckMessageOptions, null);
             Payload requestPayload = TestUtils.createSimpleRequestPayload();
             requester.onAcknowledge((Acknowledge a) -> ackReceived.countDown());
             requester.publish(requestPayload);
@@ -307,7 +307,7 @@ public class RequesterResponderIT {
         Thread publishingThread = new Thread(() -> {
             while (messagesToSend.get() > 0) {
 
-                msbContext.getObjectFactory().createRequester(namespace, requestOptions).
+                msbContext.getObjectFactory().createRequester(namespace, requestOptions, null).
                         onAcknowledge((Acknowledge ack) -> {
                             receivedResponseAcks.add(ack);
                             ackResponseReceived.countDown();
@@ -363,7 +363,7 @@ public class RequesterResponderIT {
         CountDownLatch endConversation2 = new CountDownLatch(1);
 
         //Create and send request message
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptionsWaitResponse).onEnd(arg -> endConversation1.countDown());
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptionsWaitResponse, null).onEnd(arg -> endConversation1.countDown());
         requester.publish(TestUtils.createSimpleRequestPayload());
         assertTrue("Message was not received", endConversation1.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
 

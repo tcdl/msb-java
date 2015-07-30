@@ -16,10 +16,11 @@ public interface ObjectFactory {
     /**
      * @param namespace      topic name to send a request to
      * @param requestOptions options to configure a requester
+     * @param originalMessage original message (to take correlation id from)
      * @return instance of a {@link Requester}
      */
-    default Requester<Payload> createRequester(String namespace, RequestOptions requestOptions) {
-        return createRequester(namespace, requestOptions, null, Payload.class); // TODO reconsider the set of methods for createRequester
+    default Requester<Payload> createRequester(String namespace, RequestOptions requestOptions, Message originalMessage) {
+        return createRequester(namespace, requestOptions, originalMessage, Payload.class);
     }
 
     /**

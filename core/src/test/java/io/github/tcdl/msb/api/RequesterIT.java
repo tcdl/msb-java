@@ -45,7 +45,7 @@ public class RequesterIT {
     @Test
     public void testRequestMessage() throws Exception {
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions, null);
         requester.publish(requestPayload);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
