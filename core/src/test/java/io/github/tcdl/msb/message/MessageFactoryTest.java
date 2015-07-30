@@ -21,6 +21,7 @@ import java.time.ZoneId;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -43,53 +44,21 @@ public class MessageFactoryTest {
     private MessageFactory messageFactory = new MessageFactory(serviceDetails, FIXED_CLOCK);
 
     @Test
-    public void testCreateRequestMessageHasBasicFieldsSet() {
-        String namespace = "test:request-basic-fields";
-        Message originalMessage = TestUtils.createMsbResponseMessage(namespace);
-        Builder requestMesageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageOptions, originalMessage);
-
-        Message message = requestMesageBuilder.build();
-
-        assertThat(message.getCorrelationId(), is(originalMessage.getCorrelationId()));
-        assertThat(message.getTopics().getTo(), is(namespace));
-        assertThat(message.getTopics().getResponse(), notNullValue());
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testCreateResponseMessageNullOriginalMessage() {
-        messageFactory.createResponseMessage(null, null, null);
-    }
-
-    @Test
-    public void testCreateResponseMessageHasBasicFieldsSet() {
-        String namespace = "test:request-basic-fields";
-        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload(namespace);
-        Builder responseMesageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
-
-        Message message = responseMesageBuilder.build();
-
-        assertThat(message.getCorrelationId(), is(originalMessage.getCorrelationId()));
-        assertThat(message.getTopics().getTo(), not(namespace));
-        assertThat(message.getTopics().getTo(), not(originalMessage.getTopics().getTo()));
-        assertThat(message.getTopics().getTo(), is(originalMessage.getTopics().getResponse()));
-    }
-
-    @Test
     public void testCreateRequestMessageWithPayload() {
-        Payload requestPayload = TestUtils.createSimpleResponsePayload();
-        Builder requestMesageBuilder = TestUtils.createMessageBuilder();
+        Payload requestPayload = TestUtils.createSimpleRequestPayload();
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
 
-        Message message = messageFactory.createRequestMessage(requestMesageBuilder, requestPayload);
+        Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
 
-        assertEquals("Message payload is not set correctly", requestPayload, message.getPayload());
+        assertEquals(requestPayload, message.getPayload());
         assertNull(message.getAck());
     }
 
     @Test
     public void testCreateRequestMessageWithoutPayload() {
-        Builder requestMesageBuilder = TestUtils.createMessageBuilder();
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
 
-        Message message = messageFactory.createRequestMessage(requestMesageBuilder, null);
+        Message message = messageFactory.createRequestMessage(requestMessageBuilder, null);
 
         assertNull(message.getPayload());
         assertNull(message.getAck());
@@ -97,43 +66,93 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateResponseMessageWithPayloadAndAck() {
-        Builder responseMesageBuilder = TestUtils.createMessageBuilder();
+        Builder responseMessageBuilder = TestUtils.createMessageBuilder();
         Payload responsePayload = TestUtils.createSimpleResponsePayload();
         Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(3).withTimeoutMs(100).build();
 
-        Message message = messageFactory.createResponseMessage(responseMesageBuilder, ack, responsePayload);
+        Message message = messageFactory.createResponseMessage(responseMessageBuilder, ack, responsePayload);
 
-        assertEquals("Message payload is not set correctly", responsePayload, message.getPayload());
-        assertEquals("Message ack is not set correctly", ack, message.getAck());
+        assertEquals(responsePayload, message.getPayload());
+        assertEquals(ack, message.getAck());
     }
 
     @Test
     public void testCreateResponseMessageWithoutPayloadAndAck() {
-        Builder responseMesageBuilder = TestUtils.createMessageBuilder();
+        Builder responseMessageBuilder = TestUtils.createMessageBuilder();
 
-        Message message = messageFactory.createResponseMessage(responseMesageBuilder, null, null);
+        Message message = messageFactory.createResponseMessage(responseMessageBuilder, null, null);
 
-        assertNull("Message payload is not expected", message.getPayload());
-        assertNull("Message ack is not expected", message.getAck());
+        assertNull(message.getPayload());
+        assertNull(message.getAck());
+    }
+
+    @Test
+    public void testBroadcastMessage() {
+        Payload broadcastPayload = TestUtils.createSimpleBroadcastPayload();
+        Builder broadcastMessageBuilder = TestUtils.createMessageBuilder();
+
+        Message message = messageFactory.createBroadcastMessage(broadcastMessageBuilder, broadcastPayload);
+
+        assertEquals(broadcastPayload, message.getPayload());
+        assertNull(message.getAck());
+    }
+
+    @Test
+    public void testCreateRequestMessageBuilder() {
+        String namespace = "test:request-builder";
+
+        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageOptions, null);
+        Message message = requestMessageBuilder.build();
+
+        assertNotNull(message.getCorrelationId());
+        assertThat(message.getTopics().getTo(), is(namespace));
+        assertThat(message.getTopics().getResponse(), notNullValue());
+    }
+
+    @Test
+    public void testCreateRequestMessageBuilderFromOriginalMessage() {
+        String namespace = "test:request-builder";
+        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload(namespace);
+
+        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageOptions, originalMessage);
+        Message message = requestMessageBuilder.build();
+
+        assertEquals(originalMessage.getCorrelationId(), message.getCorrelationId());
+        assertThat(message.getTopics().getTo(), is(namespace));
+        assertThat(message.getTopics().getResponse(), notNullValue());
+    }
+
+
+    @Test
+    public void testCreateResponseMessageBuilder() {
+        String namespace = "test:response-builder";
+        Message originalMessage = TestUtils.createMsbResponseMessage(namespace);
+
+        Builder responseMessageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
+        Message message = responseMessageBuilder.build();
+
+        assertThat(message.getCorrelationId(), is(originalMessage.getCorrelationId()));
+        assertThat(message.getTopics().getTo(), not(namespace));
+        assertThat(message.getTopics().getTo(), not(originalMessage.getTopics().getTo()));
+        assertThat(message.getTopics().getTo(), is(originalMessage.getTopics().getResponse()));
+        assertThat(message.getTopics().getResponse(), nullValue());
+    }
+
+    @Test
+    public void testBroadcastMessageBuilder() {
+        String topic = "topic:target:builder";
+
+        Builder messageBuilder = messageFactory.createBroadcastMessageBuilder(topic, messageOptions);
+        Message message = messageBuilder.build();
+
+        assertNotNull(message.getCorrelationId());
+        assertEquals(topic, message.getTopics().getTo());
+        assertThat(message.getTopics().getResponse(), nullValue());
     }
 
     @Test
     public void testCreateAckBuilder() throws Exception {
         Acknowledge ack = messageFactory.createAckBuilder().build();
-        assertNotNull("ack responderId not set", ack.getResponderId());
-    }
-
-    @Test
-    public void testBroadcastMessage() {
-        String topic = "topic:target";
-
-        Payload broadcastPayload = TestUtils.createSimpleBroadcastPayload();
-        Builder messageBuilder = messageFactory.createBroadcastMessageBuilder(messageOptions, topic, broadcastPayload);
-
-        Message message = messageBuilder.build();
-
-        assertEquals(topic, message.getTopics().getTo());
-        assertNull(message.getTopics().getResponse());
-        assertEquals(broadcastPayload, message.getPayload());
+        assertNotNull(ack.getResponderId());
     }
 }

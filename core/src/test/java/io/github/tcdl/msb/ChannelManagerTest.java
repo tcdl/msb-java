@@ -13,8 +13,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.tcdl.msb.api.exception.ConsumerSubscriptionException;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.collector.CollectorManager;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
@@ -26,7 +26,6 @@ public class ChannelManagerTest {
 
     private ChannelManager channelManager;
     private ChannelMonitorAgent mockChannelMonitorAgent;
-    private MessageHandler messageHandlerMock;
 
     @Before
     public void setUp() {
@@ -38,7 +37,6 @@ public class ChannelManagerTest {
 
         mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
         channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);
-        messageHandlerMock = mock(MessageHandler.class);
     }
 
     @Test
@@ -57,15 +55,13 @@ public class ChannelManagerTest {
         verifyNoMoreInteractions(mockChannelMonitorAgent);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = ConsumerSubscriptionException.class)
     public void testConsumerSubscribeMultipleSameTopic() {
         String topic = "topic:test-consumer-cached";
 
         // Consumer was created and monitor agent notified
-        channelManager.subscribe(topic, messageHandlerMock);
-        verify(mockChannelMonitorAgent).consumerTopicCreated(topic);
-
-        channelManager.subscribe(topic, messageHandlerMock);
+        channelManager.subscribe(topic, message -> {});
+        channelManager.subscribe(topic, message -> {});
     }
 
     @Test
@@ -102,9 +98,8 @@ public class ChannelManagerTest {
     @Test
     public void testSubscribeUnsubscribe() {
         String topic = "topic:test-unsubscribe-once";
-        CollectorManager collectorManager = new CollectorManager(topic, channelManager);
 
-        channelManager.subscribe(topic, collectorManager);
+        channelManager.subscribe(topic,  message -> {});
         channelManager.unsubscribe(topic);
 
         verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
@@ -114,11 +109,9 @@ public class ChannelManagerTest {
     public void testSubscribeUnsubscribeSeparateTopics() {
         String topic1 = "topic:test-unsubscribe-try-first";
         String topic2 = "topic:test-unsubscribe-try-other";
-        CollectorManager collectorManager1 = new CollectorManager(topic1, channelManager);
-        CollectorManager collectorManager2 = new CollectorManager(topic2, channelManager);
 
-        channelManager.subscribe(topic1, collectorManager1);
-        channelManager.subscribe(topic2, collectorManager2);
+        channelManager.subscribe(topic1, message -> {});
+        channelManager.subscribe(topic2, message -> {});
 
         channelManager.unsubscribe(topic1);
         verify(mockChannelMonitorAgent).consumerTopicRemoved(topic1);

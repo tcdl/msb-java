@@ -1,6 +1,5 @@
 package io.github.tcdl.msb.api;
 
-import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 
@@ -16,16 +15,6 @@ public interface ObjectFactory {
      * @return instance of a requester
      */
     Requester createRequester(String namespace, RequestOptions requestOptions);
-
-    /**
-     * Creates a new instance of {@link Requester} with originalMessage.
-     *
-     * @param namespace       topic name to send a request to
-     * @param requestOptions  options to configure a requester
-     * @param originalMessage original message (to take correlation id from)
-     * @return instance of a requester
-     */
-    Requester createRequester(String namespace, RequestOptions requestOptions, Message originalMessage);
 
     /**
      * Create a new instance of {@link ResponderServer}.

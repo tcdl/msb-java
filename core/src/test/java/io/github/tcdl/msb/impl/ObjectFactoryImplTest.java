@@ -1,5 +1,13 @@
 package io.github.tcdl.msb.impl;
 
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import java.util.concurrent.ScheduledExecutorService;
+
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.ObjectFactory;
@@ -15,15 +23,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.concurrent.ScheduledExecutorService;
-
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @RunWith(MockitoJUnitRunner.class)
 public class ObjectFactoryImplTest {
 
@@ -36,14 +35,6 @@ public class ObjectFactoryImplTest {
     public void testCreateRequester() {
         ObjectFactory objectFactory = new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build());
         Requester expectedRequester = objectFactory.createRequester(NAMESPACE, mock(RequestOptions.class));
-        assertNotNull(expectedRequester);
-    }
-
-    @Test
-    public void testCreateRequesterWithOriginalMessage() {
-        ObjectFactory objectFactory = new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build());
-        Requester expectedRequester = objectFactory
-                .createRequester(NAMESPACE, mock(RequestOptions.class), TestUtils.createMsbRequestMessageNoPayload("test:object-factory-incoming"));
         assertNotNull(expectedRequester);
     }
 

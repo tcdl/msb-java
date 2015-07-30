@@ -24,7 +24,7 @@ public class RequesterImpl implements Requester {
     private MsbContextImpl context;
 
     private MessageFactory messageFactory;
-    private Message.Builder messageBuilder;
+    private String namespace;
     EventHandlers eventHandlers;
 
     /**
@@ -36,33 +36,19 @@ public class RequesterImpl implements Requester {
      * @return instance of a requester
      */
     static RequesterImpl create(String namespace, RequestOptions requestOptions, MsbContextImpl context) {
-        return new RequesterImpl(namespace, requestOptions, null, context);
+        return new RequesterImpl(namespace, requestOptions, context);
     }
 
-    /**
-     * Creates a new instance of a requester with originalMessage.
-     *
-     * @param namespace       topic name to send a request to
-     * @param requestOptions  options to configure a requester
-     * @param originalMessage original message (to take correlation id from)
-     * @param context         shared by all Requester instances
-     * @return instance of a requester
-     */
-    static RequesterImpl create(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContextImpl context) {
-        return new RequesterImpl(namespace, requestOptions, originalMessage, context);
-    }
-
-    private RequesterImpl(String namespace, RequestOptions requestOptions, Message originalMessage, MsbContextImpl context) {
+    private RequesterImpl(String namespace, RequestOptions requestOptions, MsbContextImpl context) {
         Validate.notNull(namespace, "the 'namespace' must not be null");
         Validate.notNull(requestOptions, "the 'messageOptions' must not be null");
         Validate.notNull(context, "the 'context' must not be null");
 
+        this.namespace = namespace;
         this.requestOptions = requestOptions;
         this.context = context;
-
         this.eventHandlers = new EventHandlers();
         this.messageFactory = context.getMessageFactory();
-        this.messageBuilder = messageFactory.createRequestMessageBuilder(namespace, requestOptions.getMessageTemplate(), originalMessage);
     }
 
     /**
@@ -70,6 +56,15 @@ public class RequesterImpl implements Requester {
      */
     @Override
     public void publish(Payload requestPayload) {
+        publish(requestPayload, null);
+
+    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void publish(Payload requestPayload, Message originalMessage) {
+        Message.Builder messageBuilder = messageFactory.createRequestMessageBuilder(namespace, requestOptions.getMessageTemplate(), originalMessage);
         Message message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
         //use Collector instance to handle expected responses/acks

@@ -146,8 +146,8 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
 
         Producer producer = channelManager.findOrCreateProducer(Utils.TOPIC_ANNOUNCE);
 
-        Message.Builder messageBuilder = messageFactory.createBroadcastMessageBuilder(new MessageTemplate(), Utils.TOPIC_ANNOUNCE, payload);
-        Message announcementMessage = messageBuilder.build();
+        Message.Builder messageBuilder = messageFactory.createBroadcastMessageBuilder(Utils.TOPIC_ANNOUNCE, new MessageTemplate());
+        Message announcementMessage = messageFactory.createBroadcastMessage(messageBuilder, payload);
 
         producer.publish(announcementMessage);
     }
