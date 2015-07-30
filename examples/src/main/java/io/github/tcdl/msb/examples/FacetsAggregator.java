@@ -86,7 +86,7 @@ public class FacetsAggregator {
                     responder.send(responsePayload);
                 });
 
-                requester.publish(request, responder.getOriginalMessage().getCorrelationId());
+                requester.publish(request, responder.getOriginalMessage());
             }
         }).listen();
     }

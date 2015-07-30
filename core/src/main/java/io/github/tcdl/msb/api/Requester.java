@@ -37,11 +37,11 @@ public interface Requester {
      * In case Requester created with expectation for responses then process them.
      *
      * @param requestPayload payload which will be sent to bus
-     * @param correlationId payload which will be sent to bus
+     * @param originalMessage
      * @throws ChannelException if an error is encountered during publishing to bus
      * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
-    void publish(Payload requestPayload, String correlationId);
+    void publish(Payload requestPayload, Message originalMessage);
     
     /**
      * Registers a callback to be called when {@link Message} with {@link Acknowledge} property set is received.

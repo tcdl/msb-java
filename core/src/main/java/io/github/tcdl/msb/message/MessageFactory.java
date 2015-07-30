@@ -25,10 +25,7 @@ public class MessageFactory {
         this.clock = clock;
     }
 
-    public Message createRequestMessage(Message.Builder messageBuilder, Payload payload, String correlationId) {
-        if (correlationId != null) {
-            messageBuilder.withCorrelationId(correlationId);
-        }
+    public Message createRequestMessage(Message.Builder messageBuilder, Payload payload) {
         messageBuilder.withPayload(payload);
         return messageBuilder.build();
     }
@@ -44,10 +41,10 @@ public class MessageFactory {
         return messageBuilder.build();
     }
 
-    public Message.Builder createRequestMessageBuilder(String namespace, MessageTemplate messageTemplate) {
+    public Message.Builder createRequestMessageBuilder(String namespace, MessageTemplate messageTemplate, Message originalMessage) {
         Topics topic = new Topics(namespace, namespace + ":response:" +
                 this.serviceDetails.getInstanceId());
-        return createMessageBuilder(topic, messageTemplate, null);
+        return createMessageBuilder(topic, messageTemplate, originalMessage);
     }
 
     public Message.Builder createResponseMessageBuilder(MessageTemplate messageTemplate, Message originalMessage) {
@@ -73,12 +70,15 @@ public class MessageFactory {
     }
 
     private Builder createMetaBuilder(MessageTemplate config) {
-        Integer ttl = config == null ? null : config.getTtl();
+        Integer ttl = (config == null) ? null : config.getTtl();
         return new MetaMessage.Builder(ttl, clock.instant(), this.serviceDetails, clock);
     }
 
     private String createCorrelationId(Message originalMessage) {
-        return originalMessage != null && originalMessage.getCorrelationId() != null ? originalMessage
-                .getCorrelationId() : Utils.generateId();
+        if (originalMessage != null && originalMessage.getCorrelationId() != null) {
+            return originalMessage.getCorrelationId();
+        } else {
+            return Utils.generateId();
+        }
     }
 }

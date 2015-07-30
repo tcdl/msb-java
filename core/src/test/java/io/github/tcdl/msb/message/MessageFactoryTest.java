@@ -45,10 +45,10 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateRequestMessageWithPayload() {
-        Payload requestPayload = TestUtils.createSimpleResponsePayload();
+        Payload requestPayload = TestUtils.createSimpleRequestPayload();
         Builder requestMessageBuilder = TestUtils.createMessageBuilder();
 
-        Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload, null);
+        Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
 
         assertEquals(requestPayload, message.getPayload());
         assertNull(message.getAck());
@@ -58,29 +58,10 @@ public class MessageFactoryTest {
     public void testCreateRequestMessageWithoutPayload() {
         Builder requestMessageBuilder = TestUtils.createMessageBuilder();
 
-        Message message = messageFactory.createRequestMessage(requestMessageBuilder, null, null);
+        Message message = messageFactory.createRequestMessage(requestMessageBuilder, null);
 
         assertNull(message.getPayload());
         assertNull(message.getAck());
-    }
-
-    @Test
-    public void testCreateRequestMessageWithCorrelationId() {
-        String correlationId = Utils.generateId();
-        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
-
-        Message message = messageFactory.createRequestMessage(requestMessageBuilder, null, correlationId);
-
-        assertEquals(correlationId, message.getCorrelationId());
-    }
-
-    @Test
-    public void testCreateRequestMessageWithoutCorrelationId() {
-        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
-
-        Message message = messageFactory.createRequestMessage(requestMessageBuilder, null, null);
-
-        assertNotNull(message.getCorrelationId());
     }
 
     @Test
@@ -120,7 +101,7 @@ public class MessageFactoryTest {
     public void testCreateRequestMessageBuilder() {
         String namespace = "test:request-builder";
 
-        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageOptions);
+        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageOptions, null);
         Message message = requestMessageBuilder.build();
 
         assertNotNull(message.getCorrelationId());
@@ -129,9 +110,23 @@ public class MessageFactoryTest {
     }
 
     @Test
+    public void testCreateRequestMessageBuilderFromOriginalMessage() {
+        String namespace = "test:request-builder";
+        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload(namespace);
+
+        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageOptions, originalMessage);
+        Message message = requestMessageBuilder.build();
+
+        assertEquals(originalMessage.getCorrelationId(), message.getCorrelationId());
+        assertThat(message.getTopics().getTo(), is(namespace));
+        assertThat(message.getTopics().getResponse(), notNullValue());
+    }
+
+
+    @Test
     public void testCreateResponseMessageBuilder() {
         String namespace = "test:response-builder";
-        Message originalMessage = TestUtils.createMsbRequestMessageNoPayload(namespace);
+        Message originalMessage = TestUtils.createMsbResponseMessage(namespace);
 
         Builder responseMessageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
         Message message = responseMessageBuilder.build();

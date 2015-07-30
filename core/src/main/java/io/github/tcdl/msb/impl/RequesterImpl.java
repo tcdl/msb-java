@@ -62,9 +62,10 @@ public class RequesterImpl implements Requester {
     /**
      * {@inheritDoc}
      */
-    @Override public void publish(Payload requestPayload, String correlationId) {
-        Message.Builder messageBuilder = messageFactory.createRequestMessageBuilder(namespace, requestOptions.getMessageTemplate());
-        Message message = messageFactory.createRequestMessage(messageBuilder, requestPayload, correlationId);
+    @Override
+    public void publish(Payload requestPayload, Message originalMessage) {
+        Message.Builder messageBuilder = messageFactory.createRequestMessageBuilder(namespace, requestOptions.getMessageTemplate(), originalMessage);
+        Message message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
         //use Collector instance to handle expected responses/acks
         if (requestOptions.isWaitForResponses()) {
