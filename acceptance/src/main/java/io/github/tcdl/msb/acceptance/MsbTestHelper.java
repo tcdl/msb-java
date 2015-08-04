@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.acceptance;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import io.github.tcdl.msb.api.Callback;
@@ -52,57 +53,64 @@ public class MsbTestHelper {
     }
 
     public ObjectMapper getObjectMapper() {
-        return ((MsbContextImpl)(getContext())).getMessageMapper();
+        return ((MsbContextImpl) (getContext())).getPayloadMapper();
     }
 
-    public Requester createRequester(String namespace, Integer numberOfResponses) {
+    public Requester<Payload<Object, Object, Object, Map<String, Object>>> createRequester(String namespace, Integer numberOfResponses) {
         return createRequester(namespace, numberOfResponses, null, null);
     }
 
-    public Requester createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout) {
+    public Requester<Payload<Object, Object, Object, Map<String, Object>>> createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout) {
         return createRequester(namespace, numberOfResponses, ackTimeout, null);
     }
 
-    public Requester createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout) {
+    public Requester<Payload<Object, Object, Object, Map<String, Object>>> createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout) {
         RequestOptions options = new RequestOptions.Builder()
-            .withWaitForResponses(numberOfResponses)
-            .withAckTimeout(Utils.ifNull(ackTimeout, 5000))
-            .withResponseTimeout(Utils.ifNull(responseTimeout, 15000))
-            .build();
-        return context.getObjectFactory().createRequester(namespace, options);
+                .withWaitForResponses(numberOfResponses)
+                .withAckTimeout(Utils.ifNull(ackTimeout, 5000))
+                .withResponseTimeout(Utils.ifNull(responseTimeout, 15000))
+                .build();
+        return context.getObjectFactory().createRequester(namespace, options, new TypeReference<Payload<Object, Object, Object, Map<String, Object>>>() {});
     }
 
-    public void sendRequest(Requester requester, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
+    public void sendRequest(Requester<Payload<Object, Object, Object, Map<String, Object>>> requester, Integer waitForResponses, Callback<Payload<Object, Object, Object, Map<String, Object>>> responseCallback) throws Exception {
         sendRequest(requester, "QUERY", null, true, waitForResponses, null, responseCallback);
     }
 
-    public void sendRequest(Requester requester, String body, Integer waitForResponses, Callback<Payload> responseCallback) throws Exception {
+    public void sendRequest(Requester<Payload<Object, Object, Object, Map<String, Object>>> requester, String body, Integer waitForResponses, Callback<Payload<Object, Object, Object, Map<String, Object>>> responseCallback) throws Exception {
         sendRequest(requester, null, body, false, waitForResponses, null, responseCallback);
     }
 
-    public void sendRequest(Requester requester, String query, String body, boolean waitForAck, Integer waitForResponses,
+    public void sendRequest(Requester<Payload<Object, Object, Object, Map<String, Object>>> requester, String query, String body, boolean waitForAck, Integer waitForResponses,
             Callback<Acknowledge> ackCallback,
-            Callback<Payload> responseCallback) throws Exception {
+            Callback<Payload<Object, Object, Object, Map<String, Object>>> responseCallback) throws Exception {
 
-            requester.onAcknowledge(acknowledge -> {
-                System.out.println(">>> ACKNOWLEDGE: " + acknowledge);
-                if (waitForAck && ackCallback!= null) ackCallback.call(acknowledge);
-            });
+        requester.onAcknowledge(acknowledge -> {
+            System.out.println(">>> ACKNOWLEDGE: " + acknowledge);
+            if (waitForAck && ackCallback != null)
+                ackCallback.call(acknowledge);
+        });
 
-            requester.onResponse(response -> {
-                System.out.println(">>> RESPONSE: " + response);
-                if (waitForResponses != null && waitForResponses > 0 && responseCallback != null) {
-                    responseCallback.call(response);
-                }
-            });
+        requester.onResponse(response -> {
+            System.out.println(">>> RESPONSE: " + response);
+            if (waitForResponses != null && waitForResponses > 0 && responseCallback != null) {
+                responseCallback.call(response);
+            }
+        });
 
         requester.publish(createPayload(query, body));
     }
 
-    public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler requestHandler) {
+    public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler<Payload> requestHandler) {
         MessageTemplate options = new MessageTemplate();
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
         return context.getObjectFactory().createResponderServer(namespace, options, requestHandler);
+    }
+
+    public <T extends Payload> ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {
+        MessageTemplate options = new MessageTemplate();
+        System.out.println(">>> RESPONDER SERVER on: " + namespace);
+        return context.getObjectFactory().createResponderServer(namespace, options, requestHandler, payloadClass);
     }
 
     public void respond(Responder responder) {
@@ -122,8 +130,8 @@ public class MsbTestHelper {
     }
 
     public Payload createPayload(String query, String body) {
-        ObjectMapper mapper = ((MsbContextImpl) context).getMessageMapper();
-        return new Payload.Builder()
+        ObjectMapper mapper = ((MsbContextImpl) context).getPayloadMapper();
+        return new Payload.Builder<Map, Object, Object, Map>()
                 .withQuery(Utils.fromJson("{\"q\": \"" + query + "\"}", Map.class, mapper))
                 .withBody(Utils.fromJson("{\"body\": \"" + body + "\"}", Map.class, mapper))
                 .build();

@@ -3,14 +3,17 @@ package io.github.tcdl.msb.api.message;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import org.apache.commons.lang3.Validate;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS;
 
 /**
- * {@link Message} contains protocol information used by Msb and also provided Acknowledgement (if message {@link Acknowledge}  property is set)
- * and Payload (if message {@link Payload}  property is set).
+ * {@link Message} represents a message coming from/to bus. It contains the following information:
+ * 1. Protocol information used internally
+ * 2. Acknowledgement information
+ * 3. "Raw" payload that can be converted to a high-level object at the following processing stages
  */
 public final class Message {
 
@@ -25,11 +28,12 @@ public final class Message {
     @JsonInclude(ALWAYS)
     private final Acknowledge ack; // To be filled on ack or response
     @JsonInclude(ALWAYS)
-    private final Payload payload;
+    @JsonProperty("payload")
+    private final JsonNode rawPayload;
 
     @JsonCreator
     private Message(@JsonProperty("id") String id, @JsonProperty("correlationId") String correlationId, @JsonProperty("topics") Topics topics,
-            @JsonProperty("meta") MetaMessage meta, @JsonProperty("ack") Acknowledge ack, @JsonProperty("payload") Payload payload) {
+            @JsonProperty("meta") MetaMessage meta, @JsonProperty("ack") Acknowledge ack, @JsonProperty("payload") JsonNode rawPayload) {
         Validate.notNull(id, "the 'id' must not be null");
         Validate.notNull(correlationId, "the 'correlationId' must not be null");
         Validate.notNull(topics, "the 'topics' must not be null");
@@ -39,7 +43,7 @@ public final class Message {
         this.topics = topics;
         this.meta = meta;
         this.ack = ack;
-        this.payload = payload;
+        this.rawPayload = rawPayload;
     }
 
     public static class Builder {
@@ -49,7 +53,7 @@ public final class Message {
         private Topics topics;
         private MetaMessage.Builder metaBuilder;
         private Acknowledge ack;
-        private Payload payload;
+        private JsonNode rawPayload;
 
         public Builder withId(String id) {
             this.id = id;
@@ -76,13 +80,13 @@ public final class Message {
             return this;
         }
 
-        public Builder withPayload(Payload payload) {
-            this.payload = payload;
+        public Builder withPayload(JsonNode rawPayload) {
+            this.rawPayload = rawPayload;
             return this;
         }
 
         public Message build() {
-            return new Message(id, correlationId, topics, metaBuilder.build(), ack, payload);
+            return new Message(id, correlationId, topics, metaBuilder.build(), ack, rawPayload);
         }
     }
 
@@ -106,13 +110,12 @@ public final class Message {
         return ack;
     }
 
-    public Payload getPayload() {
-        return payload;
+    public JsonNode getRawPayload() {
+        return rawPayload;
     }
 
     @Override
     public String toString() {
-        return "Message [id=" + id + ", topics=" + topics + ", meta=" + meta + ", ack=" + ack + ", payload=" + payload
-                + ", correlationId=" + correlationId + "]";
+        return String.format("Message [id=%s, topics=%s, meta=%s, ack=%s, rawPayload=%s, correlationId=%s]", id, topics, meta, ack, rawPayload, correlationId);
     }
 }

@@ -1,5 +1,7 @@
 package io.github.tcdl.msb.api;
 
+import io.github.tcdl.msb.api.message.payload.Payload;
+
 /**
  * Specifies waiting policy (for acknowledgements and responses) for requests sent using {@link Requester}.
  */
@@ -19,7 +21,7 @@ public class RequestOptions {
     /**
      * Number of responses to wait for. Once this number is reached (and {@link #ackTimeout} passed) we stop waiting for responses even if
      * {@link #responseTimeout} has not been reached. Beware that acks may adjust this number.
-     *
+     * <p/>
      * 0 means not to wait for responses at all.
      * -1 means to wait until {@link #responseTimeout} is reached.
      */
@@ -67,29 +69,29 @@ public class RequestOptions {
                 + "]";
     }
 
-    public static class Builder {
+    public static class Builder<T extends Payload> {
 
         private Integer ackTimeout;
         private Integer responseTimeout;
         private Integer waitForResponses;
         private MessageTemplate messageTemplate;
 
-        public Builder withAckTimeout(Integer ackTimeout) {
+        public Builder<T> withAckTimeout(Integer ackTimeout) {
             this.ackTimeout = ackTimeout;
             return this;
         }
 
-        public Builder withResponseTimeout(Integer responseTimeout) {
+        public Builder<T> withResponseTimeout(Integer responseTimeout) {
             this.responseTimeout = responseTimeout;
             return this;
         }
 
-        public Builder withWaitForResponses(Integer waitForResponses) {
+        public Builder<T> withWaitForResponses(Integer waitForResponses) {
             this.waitForResponses = waitForResponses;
             return this;
         }
 
-        public Builder withMessageTemplate(MessageTemplate messageTemplate) {
+        public Builder<T> withMessageTemplate(MessageTemplate messageTemplate) {
             this.messageTemplate = messageTemplate;
             return this;
         }

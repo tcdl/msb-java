@@ -15,7 +15,7 @@ public class MsbSteps {
     // microservices steps
     @Given("microservice $microservice")
     public void startMicroservice(String microserviceClassName) throws Throwable {
-        Class microserviceClass = getClass().getClassLoader().loadClass(MICROSERVICE_PACKAGE + "." + microserviceClassName);
+        Class<?> microserviceClass = getClass().getClassLoader().loadClass(MICROSERVICE_PACKAGE + "." + microserviceClassName);
         Method startMethod = microserviceClass.getMethod("start", MsbContext.class);
         startMethod.invoke(microserviceClass.newInstance(), helper.getContext());
     }

@@ -4,6 +4,8 @@ import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.examples.payload.Query;
+import io.github.tcdl.msb.examples.payload.Request;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,7 +32,7 @@ public class DateExtractor {
 
         msbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responder) -> {
 
-            RequestQuery query = request.getQueryAs(RequestQuery.class);
+            Query query = request.getQuery();
             String queryString = query.getQ();
             String year = DateExtractorUtils.retrieveYear(queryString);
 
@@ -52,13 +54,14 @@ public class DateExtractor {
 
                 ResponseBody responseBody = new ResponseBody();
                 responseBody.setResults(Arrays.asList(result));
-                Payload responsePayload = new Payload.Builder()
+                Payload responsePayload = new Payload.Builder<Object, Object, Object, ResponseBody>()
                         .withStatusCode(200)
-                        .withBody(responseBody).build();
+                        .withBody(responseBody)
+                        .build();
 
                 responder.send(responsePayload);
             }
-        }).listen();
+        }, Request.class).listen();
     }
 
     private static class RequestQuery {

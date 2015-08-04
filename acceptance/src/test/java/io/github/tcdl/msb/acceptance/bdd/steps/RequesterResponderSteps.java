@@ -3,7 +3,6 @@ package io.github.tcdl.msb.acceptance.bdd.steps;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.support.Utils;
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;
@@ -20,7 +19,7 @@ import java.util.Map;
  */
 public class RequesterResponderSteps extends MsbSteps {
 
-    private Requester requester;
+    private Requester<Payload<Object, Object, Object, Map<String, Object>>> requester;
     private String responseBody;
     private Map<String, Object> receivedResponse;
 
@@ -30,11 +29,13 @@ public class RequesterResponderSteps extends MsbSteps {
         ObjectMapper mapper = super.helper.getObjectMapper();
         helper.createResponderServer(namespace, (request, responder) -> {
             if (responseBody != null) {
-                Payload payload = new Payload.Builder().withBody(Utils.fromJson(responseBody, Map.class, mapper)).build();
+                Payload payload = new Payload.Builder<Object, Object, Object, Map>()
+                        .withBody(Utils.fromJson(responseBody, Map.class, mapper))
+                        .build();
                 responder.send(payload);
             }
         })
-        .listen();
+                .listen();
     }
 
     @Given("responder server responds with '$body'")
@@ -63,9 +64,8 @@ public class RequesterResponderSteps extends MsbSteps {
         helper.sendRequest(requester, null, body, true, 1, null, this::onResponse);
     }
 
-    private void onResponse(Payload payload) {
-        ObjectMapper mapper = super.helper.getObjectMapper();
-        receivedResponse = PayloadWrapper.wrap(payload, mapper).getBodyAs(Map.class);
+    private void onResponse(Payload<Object, Object, Object, Map<String, Object>> payload) {
+        receivedResponse = payload.getBody();
     }
 
     @Then("requester gets response in $timeout ms")
@@ -76,10 +76,10 @@ public class RequesterResponderSteps extends MsbSteps {
 
     @Then("response equals $table")
     public void responseEquals(ExamplesTable table) throws Exception {
-        Map<String,String> expected = table.getRow(0);
+        Map<String, String> expected = table.getRow(0);
         OutcomesTable outcomes = new OutcomesTable();
 
-        for (String key : expected.keySet()){
+        for (String key : expected.keySet()) {
             outcomes.addOutcome(key, receivedResponse.get(key), Matchers.equalTo(expected.get(key)));
         }
 
@@ -88,10 +88,10 @@ public class RequesterResponderSteps extends MsbSteps {
 
     @Then("response contains $table")
     public void responseContains(ExamplesTable table) throws Exception {
-        Map<String,String> expected = table.getRow(0);
+        Map<String, String> expected = table.getRow(0);
         OutcomesTable outcomes = new OutcomesTable();
 
-        for (String key : expected.keySet()){
+        for (String key : expected.keySet()) {
             outcomes.addOutcome(key, receivedResponse.get(key).toString(), Matchers.containsString(expected.get(key)));
         }
 

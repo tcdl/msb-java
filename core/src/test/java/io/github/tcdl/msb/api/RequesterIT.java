@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,7 +13,6 @@ import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.TestUtils;
-import io.github.tcdl.msb.support.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -41,13 +39,13 @@ public class RequesterIT {
         this.requestOptions = TestUtils.createSimpleRequestOptions();
         this.msbContext = TestUtils.createSimpleMsbContext();
         this.validator = new JsonValidator();
-        this.messageMapper = msbContext.getMessageMapper();
+        this.messageMapper = msbContext.getPayloadMapper();
     }
 
     @Test
     public void testRequestMessage() throws Exception {
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
@@ -65,9 +63,9 @@ public class RequesterIT {
             assertTrue("Message not contain 'headers' field", jsonObject.getJSONObject("payload").has("headers"));            
             
             // payload fields match sent
-            Assert.assertEquals("Message 'body' is incorrect", messageMapper.writeValueAsString(payload.getBodyAs(Map.class)),
+            Assert.assertEquals("Message 'body' is incorrect", messageMapper.writeValueAsString(payload.getBody()),
                     jsonObject.getJSONObject("payload").get("body").toString());
-            assertEquals("Message 'headers' is incorrect", messageMapper.writeValueAsString(payload.getHeadersAs(Map.class)), jsonObject
+            assertEquals("Message 'headers' is incorrect", messageMapper.writeValueAsString(payload.getHeaders()), jsonObject
                     .getJSONObject("payload").get("headers").toString());
 
             //topics

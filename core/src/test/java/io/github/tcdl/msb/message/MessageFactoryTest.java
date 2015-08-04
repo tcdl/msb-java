@@ -3,10 +3,10 @@ package io.github.tcdl.msb.message;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.config.MsbConfig;
-import io.github.tcdl.msb.config.ServiceDetails;
 import io.github.tcdl.msb.api.message.Message.Builder;
 import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.config.MsbConfig;
+import io.github.tcdl.msb.config.ServiceDetails;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
 import org.junit.Test;
@@ -41,16 +41,18 @@ public class MessageFactoryTest {
 
     private ServiceDetails serviceDetails = TestUtils.createMsbConfigurations().getServiceDetails();
 
-    private MessageFactory messageFactory = new MessageFactory(serviceDetails, FIXED_CLOCK);
+    private MessageFactory messageFactory = new MessageFactory(serviceDetails, FIXED_CLOCK, TestUtils.createMessageMapper());
 
     @Test
     public void testCreateRequestMessageWithPayload() {
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
+        String bodyText = "body text";
+        Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
+
         Builder requestMessageBuilder = TestUtils.createMessageBuilder();
 
         Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
 
-        assertEquals(requestPayload, message.getPayload());
+        TestUtils.assertRawPayloadContainsBodyText(bodyText, message);
         assertNull(message.getAck());
     }
 
@@ -60,19 +62,24 @@ public class MessageFactoryTest {
 
         Message message = messageFactory.createRequestMessage(requestMessageBuilder, null);
 
-        assertNull(message.getPayload());
+        assertNull(message.getRawPayload());
         assertNull(message.getAck());
     }
 
     @Test
     public void testCreateResponseMessageWithPayloadAndAck() {
+        String bodyText = "body text";
         Builder responseMessageBuilder = TestUtils.createMessageBuilder();
-        Payload responsePayload = TestUtils.createSimpleResponsePayload();
-        Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(3).withTimeoutMs(100).build();
+        Payload responsePayload = TestUtils.createPayloadWithTextBody(bodyText);
+        Acknowledge ack = new Acknowledge.Builder()
+                .withResponderId(Utils.generateId())
+                .withResponsesRemaining(3)
+                .withTimeoutMs(100)
+                .build();
 
         Message message = messageFactory.createResponseMessage(responseMessageBuilder, ack, responsePayload);
 
-        assertEquals(responsePayload, message.getPayload());
+        TestUtils.assertRawPayloadContainsBodyText(bodyText, message);
         assertEquals(ack, message.getAck());
     }
 
@@ -82,18 +89,19 @@ public class MessageFactoryTest {
 
         Message message = messageFactory.createResponseMessage(responseMessageBuilder, null, null);
 
-        assertNull(message.getPayload());
+        assertNull(message.getRawPayload());
         assertNull(message.getAck());
     }
 
     @Test
     public void testBroadcastMessage() {
-        Payload broadcastPayload = TestUtils.createSimpleBroadcastPayload();
+        String bodyText = "body text";
+        Payload broadcastPayload = TestUtils.createPayloadWithTextBody(bodyText);
         Builder broadcastMessageBuilder = TestUtils.createMessageBuilder();
 
         Message message = messageFactory.createBroadcastMessage(broadcastMessageBuilder, broadcastPayload);
 
-        assertEquals(broadcastPayload, message.getPayload());
+        TestUtils.assertRawPayloadContainsBodyText(bodyText, message);
         assertNull(message.getAck());
     }
 
@@ -121,7 +129,6 @@ public class MessageFactoryTest {
         assertThat(message.getTopics().getTo(), is(namespace));
         assertThat(message.getTopics().getResponse(), notNullValue());
     }
-
 
     @Test
     public void testCreateResponseMessageBuilder() {

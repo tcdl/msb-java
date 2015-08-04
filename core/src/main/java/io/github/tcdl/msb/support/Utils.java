@@ -1,3 +1,4 @@
+
 package io.github.tcdl.msb.support;
 
 import java.io.IOException;
@@ -13,6 +14,17 @@ import io.github.tcdl.msb.api.exception.JsonConversionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.reflect.Type;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+
+/**
+ * Created by rdro on 4/22/2015.
+ */
 public class Utils {
 
     private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
@@ -53,24 +65,43 @@ public class Utils {
      * @throws JsonConversionException if problem encountered during parsing JSON
      */
     public static <T> T fromJson(String json, Class<T> clazz, ObjectMapper objectMapper) {
-        if (json == null) return null;
-        try {
-            return objectMapper.readValue(json, clazz);
-        } catch (IOException e) {
-            LOG.error("Failed parse JSON: {} to object of type: {}", json, clazz, e);
-            throw new JsonConversionException(e.getMessage());
-        }
+        return fromJson(json,
+                new TypeReference<T>() {
+                    @Override
+                    public Type getType() {
+                        return clazz;
+                    }
+                },
+                objectMapper);
     }
 
-    /**
-     * @throws JsonConversionException if problem encountered during parsing JSON
-     */
     public static <T> T fromJson(String json, TypeReference<T> typeReference, ObjectMapper objectMapper) {
-        if (json == null) return null;
+        if (json == null)
+            return null;
         try {
             return objectMapper.readValue(json, typeReference);
         } catch (IOException e) {
             LOG.error("Failed parse JSON: {} to object of type: {}", json, typeReference, e);
+            throw new JsonConversionException(e.getMessage());
+        }
+    }
+
+    public static <T> T convert(Object srcObject, Class<T> destClass, ObjectMapper objectMapper) {
+        return convert(srcObject,
+                new TypeReference<T>() {
+                    @Override
+                    public Type getType() {
+                        return destClass;
+                    }
+                },
+                objectMapper);
+    }
+
+    public static <T> T convert(Object srcObject, TypeReference<T> typeReference, ObjectMapper objectMapper) {
+        try {
+            return objectMapper.convertValue(srcObject, typeReference);
+        } catch (Exception e) {
+            LOG.error("Failed to convert object {} to type: {}", srcObject, typeReference, e);
             throw new JsonConversionException(e.getMessage());
         }
     }

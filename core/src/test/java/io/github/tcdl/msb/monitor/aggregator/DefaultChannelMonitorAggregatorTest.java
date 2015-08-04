@@ -8,7 +8,6 @@ import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.AggregatorTopicStats;
 import io.github.tcdl.msb.config.ServiceDetails;
@@ -294,13 +293,11 @@ public class DefaultChannelMonitorAggregatorTest {
         topicInfoMap.put(topic1, new AgentTopicStats().withProducers(true).withLastProducedAt(Instant.now()));
         topicInfoMap.put(topic2, new AgentTopicStats().withConsumers(true).withLastConsumedAt(Instant.now()));
 
-        Payload announcementPayload = new Payload.Builder()
+        Payload<?, ?, ?, Map<String, AgentTopicStats>> announcementPayload = new Payload.Builder<Object, Object, Object, Map<String, AgentTopicStats>>()
                 .withBody(topicInfoMap)
                 .build();
 
-        Payload wrappedPayload = PayloadWrapper.wrap(announcementPayload, TestUtils.createMessageMapper());
-
-        return TestUtils.createMsbRequestMessage("to", instanceId, wrappedPayload);
+        return TestUtils.createMsbRequestMessage("to", instanceId, announcementPayload);
     }
 
 }

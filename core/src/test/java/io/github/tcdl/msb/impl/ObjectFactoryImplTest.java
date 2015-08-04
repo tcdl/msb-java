@@ -1,19 +1,13 @@
 package io.github.tcdl.msb.impl;
 
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.util.concurrent.ScheduledExecutorService;
-
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.ObjectFactory;
+import io.github.tcdl.msb.api.PayloadConverter;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.ResponderServer;
+import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.monitor.aggregator.DefaultChannelMonitorAggregator;
 import io.github.tcdl.msb.support.TestUtils;
@@ -22,6 +16,15 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.concurrent.ScheduledExecutorService;
+
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ObjectFactoryImplTest {
@@ -41,6 +44,7 @@ public class ObjectFactoryImplTest {
     @Test
     public void testCreateResponderServer() {
         ObjectFactory objectFactory = new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build());
+        @SuppressWarnings("unchecked")
         ResponderServer expectedResponderServer = objectFactory
                 .createResponderServer(NAMESPACE, mock(MessageTemplate.class), mock(ResponderServer.RequestHandler.class));
         assertNotNull(expectedResponderServer);
@@ -66,5 +70,12 @@ public class ObjectFactoryImplTest {
         objectFactorySpy.shutdown();
 
         verify(mockChannelMonitorAggregator).stop();
+    }
+
+    @Test
+    public void getPayloadConverter() {
+        ObjectFactory objectFactory = new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build());
+        PayloadConverter payloadConverter = objectFactory.getPayloadConverter();
+        assertNotNull(payloadConverter);
     }
 }

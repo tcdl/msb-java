@@ -1,11 +1,7 @@
 package io.github.tcdl.msb.support;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.Clock;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
@@ -19,7 +15,6 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.api.message.payload.Payload;
-import io.github.tcdl.msb.api.message.payload.PayloadWrapper;
 import io.github.tcdl.msb.collector.CollectorManagerFactory;
 import io.github.tcdl.msb.collector.TimeoutManager;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -27,6 +22,19 @@ import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ObjectFactoryImpl;
 import io.github.tcdl.msb.message.MessageFactory;
 
+import java.io.IOException;
+import java.time.Clock;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+/**
+ * Created by rdro on 4/28/2015.
+ */
 public class TestUtils {
 
     public static MsbContextImpl createSimpleMsbContext() {
@@ -42,9 +50,9 @@ public class TestUtils {
     }
 
     public static RequestOptions createSimpleRequestOptions() {
-       return new RequestOptions.Builder()
-            .withMessageTemplate(createSimpleMessageTemplate())
-            .build();
+        return new RequestOptions.Builder<>()
+                .withMessageTemplate(createSimpleMessageTemplate())
+                .build();
     }
 
     public static MessageTemplate createSimpleMessageTemplate() {
@@ -52,12 +60,14 @@ public class TestUtils {
     }
 
     public static Message createMsbRequestMessageWithSimplePayload(String topicTo) {
-        return createMsbRequestMessage(topicTo, createSimpleRequestPayload());
+        return createMsbRequestMessageWithPayloadTextBody(topicTo, "some payload body");
     }
 
     public static Message createMsbRequestMessage(String topicTo, String instanceId, Payload payload) {
+        ObjectMapper payloadMapper = createMessageMapper();
         MsbConfig msbConf = createMsbConfigurations(instanceId);
         Clock clock = Clock.systemDefaultZone();
+        JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
@@ -66,22 +76,39 @@ public class TestUtils {
                 .withId(Utils.generateId())
                 .withTopics(topic)
                 .withMetaBuilder(metaBuilder)
-                .withPayload(payload)
+                .withPayload(payloadNode)
                 .build();
     }
 
-    public static Message createMsbRequestMessage(String topicTo, Payload payload) {
-        MsbConfig msbConf = createMsbConfigurations();
-        Clock clock = Clock.systemDefaultZone();
+    public static Message createMsbRequestMessage(String topicTo, String payloadString) {
+        try {
+            ObjectMapper payloadMapper = createMessageMapper();
+            MsbConfig msbConf = createMsbConfigurations();
+            Clock clock = Clock.systemDefaultZone();
+            JsonNode payload = payloadMapper.readValue(payloadString, JsonNode.class);
 
-        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
-        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder()
-                .withCorrelationId(Utils.generateId())
-                .withId(Utils.generateId())
-                .withTopics(topic)
-                .withMetaBuilder(metaBuilder)
-                .withPayload(payload)
+            Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
+            MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
+            return new Message.Builder()
+                    .withCorrelationId(Utils.generateId())
+                    .withId(Utils.generateId())
+                    .withTopics(topic)
+                    .withMetaBuilder(metaBuilder)
+                    .withPayload(payload)
+                    .build();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to prepare request message");
+        }
+    }
+
+    public static Message createMsbRequestMessageWithPayloadTextBody(String topicTo, String bodyText) {
+        String payloadString = String.format("{\"body\": \"%s\" }", bodyText);
+        return createMsbRequestMessage(topicTo, payloadString);
+    }
+
+    public static Payload<Object, Object, Object, String> createPayloadWithTextBody(String bodyText) {
+        return new Payload.Builder<Object, Object, Object, String>()
+                .withBody(bodyText)
                 .build();
     }
 
@@ -115,14 +142,22 @@ public class TestUtils {
     }
 
     public static Message createMsbResponseMessage(String namespace) {
+        ObjectMapper payloadMapper = createMessageMapper();
         MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics(namespace, namespace + ":response:" +
                 msbConf.getServiceDetails().getInstanceId());
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic)
-                .withMetaBuilder(metaBuilder).withPayload(createSimpleResponsePayload()).build();
+        Payload payload = createSimpleResponsePayload();
+        JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
+        return new Message.Builder()
+                .withCorrelationId(Utils.generateId())
+                .withId(Utils.generateId())
+                .withTopics(topic)
+                .withMetaBuilder(metaBuilder)
+                .withPayload(payloadNode)
+                .build();
     }
 
     public static Message.Builder createMessageBuilder() {
@@ -145,40 +180,48 @@ public class TestUtils {
     }
 
     public static ObjectMapper createMessageMapper() {
-        return new MsbContextBuilder().buildMessageMapper(null);
+        return new MsbContextBuilder().createMessageEnvelopeMapper();
     }
 
-    public static Payload createSimpleRequestPayload() {
-        Map<String, String> headers = new HashMap<String, String>();
+    public static Payload<Object, Map<String, String>, Object, Map<String, String>> createSimpleRequestPayload() {
+        Map<String, String> headers = new HashMap<>();
         headers.put("url", "http://mock/request");
         headers.put("method", "Request");
 
-        Map<String, String> body = new HashMap<String, String>();
+        Map<String, String> body = new HashMap<>();
 
         body.put("body", "someRequestBody created at " + Clock.systemDefaultZone().millis());
 
-        return PayloadWrapper.wrap(new Payload.Builder().withBody(body).withHeaders(headers).build(), createMessageMapper());
+        return new Payload.Builder<Object, Map<String, String>, Object, Map<String, String>>()
+                .withHeaders(headers)
+                .withBody(body)
+                .build();
     }
 
-    public static Payload createSimpleBroadcastPayload() {
-        return createSimpleRequestPayload();
-    }
-
-    public static Payload createSimpleResponsePayload() {
-        Map<String, String> headers = new HashMap<String, String>();
+    public static Payload<Object, Map<String, String>, Object, Map<String, String>> createSimpleResponsePayload() {
+        Map<String, String> headers = new HashMap<>();
         headers.put("statusCode", "200");
         headers.put("method", "Response");
 
-        Map<String, String> body = new HashMap<String, String>();
+        Map<String, String> body = new HashMap<>();
         body.put("body", "someResponseBody");
 
-        return new Payload.Builder().withBody(body).withHeaders(headers).build();
+        return new Payload.Builder<Object, Map<String, String>, Object, Map<String, String>>()
+                .withHeaders(headers)
+                .withBody(body)
+                .build();
     }
 
     public static MetaMessage.Builder createSimpleMetaBuilder(MsbConfig msbConf, Clock clock) {
         return new MetaMessage.Builder(null, clock.instant(), msbConf.getServiceDetails(), clock);
     }
-    
+
+    public static void assertRawPayloadContainsBodyText(String bodyText, Message message) {
+        assertNotNull(message.getRawPayload());
+        assertTrue(message.getRawPayload().has("body"));
+        assertEquals(bodyText, message.getRawPayload().get("body").asText());
+    }
+
     public static class TestMsbContextBuilder {
         private Optional<MsbConfig> msbConfigOp = Optional.empty();
         private Optional<MessageFactory> messageFactoryOp = Optional.empty();
@@ -212,7 +255,7 @@ public class TestUtils {
             this.timeoutManagerOp = Optional.ofNullable(timeoutManager);
             return this;
         }
-        
+
         public TestMsbContextBuilder withObjectFactory(ObjectFactory objectFactory) {
             this.objectFactoryOp = Optional.ofNullable(objectFactory);
             return this;
@@ -228,11 +271,11 @@ public class TestUtils {
             Clock clock = clockOp.orElse(Clock.systemDefaultZone());
             ObjectMapper messageMapper = createMessageMapper();
             ChannelManager channelManager = channelManagerOp.orElseGet(() -> new ChannelManager(msbConfig, clock, new JsonValidator(), messageMapper));
-            MessageFactory messageFactory = messageFactoryOp.orElseGet(() -> new MessageFactory(msbConfig.getServiceDetails(), clock));
+            MessageFactory messageFactory = messageFactoryOp.orElseGet(() -> new MessageFactory(msbConfig.getServiceDetails(), clock, messageMapper));
             TimeoutManager timeoutManager = timeoutManagerOp.orElseGet(() -> new TimeoutManager(1));
             CollectorManagerFactory collectorManagerFactory = collectorManagerFactoryOp.orElseGet(() -> new CollectorManagerFactory(channelManager));
             TestMsbContext msbContext = new TestMsbContext(msbConfig, messageFactory, channelManager, clock, timeoutManager, collectorManagerFactory);
-            
+
             ObjectFactory objectFactory = objectFactoryOp.orElseGet(() -> new ObjectFactoryImpl(msbContext));
             msbContext.setFactory(objectFactory);
             return msbContext;
@@ -243,12 +286,11 @@ public class TestUtils {
                     ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager, CollectorManagerFactory collectorManagerFactory) {
                 super(msbConfig, messageFactory, channelManager, clock, timeoutManager, createMessageMapper(), collectorManagerFactory);
             }
-            
+
             public void setFactory(ObjectFactory objectFactory) {
                 super.setObjectFactory(objectFactory);
             }
         }
 
     }
-
 }

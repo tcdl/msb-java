@@ -1,19 +1,6 @@
 package io.github.tcdl.msb.impl;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.time.Clock;
-
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Consumer;
 import io.github.tcdl.msb.Producer;
@@ -32,13 +19,31 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.time.Clock;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+/**
+ * Created by rdro on 4/27/2015.
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class RequesterImplTest {
 
     private static final String NAMESPACE = "test:requester";
 
     @Mock
-    private EventHandlers eventHandlerMock;
+    private EventHandlers<Payload> eventHandlerMock;
 
     @Mock
     private ChannelManager channelManagerMock;
@@ -54,7 +59,7 @@ public class RequesterImplTest {
 
     @Test
     public void testPublishNoWaitForResponses() throws Exception {
-        RequesterImpl requester = initRequesterForResponsesWithTimeout(0);
+        RequesterImpl<Payload> requester = initRequesterForResponsesWithTimeout(0);
 
         requester.publish(TestUtils.createSimpleRequestPayload());
 
@@ -64,7 +69,7 @@ public class RequesterImplTest {
 
     @Test
     public void testPublishWaitForResponses() throws Exception {
-        RequesterImpl requester = initRequesterForResponsesWithTimeout(1);
+        RequesterImpl<Payload> requester = initRequesterForResponsesWithTimeout(1);
 
         //doReturn(mock(CollectorManager.class)).when(collectorMock).findOrCreateCollectorManager(anyString());
 
@@ -75,15 +80,16 @@ public class RequesterImplTest {
     }
 
     @Test
-    public void testPublishCallProducerPublishWithPayload() throws Exception {
-        RequesterImpl requester = initRequesterForResponsesWithTimeout(0);
+    public void testProducerPublishWithPayload() throws Exception {
+        String bodyText = "Body text";
+        RequesterImpl<Payload> requester = initRequesterForResponsesWithTimeout(0);
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-        Payload payload = TestUtils.createSimpleRequestPayload();
+        Payload payload = TestUtils.createPayloadWithTextBody(bodyText);
 
         requester.publish(payload);
 
         verify(producerMock).publish(messageCaptor.capture());
-        assertThat(payload, is(messageCaptor.getValue().getPayload()));
+        TestUtils.assertRawPayloadContainsBodyText(bodyText, messageCaptor.getValue());
     }
 
     @Test
@@ -149,17 +155,17 @@ public class RequesterImplTest {
                 .build();
 
         Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), msbContext);
+        Requester<Payload> requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), msbContext, new TypeReference<Payload>() {});
         requester.publish(requestPayload);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
         Message requestMessage = messageArgumentCaptor.getValue();
         assertNotNull(requestMessage);
         assertNotNull(requestMessage.getMeta());
-        assertNotNull(requestMessage.getPayload());
+        assertNotNull(requestMessage.getRawPayload());
     }
 
-    private RequesterImpl initRequesterForResponsesWithTimeout(int numberOfResponses) throws Exception {
+    private RequesterImpl<Payload> initRequesterForResponsesWithTimeout(int numberOfResponses) throws Exception {
 
         MessageTemplate messageTemplateMock = mock(MessageTemplate.class);
 
@@ -172,13 +178,14 @@ public class RequesterImplTest {
                 .withChannelManager(channelManagerMock)
                 .build();
 
-        RequesterImpl requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, msbContext));
+        RequesterImpl<Payload> requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, msbContext, new TypeReference<Payload>() {}));
 
-        collectorMock = spy(new Collector(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptionsMock, msbContext, eventHandlerMock));
+        collectorMock = spy(new Collector<>(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptionsMock, msbContext, eventHandlerMock,
+                new TypeReference<Payload>() {}));
 
         doReturn(collectorMock)
                 .when(requester)
-                .createCollector(anyString(), any(Message.class), any(RequestOptions.class), any(MsbContextImpl.class), any(EventHandlers.class));
+                .createCollector(anyString(), any(Message.class), any(RequestOptions.class), any(MsbContextImpl.class), any());
 
         return requester;
     }

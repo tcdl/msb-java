@@ -10,10 +10,15 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.PROTECT
 
 /**
  * REST-like message payload.
+ *
+ * @param <Q> class for query
+ * @param <H> class for headers
+ * @param <P> class for parameters
+ * @param <B> class for body
  */
 // Workaround to using setFieldVisibility on object mapper. It caused infinite recursion
 @JsonAutoDetect(getterVisibility = PROTECTED_AND_PUBLIC, setterVisibility = PROTECTED_AND_PUBLIC)
-public class Payload implements ConvertiblePayload {
+public class Payload<Q, H, P, B> {
 
     /**
      * Response status code
@@ -26,24 +31,24 @@ public class Payload implements ConvertiblePayload {
     private String statusMessage;
 
     /**
-     * Provide things like authorisation, information about the body and information about the user. (Request Meta Info/Who)
-     */
-    private Object headers;
-
-    /**
      * Query provides instructions. (How)
      */
-    private Object query;
+    private Q query;
+
+    /**
+     * Provide things like authorisation, information about the body and information about the user. (Request Meta Info/Who)
+     */
+    private H headers;
 
     /**
      * Params provide hierarchical ids of the entities acted upon. (What)
      */
-    private Object params;
+    private P params;
 
     /**
      * Body provides data/state
      */
-    private Object body;
+    private B body;
 
     /**
      * Base64-encoded binary body
@@ -57,10 +62,10 @@ public class Payload implements ConvertiblePayload {
     private Payload(
             @JsonProperty("statusCode") Integer statusCode,
             @JsonProperty("statusMessage") String statusMessage,
-            @JsonProperty("headers") Object headers,
-            @JsonProperty("query") Object query,
-            @JsonProperty("params") Object params,
-            @JsonProperty("body") Object body,
+            @JsonProperty("query") Q query,
+            @JsonProperty("headers") H headers,
+            @JsonProperty("params") P params,
+            @JsonProperty("body") B body,
             @JsonProperty("bodyBuffer") String bodyBuffer) {
         this.statusMessage = statusMessage;
         this.statusCode = statusCode;
@@ -87,35 +92,35 @@ public class Payload implements ConvertiblePayload {
         this.statusMessage = statusMessage;
     }
 
-    public Object getHeaders() {
-        return headers;
-    }
-
-    protected void setHeaders(Object headers) {
-        this.headers = headers;
-    }
-
-    public Object getQuery() {
+    public Q getQuery() {
         return query;
     }
 
-    protected void setQuery(Object query) {
+    protected void setQuery(Q query) {
         this.query = query;
     }
 
-    public Object getParams() {
+    public H getHeaders() {
+        return headers;
+    }
+
+    protected void setHeaders(H headers) {
+        this.headers = headers;
+    }
+
+    public P getParams() {
         return params;
     }
 
-    protected void setParams(Object params) {
+    protected void setParams(P params) {
         this.params = params;
     }
 
-    public Object getBody() {
+    public B getBody() {
         return body;
     }
 
-    protected void setBody(Object body) {
+    protected void setBody(B body) {
         this.body = body;
     }
 
@@ -127,66 +132,66 @@ public class Payload implements ConvertiblePayload {
         this.bodyBuffer = bodyBuffer;
     }
 
-    public static class Builder {
+    public static class Builder<Q, H, P, B> {
 
         private Integer statusCode;
         private String statusMessage;
-        private Object headers;
-        private Object query;
-        private Object params;
-        private Object body;
+        private Q query;
+        private H headers;
+        private P params;
+        private B body;
         private String bodyBuffer;
 
-        public Builder withStatusCode(Integer statusCode) {
+        public Builder<Q, H, P, B> withStatusCode(Integer statusCode) {
             this.statusCode = statusCode;
             return this;
         }
 
-        public Builder withStatusMessage(String statusMessage) {
+        public Builder<Q, H, P, B> withStatusMessage(String statusMessage) {
             this.statusMessage = statusMessage;
             return this;
         }
 
-        public Builder withHeaders(Object headers) {
-            this.headers = headers;
-            return this;
-        }
-
-        public Builder withQuery(Object query) {
+        public Builder<Q, H, P, B> withQuery(Q query) {
             this.query = query;
             return this;
         }
 
-        public Builder withParams(Object params) {
+        public Builder<Q, H, P, B> withHeaders(H headers) {
+            this.headers = headers;
+            return this;
+        }
+
+        public Builder<Q, H, P, B> withParams(P params) {
             this.params = params;
             return this;
         }
 
-        public Builder withBody(Object body) {
+        public Builder<Q, H, P, B> withBody(B body) {
             this.body = body;
             return this;
         }
 
-        public Builder withBodyBuffer(String bodyBuffer) {
+        public Builder<Q, H, P, B> withBodyBuffer(String bodyBuffer) {
             this.bodyBuffer = bodyBuffer;
             return this;
         }
 
-        public Payload build() {
-            return new Payload(statusCode, statusMessage, headers, query, params, body, bodyBuffer);
+        public Payload<Q, H, P, B> build() {
+            return new Payload<>(statusCode, statusMessage, query, headers, params, body, bodyBuffer);
         }
     }
 
     @Override
     public String toString() {
-        return String.format("Payload [statusCode=%s, statusMessage=%s, headers=%s, query=%s, params=%s, body=%s, bodyBuffer=%s]",
-                statusCode, statusMessage, headers, query, params, body, bodyBuffer);
+        return String.format("Payload [statusCode=%s, statusMessage=%s, query=%s, headers=%s, params=%s, body=%s, bodyBuffer=%s]",
+                statusCode, statusMessage, query, headers, params, body, bodyBuffer);
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Payload) {
-            Payload other = (Payload) obj;
+            Payload<?, ?, ?, ?> other = (Payload<?, ?, ?, ?>) obj;
             return Objects.equals(body, other.body)
                     && Objects.equals(bodyBuffer, other.bodyBuffer)
                     && Objects.equals(bodyBuffer, other.bodyBuffer)

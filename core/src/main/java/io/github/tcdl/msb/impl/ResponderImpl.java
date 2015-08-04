@@ -51,7 +51,7 @@ public class ResponderImpl implements Responder {
      * {@inheritDoc}
      */
     @Override
-    public void send(Payload responsePayload) {
+    public void send(Payload<?, ?, ?, ?> responsePayload) {
         Builder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.withResponderId(responderId);
         ackBuilder.withResponsesRemaining(-1);
