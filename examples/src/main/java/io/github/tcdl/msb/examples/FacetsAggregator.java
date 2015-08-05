@@ -5,7 +5,6 @@ import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.examples.payload.Request;
 
@@ -13,6 +12,7 @@ import javax.script.ScriptException;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -77,9 +77,11 @@ public class FacetsAggregator {
                     result[0] +=response;
                 });
 
-                requester.onEnd(listOfMessages -> {
-                    for (Message message : listOfMessages)
-                        System.out.println(">>> MESSAGE: " + message.getRawPayload());
+                List<Payload> responses = new LinkedList<>();
+                requester.onResponse(response -> responses.add(response))
+                .onEnd(end -> {
+                    for (Payload payload : responses)
+                        System.out.println(">>> MESSAGE: " + payload);
 
                     Payload responsePayload = new Payload.Builder<Object, Object, Object, String>()
                             .withStatusCode(200)

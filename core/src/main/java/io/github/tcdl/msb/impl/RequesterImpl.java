@@ -14,10 +14,12 @@ import io.github.tcdl.msb.message.MessageFactory;
 
 import org.apache.commons.lang3.Validate;
 
-import java.util.List;
-
 /**
- * Internal implementations of Requester interface.
+ * Implementation of {@link Requester}
+ *
+ * Expected responses are matched by correlationId from original request.
+ *
+ * @see Requester
  */
 public class RequesterImpl<T extends Payload> implements Requester<T> {
 
@@ -109,8 +111,16 @@ public class RequesterImpl<T extends Payload> implements Requester<T> {
     /**
      * {@inheritDoc}
      */
+    @Override public Requester<T> onRawResponse(Callback<Message> responseHandler) {
+        eventHandlers.onRawResponse(responseHandler);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Requester<T> onEnd(Callback<List<Message>> endHandler) {
+    public Requester<T> onEnd(Callback<Void> endHandler) {
         eventHandlers.onEnd(endHandler);
         return this;
     }

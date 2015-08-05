@@ -15,7 +15,8 @@ public class EventHandlers<T extends Payload> {
 
     private Callback<Acknowledge> onAcknowledge = acknowledge -> {};
     private Callback<T> onResponse = response -> {};
-    private Callback<List<Message>> onEnd = messages -> {};
+    private Callback<Message> onRawResponse = response -> {};
+    private Callback<Void> onEnd = messages -> {};
 
     /**
      * Return callback registered for Acknowledge event.
@@ -56,11 +57,30 @@ public class EventHandlers<T extends Payload> {
     }
 
     /**
+     * Return callback registered for Response event.
+     *
+     * @return response callback
+     */
+    public Callback<Message> onRawResponse() {
+        return onRawResponse;
+    }
+
+    /**
+     * Registered callback for Response event.
+     *
+     * @param onRawResponse callback
+     */
+    public EventHandlers onRawResponse(Callback<Message> onRawResponse) {
+        this.onRawResponse = onRawResponse;
+        return this;
+    }
+
+    /**
      * Return callback registered for End event.
      *
      * @return end event callback
      */
-    public Callback<List<Message>> onEnd() {
+    public Callback<Void> onEnd() {
         return onEnd;
     }
 
@@ -69,7 +89,7 @@ public class EventHandlers<T extends Payload> {
      *
      * @param onEnd callback
      */
-    public EventHandlers onEnd(Callback<List<Message>> onEnd) {
+    public EventHandlers onEnd(Callback<Void> onEnd) {
         this.onEnd = onEnd;
         return this;
     }

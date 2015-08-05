@@ -9,6 +9,7 @@ import io.github.tcdl.msb.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -39,8 +40,10 @@ public class HeartbeatTask implements Runnable {
 
             Payload emptyPayload = new Payload.Builder().build();
 
+            List<Message> messages = new LinkedList<>();
             objectFactory.createRequester(Utils.TOPIC_HEARTBEAT, requestOptions)
-                    .onEnd(heartbeatHandler)
+                    .onRawResponse(message -> messages.add(message))
+                    .onEnd(end -> heartbeatHandler.call(messages))
                     .publish(emptyPayload);
 
             LOG.debug("Heartbeat request sent");
