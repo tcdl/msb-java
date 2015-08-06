@@ -102,6 +102,7 @@ public class RequesterImplTest {
 
         assertThat(requester.eventHandlers.onAcknowledge(), is(onAckMock));
         assertThat(requester.eventHandlers.onResponse(), not(onAckMock));
+        assertThat(requester.eventHandlers.onRawResponse(), not(onAckMock));
         assertThat(requester.eventHandlers.onEnd(), not(onAckMock));
     }
 
@@ -115,8 +116,25 @@ public class RequesterImplTest {
 
         assertThat(requester.eventHandlers.onAcknowledge(), not(onResponseMock));
         assertThat(requester.eventHandlers.onResponse(), is(onResponseMock));
+        assertThat(requester.eventHandlers.onRawResponse(), not(onResponseMock));
         assertThat(requester.eventHandlers.onEnd(), not(onResponseMock));
     }
+
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testRawResponseEventHandlerIsAdded() throws Exception {
+        Callback onRawResponseMock = mock(Callback.class);
+        RequesterImpl requester = initRequesterForResponsesWithTimeout(1);
+
+        requester.onRawResponse(onRawResponseMock);
+
+        assertThat(requester.eventHandlers.onAcknowledge(), not(onRawResponseMock));
+        assertThat(requester.eventHandlers.onRawResponse(), is(onRawResponseMock));
+        assertThat(requester.eventHandlers.onResponse(), not(onRawResponseMock));
+        assertThat(requester.eventHandlers.onEnd(), not(onRawResponseMock));
+    }
+
 
     @Test
     @SuppressWarnings("unchecked")
@@ -128,6 +146,7 @@ public class RequesterImplTest {
 
         assertThat(requester.eventHandlers.onAcknowledge(), not(onEndMock));
         assertThat(requester.eventHandlers.onResponse(), not(onEndMock));
+        assertThat(requester.eventHandlers.onRawResponse(), not(onEndMock));
         assertThat(requester.eventHandlers.onEnd(), is(onEndMock));
     }
 
@@ -139,6 +158,7 @@ public class RequesterImplTest {
 
         assertThat(requester.eventHandlers.onAcknowledge(), not(onEndMock));
         assertThat(requester.eventHandlers.onResponse(), not(onEndMock));
+        assertThat(requester.eventHandlers.onRawResponse(), not(onEndMock));
         assertThat(requester.eventHandlers.onEnd(), not(onEndMock));
     }
 

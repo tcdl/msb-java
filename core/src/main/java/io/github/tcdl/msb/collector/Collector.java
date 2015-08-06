@@ -11,6 +11,7 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.impl.MsbContextImpl;
+import io.github.tcdl.msb.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,9 +56,10 @@ public class Collector<T extends Payload> {
     private Clock clock;
     private Message requestMessage;
 
+    private Optional<Callback<Message>> onRawResponse = Optional.empty();
     private Optional<Callback<T>> onResponse = Optional.empty();
     private Optional<Callback<Acknowledge>> onAcknowledge = Optional.empty();
-    private Optional<Callback<List<Message>>> onEnd = Optional.empty();
+    private Optional<Callback<Void>> onEnd = Optional.empty();
 
     private ScheduledFuture ackTimeoutFuture;
     private ScheduledFuture responseTimeoutFuture;
@@ -88,6 +90,7 @@ public class Collector<T extends Payload> {
         this.shouldWaitUntilResponseTimeout = requestOptions.getWaitForResponses() == WAIT_FOR_RESPONSES_UNTIL_TIMEOUT;
 
         if (eventHandlers != null) {
+            onRawResponse = Optional.ofNullable(eventHandlers.onRawResponse());
             onResponse = Optional.ofNullable(eventHandlers.onResponse());
             onAcknowledge = Optional.ofNullable(eventHandlers.onAcknowledge());
             onEnd = Optional.ofNullable(eventHandlers.onEnd());
@@ -113,10 +116,11 @@ public class Collector<T extends Payload> {
         if (isPayloadPresent(rawPayload)) {
             LOG.debug("Received {}", rawPayload);
             payloadMessages.add(incomingMessage);
+            onRawResponse.ifPresent(handler -> handler.call(incomingMessage));
 
-            T payload = payloadMapper.convertValue(rawPayload, payloadTypeReference);
-
+            T payload = Utils.convert(rawPayload, payloadTypeReference, payloadMapper);
             onResponse.ifPresent(handler -> handler.call(payload));
+
             incResponsesRemaining(-1);
         } else {
             LOG.debug("Received {}", incomingMessage.getAck());
@@ -150,7 +154,7 @@ public class Collector<T extends Payload> {
         cancelResponseTimeoutTask();
 
         collectorManager.unregisterCollector(this);
-        onEnd.ifPresent(handler -> handler.call(payloadMessages));
+        onEnd.ifPresent(handler -> handler.call(null));
     }
 
     public void waitForResponses() {

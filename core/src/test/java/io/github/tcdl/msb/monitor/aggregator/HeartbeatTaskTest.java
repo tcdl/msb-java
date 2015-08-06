@@ -7,10 +7,12 @@ import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
+import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 
@@ -33,17 +35,34 @@ public class HeartbeatTaskTest {
     @Before
     public void setUp() {
         when(mockObjectFactory.createRequester(anyString(), any(RequestOptions.class))).thenReturn(mockRequester);
-        @SuppressWarnings("unchecked")
-        Callback<List<Message>> any = any(Callback.class);
-        when(mockRequester.onEnd(any)).thenReturn(mockRequester);
+        when(mockRequester.onRawResponse(any(Callback.class))).thenReturn(mockRequester);
+        when(mockRequester.onEnd(any(Callback.class))).thenReturn(mockRequester);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testRun() {
         heartbeatTask.run();
 
+        ArgumentCaptor<Callback> onResponseCaptor = ArgumentCaptor.forClass(Callback.class);
+        ArgumentCaptor<Callback> onEndCaptor = ArgumentCaptor.forClass(Callback.class);
+        ArgumentCaptor<List> messageCaptor = ArgumentCaptor.forClass(List.class);
+
         verify(mockObjectFactory).createRequester(eq(Utils.TOPIC_HEARTBEAT), any(RequestOptions.class));
+        verify(mockRequester).onRawResponse(onResponseCaptor.capture());
+        verify(mockRequester).onEnd(onEndCaptor.capture());
         verify(mockRequester).publish(any(Payload.class));
+
+        // simulate incoming messages
+        Message msg1 = TestUtils.createMsbRequestMessageWithSimplePayload("from:responder");
+        Message msg2 = TestUtils.createMsbRequestMessageWithSimplePayload("from:responder");
+        onResponseCaptor.getValue().call(msg1);
+        onResponseCaptor.getValue().call(msg2);
+        onEndCaptor.getValue().call(null);
+
+        verify(mockMessageHandler).call(messageCaptor.capture());
+
+        Assert.assertArrayEquals(new Message[] {msg1, msg2}, messageCaptor.getValue().toArray());
     }
 
     @Test

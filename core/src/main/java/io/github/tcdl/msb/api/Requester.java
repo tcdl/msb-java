@@ -6,18 +6,14 @@ import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
 
-import java.util.List;
-
 /**
  * {@link Requester} enable user send message to bus and process responses for this messages if any expected.
- *
- * Expected responses are matched by correlationId from original request.
  *
  * Expected number of messages and response timeouts is defined by {@link RequestOptions} during instance creation but can be updated by so called Acknowledgement
  * response mechanism in case we create Requester with {@literal RequestOptions.waitForResponses => 0} and received Acknowledgement response
  * before RequestOptions.ackTimeout or RequestOptions.responseTimeout (takes max of two).
  *
- * Please note: RequestOptions.waitForResponses represent number of response messages  with {@link Payload} set and in case we received
+ * Please note: RequestOptions.waitForResponses represent number of response messages with {@link Payload} set and in case we received
  * all expected before RequestOptions.responseTimeout we don't wait for Acknowledgement response and RequestOptions.ackTimeout is not used.
  *
  * @param <T> expected payload type of response messages
@@ -35,7 +31,7 @@ public interface Requester<T extends Payload> {
     void publish(Payload<?, ?, ?, ?> requestPayload);
 
     /**
-     * Wraps a payload with protocol information, preserves original message correlationId and sends to bus.
+     * Wraps a payload with protocol information, preserves original message and sends to bus.
      * In case Requester created with expectation for responses then process them.
      *
      * @param requestPayload payload which will be sent to bus
@@ -46,7 +42,7 @@ public interface Requester<T extends Payload> {
     void publish(Payload<?, ?, ?, ?> requestPayload, Message originalMessage);
     
     /**
-     * Registers a callback to be called when {@link Message} with {@link Acknowledge} property set is received.
+     * Registers a callback to be called when {@link Message} with {@link Acknowledge} part set is received.
      *
      * @param acknowledgeHandler callback to be called
      * @return requester
@@ -54,12 +50,21 @@ public interface Requester<T extends Payload> {
     Requester<T> onAcknowledge(Callback<Acknowledge> acknowledgeHandler);
 
     /**
-     * Registers a callback to be called when response {@link Message} with {@link Payload} property set is received.
+     * Registers a callback to be called when response {@link Message} with {@link Payload} part set of type {@literal<}T{@literal>} is received.
+     *
+     * @param responseHandler callback to be called
+     * @return requester
+     * @throws JsonConversionException if unable to convert {@link Payload} to type {@literal<}T{@literal>}
+     */
+    Requester<T> onResponse(Callback<T> responseHandler);
+
+    /**
+     * Registers a callback to be called when response {@link Message} with {@link Payload} part set of is received.
      *
      * @param responseHandler callback to be called
      * @return requester
      */
-    Requester<T> onResponse(Callback<T> responseHandler);
+    Requester<T> onRawResponse(Callback<Message> responseHandler);
     
     /**
      * Registers a callback to be called when all expected responses for request message are processes or awaiting timeout for responses occurred.
@@ -67,5 +72,5 @@ public interface Requester<T extends Payload> {
      * @param endHandler callback to be called
      * @return requester
      */
-    Requester<T> onEnd(Callback<List<Message>> endHandler);
+    Requester<T> onEnd(Callback<Void> endHandler);
 }
