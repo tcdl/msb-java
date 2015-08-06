@@ -8,6 +8,7 @@ import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,10 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
     }
 
     /**
-     * {@inheritDoc}
+     * Start listening for message on specified topic.
+     *
+     * In case of exception was thrown during message conversion or handling business logic
+     * response message with statusCode=500 and statusMessage=${exception.getMessage()} will be created and send automatically.
      */
     @Override
     public ResponderServer listen() {
@@ -60,9 +64,9 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
     void onResponder(ResponderImpl responder) {
         Message originalMessage = responder.getOriginalMessage();
         Object rawPayload = originalMessage.getRawPayload();
-        T request = payloadMapper.convertValue(rawPayload, payloadTypeReference);
-        LOG.debug("[{}] Process message with id: [{}]", namespace, originalMessage.getId());
         try {
+            T request = Utils.convert(rawPayload, payloadTypeReference, payloadMapper);
+            LOG.debug("[{}] Process message with id: [{}]", namespace, originalMessage.getId());
             requestHandler.process(request, responder);
         } catch (Exception exception) {
             errorHandler(responder, exception);
