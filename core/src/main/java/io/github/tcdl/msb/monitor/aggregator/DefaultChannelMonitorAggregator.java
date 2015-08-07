@@ -1,10 +1,19 @@
 package io.github.tcdl.msb.monitor.aggregator;
 
+import static io.github.tcdl.msb.support.Utils.TOPIC_ANNOUNCE;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.ObjectFactory;
+import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.payload.Payload;
@@ -14,16 +23,9 @@ import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 import io.github.tcdl.msb.config.ServiceDetails;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.monitor.agent.AgentTopicStats;
+import io.github.tcdl.msb.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import static io.github.tcdl.msb.support.Utils.TOPIC_ANNOUNCE;
 
 public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultChannelMonitorAggregator.class);
@@ -36,7 +38,8 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
 
     AggregatorStats masterAggregatorStats = new AggregatorStats();
 
-    public DefaultChannelMonitorAggregator(MsbContextImpl msbContext, ScheduledExecutorService scheduledExecutorService, Callback<AggregatorStats> aggregatorStatsHandler) {
+    public DefaultChannelMonitorAggregator(MsbContextImpl msbContext, ScheduledExecutorService scheduledExecutorService,
+            Callback<AggregatorStats> aggregatorStatsHandler) {
         this.channelManager = msbContext.getChannelManager();
         this.objectFactory = msbContext.getObjectFactory();
         this.messageMapper = msbContext.getPayloadMapper();
@@ -71,31 +74,52 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
         for (Message msg : heartbeatResponses) {
             aggregateInfo(aggregatorStats, msg);
         }
-        LOG.debug(String.format("Calling registered handler for heartbeat %s...", heartbeatResponses));
+        LOG.debug(String.format("Calling registered handler for aggregated statistics %s...", masterAggregatorStats));
         handler.call(aggregatorStats);
         masterAggregatorStats = aggregatorStats;
-        LOG.debug(String.format("Heartbeat message processed %s", heartbeatResponses));
+        LOG.debug(String.format("Heartbeat responses processed"));
     }
 
     void onAnnounce(Message announcementMessage) {
         LOG.debug(String.format("Handling announcement message %s...", announcementMessage));
-        aggregateInfo(masterAggregatorStats, announcementMessage);
-        LOG.debug(String.format("Calling registered handler for announcement %s...", announcementMessage));
-        handler.call(masterAggregatorStats);
-        LOG.debug(String.format("Announcement message processed %s", announcementMessage));
+
+        boolean successfullyAggregated = aggregateInfo(masterAggregatorStats, announcementMessage);
+
+        if(successfullyAggregated) {
+            LOG.debug(String.format("Calling registered handler for for aggregated statistics %s...", masterAggregatorStats));
+            handler.call(masterAggregatorStats);
+            LOG.debug(String.format("Announcement message processed"));
+        } else {
+            LOG.error("Message [{}] will be skipped in statistics computation.", announcementMessage);
+        }
     }
 
-    void aggregateInfo(AggregatorStats aggregatorStats, Message message) {
-        MetaMessage meta = message.getMeta();
-        ServiceDetails serviceDetails = meta.getServiceDetails();
-        String instanceId = serviceDetails.getInstanceId();
-        aggregatorStats.getServiceDetailsById().put(instanceId, serviceDetails);
+    boolean aggregateInfo(AggregatorStats aggregatorStats, Message message) {
 
-        Object rawPayload = message.getRawPayload();
-        Payload<?, ?, ?, Map<String, AgentTopicStats>> payload = messageMapper.convertValue(rawPayload, new TypeReference<Payload<Object, Object, Object, Map<String, AgentTopicStats>>>() {});
-        Map<String, AgentTopicStats> agentTopicStatsMap = payload.getBody();
+        JsonNode rawPayload = message.getRawPayload();
 
-        aggregateTopicStats(aggregatorStats, agentTopicStatsMap, instanceId);
+        if(!Utils.isPayloadPresent(rawPayload)) {
+            LOG.error("Unable to convert message. Message payload is empty.");
+            return false;
+        }
+
+        try {
+            Payload<?, ?, ?, Map<String, AgentTopicStats>> payload = Utils
+                    .convert(rawPayload, new TypeReference<Payload<Object, Object, Object, Map<String, AgentTopicStats>>>() {
+                    }, messageMapper);
+            MetaMessage meta = message.getMeta();
+            ServiceDetails serviceDetails = meta.getServiceDetails();
+            String instanceId = serviceDetails.getInstanceId();
+            aggregatorStats.getServiceDetailsById().put(instanceId, serviceDetails);
+
+            Map<String, AgentTopicStats> agentTopicStatsMap = payload.getBody();
+            aggregateTopicStats(aggregatorStats, agentTopicStatsMap, instanceId);
+        } catch (JsonConversionException e) {
+            LOG.error("Unable to convert message.", e);
+            return false;
+        }
+
+       return true;
     }
 
     void aggregateTopicStats(AggregatorStats aggregatorStats, Map<String, AgentTopicStats> agentTopicStatsMap, String instanceId) {

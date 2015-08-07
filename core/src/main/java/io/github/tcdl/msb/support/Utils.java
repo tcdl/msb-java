@@ -9,7 +9,9 @@ import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,8 +58,8 @@ public class Utils {
         try {
             return objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
-            LOG.error("Failed parse to JSON from: " + object, e);
-            throw new JsonConversionException(e.getMessage());
+            LOG.error("Failed to parse to JSON object: [{}] ", object);
+            throw new JsonConversionException("Failed parse to JSON", e);
         }
     }
 
@@ -81,8 +83,8 @@ public class Utils {
         try {
             return objectMapper.readValue(json, typeReference);
         } catch (IOException e) {
-            LOG.error("Failed parse JSON: {} to object of type: {}", json, typeReference, e);
-            throw new JsonConversionException(e.getMessage());
+            LOG.error("Failed to parse from JSON: [{}] to object of type: [{}]", json, typeReference);
+            throw new JsonConversionException("Failed parse from JSON", e);
         }
     }
 
@@ -101,13 +103,17 @@ public class Utils {
         try {
             return objectMapper.convertValue(srcObject, typeReference);
         } catch (Exception e) {
-            LOG.error("Failed to convert object {} to type: {}", srcObject, typeReference, e);
-            throw new JsonConversionException(e.getMessage());
+            LOG.error("Failed to convert object [{}] to type: [{}]", srcObject, typeReference.getType());
+            throw new JsonConversionException(e.getMessage(), e);
         }
     }
 
     public static boolean isServiceTopic(String topic) {
         return topic.charAt(0) == '_';
+    }
+
+    public static boolean isPayloadPresent(JsonNode rawPayload) {
+        return rawPayload != null && !(rawPayload instanceof NullNode);
     }
 
     /**

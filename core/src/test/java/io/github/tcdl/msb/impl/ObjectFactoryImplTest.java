@@ -7,7 +7,6 @@ import io.github.tcdl.msb.api.PayloadConverter;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.ResponderServer;
-import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.monitor.aggregator.DefaultChannelMonitorAggregator;
 import io.github.tcdl.msb.support.TestUtils;

@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * (that is transmitted over the bus by from their {@link io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent}s).
  */
 public class AggregatorStats {
+
     /**
      * Collects information about all topics that we know of.
      *
@@ -31,4 +32,12 @@ public class AggregatorStats {
     public Map<String, ServiceDetails> getServiceDetailsById() {
         return serviceDetailsById;
     }
+
+    @Override public String toString() {
+        return "AggregatorStats{" +
+                "topicInfoMap=" + topicInfoMap +
+                ", serviceDetailsById=" + serviceDetailsById +
+                '}';
+    }
+
 }
