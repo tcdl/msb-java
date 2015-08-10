@@ -113,8 +113,8 @@ public class Collector<T extends Payload> {
         LOG.debug("Received {}", incomingMessage);
 
         JsonNode rawPayload = incomingMessage.getRawPayload();
-        if (isPayloadPresent(rawPayload)) {
-            LOG.debug("Received {}", rawPayload);
+        if (Utils.isPayloadPresent(rawPayload)) {
+            LOG.debug("Received Payload {}", rawPayload);
             payloadMessages.add(incomingMessage);
             onRawResponse.ifPresent(handler -> handler.call(incomingMessage));
 
@@ -141,10 +141,6 @@ public class Collector<T extends Payload> {
         }
 
         end();
-    }
-
-    private boolean isPayloadPresent(JsonNode rawPayload) {
-        return rawPayload != null && !(rawPayload instanceof NullNode);
     }
 
     protected void end() {

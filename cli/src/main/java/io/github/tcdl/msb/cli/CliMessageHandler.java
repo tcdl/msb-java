@@ -60,7 +60,7 @@ class CliMessageHandler implements ConsumerAdapter.RawMessageHandler {
             Object tmpObject = objectMapper.readValue(jsonMessage, Object.class);
             System.out.println(objectMapper.writeValueAsString(tmpObject));
         } catch (IOException e) {
-            throw new JsonConversionException(e.getMessage());
+            throw new JsonConversionException("Unable to process JSON", e);
         }
     }
 }

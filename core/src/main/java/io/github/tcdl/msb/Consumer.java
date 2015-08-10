@@ -101,7 +101,7 @@ public class Consumer {
                 LOG.warn("Expired message: {}", jsonMessage);
             }
         } catch (JsonConversionException | JsonSchemaValidationException e) {
-            LOG.error("Got error while parsing message {}", jsonMessage, e);
+            LOG.error("Unable to process consumed message {}", jsonMessage, e);
         }
     }
 
