@@ -8,7 +8,8 @@ import io.github.tcdl.msb.api.ObjectFactory;
  * {@link io.github.tcdl.msb.api.MsbContextBuilder#enableChannelMonitorAgent(boolean)}. The statistics is taken from 2 sources:
  *
  * 1. By listening to {@link io.github.tcdl.msb.support.Utils#TOPIC_ANNOUNCE}
- * 2. By sending periodic heartbeats to {@link io.github.tcdl.msb.support.Utils#TOPIC_HEARTBEAT} and analysing responses
+ * 2. By sending periodic heartbeats to {@link io.github.tcdl.msb.support.Utils#TOPIC_HEARTBEAT} and analysing responses. This responses will be aggregated and
+ * then overwrite stats with most recent information to detect that some microservices went down.
  *
  * Typical lifecycle for this aggregator is:
  * 1. Create instance via {@link ObjectFactory#createChannelMonitorAggregator(Callback)}

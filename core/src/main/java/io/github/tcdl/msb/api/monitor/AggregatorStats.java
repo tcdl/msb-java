@@ -13,14 +13,14 @@ public class AggregatorStats {
 
     /**
      * Collects information about all topics that we know of.
-     *
+     * <p/>
      * Structure of the map: topics name -> stats
      */
     private Map<String, AggregatorTopicStats> topicInfoMap = new ConcurrentHashMap<>();
 
     /**
      * Collects information about all instances of microservices that we know of.
-     *
+     * <p/>
      * Structure of the map: service instance id -> details
      */
     private Map<String, ServiceDetails> serviceDetailsById = new ConcurrentHashMap<>();
@@ -34,10 +34,7 @@ public class AggregatorStats {
     }
 
     @Override public String toString() {
-        return "AggregatorStats{" +
-                "topicInfoMap=" + topicInfoMap +
-                ", serviceDetailsById=" + serviceDetailsById +
-                '}';
+        return String.format("AggregatorStats [topicInfoMap=%s, serviceDetailsById=%s]", topicInfoMap, serviceDetailsById);
     }
 
 }

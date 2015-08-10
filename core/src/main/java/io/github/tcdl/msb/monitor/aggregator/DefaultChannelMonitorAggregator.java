@@ -71,13 +71,18 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
     void onHeartbeatResponses(List<Message> heartbeatResponses) {
         LOG.debug(String.format("Handling heartbeat responses %s...", heartbeatResponses));
         AggregatorStats aggregatorStats = new AggregatorStats();
+        boolean successfullyAggregatedAtLeastOne = false;
         for (Message msg : heartbeatResponses) {
-            aggregateInfo(aggregatorStats, msg);
+            if (aggregateInfo(aggregatorStats, msg)) {
+                successfullyAggregatedAtLeastOne = true;
+            }
         }
-        LOG.debug(String.format("Calling registered handler for aggregated statistics %s...", masterAggregatorStats));
-        handler.call(aggregatorStats);
-        masterAggregatorStats = aggregatorStats;
-        LOG.debug(String.format("Heartbeat responses processed"));
+        if (successfullyAggregatedAtLeastOne) {
+            LOG.debug(String.format("Calling registered handler for heartbeat statistics %s...", masterAggregatorStats));
+            handler.call(aggregatorStats);
+            masterAggregatorStats = aggregatorStats;
+            LOG.debug(String.format("Heartbeat responses processed"));
+        }
     }
 
     void onAnnounce(Message announcementMessage) {
@@ -85,12 +90,10 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
 
         boolean successfullyAggregated = aggregateInfo(masterAggregatorStats, announcementMessage);
 
-        if(successfullyAggregated) {
-            LOG.debug(String.format("Calling registered handler for for aggregated statistics %s...", masterAggregatorStats));
+        if (successfullyAggregated) {
+            LOG.debug(String.format("Calling registered handler for announcement statistics %s...", masterAggregatorStats));
             handler.call(masterAggregatorStats);
             LOG.debug(String.format("Announcement message processed"));
-        } else {
-            LOG.error("Message [{}] will be skipped in statistics computation.", announcementMessage);
         }
     }
 
@@ -98,7 +101,7 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
 
         JsonNode rawPayload = message.getRawPayload();
 
-        if(!Utils.isPayloadPresent(rawPayload)) {
+        if (!Utils.isPayloadPresent(rawPayload)) {
             LOG.error("Unable to convert message. Message payload is empty.");
             return false;
         }
@@ -119,7 +122,7 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
             return false;
         }
 
-       return true;
+        return true;
     }
 
     void aggregateTopicStats(AggregatorStats aggregatorStats, Map<String, AgentTopicStats> agentTopicStatsMap, String instanceId) {

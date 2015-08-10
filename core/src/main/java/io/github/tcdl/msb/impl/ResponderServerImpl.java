@@ -45,7 +45,7 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
      * Start listening for message on specified topic.
      *
      * In case of exception was thrown during message conversion or handling business logic
-     * response message with statusCode=500 and statusMessage=${exception.getMessage()} will be created and send automatically.
+     * response message with statusCode=500 and statusMessage=${exception.getMessage()} will be created and sent automatically.
      */
     @Override
     public ResponderServer listen() {
