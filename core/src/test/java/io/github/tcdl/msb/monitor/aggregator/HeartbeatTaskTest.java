@@ -54,8 +54,8 @@ public class HeartbeatTaskTest {
         verify(mockRequester).publish(any(Payload.class));
 
         // simulate incoming messages
-        Message msg1 = TestUtils.createMsbRequestMessageWithSimplePayload("from:responder");
-        Message msg2 = TestUtils.createMsbRequestMessageWithSimplePayload("from:responder");
+        Message msg1 = TestUtils.createSimpleRequestMessage("from:responder");
+        Message msg2 = TestUtils.createSimpleRequestMessage("from:responder");
         onResponseCaptor.getValue().call(msg1);
         onResponseCaptor.getValue().call(msg2);
         onEndCaptor.getValue().call(null);

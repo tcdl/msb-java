@@ -71,7 +71,7 @@ public class ChannelManagerConcurrentTest {
         int numberOfInvocationsPerThread = 20;
 
         Producer producer = channelManager.findOrCreateProducer(topic);
-        Message message = TestUtils.createMsbRequestMessageWithSimplePayload(topic);
+        Message message = TestUtils.createSimpleRequestMessage(topic);
 
         CountDownLatch messagesSent = new CountDownLatch(numberOfThreads * numberOfInvocationsPerThread);
 
@@ -91,7 +91,7 @@ public class ChannelManagerConcurrentTest {
         int numberOfInvocationsPerThread = 20;
 
         Producer producer = channelManager.findOrCreateProducer(topic);
-        Message message = TestUtils.createMsbRequestMessageWithSimplePayload(topic);
+        Message message = TestUtils.createSimpleRequestMessage(topic);
 
         CountDownLatch messagesReceived = new CountDownLatch(numberOfThreads * numberOfInvocationsPerThread);
 

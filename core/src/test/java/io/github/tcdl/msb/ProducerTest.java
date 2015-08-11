@@ -69,7 +69,7 @@ public class ProducerTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testPublishVerifyHandlerCalled() {
-        Message originaMessage = TestUtils.createMsbRequestMessageWithSimplePayload(TOPIC);
+        Message originaMessage = TestUtils.createSimpleRequestMessage(TOPIC);
 
         Producer producer = new Producer(adapterMock, TOPIC, handlerMock, messageMapper);
         producer.publish(originaMessage);
@@ -80,7 +80,7 @@ public class ProducerTest {
     @Test(expected = ChannelException.class)
     @SuppressWarnings("unchecked")
     public void testPublishRawAdapterThrowChannelException() throws ChannelException {
-        Message originaMessage = TestUtils.createMsbRequestMessageWithSimplePayload(TOPIC);
+        Message originaMessage = TestUtils.createSimpleRequestMessage(TOPIC);
 
         Mockito.doThrow(ChannelException.class).when(adapterMock).publish(anyString());
 

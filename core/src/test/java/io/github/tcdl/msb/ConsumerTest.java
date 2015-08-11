@@ -99,7 +99,7 @@ public class ConsumerTest {
 
     @Test
     public void testValidMessageProcessedBySubscriber() throws JsonConversionException {
-        Message originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(TOPIC);
+        Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
         Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
         consumer.handleRawMessage(Utils.toJson(originalMessage, messageMapper));
@@ -126,7 +126,7 @@ public class ConsumerTest {
         Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
         // create a message with required empty namespace
-        Message message = TestUtils.createMsbRequestMessageWithSimplePayload("");
+        Message message = TestUtils.createSimpleRequestMessage("");
 
         consumer.handleRawMessage(Utils.toJson(message, messageMapper));
 
@@ -137,7 +137,7 @@ public class ConsumerTest {
 
     @Test
     public void testHandleRawMessageConsumeFromTopic() throws JsonConversionException {
-        Message originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(TOPIC);
+        Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
         Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
         consumer.handleRawMessage(Utils.toJson(originalMessage, messageMapper));

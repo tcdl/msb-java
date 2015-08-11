@@ -53,7 +53,7 @@ public class ResponderImplTest {
         mockChannelManager = mock(ChannelManager.class);
         mockProducer = mock(Producer.class);
         emptyPayload = new Payload.Builder().build();
-        originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(TOPIC);
+        originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
 
         when(msbContextSpy.getChannelManager()).thenReturn(mockChannelManager);
         when(msbContextSpy.getMessageFactory()).thenReturn(spyMessageFactory);
@@ -65,7 +65,7 @@ public class ResponderImplTest {
     @Test
     public void testResponderConstructorOk() {
         MsbContextImpl context = TestUtils.createSimpleMsbContext();
-        Message originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(TOPIC);
+        Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
         new ResponderImpl(config, originalMessage, context);
     }
 

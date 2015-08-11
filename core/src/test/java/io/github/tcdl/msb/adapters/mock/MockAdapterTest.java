@@ -33,7 +33,7 @@ public class MockAdapterTest {
     @Test
     public void testPublishAddMessageToMap() throws ChannelException, JsonConversionException {
         String topic = "test:mock-adapter-publish";
-        Message message = TestUtils.createMsbRequestMessageWithSimplePayload(topic);
+        Message message = TestUtils.createSimpleRequestMessage(topic);
         MockAdapter mockAdapter = new MockAdapter(topic);
 
         mockAdapter.publish(Utils.toJson(message, messageMapper));
@@ -44,7 +44,7 @@ public class MockAdapterTest {
     @Test
     public void testSubscribeCallMessageHandler() throws ChannelException, JsonConversionException {
         String topic = "test:mock-adapter-subscribe";
-        String message = Utils.toJson(TestUtils.createMsbRequestMessageWithSimplePayload(topic), messageMapper);
+        String message = Utils.toJson(TestUtils.createSimpleRequestMessage(topic), messageMapper);
         Queue<ExecutorService> activeConsumerExecutors = new LinkedList<>();
         MockAdapter mockAdapter = new MockAdapter(topic, activeConsumerExecutors);
         Queue<String> messages = new ConcurrentLinkedQueue<>();
