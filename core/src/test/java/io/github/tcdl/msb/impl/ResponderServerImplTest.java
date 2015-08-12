@@ -56,7 +56,7 @@ public class ResponderServerImplTest {
 
         verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
 
-        Message originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(TOPIC);
+        Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
         subscriberCaptor.getValue().handleMessage(originalMessage);
 
         verify(spyResponderServer).onResponder(anyObject());
@@ -80,7 +80,7 @@ public class ResponderServerImplTest {
 
         verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
 
-        Message originalMessage = TestUtils.createMsbRequestMessageWithSimplePayload(TOPIC);
+        Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
         subscriberCaptor.getValue().handleMessage(originalMessage);
 
         verify(spyResponderServer).onResponder(anyObject());
@@ -97,7 +97,7 @@ public class ResponderServerImplTest {
         };
 
         String bodyText = "some body";
-        Message incomingMessage = TestUtils.createMsbRequestMessageWithPayloadTextBody(TOPIC, bodyText);
+        Message incomingMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
 
         ResponderServerImpl responderServer = ResponderServerImpl
                 .create(TOPIC, messageTemplate, msbContext, handler, new TypeReference<Payload<?, ?, ?, Integer>>() {});
@@ -128,7 +128,7 @@ public class ResponderServerImplTest {
         // simulate incoming request
         ArgumentCaptor<Payload> responseCaptor = ArgumentCaptor.forClass(Payload.class);
         ResponderImpl responder = spy(
-                new ResponderImpl(messageTemplate, TestUtils.createMsbRequestMessageNoPayload(TestUtils.getSimpleNamespace()), msbContext));
+                new ResponderImpl(messageTemplate, TestUtils.createMsbRequestMessageNoPayload(TOPIC), msbContext));
         responderServer.onResponder(responder);
 
         verify(responder).send(responseCaptor.capture());

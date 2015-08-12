@@ -69,7 +69,7 @@ public class ChannelManagerTest {
         String topic = "topic:test-agent-publish";
 
         Producer producer = channelManager.findOrCreateProducer(topic);
-        Message message = TestUtils.createMsbRequestMessageWithSimplePayload(topic);
+        Message message = TestUtils.createSimpleRequestMessage(topic);
         producer.publish(message);
 
         verify(mockChannelMonitorAgent).producerMessageSent(topic);
@@ -82,7 +82,7 @@ public class ChannelManagerTest {
         CountDownLatch awaitReceiveEvents = new CountDownLatch(1);
         final Holder<Message> messageEvent = new Holder<>();
 
-        Message message = TestUtils.createMsbRequestMessageWithSimplePayload(topic);
+        Message message = TestUtils.createSimpleRequestMessage(topic);
         channelManager.findOrCreateProducer(topic).publish(message);
         channelManager.subscribe(topic,
                 msg ->  {

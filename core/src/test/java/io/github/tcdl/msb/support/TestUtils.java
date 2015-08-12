@@ -59,74 +59,12 @@ public class TestUtils {
         return new MessageTemplate();
     }
 
-    public static Message createMsbRequestMessageWithSimplePayload(String topicTo) {
-        return createMsbRequestMessageWithPayloadTextBody(topicTo, "some payload body");
+    public static Message createSimpleRequestMessage(String namespace) {
+        return createMsbRequestMessage(namespace, null, createSimpleRequestPayload());
     }
 
-    public static Message createMsbRequestMessage(String topicTo, String instanceId, Payload payload) {
-        ObjectMapper payloadMapper = createMessageMapper();
-        MsbConfig msbConf = createMsbConfigurations(instanceId);
-        Clock clock = Clock.systemDefaultZone();
-        JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
-
-        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
-        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder()
-                .withCorrelationId(Utils.generateId())
-                .withId(Utils.generateId())
-                .withTopics(topic)
-                .withMetaBuilder(metaBuilder)
-                .withPayload(payloadNode)
-                .build();
-    }
-
-    public static Message createMsbRequestMessage(String topicTo, String payloadString) {
-        try {
-            ObjectMapper payloadMapper = createMessageMapper();
-            MsbConfig msbConf = createMsbConfigurations();
-            Clock clock = Clock.systemDefaultZone();
-            JsonNode payload = payloadMapper.readValue(payloadString, JsonNode.class);
-
-            Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
-            MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-            return new Message.Builder()
-                    .withCorrelationId(Utils.generateId())
-                    .withId(Utils.generateId())
-                    .withTopics(topic)
-                    .withMetaBuilder(metaBuilder)
-                    .withPayload(payload)
-                    .build();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to prepare request message");
-        }
-    }
-
-    public static Message createMsbRequestMessageWithPayloadTextBody(String topicTo, String bodyText) {
-        String payloadString = String.format("{\"body\": \"%s\" }", bodyText);
-        return createMsbRequestMessage(topicTo, payloadString);
-    }
-
-    public static Payload<Object, Object, Object, String> createPayloadWithTextBody(String bodyText) {
-        return new Payload.Builder<Object, Object, Object, String>()
-                .withBody(bodyText)
-                .build();
-    }
-
-    public static Message createMsbRequestMessageWithAckNoPayload(String topicTo) {
-        Acknowledge simpleAck = new Acknowledge.Builder().withResponderId(Utils.generateId()).build();
-        return createMsbRequestMessageNoPayload(simpleAck, topicTo, Utils.generateId());
-    }
-
-    public static Message createMsbRequestMessageNoPayload(Acknowledge ack, String topicTo, String correlationId) {
-        MsbConfig msbConf = createMsbConfigurations();
-        Clock clock = Clock.systemDefaultZone();
-
-        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
-        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder().withCorrelationId(Utils.ifNull(correlationId, Utils.generateId())).withId(Utils.generateId()).withTopics(
-                topic).withMetaBuilder(
-                metaBuilder)
-                .withPayload(null).withAck(ack).build();
+    public static Message createSimpleResponseMessage(String namespace) {
+        return createMsbRequestMessage(namespace, null, createSimpleResponsePayload());
     }
 
     public static Message createMsbRequestMessageNoPayload(String namespace) {
@@ -137,26 +75,86 @@ public class TestUtils {
                 msbConf.getServiceDetails().getInstanceId());
 
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
-                .withPayload(null).build();
-    }
-
-    public static Message createMsbResponseMessage(String namespace) {
-        ObjectMapper payloadMapper = createMessageMapper();
-        MsbConfig msbConf = createMsbConfigurations();
-        Clock clock = Clock.systemDefaultZone();
-
-        Topics topic = new Topics(namespace, namespace + ":response:" +
-                msbConf.getServiceDetails().getInstanceId());
-        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        Payload payload = createSimpleResponsePayload();
-        JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
         return new Message.Builder()
                 .withCorrelationId(Utils.generateId())
                 .withId(Utils.generateId())
                 .withTopics(topic)
                 .withMetaBuilder(metaBuilder)
+                .withPayload(null)
+                .build();
+    }
+
+    public static Message createMsbRequestMessageWithCorrelationId(String topicTo, String correlationId, Payload payload) {
+        ObjectMapper payloadMapper = createMessageMapper();
+        JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
+        return createMsbRequestMessage(topicTo, null, correlationId, payloadNode);
+    }
+
+    public static Message createMsbRequestMessageWithCorrelationId(String topicTo, String correlationId, String payloadString) {
+        try {
+            ObjectMapper payloadMapper = createMessageMapper();
+            JsonNode payloadNode = payloadMapper.readValue(String.format("{\"body\": \"%s\" }", payloadString), JsonNode.class);
+            return createMsbRequestMessage(topicTo, null, correlationId, payloadNode);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to prepare request message");
+        }
+    }
+
+    public static Message createMsbRequestMessage(String topicTo, String payloadString) {
+        try {
+            ObjectMapper payloadMapper = createMessageMapper();
+            JsonNode payloadNode = payloadMapper.readValue(String.format("{\"body\": \"%s\" }", payloadString), JsonNode.class);
+            return createMsbRequestMessage(topicTo, null, null, payloadNode);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to prepare request message");
+        }
+    }
+
+    public static Message createMsbRequestMessage(String topicTo, String instanceId, Payload payload) {
+        ObjectMapper payloadMapper = createMessageMapper();
+        JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
+        return createMsbRequestMessage(topicTo, instanceId, null, payloadNode);
+    }
+
+    private static Message createMsbRequestMessage(String topicTo, String instanceId, String correlationId, JsonNode payloadNode) {
+        MsbConfig msbConf = createMsbConfigurations(instanceId);
+        Clock clock = Clock.systemDefaultZone();
+
+        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
+        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
+        return new Message.Builder()
+                .withCorrelationId(Utils.ifNull(correlationId, Utils.generateId()))
+                .withId(Utils.generateId())
+                .withTopics(topic)
+                .withMetaBuilder(metaBuilder)
                 .withPayload(payloadNode)
+                .build();
+    }
+
+    public static Payload<Object, Object, Object, String> createPayloadWithTextBody(String bodyText) {
+        return new Payload.Builder<Object, Object, Object, String>()
+                .withBody(bodyText)
+                .build();
+    }
+
+    public static Message createMsbResponseMessageWithAckNoPayload(String topicTo) {
+        Acknowledge simpleAck = new Acknowledge.Builder().withResponderId(Utils.generateId()).build();
+        return createMsbResponseMessageWithAckNoPayload(simpleAck, topicTo, Utils.generateId());
+    }
+
+    public static Message createMsbResponseMessageWithAckNoPayload(Acknowledge ack, String topicTo, String correlationId) {
+        MsbConfig msbConf = createMsbConfigurations();
+        Clock clock = Clock.systemDefaultZone();
+
+        Topics topic = new Topics(topicTo, null);
+        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
+        return new Message.Builder()
+                .withCorrelationId(Utils.ifNull(correlationId, Utils.generateId()))
+                .withId(Utils.generateId())
+                .withTopics(topic)
+                .withMetaBuilder(metaBuilder)
+                .withPayload(null)
+                .withAck(ack)
                 .build();
     }
 
@@ -166,12 +164,18 @@ public class TestUtils {
 
         Topics topic = new Topics("", "");
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder);
+        return new Message.Builder()
+                .withCorrelationId(Utils.generateId())
+                .withId(Utils.generateId())
+                .withTopics(topic)
+                .withMetaBuilder(metaBuilder);
     }
 
     public static MsbConfig createMsbConfigurations(String instanceId) {
         Config config = ConfigFactory.load();
-        config = config.withValue("msbConfig.serviceDetails.instanceId", ConfigValueFactory.fromAnyRef(instanceId));
+        if (instanceId != null) {
+            config = config.withValue("msbConfig.serviceDetails.instanceId", ConfigValueFactory.fromAnyRef(instanceId));
+        }
         return new MsbConfig(config);
     }
 

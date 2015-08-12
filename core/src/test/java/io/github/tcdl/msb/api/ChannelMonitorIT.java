@@ -3,8 +3,6 @@ package io.github.tcdl.msb.api;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import java.io.IOException;
-import java.time.Clock;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -13,16 +11,11 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.MetaMessage;
-import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
-import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.monitor.agent.AgentTopicStats;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
@@ -71,7 +64,7 @@ public class ChannelMonitorIT {
 
         //simulate broken announcement in broker
         MockAdapter.pushRequestMessage(Utils.TOPIC_ANNOUNCE,
-                Utils.toJson(TestUtils.createMsbRequestMessageWithSimplePayload(Utils.TOPIC_ANNOUNCE), msbContext.getPayloadMapper()));
+                Utils.toJson(TestUtils.createSimpleRequestMessage(Utils.TOPIC_ANNOUNCE), msbContext.getPayloadMapper()));
 
         assertFalse("Broken announcement was handled", announcementReceived.await(RequesterResponderIT.MESSAGE_TRANSMISSION_TIME / 2, TimeUnit.MILLISECONDS));
 
@@ -120,7 +113,8 @@ public class ChannelMonitorIT {
         //need to await for original request for heartbeat to be send to simulate response with same correlationId
         Message requestMessage = awaitHeartBeatRequestSent();
 
-        Message responseMessage = createMsbRequestMessage(requestMessage.getTopics().getResponse(), requestMessage.getCorrelationId(),
+        Message responseMessage = TestUtils.createMsbRequestMessageWithCorrelationId(requestMessage.getTopics().getResponse(),
+                requestMessage.getCorrelationId(),
                 payload);
         MockAdapter.pushRequestMessage(requestMessage.getTopics().getResponse(), Utils.toJson(responseMessage, msbContext.getPayloadMapper()));
 
@@ -151,10 +145,12 @@ public class ChannelMonitorIT {
         //need to await for original request for heartbeat to be send to simulate response with same correlationId
         Message requestMessage = awaitHeartBeatRequestSent();
 
-        Message brokenResponseMessage = createMsbRequestMessage(requestMessage.getTopics().getResponse(), requestMessage.getCorrelationId(),
+        Message brokenResponseMessage = TestUtils.createMsbRequestMessageWithCorrelationId(requestMessage.getTopics().getResponse(),
+                requestMessage.getCorrelationId(),
                 " unexpected statistics format received");
-        Message responseMessage = createMsbRequestMessage(requestMessage.getTopics().getResponse(), requestMessage.getCorrelationId(),
-                payload);
+        Message responseMessage = TestUtils
+                .createMsbRequestMessageWithCorrelationId(requestMessage.getTopics().getResponse(), requestMessage.getCorrelationId(),
+                        payload);
         //simulate 3 heartbeatResponses: 1 valid and 2 broken
         MockAdapter.pushRequestMessage(requestMessage.getTopics().getResponse(), Utils.toJson(brokenResponseMessage, msbContext.getPayloadMapper()));
         MockAdapter.pushRequestMessage(requestMessage.getTopics().getResponse(), Utils.toJson(responseMessage, msbContext.getPayloadMapper()));
@@ -182,43 +178,4 @@ public class ChannelMonitorIT {
         return outgoingRequestMessages.get(0);
     }
 
-    //TODO: move to TestUtils in scope of refactoring it (too much same looking methods are already there)
-    private Message createMsbRequestMessage(String topicTo, String correlationId, String payloadString) {
-        try {
-            ObjectMapper payloadMapper = msbContext.getPayloadMapper();
-            MsbConfig msbConf = msbContext.getMsbConfig();
-            Clock clock = Clock.systemDefaultZone();
-            JsonNode payload = payloadMapper.readValue(String.format("{\"body\": \"%s\" }", payloadString), JsonNode.class);
-
-            Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
-            MetaMessage.Builder metaBuilder = TestUtils.createSimpleMetaBuilder(msbConf, clock);
-            return new Message.Builder()
-                    .withCorrelationId(correlationId)
-                    .withId(Utils.generateId())
-                    .withTopics(topic)
-                    .withMetaBuilder(metaBuilder)
-                    .withPayload(payload)
-                    .build();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to prepare request message", e);
-        }
-    }
-
-    //TODO: move to TestUtils in scope of refactoring it (too much same looking methods are already there)
-    private Message createMsbRequestMessage(String topicTo, String correlationId, Payload payload) {
-
-        ObjectMapper payloadMapper = msbContext.getPayloadMapper();
-        MsbConfig msbConf = msbContext.getMsbConfig();
-        Clock clock = Clock.systemDefaultZone();
-
-        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
-        MetaMessage.Builder metaBuilder = TestUtils.createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder()
-                .withCorrelationId(correlationId)
-                .withId(Utils.generateId())
-                .withTopics(topic)
-                .withMetaBuilder(metaBuilder)
-                .withPayload(Utils.convert(payload, JsonNode.class, payloadMapper))
-                .build();
-    }
 }

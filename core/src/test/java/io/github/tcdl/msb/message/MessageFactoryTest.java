@@ -133,7 +133,7 @@ public class MessageFactoryTest {
     @Test
     public void testCreateResponseMessageBuilder() {
         String namespace = "test:response-builder";
-        Message originalMessage = TestUtils.createMsbResponseMessage(namespace);
+        Message originalMessage = TestUtils.createSimpleResponseMessage(namespace);
 
         Builder responseMessageBuilder = messageFactory.createResponseMessageBuilder(messageOptions, originalMessage);
         Message message = responseMessageBuilder.build();

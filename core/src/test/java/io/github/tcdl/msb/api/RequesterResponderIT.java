@@ -278,7 +278,7 @@ public class RequesterResponderIT {
                 .listen();
 
         MockAdapter.pushRequestMessage(namespace1,
-                Utils.toJson(TestUtils.createMsbRequestMessageWithSimplePayload(namespace1), msbContext.getPayloadMapper()));
+                Utils.toJson(TestUtils.createSimpleRequestMessage(namespace1), msbContext.getPayloadMapper()));
 
         assertTrue("Message ack was not send", ackSent.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         assertTrue("Message ack was not received", ackReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));

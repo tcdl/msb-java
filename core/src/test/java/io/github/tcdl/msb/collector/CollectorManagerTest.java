@@ -26,12 +26,12 @@ public class CollectorManagerTest {
 
     @Before
     public void setUp() {
-        when(collectorMock.getRequestMessage()).thenReturn(TestUtils.createMsbResponseMessage(TOPIC));
+        when(collectorMock.getRequestMessage()).thenReturn(TestUtils.createSimpleRequestMessage(TOPIC));
     }
 
     @Test
     public void testHandleMessageRegisteredCollectorForTopic() {
-        Message originalAndReceivedMessage = TestUtils.createMsbResponseMessage(TOPIC);
+        Message originalAndReceivedMessage = TestUtils.createSimpleRequestMessage(TOPIC);
         when(collectorMock.getRequestMessage()).thenReturn(originalAndReceivedMessage);
         CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
         collectorManager.registerCollector(collectorMock);
@@ -42,7 +42,7 @@ public class CollectorManagerTest {
 
     @Test
     public void testHandleMessageRegisteredCollectorForTopicUnexpectedCorrelationId() {
-        Message receivedMessage = TestUtils.createMsbResponseMessage(TOPIC);
+        Message receivedMessage = TestUtils.createSimpleRequestMessage(TOPIC);
         CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
         collectorManager.registerCollector(collectorMock);
         collectorManager.handleMessage(receivedMessage);
@@ -53,7 +53,7 @@ public class CollectorManagerTest {
     @Test
     public void testHandleMessageUnregisteredProperCollectorForTopic() {
         String topic = "test-handle-message-collector-not";
-        Message receivedMessage = TestUtils.createMsbResponseMessage(topic);
+        Message receivedMessage = TestUtils.createSimpleResponseMessage(topic);
 
         CollectorManager collectorManager = new CollectorManager("some-other-topic", channelManagerMock);
         collectorManager.registerCollector(collectorMock);
@@ -74,7 +74,7 @@ public class CollectorManagerTest {
     @Test
     public void testRegisterMultipleCollectors() {
         Collector secondCollectorMock = mock(Collector.class);
-        when(secondCollectorMock.getRequestMessage()).thenReturn(TestUtils.createMsbResponseMessage(TOPIC));
+        when(secondCollectorMock.getRequestMessage()).thenReturn(TestUtils.createSimpleRequestMessage(TOPIC));
 
         CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
         collectorManager.registerCollector(collectorMock);
@@ -98,7 +98,7 @@ public class CollectorManagerTest {
     @Test
     public void testUnregisterMoreCollectorsExist() {
         Collector secondCollectorMock = mock(Collector.class);
-        when(secondCollectorMock.getRequestMessage()).thenReturn(TestUtils.createMsbResponseMessage(TOPIC));
+        when(secondCollectorMock.getRequestMessage()).thenReturn(TestUtils.createSimpleRequestMessage(TOPIC));
 
         CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
         collectorManager.registerCollector(collectorMock);
@@ -114,7 +114,7 @@ public class CollectorManagerTest {
     @Test
     public void testUnregisterLastCollector() {
         Collector secondCollectorMock = mock(Collector.class);
-        when(secondCollectorMock.getRequestMessage()).thenReturn(TestUtils.createMsbResponseMessage(TOPIC));
+        when(secondCollectorMock.getRequestMessage()).thenReturn(TestUtils.createSimpleRequestMessage(TOPIC));
 
         CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
         collectorManager.registerCollector(collectorMock);
