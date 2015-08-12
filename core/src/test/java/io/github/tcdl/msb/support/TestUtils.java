@@ -226,6 +226,12 @@ public class TestUtils {
         assertEquals(bodyText, message.getRawPayload().get("body").asText());
     }
 
+    public static void assertJsonContains(JsonNode jsonObject, String field, String value) {
+        assertTrue(jsonObject.has(field));
+        assertNotNull(jsonObject.get(field));
+        assertEquals(value, jsonObject.get(field).asText());
+    }
+
     public static class TestMsbContextBuilder {
         private Optional<MsbConfig> msbConfigOp = Optional.empty();
         private Optional<MessageFactory> messageFactoryOp = Optional.empty();
