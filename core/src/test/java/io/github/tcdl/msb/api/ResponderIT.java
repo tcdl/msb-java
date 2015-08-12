@@ -1,6 +1,6 @@
 package io.github.tcdl.msb.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
@@ -10,14 +10,15 @@ import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ResponderImpl;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.TestUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -28,13 +29,13 @@ public class ResponderIT {
 
     private MsbContextImpl msbContext;
     private JsonValidator validator;
-    private ObjectMapper messageMapper;
+    private ObjectMapper payloadMapper;
 
     @Before
     public void setUp() throws Exception {
         msbContext = (MsbContextImpl) new MsbContextBuilder().build();
         validator = new JsonValidator();
-        this.messageMapper = msbContext.getPayloadMapper();
+        payloadMapper = msbContext.getPayloadMapper();
     }
 
     @Test
@@ -59,24 +60,22 @@ public class ResponderIT {
         try {
             validator.validate(receivedAckMsg, this.msbContext.getMsbConfig().getSchema());
 
-            JSONObject jsonObject = new JSONObject(receivedAckMsg);
-            
+            JsonNode jsonObject = payloadMapper.readTree(receivedAckMsg);
+
             // ack fields set 
             assertTrue("Message not contain expected property ack", jsonObject.has("ack"));
-            assertTrue("Message not contain expected property ack.responderId", jsonObject.getJSONObject("ack").has("responderId"));
-            assertTrue("Message not contain expected property ack.responsesRemaining", jsonObject.getJSONObject("ack").has("responsesRemaining"));
-            assertTrue("Message not contain expected property ack.timeoutMs", jsonObject.getJSONObject("ack").has("timeoutMs"));
+            assertTrue("Message not contain expected property ack.responderId", jsonObject.get("ack").has("responderId"));
+            assertTrue("Message not contain expected property ack.responsesRemaining", jsonObject.get("ack").has("responsesRemaining"));
+            assertTrue("Message not contain expected property ack.timeoutMs", jsonObject.get("ack").has("timeoutMs"));
 
             // ack fields match sent
-            assertEquals("Message 'ack.responsesRemaining' is incorrect", responsesRemaining, jsonObject
-                    .getJSONObject("ack").get("responsesRemaining"));
-            assertEquals("Message 'ack.timeoutMs' is incorrect", ackTimeout, jsonObject
-                    .getJSONObject("ack").get("timeoutMs"));
+            assertEquals("Message 'ack.responsesRemaining' is incorrect", responsesRemaining, jsonObject.get("ack").get("responsesRemaining").asInt());
+            assertEquals("Message 'ack.timeoutMs' is incorrect", ackTimeout, jsonObject.get("ack").get("timeoutMs").asInt());
 
-            //topics
-            assertJsonContains(jsonObject.getJSONObject("topics"), "to", responseNamespace);
-            assertTrue(jsonObject.getJSONObject("topics").isNull("response"));
-        } catch (JsonSchemaValidationException | JSONException e) {
+            // topics
+            TestUtils.assertJsonContains(jsonObject.get("topics"), "to", responseNamespace);
+            assertFalse(jsonObject.get("topics").has("response"));
+        } catch (JsonSchemaValidationException | IOException e) {
             LOG.error("Exception while parse message ack", e);
             fail("Message validation failed");
         }
@@ -101,31 +100,24 @@ public class ResponderIT {
     private void assertResponsePayload(String receivedResponseMsg, Payload originalResponsePayload, String responseNamespace) {
         try {
             validator.validate(receivedResponseMsg, this.msbContext.getMsbConfig().getSchema());
-            JSONObject jsonObject = new JSONObject(receivedResponseMsg);
+            JsonNode jsonObject = payloadMapper.readTree(receivedResponseMsg);
 
-            // payload fields set 
-            assertTrue("Message not contain 'body' filed", jsonObject.getJSONObject("payload").has("body"));
-            assertTrue("Message not contain 'headers' filed", jsonObject.getJSONObject("payload").has("headers"));
+            // payload fields set
+            assertTrue("Message not contain 'body' filed", jsonObject.get("payload").has("body"));
+            assertTrue("Message not contain 'headers' filed", jsonObject.get("payload").has("headers"));
 
             // payload fields match sent
-            assertEquals("Message 'body' is incorrect", messageMapper.writeValueAsString(originalResponsePayload.getBody()),
-                    jsonObject.getJSONObject("payload").get("body").toString());
-            assertEquals("Message 'headers' is incorrect", messageMapper.writeValueAsString(originalResponsePayload.getHeaders()),
-                    jsonObject.getJSONObject("payload").get("headers").toString());
+            assertEquals("Message 'body' is incorrect", payloadMapper.writeValueAsString(originalResponsePayload.getBody()),
+                    jsonObject.get("payload").get("body").toString());
+            assertEquals("Message 'headers' is incorrect", payloadMapper.writeValueAsString(originalResponsePayload.getHeaders()),
+                    jsonObject.get("payload").get("headers").toString());
 
-            //topics
-            assertJsonContains(jsonObject.getJSONObject("topics"), "to", responseNamespace);
-            assertTrue(jsonObject.getJSONObject("topics").isNull("response"));
-
-        } catch (JsonSchemaValidationException | JSONException | JsonProcessingException e) {
+            // topics
+            TestUtils.assertJsonContains(jsonObject.get("topics"), "to", responseNamespace);
+            assertFalse(jsonObject.get("topics").has("response"));
+        } catch (JsonSchemaValidationException | IOException e) {
             LOG.error("Exception while parse message payload", e);
             fail("Message validation failed");
         }
-    }
-
-    private void assertJsonContains(JSONObject jsonObject, String field, Object value) {
-        assertTrue(jsonObject.has(field));
-        assertNotNull(jsonObject.get(field));
-        assertEquals(value, jsonObject.get(field));
     }
 }

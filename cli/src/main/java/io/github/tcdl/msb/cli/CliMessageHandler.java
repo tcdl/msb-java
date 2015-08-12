@@ -1,11 +1,11 @@
 package io.github.tcdl.msb.cli;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,15 +39,15 @@ class CliMessageHandler implements ConsumerAdapter.RawMessageHandler {
         }
 
         try {
-            JSONObject jsonMessageObject = new JSONObject(jsonMessage);
+            JsonNode jsonMessageObject = objectMapper.readTree(jsonMessage);
 
             // Subscribe to additional topics found in the message
             if (jsonMessageObject.has("topics")
-                    && jsonMessageObject.getJSONObject("topics").has("response")
-                    && jsonMessageObject.getJSONObject("topics").get("response") instanceof String
+                    && jsonMessageObject.get("topics").has("response")
+                    && jsonMessageObject.get("topics").get("response").isTextual()
                     && follow.contains("response")) {
 
-                String responseTopicName = jsonMessageObject.getJSONObject("topics").getString("response");
+                String responseTopicName = jsonMessageObject.get("topics").get("response").asText();
 
                 try {
                     subscriber.subscribe(responseTopicName, this);
