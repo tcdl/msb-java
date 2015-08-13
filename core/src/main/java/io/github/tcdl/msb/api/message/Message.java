@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.github.tcdl.msb.api.message.payload.Payload;
 import org.apache.commons.lang3.Validate;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS;

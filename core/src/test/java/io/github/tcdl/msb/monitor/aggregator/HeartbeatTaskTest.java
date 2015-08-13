@@ -35,8 +35,12 @@ public class HeartbeatTaskTest {
     @Before
     public void setUp() {
         when(mockObjectFactory.createRequester(anyString(), any(RequestOptions.class))).thenReturn(mockRequester);
-        when(mockRequester.onRawResponse(any(Callback.class))).thenReturn(mockRequester);
-        when(mockRequester.onEnd(any(Callback.class))).thenReturn(mockRequester);
+        @SuppressWarnings("unchecked")
+        Callback<Message> responseHandler = any(Callback.class);
+        when(mockRequester.onRawResponse(responseHandler)).thenReturn(mockRequester);
+        @SuppressWarnings("unchecked")
+        Callback<Void> endHandler = any(Callback.class);
+        when(mockRequester.onEnd(endHandler)).thenReturn(mockRequester);
     }
 
     @SuppressWarnings("unchecked")

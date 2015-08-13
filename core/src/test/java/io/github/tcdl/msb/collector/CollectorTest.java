@@ -135,6 +135,7 @@ public class CollectorTest {
         Message responseMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
         @SuppressWarnings("unchecked")
         Callback<Payload> onResponse = mock(Callback.class);
+        @SuppressWarnings("unchecked")
         Callback<Message> onRawResponse = mock(Callback.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
         when(eventHandlers.onRawResponse()).thenReturn(onRawResponse);
@@ -159,8 +160,10 @@ public class CollectorTest {
         Message responseMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
         @SuppressWarnings("unchecked")
         Callback<Payload<?, ?, ?, Integer>> onResponse = mock(Callback.class);
+        @SuppressWarnings("unchecked")
         Callback<Message> onRawResponse = mock(Callback.class);
 
+        @SuppressWarnings("unchecked")
         EventHandlers<Payload<?, ?, ?, Integer>> eventHandlers = mock(EventHandlers.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
         when(eventHandlers.onRawResponse()).thenReturn(onRawResponse);
