@@ -302,7 +302,7 @@ Here, the override field `name = ${?MSB_SERVICE_NAME}` simply vanishes if there'
 
 `brokerAdapterFactory` – message broker class. Defaults to `"io.github.tcdl.adapters.amqp.AmqpAdapterFactory"`.
 
-### Description of  AMQP Broker fields
+### Description of AMQP connection configuration fields
 The _key values pairs_ described in this section are specific for the chosen Broker.
 The section `brokerConfig` from [reference.conf](/core/src/main/resources/reference.conf) file override values from [amqp.conf](/amqp/src/main/resources/amqp.conf).
 
