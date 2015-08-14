@@ -326,6 +326,17 @@ See for more [detail](https://www.rabbitmq.com/tutorials/amqp-concepts.html).
 
 `consumerThreadPoolQueueCapacity` – maximum number of requests waiting in FIFO queue to be processed by consumer thread pool. Should be positive integer or -1. Value of -1 stands for unlimited.
 
+The following fields are optional in case of broker running on local machine
+but are mandatory when using broker on remote computer. When there is a need to override the default values these fields are specified in application.conf file as additional `brokerConfig` parameters.
+
+`username` – login of the user connecting to remote machine, defaults to “guest”
+
+`password` – string of characters for user authentication, defaults to “guest”
+
+As was mentioned above the default values may be used only for the connection via local host.
+More references on how to configure the broker to allow the remote access with the default values “guest” can be found [here](https://www.rabbitmq.com/access-control.html).
+
+`virtualHost` – virutal host in RabbitMQ is more like a logical container where a user connected to a particular virtual host cannot access any resource (exchange, queue...) from another virtual host.
 ## AMQP adapter
 
 AMQP adapter is a module that allows to use any AMQP broker as a bus (for example RabbitMQ). [This article](https://www.rabbitmq.com/tutorials/amqp-concepts.html) gives a good overview of AMQP concepts.
