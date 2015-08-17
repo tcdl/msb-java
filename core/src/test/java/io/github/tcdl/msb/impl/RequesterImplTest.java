@@ -23,6 +23,7 @@ import java.time.Clock;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
@@ -183,6 +184,31 @@ public class RequesterImplTest {
         assertNotNull(requestMessage);
         assertNotNull(requestMessage.getMeta());
         assertNotNull(requestMessage.getRawPayload());
+    }
+
+    @Test
+    public void testRequestMessageWithTags() throws Exception {
+        ChannelManager channelManagerMock = mock(ChannelManager.class);
+        Producer producerMock = mock(Producer.class);
+        when(channelManagerMock.findOrCreateProducer(NAMESPACE)).thenReturn(producerMock);
+        ArgumentCaptor<Message> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
+
+        MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
+                .withChannelManager(channelManagerMock)
+                .withClock(Clock.systemDefaultZone())
+                .build();
+
+        String tag = "requester-tag";
+        String dynamicTag = "dynamic-tag";
+        Payload requestPayload = TestUtils.createSimpleRequestPayload();
+        RequestOptions requestOptions = TestUtils.createSimpleRequestOptionsWithTags(tag);
+
+        Requester<Payload> requester = RequesterImpl.create(NAMESPACE, requestOptions, msbContext, new TypeReference<Payload>() {});
+        requester.publish(requestPayload, dynamicTag);
+        verify(producerMock).publish(messageArgumentCaptor.capture());
+
+        Message requestMessage = messageArgumentCaptor.getValue();
+        assertArrayEquals(new String[]{tag, dynamicTag}, requestMessage.getTags().toArray());
     }
 
     private RequesterImpl<Payload> initRequesterForResponsesWithTimeout(int numberOfResponses) throws Exception {

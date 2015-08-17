@@ -27,6 +27,8 @@ public class ResponderIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(ResponderIT.class);
 
+    private final static String STATIC_TAG = "responder-tag";
+
     private MsbContextImpl msbContext;
     private JsonValidator validator;
     private ObjectMapper payloadMapper;
@@ -62,7 +64,7 @@ public class ResponderIT {
 
             JsonNode jsonObject = payloadMapper.readTree(receivedAckMsg);
 
-            // ack fields set 
+            // ack fields set
             assertTrue("Message not contain expected property ack", jsonObject.has("ack"));
             assertTrue("Message not contain expected property ack.responderId", jsonObject.get("ack").has("responderId"));
             assertTrue("Message not contain expected property ack.responsesRemaining", jsonObject.get("ack").has("responsesRemaining"));
@@ -94,30 +96,24 @@ public class ResponderIT {
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());
 
         assertNotNull("Response message shouldn't be null", adapterJsonMessage);
-        assertResponsePayload(adapterJsonMessage, responsePayload, originalMessage.getTopics().getResponse());
+        TestUtils.assertResponseMessagePayload(adapterJsonMessage, responsePayload, originalMessage.getTopics().getResponse());
     }
 
-    private void assertResponsePayload(String receivedResponseMsg, Payload originalResponsePayload, String responseNamespace) {
-        try {
-            validator.validate(receivedResponseMsg, this.msbContext.getMsbConfig().getSchema());
-            JsonNode jsonObject = payloadMapper.readTree(receivedResponseMsg);
+    @Test
+    public void testCreateResponseMessageWithTags() throws Exception {
+        String namespace = "test:responder-response";
+        MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate(STATIC_TAG);
+        String dynamicTagOriginal = "dynamic-tag-original";
+        Message originalMessage = TestUtils.createSimpleRequestMessageWithTags(namespace, dynamicTagOriginal);
 
-            // payload fields set
-            assertTrue("Message not contain 'body' filed", jsonObject.get("payload").has("body"));
-            assertTrue("Message not contain 'headers' filed", jsonObject.get("payload").has("headers"));
+        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
+        Payload responsePayload = TestUtils.createSimpleResponsePayload();
+        responder.send(responsePayload);
 
-            // payload fields match sent
-            assertEquals("Message 'body' is incorrect", payloadMapper.writeValueAsString(originalResponsePayload.getBody()),
-                    jsonObject.get("payload").get("body").toString());
-            assertEquals("Message 'headers' is incorrect", payloadMapper.writeValueAsString(originalResponsePayload.getHeaders()),
-                    jsonObject.get("payload").get("headers").toString());
+        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());
 
-            // topics
-            TestUtils.assertJsonContains(jsonObject.get("topics"), "to", responseNamespace);
-            assertFalse(jsonObject.get("topics").has("response"));
-        } catch (JsonSchemaValidationException | IOException e) {
-            LOG.error("Exception while parse message payload", e);
-            fail("Message validation failed");
-        }
+        assertNotNull("Response message shouldn't be null", adapterJsonMessage);
+        TestUtils.assertResponseMessagePayload(adapterJsonMessage, responsePayload, originalMessage.getTopics().getResponse());
+        TestUtils.assertMessageTags(adapterJsonMessage, dynamicTagOriginal, STATIC_TAG);
     }
 }

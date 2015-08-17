@@ -2,6 +2,7 @@ package io.github.tcdl.msb.message;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
@@ -14,6 +15,11 @@ import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
 
 import java.time.Clock;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MessageFactory {
 
@@ -52,28 +58,33 @@ public class MessageFactory {
     public Message.Builder createRequestMessageBuilder(String namespace, MessageTemplate messageTemplate, Message originalMessage) {
         Topics topic = new Topics(namespace, namespace + ":response:" +
                 this.serviceDetails.getInstanceId());
-        return createMessageBuilder(topic, messageTemplate, originalMessage);
+        return createMessageBuilder(topic, messageTemplate, originalMessage, false);
     }
 
     public Message.Builder createResponseMessageBuilder(MessageTemplate messageTemplate, Message originalMessage) {
         Topics topic = new Topics(originalMessage.getTopics().getResponse(), null);
-        return createMessageBuilder(topic, messageTemplate, originalMessage);
+        return createMessageBuilder(topic, messageTemplate, originalMessage, true);
     }
 
     public Message.Builder createBroadcastMessageBuilder(String namespace, MessageTemplate messageTemplate) {
         Topics topic = new Topics(namespace, null);
-        return createMessageBuilder(topic, messageTemplate, null);
+        return createMessageBuilder(topic, messageTemplate, null, false);
     }
 
     public Acknowledge.Builder createAckBuilder() {
         return new Acknowledge.Builder().withResponderId(Utils.generateId());
     }
 
-    private Message.Builder createMessageBuilder(Topics topics, MessageTemplate messageTemplate, Message originalMessage) {
+    private Message.Builder createMessageBuilder(Topics topics, MessageTemplate messageTemplate, Message originalMessage, boolean isResponseMessage) {
         Message.Builder messageBuilder = new Message.Builder().withId(Utils.generateId());
+        messageBuilder.withTags(createTags(messageTemplate, originalMessage));
         messageBuilder.withTopics(topics);
         messageBuilder.withMetaBuilder(createMetaBuilder(messageTemplate));
-        messageBuilder.withCorrelationId(createCorrelationId(originalMessage));
+        if (isResponseMessage) {
+            messageBuilder.withCorrelationId(createCorrelationId(originalMessage));
+        } else {
+            messageBuilder.withCorrelationId(createCorrelationId(null));
+        }
         return messageBuilder;
     }
 
@@ -88,5 +99,22 @@ public class MessageFactory {
         } else {
             return Utils.generateId();
         }
+    }
+
+    private List<String> createTags(MessageTemplate messageTemplate, Message originalMessage) {
+        List<String> tags = new ArrayList<>();
+        if (originalMessage != null
+                && originalMessage.getTags() != null
+                && !originalMessage.getTags().isEmpty()) {
+            tags.addAll(originalMessage.getTags());
+        }
+
+        if (messageTemplate != null
+                && messageTemplate.getTags() != null
+                && !messageTemplate.getTags().isEmpty()) {
+            tags.addAll(messageTemplate.getTags());
+        }
+
+        return tags.stream().distinct().collect(Collectors.toList());
     }
 }

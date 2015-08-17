@@ -10,6 +10,7 @@ import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.RequestOptions;
+import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
@@ -24,13 +25,16 @@ import io.github.tcdl.msb.message.MessageFactory;
 
 import java.io.IOException;
 import java.time.Clock;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Created by rdro on 4/28/2015.
@@ -55,12 +59,24 @@ public class TestUtils {
                 .build();
     }
 
-    public static MessageTemplate createSimpleMessageTemplate() {
-        return new MessageTemplate();
+    public static RequestOptions createSimpleRequestOptionsWithTags(String... tags) {
+        MessageTemplate messageTemplate = createSimpleMessageTemplate();
+        messageTemplate.withTags(tags);
+        return new RequestOptions.Builder<>()
+                .withMessageTemplate(messageTemplate)
+                .build();
+    }
+
+    public static MessageTemplate createSimpleMessageTemplate(String... tags) {
+        return new MessageTemplate().withTags(tags);
     }
 
     public static Message createSimpleRequestMessage(String namespace) {
         return createMsbRequestMessage(namespace, null, createSimpleRequestPayload());
+    }
+
+    public static Message createSimpleRequestMessageWithTags(String namespace, String... tags) {
+        return createMsbRequestMessage(namespace, null, createSimpleRequestPayload(), tags);
     }
 
     public static Message createSimpleResponseMessage(String namespace) {
@@ -110,25 +126,31 @@ public class TestUtils {
         }
     }
 
-    public static Message createMsbRequestMessage(String topicTo, String instanceId, Payload payload) {
+    public static Message createMsbRequestMessage(String topicTo, String instanceId, Payload payload, String... tags) {
         ObjectMapper payloadMapper = createMessageMapper();
         JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
-        return createMsbRequestMessage(topicTo, instanceId, null, payloadNode);
+        return createMsbRequestMessage(topicTo, instanceId, null, payloadNode, tags);
     }
 
-    private static Message createMsbRequestMessage(String topicTo, String instanceId, String correlationId, JsonNode payloadNode) {
+    private static Message createMsbRequestMessage(String topicTo, String instanceId, String correlationId, JsonNode payloadNode, String... tags) {
         MsbConfig msbConf = createMsbConfigurations(instanceId);
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
-        return new Message.Builder()
+
+        Message.Builder builder = new Message.Builder()
                 .withCorrelationId(Utils.ifNull(correlationId, Utils.generateId()))
                 .withId(Utils.generateId())
                 .withTopics(topic)
                 .withMetaBuilder(metaBuilder)
-                .withPayload(payloadNode)
-                .build();
+                .withPayload(payloadNode);
+
+        if (tags != null) {
+            builder.withTags(Arrays.asList(tags));
+        }
+
+        return builder.build();
     }
 
     public static Payload<Object, Object, Object, String> createPayloadWithTextBody(String bodyText) {
@@ -232,6 +254,73 @@ public class TestUtils {
         assertEquals(value, jsonObject.get(field).asText());
     }
 
+    public static void assertRequestMessagePayload(String json, Payload payload, String requestNamespace) {
+        try {
+            MsbContextImpl msbContext = TestUtils.createMsbContextBuilder().build();
+            new JsonValidator().validate(json, msbContext.getMsbConfig().getSchema());
+            ObjectMapper payloadMapper = msbContext.getPayloadMapper();
+            JsonNode jsonObject = payloadMapper.readTree(json);
+
+            // payload fields set
+            assertTrue("Message not contain 'body' field", jsonObject.get("payload").has("body"));
+            assertTrue("Message not contain 'headers' field", jsonObject.get("payload").has("headers"));
+
+            // payload fields match sent
+            assertEquals("Message 'body' is incorrect", payloadMapper.writeValueAsString(payload.getBody()),
+                    jsonObject.get("payload").get("body").toString());
+            assertEquals("Message 'headers' is incorrect", payloadMapper.writeValueAsString(payload.getHeaders()), jsonObject
+                    .get("payload").get("headers").toString());
+
+            // topics
+            TestUtils.assertJsonContains(jsonObject.get("topics"), "to", requestNamespace);
+            TestUtils.assertJsonContains(jsonObject.get("topics"), "response", requestNamespace + ":response:"
+                    + msbContext.getMsbConfig().getServiceDetails().getInstanceId());
+
+        } catch (JsonSchemaValidationException | IOException e) {
+            fail("Message validation failed");
+        }
+    }
+
+    public static void assertResponseMessagePayload(String json, Payload originalResponsePayload, String responseNamespace) {
+        try {
+            MsbContextImpl msbContext = TestUtils.createMsbContextBuilder().build();
+            new JsonValidator().validate(json, msbContext.getMsbConfig().getSchema());
+            ObjectMapper payloadMapper = msbContext.getPayloadMapper();
+            JsonNode jsonObject = payloadMapper.readTree(json);
+
+            // payload fields set
+            assertTrue("Message not contain 'body' filed", jsonObject.get("payload").has("body"));
+            assertTrue("Message not contain 'headers' filed", jsonObject.get("payload").has("headers"));
+
+            // payload fields match sent
+            assertEquals("Message 'body' is incorrect", payloadMapper.writeValueAsString(originalResponsePayload.getBody()),
+                    jsonObject.get("payload").get("body").toString());
+            assertEquals("Message 'headers' is incorrect", payloadMapper.writeValueAsString(originalResponsePayload.getHeaders()),
+                    jsonObject.get("payload").get("headers").toString());
+
+            // topics
+            TestUtils.assertJsonContains(jsonObject.get("topics"), "to", responseNamespace);
+            assertFalse(jsonObject.get("topics").has("response"));
+        } catch (JsonSchemaValidationException | IOException e) {
+            fail("Message validation failed");
+        }
+    }
+
+    public static void assertMessageTags(String json, String... tags) {
+        try {
+            MsbContextImpl msbContext = TestUtils.createMsbContextBuilder().build();
+            new JsonValidator().validate(json, msbContext.getMsbConfig().getSchema());
+            JsonNode jsonObject = msbContext.getPayloadMapper().readTree(json);
+            assertTrue("Message does not contain 'tags' field", jsonObject.has("tags"));
+            JsonNode tagsNode = jsonObject.get("tags");
+            for (int i = 0; i < tagsNode.size(); i++) {
+                assertEquals(tags[i], tagsNode.get(i).asText());
+            }
+        } catch (Exception e) {
+            fail("Message validation failed");
+        }
+    }
+
     public static class TestMsbContextBuilder {
         private Optional<MsbConfig> msbConfigOp = Optional.empty();
         private Optional<MessageFactory> messageFactoryOp = Optional.empty();
@@ -301,6 +390,5 @@ public class TestUtils {
                 super.setObjectFactory(objectFactory);
             }
         }
-
     }
 }

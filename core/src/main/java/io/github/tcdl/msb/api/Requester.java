@@ -31,6 +31,29 @@ public interface Requester<T extends Payload> {
     void publish(Payload<?, ?, ?, ?> requestPayload);
 
     /**
+     * Wraps a payload with protocol information and sends to bus.
+     * In case Requester created with expectation for responses then process them.
+     *
+     * @param requestPayload payload which will be sent to bus
+     * @param tag to add to the message
+     * @throws ChannelException if an error is encountered during publishing to bus
+     * @throws JsonConversionException if unable to parse message to JSON before sending to bus
+     */
+    void publish(Payload<?, ?, ?, ?> requestPayload, String tag);
+
+    /**
+     * Wraps a payload with protocol information, preserves original message and sends to bus.
+     * In case Requester created with expectation for responses then process them.
+     *
+     * @param requestPayload payload which will be sent to bus
+     * @param originalMessage
+     * @param tag to add to the message
+     * @throws ChannelException if an error is encountered during publishing to bus
+     * @throws JsonConversionException if unable to parse message to JSON before sending to bus
+     */
+    void publish(Payload<?, ?, ?, ?> requestPayload, Message originalMessage, String tag);
+
+    /**
      * Wraps a payload with protocol information, preserves original message and sends to bus.
      * In case Requester created with expectation for responses then process them.
      *
@@ -40,7 +63,7 @@ public interface Requester<T extends Payload> {
      * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
     void publish(Payload<?, ?, ?, ?> requestPayload, Message originalMessage);
-    
+
     /**
      * Registers a callback to be called when {@link Message} with {@link Acknowledge} part set is received.
      *

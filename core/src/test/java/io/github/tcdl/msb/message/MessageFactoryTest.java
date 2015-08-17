@@ -17,12 +17,17 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -118,6 +123,32 @@ public class MessageFactoryTest {
     }
 
     @Test
+    public void testCreateRequestMessageBuilderWithTags() {
+        String namespace = "test:request-builder";
+        String[] tags = new String[] {"tag1", "tag2"};
+        MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate(tags);
+
+        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageTemplate, null);
+        Message message = requestMessageBuilder.build();
+
+        assertArrayEquals(tags, message.getTags().toArray());
+    }
+
+    @Test
+    public void testCreateRequestMessageBuilderWithUniqueTags() {
+        String namespace = "test:request-builder";
+        String[] tags = new String[] {"tag1", "tag2", "tag2"};
+
+        MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate(tags);
+
+        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageTemplate, null);
+        Message message = requestMessageBuilder.build();
+
+        String[] uniqueTags = Stream.of(tags).distinct().collect(Collectors.toList()).toArray(new String[]{});
+        assertArrayEquals(uniqueTags, message.getTags().toArray());
+    }
+
+    @Test
     public void testCreateRequestMessageBuilderFromOriginalMessage() {
         String namespace = "test:request-builder";
         Message originalMessage = TestUtils.createMsbRequestMessageNoPayload(namespace);
@@ -125,7 +156,7 @@ public class MessageFactoryTest {
         Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageOptions, originalMessage);
         Message message = requestMessageBuilder.build();
 
-        assertEquals(originalMessage.getCorrelationId(), message.getCorrelationId());
+        assertNotEquals(originalMessage.getCorrelationId(), message.getCorrelationId());
         assertThat(message.getTopics().getTo(), is(namespace));
         assertThat(message.getTopics().getResponse(), notNullValue());
     }
@@ -143,6 +174,33 @@ public class MessageFactoryTest {
         assertThat(message.getTopics().getTo(), not(originalMessage.getTopics().getTo()));
         assertThat(message.getTopics().getTo(), is(originalMessage.getTopics().getResponse()));
         assertThat(message.getTopics().getResponse(), nullValue());
+    }
+
+    @Test
+    public void testCreateResponseMessageBuilderWithTags() {
+        String namespace = "test:response-builder";
+        String[] tags = new String[] {"tag1", "tag2"};
+        MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate(tags);
+        Message originalMessage = TestUtils.createSimpleResponseMessage(namespace);
+
+        Builder requestMessageBuilder = messageFactory.createResponseMessageBuilder(messageTemplate, originalMessage);
+        Message message = requestMessageBuilder.build();
+
+        assertArrayEquals(tags, message.getTags().toArray());
+    }
+
+    @Test
+    public void testCreateResponseMessageBuilderWithUniqueTags() {
+        String namespace = "test:response-builder";
+        String[] tags = new String[] {"tag1", "tag2", "tag2"};
+        MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate(tags);
+        Message originalMessage = TestUtils.createSimpleResponseMessage(namespace);
+
+        Builder requestMessageBuilder = messageFactory.createResponseMessageBuilder(messageTemplate, originalMessage);
+        Message message = requestMessageBuilder.build();
+
+        String[] uniqueTags = Stream.of(tags).distinct().collect(Collectors.toList()).toArray(new String[]{});
+        assertArrayEquals(uniqueTags, message.getTags().toArray());
     }
 
     @Test
