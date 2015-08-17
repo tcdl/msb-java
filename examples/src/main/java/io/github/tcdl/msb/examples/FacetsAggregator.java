@@ -11,17 +11,14 @@ import io.github.tcdl.msb.examples.payload.Request;
 
 import javax.script.ScriptException;
 import java.io.FileNotFoundException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Microservice which is listening for incoming messages, creates requests to another microservices(
  * data-extractor, airport-extractor, resort-extractor), concatenates responses and returns result response
  */
 public class FacetsAggregator {
+    static List<Payload> responses = Collections.synchronizedList(new ArrayList<>());
 
     public static void main(String[] args) throws ScriptException, FileNotFoundException, NoSuchMethodException {
 
@@ -52,7 +49,7 @@ public class FacetsAggregator {
                 map.put("resortCode", "any");
                 facet.setParams(map);
 
-                responseBodyAny.setFacets(Arrays.asList(facet));
+                responseBodyAny.setFacets(Collections.singletonList(facet));
 
                 Payload responsePayloadAny = new Payload.Builder<Object, Object, Object, ResponseBodyAny>()
                         .withStatusCode(200)
@@ -70,22 +67,16 @@ public class FacetsAggregator {
                 Requester<Payload> requester = msbContext.getObjectFactory().createRequester("search:parsers:facets:v1",
                         requestOptions, Payload.class);
 
-                final String[] result = {""};
-
-                requester.onResponse(response -> {
-                    System.out.println(">>> RESPONSE: " + response);
-                    result[0] +=response;
-                });
-
-                List<Payload> responses = new LinkedList<>();
-                requester.onResponse(response -> responses.add(response))
+                responses.clear();
+                requester.onResponse(responses::add)
                 .onEnd(end -> {
+                    String result = "";
                     for (Payload payload : responses)
-                        System.out.println(">>> MESSAGE: " + payload);
+                        result += payload;
 
                     Payload responsePayload = new Payload.Builder<Object, Object, Object, String>()
                             .withStatusCode(200)
-                            .withBody(result[0])
+                            .withBody(result)
                             .build();
 
                     responder.send(responsePayload);
