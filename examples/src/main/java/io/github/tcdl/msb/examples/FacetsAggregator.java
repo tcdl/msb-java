@@ -18,7 +18,7 @@ import java.util.*;
  * data-extractor, airport-extractor, resort-extractor), concatenates responses and returns result response
  */
 public class FacetsAggregator {
-    static List<Payload> responses = new LinkedList<>();
+    static List<Payload> responses = Collections.synchronizedList(new ArrayList<>());
 
     public static void main(String[] args) throws ScriptException, FileNotFoundException, NoSuchMethodException {
 
@@ -67,6 +67,7 @@ public class FacetsAggregator {
                 Requester<Payload> requester = msbContext.getObjectFactory().createRequester("search:parsers:facets:v1",
                         requestOptions, Payload.class);
 
+                responses.clear();
                 requester.onResponse(responses::add)
                 .onEnd(end -> {
                     String result = "";
