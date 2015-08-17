@@ -11,9 +11,9 @@ import io.github.tcdl.msb.examples.payload.Request;
 
 import javax.script.ScriptException;
 import java.io.FileNotFoundException;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +52,7 @@ public class FacetsAggregator {
                 map.put("resortCode", "any");
                 facet.setParams(map);
 
-                responseBodyAny.setFacets(Arrays.asList(facet));
+                responseBodyAny.setFacets(Collections.singletonList(facet));
 
                 Payload responsePayloadAny = new Payload.Builder<Object, Object, Object, ResponseBodyAny>()
                         .withStatusCode(200)
@@ -72,16 +72,13 @@ public class FacetsAggregator {
 
                 final String[] result = {""};
 
-                requester.onResponse(response -> {
-                    System.out.println(">>> RESPONSE: " + response);
-                    result[0] +=response;
-                });
-
-                List<Payload> responses = new LinkedList<>();
-                requester.onResponse(response -> responses.add(response))
+                List<Payload> responses = Collections.synchronizedList(new ArrayList<>());
+                requester.onResponse(responses::add)
                 .onEnd(end -> {
-                    for (Payload payload : responses)
+                    for (Payload payload : responses) {
                         System.out.println(">>> MESSAGE: " + payload);
+                        result[0] += payload;
+                    }
 
                     Payload responsePayload = new Payload.Builder<Object, Object, Object, String>()
                             .withStatusCode(200)
