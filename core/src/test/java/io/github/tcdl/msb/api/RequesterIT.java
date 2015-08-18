@@ -1,5 +1,8 @@
 package io.github.tcdl.msb.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.util.Base64;
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
@@ -33,6 +36,20 @@ public class RequesterIT {
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
         TestUtils.assertRequestMessagePayload(adapterJsonMessage, requestPayload, NAMESPACE);
+    }
+
+    @Test
+    public void testRequestMessageWithBodyBufferBase64Encoded() throws Exception {
+        byte[] bytesToSend = new byte[] { 1, 2 };
+        Payload requestPayload = TestUtils.createSimpleRequestPayloadWithBodyBuffer(bytesToSend);
+        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        requester.publish(requestPayload);
+
+        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
+        JsonNode jsonObject = msbContext.getPayloadMapper().readTree(adapterJsonMessage);
+        
+        String base64Encoded = Base64.getEncoder().encodeToString(bytesToSend);
+        TestUtils.assertJsonContains(jsonObject.get("payload"), "bodyBuffer", base64Encoded);
     }
 
     @Test

@@ -1,12 +1,12 @@
 package io.github.tcdl.msb.api.message.payload;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC;
+import java.util.Arrays;
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC;
 
 /**
  * REST-like message payload.
@@ -53,7 +53,7 @@ public class Payload<Q, H, P, B> {
     /**
      * Base64-encoded binary body
      */
-    private String bodyBuffer;
+    private byte[] bodyBuffer;
 
     protected Payload() {
     }
@@ -66,7 +66,7 @@ public class Payload<Q, H, P, B> {
             @JsonProperty("headers") H headers,
             @JsonProperty("params") P params,
             @JsonProperty("body") B body,
-            @JsonProperty("bodyBuffer") String bodyBuffer) {
+            @JsonProperty("bodyBuffer") byte[] bodyBuffer) {
         this.statusMessage = statusMessage;
         this.statusCode = statusCode;
         this.headers = headers;
@@ -124,11 +124,11 @@ public class Payload<Q, H, P, B> {
         this.body = body;
     }
 
-    public String getBodyBuffer() {
+    public byte[] getBodyBuffer() {
         return bodyBuffer;
     }
 
-    protected void setBodyBuffer(String bodyBuffer) {
+    protected void setBodyBuffer(byte[] bodyBuffer) {
         this.bodyBuffer = bodyBuffer;
     }
 
@@ -140,7 +140,7 @@ public class Payload<Q, H, P, B> {
         private H headers;
         private P params;
         private B body;
-        private String bodyBuffer;
+        private byte[] bodyBuffer;
 
         public Builder<Q, H, P, B> withStatusCode(Integer statusCode) {
             this.statusCode = statusCode;
@@ -172,7 +172,7 @@ public class Payload<Q, H, P, B> {
             return this;
         }
 
-        public Builder<Q, H, P, B> withBodyBuffer(String bodyBuffer) {
+        public Builder<Q, H, P, B> withBodyBuffer(byte[] bodyBuffer) {
             this.bodyBuffer = bodyBuffer;
             return this;
         }
@@ -185,7 +185,7 @@ public class Payload<Q, H, P, B> {
     @Override
     public String toString() {
         return String.format("Payload [statusCode=%s, statusMessage=%s, query=%s, headers=%s, params=%s, body=%s, bodyBuffer=%s]",
-                statusCode, statusMessage, query, headers, params, body, bodyBuffer);
+                statusCode, statusMessage, query, headers, params, body, Arrays.toString(bodyBuffer));
     }
 
     @Override
@@ -193,8 +193,7 @@ public class Payload<Q, H, P, B> {
         if (obj instanceof Payload) {
             Payload<?, ?, ?, ?> other = (Payload<?, ?, ?, ?>) obj;
             return Objects.equals(body, other.body)
-                    && Objects.equals(bodyBuffer, other.bodyBuffer)
-                    && Objects.equals(bodyBuffer, other.bodyBuffer)
+                    && Objects.deepEquals(bodyBuffer, other.bodyBuffer)
                     && Objects.equals(headers, other.headers)
                     && Objects.equals(params, other.params)
                     && Objects.equals(query, other.query)

@@ -221,6 +221,18 @@ public class TestUtils {
         return new Payload.Builder<Object, Map<String, String>, Object, Map<String, String>>()
                 .withHeaders(headers)
                 .withBody(body)
+                .withBodyBuffer(new byte[5])
+                .build();
+    }
+
+    public static Payload<Object, Map<String, String>, Object, Map<String, String>> createSimpleRequestPayloadWithBodyBuffer(byte [] bodyBuffer) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("url", "http://mock/request");
+        headers.put("method", "APPLICATION/OCTET-STREAM");
+
+        return new Payload.Builder<Object, Map<String, String>, Object, Map<String, String>>()
+                .withHeaders(headers)
+                .withBodyBuffer(bodyBuffer)
                 .build();
     }
 
@@ -268,6 +280,8 @@ public class TestUtils {
             // payload fields match sent
             assertEquals("Message 'body' is incorrect", payloadMapper.writeValueAsString(payload.getBody()),
                     jsonObject.get("payload").get("body").toString());
+            assertEquals("Message 'bodyBuffer' is incorrect", payloadMapper.writeValueAsString(payload.getBodyBuffer()),
+                    jsonObject.get("payload").get("bodyBuffer").toString());
             assertEquals("Message 'headers' is incorrect", payloadMapper.writeValueAsString(payload.getHeaders()), jsonObject
                     .get("payload").get("headers").toString());
 
