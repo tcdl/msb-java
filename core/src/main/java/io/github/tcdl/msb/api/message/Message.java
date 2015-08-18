@@ -4,7 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+
+import java.util.List;
+import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS;
 
@@ -20,6 +24,7 @@ public final class Message {
     private final String id;// This identifies this message
     @JsonInclude(ALWAYS)
     private final String correlationId;
+    private final List<String> tags;
     @JsonInclude(ALWAYS)
     private final Topics topics;
     @JsonInclude(ALWAYS)
@@ -31,14 +36,15 @@ public final class Message {
     private final JsonNode rawPayload;
 
     @JsonCreator
-    private Message(@JsonProperty("id") String id, @JsonProperty("correlationId") String correlationId, @JsonProperty("topics") Topics topics,
-            @JsonProperty("meta") MetaMessage meta, @JsonProperty("ack") Acknowledge ack, @JsonProperty("payload") JsonNode rawPayload) {
+    private Message(@JsonProperty("id") String id, @JsonProperty("correlationId") String correlationId, @JsonProperty("tags") List<String> tags,
+            @JsonProperty("topics") Topics topics, @JsonProperty("meta") MetaMessage meta, @JsonProperty("ack") Acknowledge ack, @JsonProperty("payload") JsonNode rawPayload) {
         Validate.notNull(id, "the 'id' must not be null");
         Validate.notNull(correlationId, "the 'correlationId' must not be null");
         Validate.notNull(topics, "the 'topics' must not be null");
         Validate.notNull(meta, "the 'meta' must not be null");
         this.id = id;
         this.correlationId = correlationId;
+        this.tags = tags;
         this.topics = topics;
         this.meta = meta;
         this.ack = ack;
@@ -49,6 +55,7 @@ public final class Message {
 
         private String id;
         private String correlationId;
+        private List<String> tags;
         private Topics topics;
         private MetaMessage.Builder metaBuilder;
         private Acknowledge ack;
@@ -61,6 +68,11 @@ public final class Message {
 
         public Builder withCorrelationId(String correlationId) {
             this.correlationId = correlationId;
+            return this;
+        }
+
+        public Builder withTags(List<String> tags) {
+            this.tags = tags;
             return this;
         }
 
@@ -85,7 +97,7 @@ public final class Message {
         }
 
         public Message build() {
-            return new Message(id, correlationId, topics, metaBuilder.build(), ack, rawPayload);
+            return new Message(id, correlationId, tags, topics, metaBuilder.build(), ack, rawPayload);
         }
     }
 
@@ -95,6 +107,10 @@ public final class Message {
 
     public String getCorrelationId() {
         return correlationId;
+    }
+
+    public List<String> getTags() {
+        return tags;
     }
 
     public Topics getTopics() {
@@ -115,6 +131,7 @@ public final class Message {
 
     @Override
     public String toString() {
-        return String.format("Message [id=%s, topics=%s, meta=%s, ack=%s, rawPayload=%s, correlationId=%s]", id, topics, meta, ack, rawPayload, correlationId);
+        return String.format("Message [id=%s, topics=%s, meta=%s, ack=%s, rawPayload=%s, correlationId=%s, tags=[%s]]",
+                id, topics, meta, ack, rawPayload, correlationId, StringUtils.join(tags, ","));
     }
 }

@@ -2,16 +2,16 @@ package io.github.tcdl.msb.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.api.Callback;
+import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.message.MessageFactory;
-
 import org.apache.commons.lang3.Validate;
 
 /**
@@ -62,15 +62,35 @@ public class RequesterImpl<T extends Payload> implements Requester<T> {
      */
     @Override
     public void publish(Payload<?, ?, ?, ?> requestPayload) {
-        publish(requestPayload, null);
-
+        publish(requestPayload, null, null);
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void publish(Payload<?, ?, ?, ?> requestPayload, String tag) {
+        publish(requestPayload, null, tag);
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void publish(Payload<?, ?, ?, ?> requestPayload, Message originalMessage) {
-        Message.Builder messageBuilder = messageFactory.createRequestMessageBuilder(namespace, requestOptions.getMessageTemplate(), originalMessage);
+        publish(requestPayload, originalMessage, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void publish(Payload<?, ?, ?, ?> requestPayload, Message originalMessage, String tag) {
+        MessageTemplate messageTemplate = MessageTemplate.copyOf(requestOptions.getMessageTemplate());
+        if (tag != null) {
+            messageTemplate.addTag(tag);
+        }
+        Message.Builder messageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageTemplate, originalMessage);
         Message message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
         //use Collector instance to handle expected responses/acks

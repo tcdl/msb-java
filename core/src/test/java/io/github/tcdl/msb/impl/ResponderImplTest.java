@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
@@ -28,10 +29,11 @@ import static org.mockito.Mockito.when;
 
 public class ResponderImplTest {
 
-    private MessageTemplate config;
+    private MessageTemplate messageTemplate;
     private MsbConfig msbConf;
     private static final String TOPIC = "test:responder";
 
+    private MsbContextImpl msbContextSpy;
     private ChannelManager mockChannelManager;
     private Producer mockProducer;
     private Payload emptyPayload;
@@ -40,7 +42,7 @@ public class ResponderImplTest {
 
     @Before
     public void setUp() {
-        config = TestUtils.createSimpleMessageTemplate();
+        messageTemplate = TestUtils.createSimpleMessageTemplate();
 
         msbConf = TestUtils.createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
@@ -49,7 +51,7 @@ public class ResponderImplTest {
         MessageFactory spyMessageFactory = spy(messageFactory);
 
         MsbContextImpl msbContext = TestUtils.createSimpleMsbContext();
-        MsbContextImpl msbContextSpy = spy(msbContext);
+        msbContextSpy = spy(msbContext);
         mockChannelManager = mock(ChannelManager.class);
         mockProducer = mock(Producer.class);
         emptyPayload = new Payload.Builder().build();
@@ -59,14 +61,14 @@ public class ResponderImplTest {
         when(msbContextSpy.getMessageFactory()).thenReturn(spyMessageFactory);
         when(mockChannelManager.findOrCreateProducer(anyString())).thenReturn(mockProducer);
 
-        responder = new ResponderImpl(config, originalMessage, msbContextSpy);
+        responder = new ResponderImpl(messageTemplate, originalMessage, msbContextSpy);
     }
 
     @Test
     public void testResponderConstructorOk() {
         MsbContextImpl context = TestUtils.createSimpleMsbContext();
         Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
-        new ResponderImpl(config, originalMessage, context);
+        new ResponderImpl(messageTemplate, originalMessage, context);
     }
 
     @Test
@@ -98,6 +100,20 @@ public class ResponderImplTest {
 
         assertNotNull(argument.getValue().getRawPayload());
         TestUtils.assertRawPayloadContainsBodyText(bodyText, argument.getValue());
+    }
+
+    @Test
+    public void testProducerPublishWithTags() {
+        String[] tags = new String[]{"tag1", "tag2"};
+        responder = new ResponderImpl(TestUtils.createSimpleMessageTemplate(tags), originalMessage, msbContextSpy);
+
+        ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
+        responder.send(TestUtils.createSimpleRequestPayload());
+
+        verify(mockProducer).publish(argument.capture());
+
+        Message responseMessage = argument.getValue();
+        assertArrayEquals(tags, responseMessage.getTags().toArray());
     }
 
     @Test
