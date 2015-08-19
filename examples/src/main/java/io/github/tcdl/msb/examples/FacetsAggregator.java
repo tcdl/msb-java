@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Microservice which is listening for incoming messages, creates requests to another microservices(
@@ -30,10 +31,10 @@ public class FacetsAggregator {
                 .enableShutdownHook(true)
                 .build();
 
-        MessageTemplate options = new MessageTemplate();
+        MessageTemplate messageTemplate = new MessageTemplate().withTags("facets-aggregator");
         final String namespace = "search:aggregator:facets:v1";
 
-        msbContext.getObjectFactory().createResponderServer(namespace, options, (Request facetsRequest, Responder responder) -> {
+        msbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (Request facetsRequest, Responder responder) -> {
 
             String q = facetsRequest.getQuery().getQ();
 
@@ -64,6 +65,7 @@ public class FacetsAggregator {
                 RequestOptions requestOptions = new RequestOptions.Builder()
                         .withWaitForResponses(1)
                         .withAckTimeout(200)
+                        .withMessageTemplate(messageTemplate)
                         .withResponseTimeout(600)
                         .build();
 
@@ -88,7 +90,7 @@ public class FacetsAggregator {
                     responder.send(responsePayload);
                 });
 
-                requester.publish(facetsRequest, responder.getOriginalMessage());
+                requester.publish(facetsRequest, responder.getOriginalMessage(), UUID.randomUUID().toString());
             }
         }, Request.class).listen();
     }

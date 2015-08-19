@@ -18,7 +18,8 @@ public class PongService {
                 build();
 
         ObjectFactory objectFactory = msbContext.getObjectFactory();
-        ResponderServer responderServer = objectFactory.createResponderServer("pingpong:namespace", new MessageTemplate(), (request, responder) -> {
+        MessageTemplate messageTemplate = new MessageTemplate().withTags("pong-static-tag");
+        ResponderServer responderServer = objectFactory.createResponderServer("pingpong:namespace", messageTemplate, (request, responder) -> {
             // Response handling logic
             LOG.info(String.format("Handling %s...", request.getBody()));
 
