@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.examples;
 
+import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.ObjectFactory;
@@ -9,6 +10,8 @@ import io.github.tcdl.msb.api.message.payload.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
+
 public class PingService {
     private static final Logger LOG = LoggerFactory.getLogger(PingService.class);
 
@@ -17,10 +20,12 @@ public class PingService {
                 enableShutdownHook(true).
                 build();
 
+        MessageTemplate messageTemplate = new MessageTemplate().withTags("ping-service");
         RequestOptions requestOptions = new RequestOptions.Builder()
                 .withAckTimeout(1000)
                 .withResponseTimeout(2000)
                 .withWaitForResponses(1)
+                .withMessageTemplate(messageTemplate)
                 .build();
 
         ObjectFactory objectFactory = msbContext.getObjectFactory();
@@ -32,6 +37,6 @@ public class PingService {
                 .withBody("PING")
                 .build();
 
-        requester.publish(pingPayload); // Send the message
+        requester.publish(pingPayload, UUID.randomUUID().toString()); // Send the message
     }
 }

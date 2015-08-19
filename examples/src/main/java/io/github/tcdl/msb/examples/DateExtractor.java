@@ -27,7 +27,7 @@ public class DateExtractor {
     }
 
     public void start(MsbContext msbContext) {
-        MessageTemplate messageTemplate = new MessageTemplate();
+        MessageTemplate messageTemplate = new MessageTemplate().withTags("date-extractor");
         final String namespace = "search:parsers:facets:v1";
 
         msbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responder) -> {
