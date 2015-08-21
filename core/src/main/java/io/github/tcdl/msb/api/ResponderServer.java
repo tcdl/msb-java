@@ -13,6 +13,9 @@ import io.github.tcdl.msb.api.message.payload.Payload;
  */
 public interface ResponderServer<T extends Payload> {
 
+    int INTERNAL_SERVER_ERROR_CODE = 500;
+    int PAYLOAD_CONVERSION_ERROR_CODE = 422;
+
     /**
      * Start listening for message on specified topic.
      */
