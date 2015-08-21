@@ -109,7 +109,7 @@ public class ResponderServerImplTest {
                 new ResponderImpl(messageTemplate, incomingMessage, msbContext));
         responderServer.onResponder(responder);
         verify(responder).send(responseCaptor.capture());
-        assertEquals(500, responseCaptor.getValue().getStatusCode().intValue());
+        assertEquals(ResponderServer.PAYLOAD_CONVERSION_ERROR_CODE, responseCaptor.getValue().getStatusCode().intValue());
         assertNotNull(responseCaptor.getValue().getStatusMessage());
     }
 
@@ -132,7 +132,7 @@ public class ResponderServerImplTest {
         responderServer.onResponder(responder);
 
         verify(responder).send(responseCaptor.capture());
-        assertEquals(500, responseCaptor.getValue().getStatusCode().intValue());
+        assertEquals(ResponderServer.INTERNAL_SERVER_ERROR_CODE, responseCaptor.getValue().getStatusCode().intValue());
         assertEquals(exceptionMessage, responseCaptor.getValue().getStatusMessage());
     }
 }

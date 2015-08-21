@@ -6,6 +6,7 @@ import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.ResponderServer;
+import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.support.Utils;
@@ -44,8 +45,10 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
     /**
      * Start listening for message on specified topic.
      *
-     * In case of exception was thrown during message conversion or handling business logic
-     * response message with statusCode=500 and statusMessage=${exception.getMessage()} will be created and sent automatically.
+     * If exception was thrown during handling business logic response message with statusCode={@link #INTERNAL_SERVER_ERROR_CODE}
+     * and statusMessage=${exception.getMessage()} will be created and sent automatically.
+     * If error occurred during message payload conversion to specified type response message with statusCode={@link #PAYLOAD_CONVERSION_ERROR_CODE }
+     * and statusMessage="Failed to convert object [${jsonPayload}] to type T}" will be created and sent automatically.
      */
     @Override
     public ResponderServer listen() {
@@ -68,17 +71,20 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
             T request = Utils.convert(rawPayload, payloadTypeReference, payloadMapper);
             LOG.debug("[{}] Process message with id: [{}]", namespace, originalMessage.getId());
             requestHandler.process(request, responder);
-        } catch (Exception exception) {
-            errorHandler(responder, exception);
+        } catch (JsonConversionException conversionEx) {
+            errorHandler(responder, conversionEx, PAYLOAD_CONVERSION_ERROR_CODE);
+        } catch (Exception internalEx) {
+            errorHandler(responder, internalEx, INTERNAL_SERVER_ERROR_CODE);
         }
     }
 
-    private void errorHandler(Responder responder, Exception exception) {
+    private void errorHandler(Responder responder, Exception exception, int errorStatusCode) {
         Message originalMessage = responder.getOriginalMessage();
         LOG.error("[{}] Error while processing message with id: [{}]. Cause: [{}]", namespace, originalMessage.getId(), exception.getMessage());
         Payload responsePayload = new Payload.Builder()
-                .withStatusCode(500)
-                .withStatusMessage(exception.getMessage()).build();
+                .withStatusCode(errorStatusCode)
+                .withStatusMessage(exception.getMessage())
+                .build();
         responder.send(responsePayload);
     }
 }
