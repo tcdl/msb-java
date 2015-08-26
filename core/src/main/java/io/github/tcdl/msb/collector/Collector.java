@@ -3,7 +3,6 @@ package io.github.tcdl.msb.collector;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.NullNode;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.message.Acknowledge;
