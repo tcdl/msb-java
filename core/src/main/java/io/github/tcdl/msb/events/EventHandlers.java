@@ -6,8 +6,6 @@ import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.Payload;
 
-import java.util.List;
-
 /**
  * {@link EventHandlers} is a component that allows to register custom event handlers for {@link Requester} specific events.
  */

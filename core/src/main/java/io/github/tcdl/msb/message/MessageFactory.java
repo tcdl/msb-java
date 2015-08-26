@@ -2,7 +2,6 @@ package io.github.tcdl.msb.message;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
@@ -16,9 +15,7 @@ import org.apache.commons.lang3.Validate;
 
 import java.time.Clock;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MessageFactory {
@@ -50,9 +47,7 @@ public class MessageFactory {
     }
 
     public Message createBroadcastMessage(Message.Builder messageBuilder, Payload payload) {
-        JsonNode convertedPayload = Utils.convert(payload, JsonNode.class, payloadMapper);
-        messageBuilder.withPayload(convertedPayload);
-        return messageBuilder.build();
+        return createRequestMessage(messageBuilder, payload);
     }
 
     public Message.Builder createRequestMessageBuilder(String namespace, MessageTemplate messageTemplate, Message originalMessage) {

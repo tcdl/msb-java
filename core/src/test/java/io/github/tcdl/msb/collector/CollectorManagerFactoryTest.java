@@ -2,13 +2,8 @@ package io.github.tcdl.msb.collector;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
-import com.googlecode.junittoolbox.MultithreadingTester;
 import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.Producer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
