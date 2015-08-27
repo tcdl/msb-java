@@ -313,6 +313,8 @@ The section `brokerConfig` from [reference.conf](/core/src/main/resources/refere
 
 `port` – port number
 
+`useSSL` – defines whether we need to use SSL for AMQP connection. For the moment only simplest form of security is implemented that provides encryption but does not check remote certificates.
+
 `groupId` – microservices with the same `groupId` subscribed to the same namespace will receive messages from that namespace in round-robin fashion. If microservices have different `groupId`s and subscribed to the same namespace then all of those microservices are going to receive a copy of a message from that namespace.
 
 `durable` – queue durability, true/false. Defaults to false.

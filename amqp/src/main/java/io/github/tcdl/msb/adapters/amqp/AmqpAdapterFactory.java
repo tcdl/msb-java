@@ -4,15 +4,13 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
-import io.github.tcdl.msb.config.MsbConfig;
-import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.api.exception.ConfigurationException;
-
+import io.github.tcdl.msb.config.MsbConfig;
+import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
@@ -96,6 +94,19 @@ public class AmqpAdapterFactory implements AdapterFactory {
         if(virtualHost.isPresent()) {
             connectionFactory.setVirtualHost(virtualHost.get());
         }
+
+        try {
+            if (adapterConfig.useSSL()) {
+                LOG.info("Configuring adapter to use SSL...");
+                connectionFactory.useSslProtocol();
+                LOG.info("Configured adapter to use SSL");
+            } else {
+                LOG.info("Not using SSL");
+            }
+        } catch (Exception e) {
+            LOG.error("Error while configuring SSL", e);
+        }
+
         return connectionFactory;
     }
     

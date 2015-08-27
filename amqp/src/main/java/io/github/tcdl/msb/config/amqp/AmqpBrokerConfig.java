@@ -17,6 +17,7 @@ public class AmqpBrokerConfig {
     private Optional<String> username;
     private Optional<String> password;
     private Optional<String> virtualHost;
+    private boolean useSSL;
 
     private String groupId;
     private final boolean durable;
@@ -25,7 +26,7 @@ public class AmqpBrokerConfig {
     private final boolean requeueRejectedMessages;
 
     public AmqpBrokerConfig(Charset charset, String host, int port,
-            Optional<String> username, Optional<String> password, Optional<String> virtualHost,
+            Optional<String> username, Optional<String> password, Optional<String> virtualHost, boolean useSSL,
             String groupId, boolean durable, int consumerThreadPoolSize, int consumerThreadPoolQueueCapacity, boolean requeueRejectedMessages) {
         this.charset = charset;
         this.port = port;
@@ -33,6 +34,7 @@ public class AmqpBrokerConfig {
         this.username = username;
         this.password = password;        
         this.virtualHost = virtualHost;
+        this.useSSL = useSSL;
         this.groupId = groupId;
         this.durable = durable;
         this.consumerThreadPoolSize = consumerThreadPoolSize;
@@ -47,6 +49,7 @@ public class AmqpBrokerConfig {
         private Optional<String> username;
         private Optional<String> password;
         private Optional<String> virtualHost;
+        private boolean useSSL;
         private String groupId;
         private boolean durable;
         private int consumerThreadPoolSize;
@@ -72,6 +75,7 @@ public class AmqpBrokerConfig {
             this.username = ConfigurationUtil.getOptionalString(config, "username");
             this.password = ConfigurationUtil.getOptionalString(config, "password");
             this.virtualHost = ConfigurationUtil.getOptionalString(config, "virtualHost");
+            this.useSSL = ConfigurationUtil.getBoolean(config, "useSSL");
 
             this.groupId = ConfigurationUtil.getString(config, "groupId");
             this.durable = ConfigurationUtil.getBoolean(config, "durable");
@@ -85,7 +89,7 @@ public class AmqpBrokerConfig {
          * @throws ConfigurationException if provided configuration is broken
          */
         public AmqpBrokerConfig build() {
-            return new AmqpBrokerConfig(charset, host, port, username, password, virtualHost,
+            return new AmqpBrokerConfig(charset, host, port, username, password, virtualHost, useSSL,
                     groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages);
         }
     }
@@ -114,6 +118,10 @@ public class AmqpBrokerConfig {
         return virtualHost;
     }
 
+    public boolean useSSL() {
+        return useSSL;
+    }
+
     public String getGroupId() {
         return groupId;
     }
@@ -140,8 +148,8 @@ public class AmqpBrokerConfig {
 
     @Override
     public String toString() {
-        return String.format("AmqpBrokerConfig [charset=%s, host=%s, port=%d, username=%s, password=xxx, virtualHost=%s, groupId=%s, durable=%s, consumerThreadPoolSize=%s, consumerThreadPoolQueueCapacity=%s, requeueRejectedMessages=%s]",
-                charset, host, port, username, virtualHost, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages);
+        return String.format("AmqpBrokerConfig [charset=%s, host=%s, port=%d, username=%s, password=xxx, virtualHost=%s, useSSL=%s, groupId=%s, durable=%s, consumerThreadPoolSize=%s, consumerThreadPoolQueueCapacity=%s, requeueRejectedMessages=%s]",
+                charset, host, port, username, virtualHost, useSSL, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages);
     }
 
 }
