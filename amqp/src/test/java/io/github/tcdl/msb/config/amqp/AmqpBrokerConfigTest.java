@@ -20,6 +20,7 @@ public class AmqpBrokerConfigTest {
     final String username = "user";
     final String password = "pwd";
     final String virtualHost = "127.10.10.10";
+    final boolean useSSL = false;
     final String groupId = "msb-java";
     final boolean durable = false;
     final int consumerThreadPoolSize = 5;
@@ -34,6 +35,7 @@ public class AmqpBrokerConfigTest {
                 + " username = \"" + username + "\"\n"
                 + " password = \"" + password + "\"\n"
                 + " virtualHost = \"" + virtualHost + "\"\n"
+                + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
@@ -55,6 +57,7 @@ public class AmqpBrokerConfigTest {
         assertEquals(brokerConfig.getUsername().get(), username);
         assertEquals(brokerConfig.getPassword().get(), password);
         assertEquals(brokerConfig.getVirtualHost().get(), virtualHost);
+        assertFalse(brokerConfig.useSSL());
     }
 
     @Test
@@ -63,6 +66,7 @@ public class AmqpBrokerConfigTest {
                 + " charsetName = \"" + charsetName + "\"\n"
                 + " host = \"" + host + "\"\n"
                 + " port = \"" + port + "\"\n"
+                + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
@@ -88,6 +92,7 @@ public class AmqpBrokerConfigTest {
                 + " username = \"" + username + "\"\n"
                 + " password = \"" + password + "\"\n"
                 + " virtualHost = \"" + virtualHost + "\"\n"
+                + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
@@ -105,6 +110,7 @@ public class AmqpBrokerConfigTest {
                 + " username = \"" + username + "\"\n"
                 + " password = \"" + password + "\"\n"
                 + " virtualHost = \"" + virtualHost + "\"\n"
+                + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
@@ -123,6 +129,7 @@ public class AmqpBrokerConfigTest {
                 + " username = \"" + username + "\"\n"
                 + " password = \"" + password + "\"\n"
                 + " virtualHost = \"" + virtualHost + "\"\n"
+                + " useSSL = \"" + useSSL + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
@@ -140,6 +147,7 @@ public class AmqpBrokerConfigTest {
                 + " username = \"" + username + "\"\n"
                 + " password = \"" + password + "\"\n"
                 + " virtualHost = \"" + virtualHost + "\"\n"
+                + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
@@ -157,6 +165,7 @@ public class AmqpBrokerConfigTest {
                 + " username = \"" + username + "\"\n"
                 + " password = \"" + password + "\"\n"
                 + " virtualHost = \"" + virtualHost + "\"\n"
+                + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
@@ -174,6 +183,7 @@ public class AmqpBrokerConfigTest {
                 + " username = \"" + username + "\"\n"
                 + " password = \"" + password + "\"\n"
                 + " virtualHost = \"" + virtualHost + "\"\n"
+                + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
@@ -190,6 +200,7 @@ public class AmqpBrokerConfigTest {
                 + " username = \"" + username + "\"\n"
                 + " password = \"" + password + "\"\n"
                 + " virtualHost = \"" + virtualHost + "\"\n"
+                + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
@@ -210,6 +221,7 @@ public class AmqpBrokerConfigTest {
                 + " username = \"" + username + "\"\n"
                 + " password = \"" + password + "\"\n"
                 + " virtualHost = \"" + virtualHost + "\"\n"
+                + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
@@ -218,6 +230,24 @@ public class AmqpBrokerConfigTest {
 
         AmqpBrokerConfig.AmqpBrokerConfigBuilder builder = createConfigBuilder(configStr);
         builder.build();
+    }
+
+    @Test
+    public void testUseSSLConfigurationOption() {
+        String configStr = "config.amqp {"
+                + " charsetName = \"" + charsetName + "\"\n"
+                + " host = \"" + host + "\"\n"
+                + " port = \"" + port + "\"\n"
+                + " username = \"" + username + "\"\n"
+                + " password = \"" + password + "\"\n"
+                + " virtualHost = \"" + virtualHost + "\"\n"
+                + " groupId = \"" + groupId + "\"\n"
+                + " durable = " + durable + "\n"
+                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + "}";
+
+        testMandatoryConfigurationOption(configStr, "useSSL");
     }
 
     private void testMandatoryConfigurationOption(String configStr, String path) {

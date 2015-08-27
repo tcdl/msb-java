@@ -34,7 +34,8 @@ public class AmqpAdapterFactoryTest {
     final int port = 5672;
     final String username = "user";
     final String password = "pwd";
-    final String virtualHost = "127.10.10.10"; 
+    final String virtualHost = "127.10.10.10";
+    final boolean useSSL = false;
     final String groupId = "msb-java";
     final boolean durable = false;
     final int consumerThreadPoolSize = 5;
@@ -76,7 +77,7 @@ public class AmqpAdapterFactoryTest {
         }
         
         amqpConfig = new AmqpBrokerConfig(charset, host, port,
-                Optional.of(username), Optional.of(password), Optional.of(virtualHost), groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
+                Optional.of(username), Optional.of(password), Optional.of(virtualHost), useSSL, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity);
         
         amqpAdapterFactory = new AmqpAdapterFactory() {
             @Override
