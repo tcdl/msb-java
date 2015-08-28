@@ -134,23 +134,23 @@ All classes and interfaces that should be used by a microservice developer resid
 
 The following subsections describe the most important ones.
 
-### [MsbContext](/core/src/main/java/io/github/tcdl/api/MsbContext.java)
+### [MsbContext](/core/src/main/java/io/github/tcdl/msb/api/MsbContext.java)
 
-Instance of [MsbContext](/core/src/main/java/io/github/tcdl/api/MsbContext.java) is a central object that should be used by microservice for proper initialization, accessing of the bus and shutting down.
+Instance of [MsbContext](/core/src/main/java/io/github/tcdl/msb/api/MsbContext.java) is a central object that should be used by microservice for proper initialization, accessing of the bus and shutting down.
 
-* To initialize `MsbContext` one needs to use [MsbContextBuilder](/core/src/main/java/io/github/tcdl/api/MsbContextBuilder.java). During this step configuration files are read and some internal library objects are created and initialized.
-* Instance of [ObjectFactory](/core/src/main/java/io/github/tcdl/api/ObjectFactory.java) is stored in `MsbContext`. The factory produces objects that need to be used by microservice to access the bus. A microservice should not create those objects directly.
+* To initialize `MsbContext` one needs to use [MsbContextBuilder](/core/src/main/java/io/github/tcdl/msb/api/MsbContextBuilder.java). During this step configuration files are read and some internal library objects are created and initialized.
+* Instance of [ObjectFactory](/core/src/main/java/io/github/tcdl/msb/api/ObjectFactory.java) is stored in `MsbContext`. The factory produces objects that need to be used by microservice to access the bus. A microservice should not create those objects directly.
 * To shut down `MsbContext` one needs to use method `MsbContext.shudown`. This step is opposite to initialization: all initialized resources as well as connection to the bus are closed.
 
 > If microservice developer does not want to invoke `shutdown` explictily he/she should instruct `MsbContextBuilder` to automatically register JVM shutdown upon `MsbContext` creation. That hook just invokes the method on JVM termination.
 
-### [ResponderServer](/core/src/main/java/io/github/tcdl/api/ResponderServer.java)
+### [ResponderServer](/core/src/main/java/io/github/tcdl/msb/api/ResponderServer.java)
 
-[ResponderServer](/core/src/main/java/io/github/tcdl/api/ResponderServer.java) allows to listen to a given namespace, process requests from that namespace and provide responses and acks back. The instance should be created via `ObjectFactory`.
+[ResponderServer](/core/src/main/java/io/github/tcdl/msb/api/ResponderServer.java) allows to listen to a given namespace, process requests from that namespace and provide responses and acks back. The instance should be created via `ObjectFactory`.
 
-### [Requester](/core/src/main/java/io/github/tcdl/api/Requester.java)
+### [Requester](/core/src/main/java/io/github/tcdl/msb/api/Requester.java)
 
-[Requester](/core/src/main/java/io/github/tcdl/api/Requester.java) allows to send messages to a given namespace and optionally handle responses. The instance should be created via `ObjectFactory`.
+[Requester](/core/src/main/java/io/github/tcdl/msb/api/Requester.java) allows to send messages to a given namespace and optionally handle responses. The instance should be created via `ObjectFactory`.
 
 ## Typical microservice examples
 
