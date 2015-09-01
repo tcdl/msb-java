@@ -13,6 +13,7 @@ import org.jbehave.core.reporters.StoryReporterBuilder;
 import org.jbehave.core.steps.InjectableStepsFactory;
 import org.jbehave.core.steps.InstanceStepsFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,6 +21,16 @@ public class ScenarioRunner extends JUnitStories {
 
     private final String STORY_PATH = "target/test-classes";
     private final String STORY_PATTERN = "**/*.story";
+
+    public List<Object> getStepInstances() {
+        List<Object> steps = new ArrayList<>();
+        steps.addAll(Arrays.asList(
+                new ConfigurationSteps(),
+                new RequesterResponderSteps(),
+                new AsyncRequesterSteps()
+        ));
+        return steps;
+    }
 
     @Override
     public Configuration configuration() {
@@ -37,10 +48,6 @@ public class ScenarioRunner extends JUnitStories {
 
     @Override
     public InjectableStepsFactory stepsFactory() {
-        return new InstanceStepsFactory(configuration(),
-                new ConfigurationSteps(),
-                new RequesterResponderSteps(),
-                new AsyncRequesterSteps()
-        );
+        return new InstanceStepsFactory(configuration(), getStepInstances());
     }
 }
