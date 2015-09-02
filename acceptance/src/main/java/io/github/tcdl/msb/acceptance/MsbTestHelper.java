@@ -133,7 +133,7 @@ public class MsbTestHelper {
         ObjectMapper mapper = ((MsbContextImpl) context).getPayloadMapper();
         return new Payload.Builder<Map, Object, Object, Map>()
                 .withQuery(Utils.fromJson("{\"q\": \"" + query + "\"}", Map.class, mapper))
-                .withBody(Utils.fromJson("{\"body\": \"" + body + "\"}", Map.class, mapper))
+                .withBody(Utils.fromJson(body, Map.class, mapper))
                 .build();
     }
 }

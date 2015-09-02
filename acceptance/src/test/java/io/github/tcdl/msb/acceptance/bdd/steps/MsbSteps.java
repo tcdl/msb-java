@@ -8,15 +8,22 @@ import java.lang.reflect.Method;
 
 public class MsbSteps {
 
-    private final static String MICROSERVICE_PACKAGE = "io.github.tcdl.msb.examples";
+    private final static String DEFAULT_PACKAGE = "io.github.tcdl.msb.examples.";
 
     MsbTestHelper helper = MsbTestHelper.getInstance();
 
-    // microservices steps
     @Given("microservice $microservice")
-    public void startMicroservice(String microserviceClassName) throws Throwable {
-        Class<?> microserviceClass = getClass().getClassLoader().loadClass(MICROSERVICE_PACKAGE + "." + microserviceClassName);
+    public void startMicroservice(String microservice) throws Throwable {
+        Class<?> microserviceClass = getClass().getClassLoader().loadClass(resolveClass(microservice));
         Method startMethod = microserviceClass.getMethod("start", MsbContext.class);
         startMethod.invoke(microserviceClass.newInstance(), helper.getContext());
+    }
+
+    protected String resolveClass(String microservice) {
+        if (microservice.startsWith("com.") || microservice.startsWith("io.")) {
+            return microservice;
+        } else {
+            return DEFAULT_PACKAGE + microservice;
+        }
     }
 }
