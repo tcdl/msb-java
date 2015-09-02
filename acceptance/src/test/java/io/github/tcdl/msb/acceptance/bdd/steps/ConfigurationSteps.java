@@ -20,32 +20,32 @@ public class ConfigurationSteps extends MsbSteps {
 
     private Config config = ConfigFactory.load();
 
-    @Given("configuration with validate message $validate")
+    @Given("MSB configuration with validate message $validate")
     public void initWithValidateMessage(boolean validate) {
         config = config.withValue(VALIDATE_MESSAGE, ConfigValueFactory.fromAnyRef(validate));
     }
 
-    @Given("configuration with timer thread pool size $size")
+    @Given("MSB configuration with timer thread pool size $size")
     public void initWithTimerThreadPoolSize(int size) {
         config = config.withValue(TIME_THREAD_POOL_SIZE, ConfigValueFactory.fromAnyRef(size));
     }
 
-    @Given("configuration with consumer thread pool size $size")
+    @Given("MSB configuration with consumer thread pool size $size")
     public void initWithConsumerThreadPoolSize(int size) {
         config = config.withValue(MSB_BROKER_CONSUMER_THREAD_POOL_SIZE, ConfigValueFactory.fromAnyRef(size));
     }
 
-    @Given("configuration with consumer thread pool queue capacity $capacity")
+    @Given("MSB configuration with consumer thread pool queue capacity $capacity")
     public void initWithConsumerThreadPoolQueueCapacity(int capacity) {
         config = config.withValue(MSB_BROKER_CONSUMER_THREAD_POOL_QUEUE_CAPACITY, ConfigValueFactory.fromAnyRef(capacity));
     }
 
-    @Given("init")
+    @Given("MSB init")
     public void initMSB() {
         helper.initWithConfig(config);
     }
 
-    @Given("shutdown")
+    @Given("MSB shutdown")
     public void shutdownMSB() {
         helper.shutdown();
     }

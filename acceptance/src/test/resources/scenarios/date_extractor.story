@@ -1,10 +1,10 @@
 Lifecycle:
 Before:
-Given init
+Given MSB init
 And microservice DateExtractor
 After:
 Outcome: ANY
-Given shutdown
+Given MSB shutdown
 
 Scenario: Parsing date with date extractor microservice
 

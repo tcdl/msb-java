@@ -1,13 +1,13 @@
 Lifecycle:
 Before:
-Given configuration with consumer thread pool size 5
-And configuration with consumer thread pool queue capacity 20
-And configuration with timer thread pool size 10
-And init
+Given MSB configuration with consumer thread pool size 5
+And MSB configuration with consumer thread pool queue capacity 20
+And MSB configuration with timer thread pool size 10
+And MSB init
 And microservice DateExtractor
 After:
 Outcome: ANY
-Given shutdown
+Given MSB shutdown
 
 Scenario: Sending multiple requests to date extractor microservice in parallel
 
