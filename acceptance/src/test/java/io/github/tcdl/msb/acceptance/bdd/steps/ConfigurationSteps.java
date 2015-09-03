@@ -4,6 +4,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import org.jbehave.core.annotations.Given;
+import org.jbehave.core.annotations.Then;
 
 /**
  * Steps to manipulate with MSB configuration
@@ -40,12 +41,12 @@ public class ConfigurationSteps extends MsbSteps {
         config = config.withValue(MSB_BROKER_CONSUMER_THREAD_POOL_QUEUE_CAPACITY, ConfigValueFactory.fromAnyRef(capacity));
     }
 
-    @Given("MSB init")
+    @Given("start MSB")
     public void initMSB() {
         helper.initWithConfig(config);
     }
 
-    @Given("MSB shutdown")
+    @Then("shutdown MSB")
     public void shutdownMSB() {
         helper.shutdown();
     }

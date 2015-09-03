@@ -1,10 +1,10 @@
 Lifecycle:
 Before:
-Given MSB init
+Given start MSB
 And responder server listens on namespace test:jbehave
 After:
 Outcome: ANY
-Given MSB shutdown
+Then shutdown MSB
 
 Scenario: Sends a request to a responder server and waits for response
 
