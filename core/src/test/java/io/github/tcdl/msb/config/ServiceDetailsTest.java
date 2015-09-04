@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import io.github.tcdl.msb.api.exception.ConfigurationException;
 
@@ -16,7 +17,7 @@ public class ServiceDetailsTest {
 
     @Test
     public void testServiceDetailsAll() {
-        String serviceDetailsConfigStr = "serviceDetails = {name = \"" + name + "\", version = \"" + version + "\", instanceId = \"" + instanceId + "\"}";
+        String serviceDetailsConfigStr = String.format("serviceDetails = {name = \"%s\", version = \"%s\", instanceId = \"%s\"}", name, version, instanceId);
         Config config = ConfigFactory.parseString(serviceDetailsConfigStr);
         ServiceDetails serviceDetails = new ServiceDetails.Builder(config.getConfig("serviceDetails")).build();
 
@@ -31,21 +32,22 @@ public class ServiceDetailsTest {
 
     @Test(expected = ConfigurationException.class)
     public void testServiceDetailsWithoutName() {
-        String serviceDetailsConfigStr = "serviceDetails = {version = \"" + version + "\", instanceId = \"" + instanceId + "\"}";
+        String serviceDetailsConfigStr = String.format("serviceDetails = {version = \"%s\", instanceId = \"%s\"}", version, instanceId);
         Config config = ConfigFactory.parseString(serviceDetailsConfigStr);
         new ServiceDetails.Builder(config.getConfig("serviceDetails")).build();
     }
 
     @Test(expected = ConfigurationException.class)
     public void testServiceDetailsWithoutVersion() {
-        String serviceDetailsConfigStr = "serviceDetails = {name = \"" + name + "\", instanceId = \"" + instanceId + "\"}";
+        String serviceDetailsConfigStr = String.format("serviceDetails = {name = \"%s\", instanceId = \"%s\"}", name, instanceId);
         Config config = ConfigFactory.parseString(serviceDetailsConfigStr);
         new ServiceDetails.Builder(config.getConfig("serviceDetails")).build();
     }
 
     @Test
     public void testServiceDetailsWithoutInstanceId() {
-        String serviceDetailsConfigStr = "serviceDetails = {name = \"" + name + "\", version = \"" + version + "\"}";
+        String serviceDetailsConfigStr = String.format("serviceDetails = {name = \"%s\", version = \"%s\"}", name, version);
+
         Config config = ConfigFactory.parseString(serviceDetailsConfigStr);
         ServiceDetails serviceDetails = new ServiceDetails.Builder(config.getConfig("serviceDetails")).build();
 
@@ -56,6 +58,20 @@ public class ServiceDetailsTest {
         String instanceId1 = serviceDetails.getInstanceId();
         String instanceId2 = serviceDetails.getInstanceId();
         assertEquals("expect stabel InstanceId value", instanceId1, instanceId2);
+    }
+
+    @Test
+    public void testNotRepeatableInstanceId() {
+        String serviceDetailsConfigStr = String.format("serviceDetails = {name = \"%s\", version = \"%s\"}", name, version);
+        Config config = ConfigFactory.parseString(serviceDetailsConfigStr);
+
+        ServiceDetails serviceDetails1 = new ServiceDetails.Builder(config.getConfig("serviceDetails")).build();
+        ServiceDetails serviceDetails2 = new ServiceDetails.Builder(config.getConfig("serviceDetails")).build();
+
+        String instanceId1 = serviceDetails1.getInstanceId();
+        String instanceId2 = serviceDetails2.getInstanceId();
+        
+        assertNotEquals("expect different InstanceId values", instanceId1, instanceId2);
     }
 
 }
