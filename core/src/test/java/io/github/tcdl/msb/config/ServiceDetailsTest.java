@@ -51,11 +51,11 @@ public class ServiceDetailsTest {
 
         assertEquals("expect \"" + name + "\" as a name value", name, serviceDetails.getName());
         assertEquals("expect \"" + version + "\" as a vesrion value", version, serviceDetails.getVersion());
-        assertNotNull("expect \"" + instanceId + "\" as an instanceId value", serviceDetails.getInstanceId());
+        assertNotNull("expect InstanceId is not null", serviceDetails.getInstanceId());
 
         String instanceId1 = serviceDetails.getInstanceId();
         String instanceId2 = serviceDetails.getInstanceId();
-        assertEquals("expect stabel instanceId value", instanceId1, instanceId2);
+        assertEquals("expect stabel InstanceId value", instanceId1, instanceId2);
     }
 
 }
