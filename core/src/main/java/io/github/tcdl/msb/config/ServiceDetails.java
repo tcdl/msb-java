@@ -1,12 +1,17 @@
 package io.github.tcdl.msb.config;
 
 import static io.github.tcdl.msb.config.ConfigurationUtil.getString;
+import static io.github.tcdl.msb.config.ConfigurationUtil.getOptionalString;
+import io.github.tcdl.msb.support.Utils;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.typesafe.config.Config;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +52,8 @@ public final class ServiceDetails {
         public Builder(Config config) {
             name = getString(config, "name");
             version = getString(config, "version");
-            instanceId = getString(config, "instanceId");
+            Optional<String> optionalInstanceId = getOptionalString(config, "instanceId");  
+            instanceId = optionalInstanceId.isPresent() ? optionalInstanceId.get() : Utils.generateId(); 
 
             hostname = getHostInfo().getHostName();
             ip = getHostInfo().getHostAddress();
