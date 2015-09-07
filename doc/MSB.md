@@ -282,11 +282,13 @@ All configuration files use _key-value pair_ structure.
 ### Description of MSB configuration fields
 Service details section describes microservice parameters.
 
-- `name ` – microservice name
-- `version` – microservice version
-- `instanceId` – unique microservice instance id
+- `name ` – microservice name. All run instances of the same microservice must have the same name.  
+- `version` – microservice version. At the moment Msb-java doesn't handle the value.
+- `instanceId` – unique microservice instance id. All run instances of the same microservice must have different instance ids.
 
-You may set these values directly
+Additional instances of a microservice can help with load balancing. The simplest way to have multiple instances is to deploy, configure and run a microservice from different locations with different instance ids. But if a microservice should be deployed and configured only once (for example, due to automatic load balancing reasons),  particular instance id need to be absent in the config. The msb-java automatically generates unique instance id for each microservice run if the value is not present in the config.
+
+You may set Service details values directly
 
 `name = "msb_java"`
 
