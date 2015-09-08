@@ -4,7 +4,7 @@
 
 The diagram below shows one possible approach when microservices communicate through a common bus:
 
-![msb-java overview](msb-java overview.png)
+![MSB-Java overview](msb-java overview.png)
 
 [MSB-Java](https://github.com/tcdl/msb-java) (for Java) and [MSB](https://github.com/tcdl/msb) (for Node.js) are libraries that can be used by microservice developers to streamline development in the following ways:
 * Hide interaction with the bus behind simple interfaces. They support different pluggable adapters for different bus implementations.
@@ -282,11 +282,13 @@ All configuration files use _key-value pair_ structure.
 ### Description of MSB configuration fields
 Service details section describes microservice parameters.
 
-- `name ` – microservice name
-- `version` – microservice version
-- `instanceId` – unique microservice instance id
+- `name ` – microservice name. All running instances of the same microservice must have the same name. 
+- `version` – microservice version. At the moment MSB-Java doesn't handle the value.
+- `instanceId` – unique microservice instance id. All running instances of the same microservice must have different instanceId.
 
-You may set these values directly
+Additional instances of a microservice can help with load balancing. The simplest way to have multiple instances is to deploy, configure and run a microservice from different locations with different instanceId values. But if a microservice should be deployed and configured only once (for example, due to automatic load balancing reasons), particular instanceId need to be absent in the config. The MSB-Java automatically generates unique instanceId for each microservice run if the value is not present in the config.
+
+You may set Service details values directly
 
 `name = "msb_java"`
 
@@ -381,6 +383,6 @@ The statistics may be used by some "infrastructure" microservice(s) that use/pro
 
 ## API class diagram
 
-The following diagram describes a set of classes and interfaces involved in calls from a microservice to msb-java and callbacks.
+The following diagram describes a set of classes and interfaces involved in calls from a microservice to MSB-Java and callbacks.
 
 ![MSB-Java external interfaces](Msb-java External Interfaces.png)
