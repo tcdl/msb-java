@@ -1,6 +1,5 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.MessageProperties;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.api.exception.ChannelException;
@@ -11,9 +10,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 public class AmqpProducerAdapter implements ProducerAdapter {
-    private Channel channel;
     private String exchangeName;
     private AmqpBrokerConfig amqpBrokerConfig;
+    private AmqpAutoRecoveringChannel amqpAutoRecoveringChannel;
 
     /**
      * The constructor.
@@ -25,10 +24,10 @@ public class AmqpProducerAdapter implements ProducerAdapter {
 
         this.exchangeName = topic;
         this.amqpBrokerConfig = amqpBrokerConfig;
+        this.amqpAutoRecoveringChannel = new AmqpAutoRecoveringChannel(connectionManager);
 
         try {
-            channel = connectionManager.obtainConnection().createChannel();
-            channel.exchangeDeclare(exchangeName, "fanout", false /* durable */, true /* auto-delete */, null);
+            amqpAutoRecoveringChannel.exchangeDeclare(exchangeName, "fanout", false /* durable */, true /* auto-delete */, null);
         } catch (IOException e) {
             throw new ChannelException("Failed to setup channel from ActiveMQ connection", e);
         }
@@ -41,7 +40,7 @@ public class AmqpProducerAdapter implements ProducerAdapter {
     public void publish(String jsonMessage) {
         try {
             Charset charset = amqpBrokerConfig.getCharset();
-            channel.basicPublish(exchangeName, "" /* routing key */, MessageProperties.PERSISTENT_BASIC, jsonMessage.getBytes(charset));
+            amqpAutoRecoveringChannel.basicPublish(exchangeName, "" /* routing key */, MessageProperties.PERSISTENT_BASIC, jsonMessage.getBytes(charset));
         } catch (IOException e) {
             throw new ChannelException(String.format("Failed to publish message '%s' into exchange '%s'", jsonMessage, exchangeName), e);
         }
