@@ -286,7 +286,11 @@ Service details section describes microservice parameters.
 - `version` – microservice version. At the moment MSB-Java doesn't handle the value.
 - `instanceId` – unique microservice instance id. All running instances of the same microservice must have different instanceId.
 
-Additional instances of a microservice can help with load balancing. The simplest way to have multiple instances is to deploy, configure and run a microservice from different locations with different instanceId values. But if a microservice should be deployed and configured only once (for example, due to automatic load balancing reasons), particular instanceId need to be absent in the config. The MSB-Java automatically generates unique instanceId for each microservice run if the value is not present in the config. The instanceId is stable during a run but after microservice restart it could be different.
+Additional instances of a microservice can help with load balancing. The simplest way to have multiple instances is to deploy, configure and run a microservice from different locations with different instanceId values. In this case a value of a instanceId need to be specified directly (or by means of environment variables, see below) in the application.conf, for example:
+
+`instanceId = "msb-d06a-ed59-4a39-9f95-811c5fb6ab87"`
+
+But if a microservice should be deployed and configured only once (for example, due to automatic load balancing reasons), particular instanceId need to be absent in the config. The MSB-Java automatically generates unique instanceId for each microservice run if the value is not present in the config. The instanceId is stable during a run but after microservice restart it could be different.
 
 The MSB-Java uses instanceId for generation of a response topic name. So if *namespace* is a name of the topic where message is sent to, then name of the topic where response is expected should be: *namespace*:response:*instanceId*.
 
