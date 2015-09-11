@@ -137,6 +137,12 @@ public class AmqpAdapterFactoryTest {
     }
 
     @Test
+    public void testInitGroupIdWithServiceName() {
+        AmqpBrokerConfig amqpBrokerConfig = new AmqpAdapterFactory().createAmqpBrokerConfig(msbConfigurations);
+        assertEquals(amqpBrokerConfig.getGroupId().get(), msbConfigurations.getServiceDetails().getName());
+    }
+
+    @Test
     public void testShutdown() {
         amqpAdapterFactory.init(msbConfigurations);
         amqpAdapterFactory.shutdown();
