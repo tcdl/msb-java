@@ -3,6 +3,7 @@ package io.github.tcdl.msb.api.message;
 import io.github.tcdl.msb.config.ServiceDetails;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 
 import org.apache.commons.lang3.Validate;
@@ -44,7 +45,7 @@ public final class MetaMessage {
 
         public MetaMessage build() {
             publishedAt = clock.instant();
-            Long durationMs = publishedAt.toEpochMilli() - this.createdAt.toEpochMilli();
+            Long durationMs = Duration.between(publishedAt, this.createdAt).toMillis();;
             return new MetaMessage(ttl, createdAt, publishedAt, durationMs, serviceDetails);
         }
     }

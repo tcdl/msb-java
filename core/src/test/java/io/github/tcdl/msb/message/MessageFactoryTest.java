@@ -242,6 +242,9 @@ public class MessageFactoryTest {
 
         Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
 
-        assertTrue(message.getMeta().getPublishedAt().isAfter(message.getMeta().getCreatedAt()));
+        Instant publishedAt = message.getMeta().getPublishedAt();
+        Instant createdAt = message.getMeta().getCreatedAt();
+
+        assertTrue(publishedAt.isAfter(createdAt));
     }
 }
