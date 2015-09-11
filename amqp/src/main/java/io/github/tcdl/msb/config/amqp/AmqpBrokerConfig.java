@@ -19,7 +19,7 @@ public class AmqpBrokerConfig {
     private Optional<String> virtualHost;
     private boolean useSSL;
 
-    private String groupId;
+    private Optional<String> groupId;
     private final boolean durable;
     private final int consumerThreadPoolSize;
     private final int consumerThreadPoolQueueCapacity;
@@ -27,7 +27,7 @@ public class AmqpBrokerConfig {
 
     public AmqpBrokerConfig(Charset charset, String host, int port,
             Optional<String> username, Optional<String> password, Optional<String> virtualHost, boolean useSSL,
-            String groupId, boolean durable, int consumerThreadPoolSize, int consumerThreadPoolQueueCapacity, boolean requeueRejectedMessages) {
+            Optional<String> groupId, boolean durable, int consumerThreadPoolSize, int consumerThreadPoolQueueCapacity, boolean requeueRejectedMessages) {
         this.charset = charset;
         this.port = port;
         this.host = host;
@@ -50,7 +50,7 @@ public class AmqpBrokerConfig {
         private Optional<String> password;
         private Optional<String> virtualHost;
         private boolean useSSL;
-        private String groupId;
+        private Optional<String> groupId;
         private boolean durable;
         private int consumerThreadPoolSize;
         private int consumerThreadPoolQueueCapacity;
@@ -77,7 +77,7 @@ public class AmqpBrokerConfig {
             this.virtualHost = ConfigurationUtil.getOptionalString(config, "virtualHost");
             this.useSSL = ConfigurationUtil.getBoolean(config, "useSSL");
 
-            this.groupId = ConfigurationUtil.getString(config, "groupId");
+            this.groupId = ConfigurationUtil.getOptionalString(config, "groupId");
             this.durable = ConfigurationUtil.getBoolean(config, "durable");
             this.consumerThreadPoolSize = ConfigurationUtil.getInt(config, "consumerThreadPoolSize");
             this.consumerThreadPoolQueueCapacity = ConfigurationUtil.getInt(config, "consumerThreadPoolQueueCapacity");
@@ -122,7 +122,7 @@ public class AmqpBrokerConfig {
         return useSSL;
     }
 
-    public String getGroupId() {
+    public Optional<String> getGroupId() {
         return groupId;
     }
 
@@ -130,7 +130,7 @@ public class AmqpBrokerConfig {
         return durable;
     }
 
-    public void setGroupId(String groupId) {
+    public void setGroupId(Optional<String> groupId) {
         this.groupId = groupId;
     }
 

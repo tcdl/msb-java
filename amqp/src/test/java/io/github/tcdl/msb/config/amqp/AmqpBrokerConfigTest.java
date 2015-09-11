@@ -51,7 +51,7 @@ public class AmqpBrokerConfigTest {
         assertEquals(brokerConfig.getCharset(), Charset.forName(charsetName));
         assertEquals(brokerConfig.getHost(), host);
         assertEquals(brokerConfig.getPort(), port);
-        assertEquals(brokerConfig.getGroupId(), groupId);
+        assertEquals(brokerConfig.getGroupId().get(), groupId);
         assertEquals(brokerConfig.isDurable(), durable);
         assertEquals(brokerConfig.getConsumerThreadPoolSize(), consumerThreadPoolSize);
         assertEquals(brokerConfig.getConsumerThreadPoolQueueCapacity(), consumerThreadPoolQueueCapacity);
@@ -70,7 +70,6 @@ public class AmqpBrokerConfigTest {
                 + " host = \"" + host + "\"\n"
                 + " port = \"" + port + "\"\n"
                 + " useSSL = \"" + useSSL + "\"\n"
-                + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
@@ -86,6 +85,7 @@ public class AmqpBrokerConfigTest {
         assertFalse(brokerConfig.getUsername().isPresent());
         assertFalse(brokerConfig.getPassword().isPresent());
         assertFalse(brokerConfig.getVirtualHost().isPresent());
+        assertFalse(brokerConfig.getGroupId().isPresent());
     }
 
     @Test
@@ -124,25 +124,6 @@ public class AmqpBrokerConfigTest {
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "port");
-    }
-
-    @Test
-    public void testGroupIdConfigurationOption() {
-        String configStr = "config.amqp {"
-                + " charsetName = \"" + charsetName + "\"\n"
-                + " host = \"" + host + "\"\n"
-                + " port = \"" + port + "\"\n"
-                + " username = \"" + username + "\"\n"
-                + " password = \"" + password + "\"\n"
-                + " virtualHost = \"" + virtualHost + "\"\n"
-                + " useSSL = \"" + useSSL + "\"\n"
-                + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
-                + "}";
-
-        testMandatoryConfigurationOption(configStr, "groupId");
     }
 
     @Test
