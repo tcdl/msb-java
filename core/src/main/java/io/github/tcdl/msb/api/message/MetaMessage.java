@@ -3,6 +3,7 @@ package io.github.tcdl.msb.api.message;
 import io.github.tcdl.msb.config.ServiceDetails;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 
 import org.apache.commons.lang3.Validate;
@@ -13,15 +14,17 @@ public final class MetaMessage {
 
     private final Integer ttl;
     private final Instant createdAt;
+    private final Instant publishedAt;
     private final Long durationMs;
     private final ServiceDetails serviceDetails;
 
-    private MetaMessage(@JsonProperty("ttl") Integer ttl, @JsonProperty("createdAt") Instant createdAt, @JsonProperty("durationMs") Long durationMs,
-            @JsonProperty("serviceDetails") ServiceDetails serviceDetails) {
+    private MetaMessage(@JsonProperty("ttl") Integer ttl, @JsonProperty("createdAt") Instant createdAt, @JsonProperty("publishedAt") Instant publishedAt,
+            @JsonProperty("durationMs") Long durationMs, @JsonProperty("serviceDetails") ServiceDetails serviceDetails) {
         Validate.notNull(createdAt, "the 'createdAt' must not be null");
         Validate.notNull(serviceDetails, "the 'serviceDetails' must not be null");
         this.ttl = ttl;
         this.createdAt = createdAt;
+        this.publishedAt = publishedAt;
         this.durationMs = durationMs;
         this.serviceDetails = serviceDetails;
     }
@@ -29,6 +32,7 @@ public final class MetaMessage {
     public static class Builder {
         private Integer ttl;
         private Instant createdAt;
+        private Instant publishedAt;
         private ServiceDetails serviceDetails;
         private Clock clock;
 
@@ -40,8 +44,9 @@ public final class MetaMessage {
         }     
 
         public MetaMessage build() {
-            Long durationMs = clock.instant().toEpochMilli() - this.createdAt.toEpochMilli();
-            return new MetaMessage(ttl, createdAt, durationMs, serviceDetails);
+            publishedAt = clock.instant();
+            Long durationMs = Duration.between(publishedAt, this.createdAt).toMillis();;
+            return new MetaMessage(ttl, createdAt, publishedAt, durationMs, serviceDetails);
         }
     }
 
@@ -51,6 +56,10 @@ public final class MetaMessage {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Instant getPublishedAt() {
+        return publishedAt;
     }
 
     public Long getDurationMs() {

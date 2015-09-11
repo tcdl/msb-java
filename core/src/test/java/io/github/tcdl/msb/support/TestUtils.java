@@ -180,9 +180,8 @@ public class TestUtils {
                 .build();
     }
 
-    public static Message.Builder createMessageBuilder() {
+    public static Message.Builder createMessageBuilder(Clock clock) {
         MsbConfig msbConf = createMsbConfigurations();
-        Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics("", "");
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);

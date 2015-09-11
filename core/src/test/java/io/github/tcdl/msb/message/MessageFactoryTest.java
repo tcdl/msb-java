@@ -30,6 +30,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageFactoryTest {
@@ -52,7 +53,7 @@ public class MessageFactoryTest {
         String bodyText = "body text";
         Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
 
-        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
 
         Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
 
@@ -62,7 +63,7 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateRequestMessageWithoutPayload() {
-        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
 
         Message message = messageFactory.createRequestMessage(requestMessageBuilder, null);
 
@@ -73,7 +74,7 @@ public class MessageFactoryTest {
     @Test
     public void testCreateResponseMessageWithPayloadAndAck() {
         String bodyText = "body text";
-        Builder responseMessageBuilder = TestUtils.createMessageBuilder();
+        Builder responseMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
         Payload responsePayload = TestUtils.createPayloadWithTextBody(bodyText);
         Acknowledge ack = new Acknowledge.Builder()
                 .withResponderId(Utils.generateId())
@@ -89,7 +90,7 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateResponseMessageWithoutPayloadAndAck() {
-        Builder responseMessageBuilder = TestUtils.createMessageBuilder();
+        Builder responseMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
 
         Message message = messageFactory.createResponseMessage(responseMessageBuilder, null, null);
 
@@ -101,7 +102,7 @@ public class MessageFactoryTest {
     public void testBroadcastMessage() {
         String bodyText = "body text";
         Payload broadcastPayload = TestUtils.createPayloadWithTextBody(bodyText);
-        Builder broadcastMessageBuilder = TestUtils.createMessageBuilder();
+        Builder broadcastMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
 
         Message message = messageFactory.createBroadcastMessage(broadcastMessageBuilder, broadcastPayload);
 
@@ -143,7 +144,7 @@ public class MessageFactoryTest {
         Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageTemplate, null);
         Message message = requestMessageBuilder.build();
 
-        String[] uniqueTags = Stream.of(tags).distinct().collect(Collectors.toList()).toArray(new String[]{});
+        String[] uniqueTags = Stream.of(tags).distinct().collect(Collectors.toList()).toArray(new String[] {});
         assertArrayEquals(uniqueTags, message.getTags().toArray());
     }
 
@@ -198,7 +199,7 @@ public class MessageFactoryTest {
         Builder requestMessageBuilder = messageFactory.createResponseMessageBuilder(messageTemplate, originalMessage);
         Message message = requestMessageBuilder.build();
 
-        String[] uniqueTags = Stream.of(tags).distinct().collect(Collectors.toList()).toArray(new String[]{});
+        String[] uniqueTags = Stream.of(tags).distinct().collect(Collectors.toList()).toArray(new String[] {});
         assertArrayEquals(uniqueTags, message.getTags().toArray());
     }
 
@@ -218,5 +219,35 @@ public class MessageFactoryTest {
     public void testCreateAckBuilder() throws Exception {
         Acknowledge ack = messageFactory.createAckBuilder().build();
         assertNotNull(ack.getResponderId());
+    }
+
+    @Test
+    public void testCreateRequestMessageBuilderPublishedAtPresent() {
+        String bodyText = "body text";
+        Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
+
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
+
+        Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
+
+        assertNotNull(message.getMeta().getPublishedAt());
+        assertEquals(message.getMeta().getPublishedAt(), FIXED_CLOCK.instant());
+    }
+
+    @Test
+    //This test potentially blinking(time when we create message Builder and Message could be equal)
+    //But the probability is very small
+    public void testCreateRequestMessageBuilderPublishedAtIsAfterCreatedAt() {
+        String bodyText = "body text";
+        Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
+
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder(Clock.systemDefaultZone());
+
+        Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
+
+        Instant publishedAt = message.getMeta().getPublishedAt();
+        Instant createdAt = message.getMeta().getCreatedAt();
+
+        assertTrue(publishedAt.isAfter(createdAt));
     }
 }

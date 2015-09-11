@@ -96,6 +96,7 @@ topics                  | section for routing information
 meta                    | section for message meta information
   ttl                   | time to live of a message. If ttl is exceeded an incoming message is ignored
   createdAt             | timezone-aware date/time when message was created
+  publishedAt           | timezone-aware date/time when message was published
   durationMs            | time taken to process the message
   serviceDetails        | section for microservice details
     name                | microservice name
