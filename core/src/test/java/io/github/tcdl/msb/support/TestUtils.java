@@ -180,12 +180,13 @@ public class TestUtils {
                 .build();
     }
 
-    public static Message.Builder createMessageBuilder() {
+    public static Message.Builder createMessageBuilder(Clock clock) {
         MsbConfig msbConf = createMsbConfigurations();
-        Clock clock = Clock.systemDefaultZone();
+
+        Clock clock1 = (clock != null ? clock : Clock.systemDefaultZone());
 
         Topics topic = new Topics("", "");
-        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
+        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock1);
         return new Message.Builder()
                 .withCorrelationId(Utils.generateId())
                 .withId(Utils.generateId())

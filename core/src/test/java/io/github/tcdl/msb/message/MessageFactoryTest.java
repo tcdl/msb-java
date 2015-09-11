@@ -53,7 +53,7 @@ public class MessageFactoryTest {
         String bodyText = "body text";
         Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
 
-        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
 
         Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
 
@@ -63,7 +63,7 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateRequestMessageWithoutPayload() {
-        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
 
         Message message = messageFactory.createRequestMessage(requestMessageBuilder, null);
 
@@ -74,7 +74,7 @@ public class MessageFactoryTest {
     @Test
     public void testCreateResponseMessageWithPayloadAndAck() {
         String bodyText = "body text";
-        Builder responseMessageBuilder = TestUtils.createMessageBuilder();
+        Builder responseMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
         Payload responsePayload = TestUtils.createPayloadWithTextBody(bodyText);
         Acknowledge ack = new Acknowledge.Builder()
                 .withResponderId(Utils.generateId())
@@ -90,7 +90,7 @@ public class MessageFactoryTest {
 
     @Test
     public void testCreateResponseMessageWithoutPayloadAndAck() {
-        Builder responseMessageBuilder = TestUtils.createMessageBuilder();
+        Builder responseMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
 
         Message message = messageFactory.createResponseMessage(responseMessageBuilder, null, null);
 
@@ -102,7 +102,7 @@ public class MessageFactoryTest {
     public void testBroadcastMessage() {
         String bodyText = "body text";
         Payload broadcastPayload = TestUtils.createPayloadWithTextBody(bodyText);
-        Builder broadcastMessageBuilder = TestUtils.createMessageBuilder();
+        Builder broadcastMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
 
         Message message = messageFactory.createBroadcastMessage(broadcastMessageBuilder, broadcastPayload);
 
@@ -226,11 +226,12 @@ public class MessageFactoryTest {
         String bodyText = "body text";
         Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
 
-        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
 
         Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
 
         assertNotNull(message.getMeta().getPublishedAt());
+        assertEquals(message.getMeta().getPublishedAt(), FIXED_CLOCK.instant());
     }
 
     @Test
@@ -238,7 +239,7 @@ public class MessageFactoryTest {
         String bodyText = "body text";
         Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
 
-        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder(null);
 
         Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
 
