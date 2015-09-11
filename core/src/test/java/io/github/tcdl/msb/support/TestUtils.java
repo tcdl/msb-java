@@ -183,10 +183,8 @@ public class TestUtils {
     public static Message.Builder createMessageBuilder(Clock clock) {
         MsbConfig msbConf = createMsbConfigurations();
 
-        Clock clock1 = (clock != null ? clock : Clock.systemDefaultZone());
-
         Topics topic = new Topics("", "");
-        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock1);
+        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
         return new Message.Builder()
                 .withCorrelationId(Utils.generateId())
                 .withId(Utils.generateId())
