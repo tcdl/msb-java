@@ -4,6 +4,7 @@ import com.rabbitmq.client.Channel;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
+import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;
@@ -47,7 +48,7 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
      */
     @Override
     public void subscribe(RawMessageHandler msgHandler) {
-        String groupId = adapterConfig.getGroupId();
+        String groupId = adapterConfig.getGroupId().orElse(Utils.generateId());
         boolean durable = adapterConfig.isDurable();
 
         String queueName = generateQueueName(topic, groupId, durable);

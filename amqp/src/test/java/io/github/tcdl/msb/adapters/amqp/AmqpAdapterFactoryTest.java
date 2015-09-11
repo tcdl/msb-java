@@ -78,7 +78,7 @@ public class AmqpAdapterFactoryTest {
         }
         
         amqpConfig = new AmqpBrokerConfig(charset, host, port,
-                Optional.of(username), Optional.of(password), Optional.of(virtualHost), useSSL, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages);
+                Optional.of(username), Optional.of(password), Optional.of(virtualHost), useSSL, Optional.of(groupId), durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages);
         
         amqpAdapterFactory = new AmqpAdapterFactory() {
             @Override
@@ -147,5 +147,4 @@ public class AmqpAdapterFactoryTest {
             fail("Can't invoke ConnectionManager.close()");
         }
     }
-
 }

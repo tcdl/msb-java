@@ -60,7 +60,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
 
         AmqpBrokerConfig brokerConfig = new AmqpBrokerConfig.AmqpBrokerConfigBuilder().withConfig(commonConfig).build();
         if (brokerConfig != null && brokerConfig.getGroupId() == null) {
-            brokerConfig.setGroupId(msbConfig.getServiceDetails().getName());
+            brokerConfig.setGroupId(Optional.of(msbConfig.getServiceDetails().getName()));
         }    
         return brokerConfig;
     }
@@ -175,7 +175,5 @@ public class AmqpAdapterFactory implements AdapterFactory {
     ExecutorService getConsumerThreadPool() {
         return consumerThreadPool;
     }
-    
-    
 
 }
