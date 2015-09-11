@@ -12,4 +12,4 @@ Then shutdown MSB
 Scenario: Sending multiple requests to date extractor microservice in parallel
 
 Given 2 requesters send a request to namespace search:parsers:facets:v1 with query 'Holidays in 2015'
-Then wait responses in 2000 ms
+Then wait responses in 5000 ms
