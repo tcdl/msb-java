@@ -30,6 +30,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageFactoryTest {
@@ -143,7 +144,7 @@ public class MessageFactoryTest {
         Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageTemplate, null);
         Message message = requestMessageBuilder.build();
 
-        String[] uniqueTags = Stream.of(tags).distinct().collect(Collectors.toList()).toArray(new String[]{});
+        String[] uniqueTags = Stream.of(tags).distinct().collect(Collectors.toList()).toArray(new String[] {});
         assertArrayEquals(uniqueTags, message.getTags().toArray());
     }
 
@@ -198,7 +199,7 @@ public class MessageFactoryTest {
         Builder requestMessageBuilder = messageFactory.createResponseMessageBuilder(messageTemplate, originalMessage);
         Message message = requestMessageBuilder.build();
 
-        String[] uniqueTags = Stream.of(tags).distinct().collect(Collectors.toList()).toArray(new String[]{});
+        String[] uniqueTags = Stream.of(tags).distinct().collect(Collectors.toList()).toArray(new String[] {});
         assertArrayEquals(uniqueTags, message.getTags().toArray());
     }
 
@@ -218,5 +219,29 @@ public class MessageFactoryTest {
     public void testCreateAckBuilder() throws Exception {
         Acknowledge ack = messageFactory.createAckBuilder().build();
         assertNotNull(ack.getResponderId());
+    }
+
+    @Test
+    public void testCreateRequestMessageBuilderPublishedAtPresent() {
+        String bodyText = "body text";
+        Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
+
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
+
+        Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
+
+        assertNotNull(message.getMeta().getPublishedAt());
+    }
+
+    @Test
+    public void testCreateRequestMessageBuilderPublishedAtIsAfterCreatedAt() {
+        String bodyText = "body text";
+        Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
+
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder();
+
+        Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
+
+        assertTrue(message.getMeta().getPublishedAt().isAfter(message.getMeta().getCreatedAt()));
     }
 }
