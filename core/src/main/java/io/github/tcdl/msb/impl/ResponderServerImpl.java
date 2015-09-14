@@ -57,14 +57,22 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
         channelManager.subscribe(namespace,
                 incomingMessage -> {
                     LOG.debug("[{}] Received message with id: [{}]", namespace, incomingMessage.getId());
-                    ResponderImpl responder = new ResponderImpl(messageTemplate, incomingMessage, msbContext);
+                    Responder responder = createResponder(incomingMessage);
                     onResponder(responder);
                 });
 
         return this;
     }
 
-    void onResponder(ResponderImpl responder) {
+    Responder createResponder(Message incomingMessage) {
+        if (isResponseNeeded(incomingMessage)) {
+            return new ResponderImpl(messageTemplate, incomingMessage, msbContext);
+        } else {
+            return new NoopResponderImpl(incomingMessage);
+        }
+    }
+
+    void onResponder(Responder responder) {
         Message originalMessage = responder.getOriginalMessage();
         Object rawPayload = originalMessage.getRawPayload();
         try {
@@ -76,6 +84,10 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
         } catch (Exception internalEx) {
             errorHandler(responder, internalEx, INTERNAL_SERVER_ERROR_CODE);
         }
+    }
+
+    private boolean isResponseNeeded(Message incomingMessage) {
+        return incomingMessage.getTopics().getResponse() != null;
     }
 
     private void errorHandler(Responder responder, Exception exception, int errorStatusCode) {

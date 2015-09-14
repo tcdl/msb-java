@@ -85,10 +85,19 @@ public class TestUtils {
 
     public static Message createMsbRequestMessageNoPayload(String namespace) {
         MsbConfig msbConf = createMsbConfigurations();
+        return createMsbRequestMessageNoPayload(namespace, namespace + ":response:" +
+                msbConf.getServiceDetails().getInstanceId());
+    }
+
+    public static Message createMsbBroadcastMessageNoPayload(String namespace) {
+        return createMsbRequestMessageNoPayload(namespace, null);
+    }
+
+    public static Message createMsbRequestMessageNoPayload(String namespace, String replyTopic) {
+        MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
-        Topics topic = new Topics(namespace, namespace + ":response:" +
-                msbConf.getServiceDetails().getInstanceId());
+        Topics topic = new Topics(namespace, replyTopic);
 
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
         return new Message.Builder()

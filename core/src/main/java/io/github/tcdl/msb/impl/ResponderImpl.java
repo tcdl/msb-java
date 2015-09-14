@@ -71,9 +71,7 @@ public class ResponderImpl implements Responder {
         Validate.notNull(originalMessage.getTopics(), "the 'originalMessage.topics' must not be null");
     }
 
-    /**
-     * @return original message which was received
-     */
+    /** {@inheritDoc} */
     public Message getOriginalMessage() {
         return this.originalMessage;
     }
