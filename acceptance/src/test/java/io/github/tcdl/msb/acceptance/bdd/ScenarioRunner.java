@@ -2,6 +2,7 @@ package io.github.tcdl.msb.acceptance.bdd;
 
 import io.github.tcdl.msb.acceptance.bdd.steps.AsyncRequesterSteps;
 import io.github.tcdl.msb.acceptance.bdd.steps.ConfigurationSteps;
+import io.github.tcdl.msb.acceptance.bdd.steps.LoggerSteps;
 import io.github.tcdl.msb.acceptance.bdd.steps.RequesterResponderSteps;
 import org.jbehave.core.configuration.Configuration;
 import org.jbehave.core.configuration.MostUsefulConfiguration;
@@ -27,7 +28,8 @@ public class ScenarioRunner extends JUnitStories {
         steps.addAll(Arrays.asList(
                 new ConfigurationSteps(),
                 new RequesterResponderSteps(),
-                new AsyncRequesterSteps()
+                new AsyncRequesterSteps(),
+                new LoggerSteps()
         ));
         return steps;
     }

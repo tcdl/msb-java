@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.acceptance.bdd.steps;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.tcdl.msb.acceptance.MsbTestHelper;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.support.Utils;
@@ -26,19 +27,25 @@ public class RequesterResponderSteps extends MsbSteps {
     // responder steps
     @Given("responder server listens on namespace $namespace")
     public void createResponderServer(String namespace) {
-        ObjectMapper mapper = super.helper.getObjectMapper();
-        helper.createResponderServer(namespace, (request, responder) -> {
+        createResponderServer(MsbTestHelper.DEFAULT_CONTEXT_NAME, namespace);
+    }
+
+    @Given("responder server from $contextName listens on namespace $namespace")
+    @When("responder server from $contextName listens on namespace $namespace")
+    public void createResponderServer(String contextName, String namespace) {
+        ObjectMapper mapper = helper.getPayloadMapper(contextName);
+        helper.createResponderServer(contextName, namespace, (request, responder) -> {
             if (responseBody != null) {
                 Payload payload = new Payload.Builder<Object, Object, Object, Map>()
                         .withBody(Utils.fromJson(responseBody, Map.class, mapper))
                         .build();
                 responder.send(payload);
             }
-        })
-                .listen();
+        }).listen();
     }
 
     @Given("responder server responds with '$body'")
+    @When("responder server responds with '$body'")
     public void respond(String body) {
         responseBody = body;
     }
@@ -46,12 +53,22 @@ public class RequesterResponderSteps extends MsbSteps {
     // requester steps
     @Given("requester sends requests to namespace $namespace")
     public void createRequester(String namespace) {
-        requester = helper.createRequester(namespace, 1);
+        createRequester(MsbTestHelper.DEFAULT_CONTEXT_NAME, namespace);
+    }
+
+    @Given("requester from $contextName sends requests to namespace $namespace")
+    public void createRequester(String contextName, String namespace) {
+        requester = helper.createRequester(contextName, namespace, 1);
     }
 
     @When("requester sends a request")
     public void sendRequest() throws Exception {
-        helper.sendRequest(requester, 1, this::onResponse);
+        sendRequest(MsbTestHelper.DEFAULT_CONTEXT_NAME);
+    }
+
+    @When("requester from $contextName sends a request")
+    public void sendRequest(String contextName) throws Exception {
+        helper.sendRequest(contextName, requester, 1, this::onResponse);
     }
 
     @When("requester sends a request with query '$query'")

@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
+import org.jbehave.core.annotations.When;
 
 /**
  * Steps to manipulate with MSB configuration
@@ -44,6 +45,18 @@ public class ConfigurationSteps extends MsbSteps {
     @Given("start MSB")
     public void initMSB() {
         helper.initWithConfig(config);
+    }
+
+    @Given("init MSB context $contextName")
+    @When("init MSB context $contextName")
+    public void initMsbContext(String contextName) {
+        helper.initWithConfig(contextName, config);
+    }
+
+    @Then("shutdown context $contextName")
+    @When("shutdown context $contextName")
+    public void shutdownMsbContext(String contextName) {
+        helper.shutdown(contextName);
     }
 
     @Then("shutdown MSB")

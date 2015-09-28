@@ -9,9 +9,17 @@
         </layout>
     </appender>
 
+    <appender name="listAppender" class="io.github.tcdl.msb.acceptance.bdd.util.ListAppender">
+        <param name="append" value="false"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{ABSOLUTE} %-5p [%t] %c{1} %m%n"/>
+        </layout>
+    </appender>
+
     <root>
         <level value="DEBUG"/>
         <appender-ref ref="consoleAppender"/>
+        <appender-ref ref="listAppender"/>
     </root>
 
 </log4j:configuration>
