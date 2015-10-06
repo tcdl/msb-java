@@ -2,6 +2,7 @@ package io.github.tcdl.msb.adapters.amqp;
 
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Recoverable;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.adapters.AdapterFactory;
@@ -46,7 +47,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
         amqpBrokerConfig = createAmqpBrokerConfig(msbConfig);
         ConnectionFactory connectionFactory = createConnectionFactory(amqpBrokerConfig);
         Connection connection = createConnection(connectionFactory);
-        connectionManager = createConnectionManager(connection);        
+        connectionManager = createConnectionManager(connection);
         consumerThreadPool = createConsumerThreadPool(amqpBrokerConfig);
     }
 
@@ -85,13 +86,16 @@ public class AmqpAdapterFactory implements AdapterFactory {
         ConnectionFactory connectionFactory = createConnectionFactory();
         connectionFactory.setHost(host);
         connectionFactory.setPort(port);
-        if(username.isPresent()) {
+        connectionFactory.setAutomaticRecoveryEnabled(true);
+        connectionFactory.setNetworkRecoveryInterval(adapterConfig.getNetworkRecoveryIntervalMs());
+        connectionFactory.setRequestedHeartbeat(adapterConfig.getHeartbeatIntervalSec());
+        if (username.isPresent()) {
             connectionFactory.setUsername(username.get());
         }
-        if(password.isPresent()) {
+        if (password.isPresent()) {
             connectionFactory.setPassword(password.get());
         }
-        if(virtualHost.isPresent()) {
+        if (virtualHost.isPresent()) {
             connectionFactory.setVirtualHost(virtualHost.get());
         }
 
@@ -126,6 +130,10 @@ public class AmqpAdapterFactory implements AdapterFactory {
             LOG.info(String.format("Opening AMQP connection to host = %s, port = %s, username = %s, password = xxx, virtualHost = %s...",
                     connectionFactory.getHost(), connectionFactory.getPort(), connectionFactory.getUsername(), connectionFactory.getVirtualHost()));
             Connection connection = connectionFactory.newConnection();
+            if (connection instanceof Recoverable) {
+                // This cast is possible for connections created by a factory that supports auto-recovery
+                ((Recoverable) connection).addRecoveryListener(recoverable -> LOG.info("AMQP connection recovered."));
+            }
             LOG.info("AMQP connection opened.");
             return connection;
         } catch (IOException e) {

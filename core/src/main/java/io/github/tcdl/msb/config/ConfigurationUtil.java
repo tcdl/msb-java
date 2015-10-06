@@ -81,4 +81,17 @@ public class ConfigurationUtil {
         throw new ConfigurationException(key);
     }
 
+    /**
+     * Get mandatory long value from Config for a specified key
+     * @param config configuration for MSB library
+     * @param key specified key in configuration
+     * @return value for specified key
+     * @throws ConfigurationException if specified key is not present in the configuration
+     */
+    public static long getLong(Config config, String key) {
+        if (config.hasPath(key)) {
+            return config.getLong(key);
+        }
+        throw new ConfigurationException(key);
+    }
 }

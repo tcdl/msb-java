@@ -1,127 +1,136 @@
 package io.github.tcdl.msb.config;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.util.Optional;
-
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 import io.github.tcdl.msb.api.exception.ConfigurationException;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+import java.util.Optional;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 public class ConfigurationUtilTest {
-
-    @Mock
-    private Config config;
 
     @Test
     public void testGetMandatoryBooleanExists() {
-        String param = "parameter.boolean";
-        when(config.hasPath(param)).thenReturn(true);
+        String paramName = "parameter.boolean";
+        Config config = createConfigWithValue(paramName, "true");
 
-        ConfigurationUtil.getBoolean(config, param);
-        verify(config).getBoolean(eq(param));
+        boolean value = ConfigurationUtil.getBoolean(config, paramName);
+
+        assertTrue(value);
     }
 
     @Test (expected = ConfigurationException.class)
     public void testGetMandatoryBooleanNotExists() {
         String param = "parameter.boolean";
-        when(config.hasPath(param)).thenReturn(false);
+        Config config = ConfigFactory.empty();
 
         ConfigurationUtil.getBoolean(config, param);
     }
 
     @Test
     public void testGetOptionalBooleanExists() {
-        String param = "parameter.boolean";
+        String paramName = "parameter.boolean";
+        Config config = createConfigWithValue(paramName, "true");
 
-        when(config.hasPath(param)).thenReturn(true);
+        Optional<Boolean> value = ConfigurationUtil.getOptionalBoolean(config, paramName);
 
-        Optional<Boolean> value = ConfigurationUtil.getOptionalBoolean(config, param);
-
-        verify(config).getBoolean(eq(param));
         assertTrue(value.isPresent());
+        assertTrue(value.get());
     }
 
     @Test
     public void testGetOptionalBooleanNotExists() {
-        String param = "parameter.boolean";
+        String paramName = "parameter.boolean";
+        Config config = ConfigFactory.empty();
 
-        when(config.hasPath(param)).thenReturn(false);
+        Optional<Boolean> value = ConfigurationUtil.getOptionalBoolean(config, paramName);
 
-        Optional<Boolean> value = ConfigurationUtil.getOptionalBoolean(config, param);
-
-        verify(config, never()).getBoolean(eq(param));
         assertFalse(value.isPresent());
     }
 
     @Test
     public void testGetMandatoryStringExists() {
-        String param = "parameter.string";
+        String paramName = "parameter.string";
+        String expectedValue = "some value";
+        Config config = createConfigWithValue(paramName, expectedValue);
 
-        when(config.hasPath(param)).thenReturn(true);
-
-        ConfigurationUtil.getString(config, param);
-        verify(config).getString(eq(param));
+        String value = ConfigurationUtil.getString(config, paramName);
+        assertEquals(expectedValue, value);
     }
 
-    @Test (expected = ConfigurationException.class)
+    @Test(expected = ConfigurationException.class)
     public void testGetMandatoryStringNotExists() {
         String param = "parameter.string";
-
-        when(config.hasPath(param)).thenReturn(false);
+        Config config = ConfigFactory.empty();
 
         ConfigurationUtil.getString(config, param);
     }
 
     @Test
     public void testGetOptionalStringExists() {
-        String param = "parameter.string";
+        String paramName = "parameter.string";
+        String expectedValue = "some value";
+        Config config = createConfigWithValue(paramName, expectedValue);
 
-        when(config.hasPath(param)).thenReturn(true);
+        Optional<String> value = ConfigurationUtil.getOptionalString(config, paramName);
 
-        ConfigurationUtil.getOptionalString(config, param);
-
-        verify(config).getString(eq(param));
+        assertTrue(value.isPresent());
+        assertEquals(expectedValue, value.get());
     }
 
     @Test
     public void testGetOptionalStringNotExists() {
-        String param = "parameter.string";
+        String paramName = "parameter.string";
+        Config config = ConfigFactory.empty();
 
-        when(config.hasPath(param)).thenReturn(false);
+        Optional<String> value = ConfigurationUtil.getOptionalString(config, paramName);
 
-        Optional<String> value = ConfigurationUtil.getOptionalString(config, param);
-
-        verify(config, never()).getString(eq(param));
         assertFalse(value.isPresent());
     }
 
     @Test
     public void testGetMandatoryIntegerExists() {
-        String param = "parameter.integer";
+        String paramName = "parameter.integer";
+        int expectedValue = 1000;
+        Config config = createConfigWithValue(paramName, expectedValue);
 
-        when(config.hasPath(param)).thenReturn(true);
+        int value = ConfigurationUtil.getInt(config, paramName);
 
-        ConfigurationUtil.getInt(config, param);
-
-        verify(config).getInt(eq(param));
+        assertEquals(expectedValue, value);
     }
 
-    @Test (expected = ConfigurationException.class)
+    @Test(expected = ConfigurationException.class)
     public void testGetMandatoryIntegerNotExists() {
         String param = "parameter.integer";
-
-        when(config.hasPath(param)).thenReturn(false);
-
+        Config config = ConfigFactory.empty();
         ConfigurationUtil.getInt(config, param);
     }
 
+    @Test
+    public void testGetMandatoryLongExists() {
+        String paramName = "parameter.long";
+        long expectedValue = 1000L;
+        Config config = createConfigWithValue(paramName, expectedValue);
+
+        long value = ConfigurationUtil.getLong(config, paramName);
+
+        assertEquals(expectedValue, value);
+    }
+
+    @Test(expected = ConfigurationException.class)
+    public void testGetMandatoryLongNotExists() {
+        String paramName = "parameter.long";
+        Config config = ConfigFactory.empty();
+        ConfigurationUtil.getLong(config, paramName);
+    }
+
+    private Config createConfigWithValue(String paramName, Object paramValue) {
+        return ConfigFactory.empty()
+                .withValue(paramName, ConfigValueFactory.fromAnyRef(paramValue));
+    }
 }

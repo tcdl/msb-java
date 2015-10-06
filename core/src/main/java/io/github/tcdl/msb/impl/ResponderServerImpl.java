@@ -92,7 +92,7 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
 
     private void errorHandler(Responder responder, Exception exception, int errorStatusCode) {
         Message originalMessage = responder.getOriginalMessage();
-        LOG.error("[{}] Error while processing message with id: [{}]. Cause: [{}]", namespace, originalMessage.getId(), exception.getMessage());
+        LOG.error("[{}] Error while processing message with id: [{}]", namespace, originalMessage.getId(), exception);
         Payload responsePayload = new Payload.Builder()
                 .withStatusCode(errorStatusCode)
                 .withStatusMessage(exception.getMessage())

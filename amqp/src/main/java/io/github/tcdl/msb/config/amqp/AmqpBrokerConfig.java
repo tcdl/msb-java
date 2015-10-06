@@ -24,10 +24,13 @@ public class AmqpBrokerConfig {
     private final int consumerThreadPoolSize;
     private final int consumerThreadPoolQueueCapacity;
     private final boolean requeueRejectedMessages;
+    private final int heartbeatIntervalSec;
+    private final long networkRecoveryIntervalMs;
 
     public AmqpBrokerConfig(Charset charset, String host, int port,
             Optional<String> username, Optional<String> password, Optional<String> virtualHost, boolean useSSL,
-            Optional<String> groupId, boolean durable, int consumerThreadPoolSize, int consumerThreadPoolQueueCapacity, boolean requeueRejectedMessages) {
+            Optional<String> groupId, boolean durable, int consumerThreadPoolSize, int consumerThreadPoolQueueCapacity, boolean requeueRejectedMessages,
+            int heartbeatIntervalSec, long networkRecoveryIntervalMs) {
         this.charset = charset;
         this.port = port;
         this.host = host;
@@ -40,6 +43,8 @@ public class AmqpBrokerConfig {
         this.consumerThreadPoolSize = consumerThreadPoolSize;
         this.consumerThreadPoolQueueCapacity = consumerThreadPoolQueueCapacity;
         this.requeueRejectedMessages = requeueRejectedMessages;
+        this.heartbeatIntervalSec = heartbeatIntervalSec;
+        this.networkRecoveryIntervalMs = networkRecoveryIntervalMs;
     }
 
     public static class AmqpBrokerConfigBuilder {
@@ -55,6 +60,8 @@ public class AmqpBrokerConfig {
         private int consumerThreadPoolSize;
         private int consumerThreadPoolQueueCapacity;
         private boolean requeueRejectedMessages;
+        private int heartbeatIntervalSec;
+        private long networkRecoveryIntervalMs;
 
         /**
          * Initialize Builder with Config
@@ -82,6 +89,8 @@ public class AmqpBrokerConfig {
             this.consumerThreadPoolSize = ConfigurationUtil.getInt(config, "consumerThreadPoolSize");
             this.consumerThreadPoolQueueCapacity = ConfigurationUtil.getInt(config, "consumerThreadPoolQueueCapacity");
             this.requeueRejectedMessages = ConfigurationUtil.getBoolean(config, "requeueRejectedMessages");
+            this.heartbeatIntervalSec = ConfigurationUtil.getInt(config, "heartbeatIntervalSec");
+            this.networkRecoveryIntervalMs = ConfigurationUtil.getLong(config, "networkRecoveryIntervalMs");
             return this;
         }
 
@@ -90,7 +99,7 @@ public class AmqpBrokerConfig {
          */
         public AmqpBrokerConfig build() {
             return new AmqpBrokerConfig(charset, host, port, username, password, virtualHost, useSSL,
-                    groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages);
+                    groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages, heartbeatIntervalSec, networkRecoveryIntervalMs);
         }
     }
 
@@ -146,10 +155,20 @@ public class AmqpBrokerConfig {
         return requeueRejectedMessages;
     }
 
+    public int getHeartbeatIntervalSec() {
+        return heartbeatIntervalSec;
+    }
+
+    public long getNetworkRecoveryIntervalMs() {
+        return networkRecoveryIntervalMs;
+    }
+
     @Override
     public String toString() {
-        return String.format("AmqpBrokerConfig [charset=%s, host=%s, port=%d, username=%s, password=xxx, virtualHost=%s, useSSL=%s, groupId=%s, durable=%s, consumerThreadPoolSize=%s, consumerThreadPoolQueueCapacity=%s, requeueRejectedMessages=%s]",
-                charset, host, port, username, virtualHost, useSSL, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages);
+        return String.format("AmqpBrokerConfig [charset=%s, host=%s, port=%d, username=%s, password=xxx, virtualHost=%s, useSSL=%s, groupId=%s, durable=%s, "
+                        + "consumerThreadPoolSize=%s, consumerThreadPoolQueueCapacity=%s, requeueRejectedMessages=%s, heartbeatIntervalSec=%s, networkRecoveryIntervalMs=%s]",
+                charset, host, port, username, virtualHost, useSSL, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages,
+                heartbeatIntervalSec, networkRecoveryIntervalMs);
     }
 
 }
