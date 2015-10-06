@@ -313,6 +313,8 @@ The section `brokerConfig` from [reference.conf](/core/src/main/resources/refere
 
 `port` – port number
 
+`useSSL` – defines whether we need to use SSL for AMQP connection. For the moment only simplest form of security is implemented that provides encryption but does not check remote certificates.
+
 `groupId` – microservices with the same `groupId` subscribed to the same namespace will receive messages from that namespace in round-robin fashion. If microservices have different `groupId`s and subscribed to the same namespace then all of those microservices are going to receive a copy of a message from that namespace.
 
 `durable` – queue durability, true/false. Defaults to false.
@@ -326,6 +328,22 @@ See for more [detail](https://www.rabbitmq.com/tutorials/amqp-concepts.html).
 
 `consumerThreadPoolQueueCapacity` – maximum number of requests waiting in FIFO queue to be processed by consumer thread pool. Should be positive integer or -1. Value of -1 stands for unlimited.
 
+The following fields are optional in case of broker running on local machine
+but are mandatory when using broker on remote computer. When there is a need to override the default values these fields are specified in application.conf file as additional `brokerConfig` parameters.
+
+`username` – login of the user connecting to remote machine, defaults to “guest”
+
+`password` – string of characters for user authentication, defaults to “guest”
+
+As was mentioned above the default values may be used only for the connection via local host.
+More references on how to configure the broker to allow the remote access with the default values “guest” can be found [here](https://www.rabbitmq.com/access-control.html).
+
+`virtualHost` – virutal host in RabbitMQ is more like a logical container where a user connected to a particular virtual host cannot access any resource (exchange, queue...) from another virtual host.
+
+`heartbeatIntervalSec` - interval of the heartbeats that are used to detect broken connections. Zero for none. See for more details: https://www.rabbitmq.com/heartbeats.html. Defaults to 1 second.
+
+`networkRecoveryIntervalMs` - interval of connection recovery attempts. See for more details: https://www.rabbitmq.com/api-guide.html#connection-recovery. Defaults to 5 seconds.
+
 ## AMQP adapter
 
 AMQP adapter is a module that allows to use any AMQP broker as a bus (for example RabbitMQ). [This article](https://www.rabbitmq.com/tutorials/amqp-concepts.html) gives a good overview of AMQP concepts.
@@ -335,6 +353,8 @@ Basically it allows to send and receive messages to _namespaces_ which consists 
 ![MSB RabbitMQ structure](MSB RabbitMQ structure.png)
 
 An interest twist is related to consumption of incoming messages. The adapter gets a message as soon as it arrives from broker and immediately puts it in _processing executor service_ from which those messages are picked up by worker threads. Parameters for that executor service like queue size and number of workers may be tweaked via configuration.
+
+The adapter supports AMQP connection recovery out of the box and it's always enabled. It's regulated by `heartbeatIntervalSec` and  `networkRecoveryIntervalMs` configuration values (see [this section](#description-of-amqp-connection-configuration-fields) for more details).
 
 ## Channel monitor agent
 
