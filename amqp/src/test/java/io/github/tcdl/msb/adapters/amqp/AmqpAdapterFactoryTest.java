@@ -6,6 +6,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.rabbitmq.client.Recoverable;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -27,6 +29,7 @@ import com.typesafe.config.ConfigFactory;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.withSettings;
 
 public class AmqpAdapterFactoryTest {
     final Charset charset = Charset.forName("UTF-8");
@@ -41,6 +44,8 @@ public class AmqpAdapterFactoryTest {
     final int consumerThreadPoolSize = 5;
     final int consumerThreadPoolQueueCapacity = 20;
     final boolean requeueRejectedMessages = true;
+    final int heartbeatIntervalSec = 1;
+    final long networkRecoveryIntervalMs = 5000;
     
     AmqpBrokerConfig amqpConfig;
     AmqpAdapterFactory amqpAdapterFactory;
@@ -66,7 +71,7 @@ public class AmqpAdapterFactoryTest {
         msbConfigurations = new MsbConfig(msbConfig); 
 
         mockConnectionFactory = mock(ConnectionFactory.class);
-        mockConnection = mock(Connection.class);
+        mockConnection = mock(Connection.class, withSettings().extraInterfaces(Recoverable.class));
         mockConnectionManager = mock(AmqpConnectionManager.class);
         mockConsumerThreadPool = mock(ExecutorService.class);
         
@@ -78,7 +83,8 @@ public class AmqpAdapterFactoryTest {
         }
         
         amqpConfig = new AmqpBrokerConfig(charset, host, port,
-                Optional.of(username), Optional.of(password), Optional.of(virtualHost), useSSL, Optional.of(groupId), durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages);
+                Optional.of(username), Optional.of(password), Optional.of(virtualHost), useSSL, Optional.of(groupId), durable,
+                consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages, heartbeatIntervalSec, networkRecoveryIntervalMs);
         
         amqpAdapterFactory = new AmqpAdapterFactory() {
             @Override

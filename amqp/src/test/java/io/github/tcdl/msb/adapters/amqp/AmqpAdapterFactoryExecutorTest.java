@@ -2,6 +2,7 @@ package io.github.tcdl.msb.adapters.amqp;
 
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Recoverable;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -17,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.withSettings;
 
 public class AmqpAdapterFactoryExecutorTest {
 
@@ -35,7 +37,7 @@ public class AmqpAdapterFactoryExecutorTest {
     private static class MockAdapterFactory extends AmqpAdapterFactory {
         @Override
         protected Connection createConnection(ConnectionFactory connectionFactory) {
-            return mock(Connection.class);
+            return mock(Connection.class, withSettings().extraInterfaces(Recoverable.class));
         }
     }
 

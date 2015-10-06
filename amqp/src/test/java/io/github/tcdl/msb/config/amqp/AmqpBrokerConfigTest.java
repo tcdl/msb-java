@@ -26,6 +26,8 @@ public class AmqpBrokerConfigTest {
     final int consumerThreadPoolSize = 5;
     final int consumerThreadPoolQueueCapacity = 20;
     final boolean requeueRejectedMessages = true;
+    final int heartbeatIntervalSec = 1;
+    final long networkRecoveryIntervalMs = 5000;
 
     @Test
     public void testBuildAmqpBrokerConfig() {
@@ -42,6 +44,8 @@ public class AmqpBrokerConfigTest {
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
+                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
+                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";
 
         Config amqpConfig = ConfigFactory.parseString(configStr).getConfig("config.amqp");
@@ -61,6 +65,9 @@ public class AmqpBrokerConfigTest {
         assertEquals(brokerConfig.getPassword().get(), password);
         assertEquals(brokerConfig.getVirtualHost().get(), virtualHost);
         assertFalse(brokerConfig.useSSL());
+
+        assertEquals(heartbeatIntervalSec, brokerConfig.getHeartbeatIntervalSec());
+        assertEquals(networkRecoveryIntervalMs, brokerConfig.getNetworkRecoveryIntervalMs());
     }
 
     @Test
@@ -74,6 +81,8 @@ public class AmqpBrokerConfigTest {
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
+                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
+                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";
 
         Config amqpConfig = ConfigFactory.parseString(configStr).getConfig("config.amqp");
@@ -102,6 +111,8 @@ public class AmqpBrokerConfigTest {
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
+                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
+                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "host");
@@ -121,6 +132,8 @@ public class AmqpBrokerConfigTest {
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
+                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
+                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "port");
@@ -140,6 +153,8 @@ public class AmqpBrokerConfigTest {
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
+                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
+                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "durable");
@@ -159,6 +174,8 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
+                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
+                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "consumerThreadPoolSize");
@@ -178,6 +195,8 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
+                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
+                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "consumerThreadPoolQueueCapacity");
@@ -197,6 +216,8 @@ public class AmqpBrokerConfigTest {
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
+                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
+                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "charsetName");
@@ -218,6 +239,8 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
+                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";
 
         AmqpBrokerConfig.AmqpBrokerConfigBuilder builder = createConfigBuilder(configStr);
@@ -237,6 +260,8 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
+                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "useSSL");
@@ -256,9 +281,53 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
+                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "requeueRejectedMessages");
+    }
+
+    @Test
+    public void testHeartbeatIntervalOption() {
+        String configStr = "config.amqp {"
+                + " charsetName = \"" + charsetName + "\"\n"
+                + " host = \"" + host + "\"\n"
+                + " port = \"" + port + "\"\n"
+                + " username = \"" + username + "\"\n"
+                + " password = \"" + password + "\"\n"
+                + " virtualHost = \"" + virtualHost + "\"\n"
+                + " useSSL = \"" + useSSL + "\"\n"
+                + " groupId = \"" + groupId + "\"\n"
+                + " durable = " + durable + "\n"
+                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
+                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
+                + "}";
+
+        testMandatoryConfigurationOption(configStr, "heartbeatIntervalSec");
+    }
+
+    @Test
+    public void testNetworkRecoveryIntervalOption() {
+        String configStr = "config.amqp {"
+                + " charsetName = \"" + charsetName + "\"\n"
+                + " host = \"" + host + "\"\n"
+                + " port = \"" + port + "\"\n"
+                + " username = \"" + username + "\"\n"
+                + " password = \"" + password + "\"\n"
+                + " virtualHost = \"" + virtualHost + "\"\n"
+                + " useSSL = \"" + useSSL + "\"\n"
+                + " groupId = \"" + groupId + "\"\n"
+                + " durable = " + durable + "\n"
+                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
+                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
+                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
+                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
+                + "}";
+
+        testMandatoryConfigurationOption(configStr, "networkRecoveryIntervalMs");
     }
 
     private void testMandatoryConfigurationOption(String configStr, String path) {
