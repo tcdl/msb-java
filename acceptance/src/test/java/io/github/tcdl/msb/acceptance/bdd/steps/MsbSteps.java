@@ -19,6 +19,13 @@ public class MsbSteps {
         startMethod.invoke(microserviceClass.newInstance(), helper.getDefaultContext());
     }
 
+    @Given("start microservice $microservice with context $contextName")
+    public void startMicroserviceWithContext(String microservice, String contextName) throws Throwable {
+        Class<?> microserviceClass = getClass().getClassLoader().loadClass(resolveClass(microservice));
+        Method startMethod = microserviceClass.getMethod("start", MsbContext.class);
+        startMethod.invoke(microserviceClass.newInstance(), helper.getContext(contextName));
+    }
+
     protected String resolveClass(String microservice) {
         if (microservice.startsWith("com.") || microservice.startsWith("io.")) {
             return microservice;
