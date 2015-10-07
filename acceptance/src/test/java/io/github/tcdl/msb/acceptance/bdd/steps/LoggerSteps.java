@@ -14,6 +14,6 @@ public class LoggerSteps {
 
     @Then("log contains '$substring'")
     public void logContains(String substring) throws Exception {
-        Assert.assertNotNull(ListAppender.getInstance().findLine(substring, 5, 200));
+        Assert.assertNotNull("String not found '" + substring + "'", ListAppender.getInstance().findLine(substring, 5, 500));
     }
 }
