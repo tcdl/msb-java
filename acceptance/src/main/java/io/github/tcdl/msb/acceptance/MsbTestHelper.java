@@ -158,7 +158,10 @@ public class MsbTestHelper {
     }
 
     public void shutdown(String contextName) {
-        getContext(contextName).shutdown();
+        MsbContext context = getContext(contextName);
+        if (context != null) {
+            context.shutdown();
+        }
     }
 
     public void shutdown() {
