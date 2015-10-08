@@ -4,13 +4,12 @@ import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;
 import org.junit.Assert;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ListAppender extends AppenderSkeleton {
 
-    private List<String> logEntries = new ArrayList<>();
+    private ConcurrentLinkedQueue<String> logEntries = new ConcurrentLinkedQueue<>();
     private static ListAppender instance;
 
     public ListAppender() {
