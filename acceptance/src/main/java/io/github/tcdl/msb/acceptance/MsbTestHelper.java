@@ -161,6 +161,7 @@ public class MsbTestHelper {
         MsbContext context = getContext(contextName);
         if (context != null) {
             context.shutdown();
+            contextMap.remove(contextName);
         }
     }
 
