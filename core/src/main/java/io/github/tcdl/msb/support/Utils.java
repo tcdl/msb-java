@@ -38,7 +38,9 @@ public class Utils {
         if (VALID_TOPIC_REGEXP.matcher(topic).matches()) {
             return topic;
         }
-        throw new IllegalArgumentException("\"" + topic + "\" must be an alpha-numeric, colon-delimited string");
+        RuntimeException e = new IllegalArgumentException("\"" + topic + "\" must be an alpha-numeric, colon-delimited string");
+        LOG.error("Topic validation error:", e);
+        throw e;
     }
 
     public static <T> T ifNull(T value, T other) {
