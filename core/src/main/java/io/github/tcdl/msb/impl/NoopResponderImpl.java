@@ -2,7 +2,6 @@ package io.github.tcdl.msb.impl;
 
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.RestPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +25,7 @@ public class NoopResponderImpl implements Responder {
 
     /** {@inheritDoc} */
     @Override
-    public void send(RestPayload<?, ?, ?, ?> responsePayload) {
+    public void send(Object responsePayload) {
         LOG.error("Cannot send response because response topic is unknown. Incoming message: {}", originalMessage);
     }
 

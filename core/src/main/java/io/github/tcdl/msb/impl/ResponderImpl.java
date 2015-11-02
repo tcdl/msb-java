@@ -1,18 +1,17 @@
 package io.github.tcdl.msb.impl;
 
-import static io.github.tcdl.msb.api.message.Acknowledge.Builder;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.message.MessageFactory;
 import io.github.tcdl.msb.support.Utils;
-
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static io.github.tcdl.msb.api.message.Acknowledge.Builder;
 
 public class ResponderImpl implements Responder {
 
@@ -51,7 +50,7 @@ public class ResponderImpl implements Responder {
      * {@inheritDoc}
      */
     @Override
-    public void send(RestPayload<?, ?, ?, ?> responsePayload) {
+    public void send(Object responsePayload) {
         Builder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.withResponderId(responderId);
         ackBuilder.withResponsesRemaining(-1);

@@ -14,7 +14,7 @@ import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ResponderServerImpl<T extends RestPayload> implements ResponderServer<T> {
+public class ResponderServerImpl<T> implements ResponderServer<T> {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServerImpl.class);
 
     private String namespace;
@@ -37,7 +37,7 @@ public class ResponderServerImpl<T extends RestPayload> implements ResponderServ
     /**
      * {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(String, MessageTemplate, RequestHandler, Class)}
      */
-    static <T extends RestPayload> ResponderServerImpl<T> create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext,
+    static <T> ResponderServerImpl<T> create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext,
             RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
         return new ResponderServerImpl<>(namespace, messageTemplate, msbContext, requestHandler, payloadTypeReference);
     }

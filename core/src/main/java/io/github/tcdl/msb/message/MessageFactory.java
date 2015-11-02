@@ -33,13 +33,13 @@ public class MessageFactory {
         this.payloadMapper = payloadMapper;
     }
 
-    public Message createRequestMessage(Message.Builder messageBuilder, RestPayload payload) {
+    public Message createRequestMessage(Message.Builder messageBuilder, Object payload) {
         JsonNode convertedPayload = Utils.convert(payload, JsonNode.class, payloadMapper);
         messageBuilder.withPayload(convertedPayload);
         return messageBuilder.build();
     }
 
-    public Message createResponseMessage(Message.Builder messageBuilder, Acknowledge ack, RestPayload<?, ?, ?, ?> payload) {
+    public Message createResponseMessage(Message.Builder messageBuilder, Acknowledge ack, Object payload) {
         JsonNode convertedPayload = Utils.convert(payload, JsonNode.class, payloadMapper);
         messageBuilder.withPayload(convertedPayload);
         messageBuilder.withAck(ack);

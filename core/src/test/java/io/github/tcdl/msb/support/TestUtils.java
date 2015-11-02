@@ -54,7 +54,7 @@ public class TestUtils {
     }
 
     public static RequestOptions createSimpleRequestOptions() {
-        return new RequestOptions.Builder<>()
+        return new RequestOptions.Builder()
                 .withMessageTemplate(createSimpleMessageTemplate())
                 .build();
     }
@@ -62,7 +62,7 @@ public class TestUtils {
     public static RequestOptions createSimpleRequestOptionsWithTags(String... tags) {
         MessageTemplate messageTemplate = createSimpleMessageTemplate();
         messageTemplate.withTags(tags);
-        return new RequestOptions.Builder<>()
+        return new RequestOptions.Builder()
                 .withMessageTemplate(messageTemplate)
                 .build();
     }

@@ -18,7 +18,7 @@ public interface ObjectFactory {
      * See {@link #createRequester(String, RequestOptions, TypeReference)}
      */
     default Requester<RestPayload> createRequester(String namespace, RequestOptions requestOptions) {
-        return createRequester(namespace, requestOptions, RestPayload.class);
+        return createRequester(namespace, requestOptions, RestPayload.class); // TODO use JsonNode here?
     }
 
     /**
@@ -26,7 +26,7 @@ public interface ObjectFactory {
      *
      * See {@link #createRequester(String, RequestOptions, TypeReference)}
      */
-    default <T extends RestPayload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, Class<T> payloadClass) {
+    default <T> Requester<T> createRequester(String namespace, RequestOptions requestOptions, Class<T> payloadClass) {
         return createRequester(namespace, requestOptions, new TypeReference<T>() {
             @Override
             public Type getType() {
@@ -41,7 +41,7 @@ public interface ObjectFactory {
      * @param payloadTypeReference  expected payload type of response messages
      * @return new instance of a {@link Requester} with original message
      */
-    <T extends RestPayload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference);
+    <T> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference);
 
     /**
      * Convenience method that specifies incoming payload type as {@link RestPayload}
@@ -50,7 +50,7 @@ public interface ObjectFactory {
      */
     default ResponderServer<RestPayload> createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<RestPayload> requestHandler) {
-        return createResponderServer(namespace, messageTemplate, requestHandler, RestPayload.class);
+        return createResponderServer(namespace, messageTemplate, requestHandler, RestPayload.class); // TODO use JsonNode here?
     }
 
     /**
@@ -58,7 +58,7 @@ public interface ObjectFactory {
      *
      * See {@link #createRequester(String, RequestOptions, TypeReference)}
      */
-    default <T extends RestPayload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
+    default <T> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {
         return createResponderServer(namespace, messageTemplate, requestHandler, new TypeReference<T>() {
             @Override
@@ -75,7 +75,7 @@ public interface ObjectFactory {
      * @param payloadTypeReference      expected payload type of incoming messages
      * @return new instance of a {@link ResponderServer} that unmarshals payload into specified payload type
      */
-    <T extends RestPayload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
+    <T> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference);
 
     /**

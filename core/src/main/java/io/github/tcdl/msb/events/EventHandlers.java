@@ -4,12 +4,11 @@ import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.RestPayload;
 
 /**
  * {@link EventHandlers} is a component that allows to register custom event handlers for {@link Requester} specific events.
  */
-public class EventHandlers<T extends RestPayload> {
+public class EventHandlers<T> {
 
     private Callback<Acknowledge> onAcknowledge = acknowledge -> {};
     private Callback<T> onResponse = response -> {};

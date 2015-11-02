@@ -37,7 +37,7 @@ public class ObjectFactoryImpl implements ObjectFactory {
     }
 
     @Override
-    public <T extends RestPayload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference) {
+    public <T> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference) {
         return RequesterImpl.create(namespace, requestOptions, msbContext, payloadTypeReference);
     }
 
@@ -45,7 +45,7 @@ public class ObjectFactoryImpl implements ObjectFactory {
      * {@inheritDoc}
      */
     @Override
-    public <T extends RestPayload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
+    public <T> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
         return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, payloadTypeReference);
     }
