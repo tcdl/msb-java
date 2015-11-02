@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.api;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 
@@ -13,12 +13,12 @@ import java.lang.reflect.Type;
 public interface ObjectFactory {
 
     /**
-     * Convenience method that specifies response payload type as {@link Payload}
+     * Convenience method that specifies response payload type as {@link RestPayload}
      *
      * See {@link #createRequester(String, RequestOptions, TypeReference)}
      */
-    default Requester<Payload> createRequester(String namespace, RequestOptions requestOptions) {
-        return createRequester(namespace, requestOptions, Payload.class);
+    default Requester<RestPayload> createRequester(String namespace, RequestOptions requestOptions) {
+        return createRequester(namespace, requestOptions, RestPayload.class);
     }
 
     /**
@@ -26,7 +26,7 @@ public interface ObjectFactory {
      *
      * See {@link #createRequester(String, RequestOptions, TypeReference)}
      */
-    default <T extends Payload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, Class<T> payloadClass) {
+    default <T extends RestPayload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, Class<T> payloadClass) {
         return createRequester(namespace, requestOptions, new TypeReference<T>() {
             @Override
             public Type getType() {
@@ -41,16 +41,16 @@ public interface ObjectFactory {
      * @param payloadTypeReference  expected payload type of response messages
      * @return new instance of a {@link Requester} with original message
      */
-    <T extends Payload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference);
+    <T extends RestPayload> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference);
 
     /**
-     * Convenience method that specifies incoming payload type as {@link Payload}
+     * Convenience method that specifies incoming payload type as {@link RestPayload}
      *
      * See {@link #createRequester(String, RequestOptions, TypeReference)}
      */
-    default ResponderServer<Payload> createResponderServer(String namespace, MessageTemplate messageTemplate,
-            ResponderServer.RequestHandler<Payload> requestHandler) {
-        return createResponderServer(namespace, messageTemplate, requestHandler, Payload.class);
+    default ResponderServer<RestPayload> createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<RestPayload> requestHandler) {
+        return createResponderServer(namespace, messageTemplate, requestHandler, RestPayload.class);
     }
 
     /**
@@ -58,7 +58,7 @@ public interface ObjectFactory {
      *
      * See {@link #createRequester(String, RequestOptions, TypeReference)}
      */
-    default <T extends Payload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
+    default <T extends RestPayload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {
         return createResponderServer(namespace, messageTemplate, requestHandler, new TypeReference<T>() {
             @Override
@@ -75,7 +75,7 @@ public interface ObjectFactory {
      * @param payloadTypeReference      expected payload type of incoming messages
      * @return new instance of a {@link ResponderServer} that unmarshals payload into specified payload type
      */
-    <T extends Payload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
+    <T extends RestPayload> ResponderServer<T> createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference);
 
     /**

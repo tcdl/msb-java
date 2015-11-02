@@ -5,7 +5,7 @@ import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.ResponderServer;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +23,7 @@ public class PongService {
             // Response handling logic
             LOG.info(String.format("Handling %s...", request.getBody()));
 
-            Payload pongPayload = new Payload.Builder<Object, Object, Object, String>()
+            RestPayload pongPayload = new RestPayload.Builder<Object, Object, Object, String>()
                     .withBody("PONG")
                     .build();
 

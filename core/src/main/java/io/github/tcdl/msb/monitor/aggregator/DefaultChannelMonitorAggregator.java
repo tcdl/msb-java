@@ -16,7 +16,7 @@ import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.AggregatorTopicStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
@@ -107,8 +107,8 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
         }
 
         try {
-            Payload<?, ?, ?, Map<String, AgentTopicStats>> payload = Utils
-                    .convert(rawPayload, new TypeReference<Payload<Object, Object, Object, Map<String, AgentTopicStats>>>() {
+            RestPayload<?, ?, ?, Map<String, AgentTopicStats>> payload = Utils
+                    .convert(rawPayload, new TypeReference<RestPayload<Object, Object, Object, Map<String, AgentTopicStats>>>() {
                     }, messageMapper);
             MetaMessage meta = message.getMeta();
             ServiceDetails serviceDetails = meta.getServiceDetails();

@@ -9,7 +9,7 @@ import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.support.TestUtils;
@@ -44,7 +44,7 @@ public class RequesterImplTest {
     private static final String NAMESPACE = "test:requester";
 
     @Mock
-    private EventHandlers<Payload> eventHandlerMock;
+    private EventHandlers<RestPayload> eventHandlerMock;
 
     @Mock
     private ChannelManager channelManagerMock;
@@ -60,7 +60,7 @@ public class RequesterImplTest {
 
     @Test
     public void testPublishNoWaitForResponses() throws Exception {
-        RequesterImpl<Payload> requester = initRequesterForResponsesWithTimeout(0);
+        RequesterImpl<RestPayload> requester = initRequesterForResponsesWithTimeout(0);
 
         requester.publish(TestUtils.createSimpleRequestPayload());
 
@@ -70,7 +70,7 @@ public class RequesterImplTest {
 
     @Test
     public void testPublishWaitForResponses() throws Exception {
-        RequesterImpl<Payload> requester = initRequesterForResponsesWithTimeout(1);
+        RequesterImpl<RestPayload> requester = initRequesterForResponsesWithTimeout(1);
 
         //doReturn(mock(CollectorManager.class)).when(collectorMock).findOrCreateCollectorManager(anyString());
 
@@ -83,9 +83,9 @@ public class RequesterImplTest {
     @Test
     public void testProducerPublishWithPayload() throws Exception {
         String bodyText = "Body text";
-        RequesterImpl<Payload> requester = initRequesterForResponsesWithTimeout(0);
+        RequesterImpl<RestPayload> requester = initRequesterForResponsesWithTimeout(0);
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-        Payload payload = TestUtils.createPayloadWithTextBody(bodyText);
+        RestPayload payload = TestUtils.createPayloadWithTextBody(bodyText);
 
         requester.publish(payload);
 
@@ -175,8 +175,8 @@ public class RequesterImplTest {
                 .withClock(Clock.systemDefaultZone())
                 .build();
 
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<Payload> requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), msbContext, new TypeReference<Payload>() {});
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
+        Requester<RestPayload> requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), msbContext, new TypeReference<RestPayload>() {});
         requester.publish(requestPayload);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
@@ -200,10 +200,10 @@ public class RequesterImplTest {
 
         String tag = "requester-tag";
         String dynamicTag = "dynamic-tag";
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
         RequestOptions requestOptions = TestUtils.createSimpleRequestOptionsWithTags(tag);
 
-        Requester<Payload> requester = RequesterImpl.create(NAMESPACE, requestOptions, msbContext, new TypeReference<Payload>() {});
+        Requester<RestPayload> requester = RequesterImpl.create(NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>() {});
         requester.publish(requestPayload, dynamicTag);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
@@ -211,7 +211,7 @@ public class RequesterImplTest {
         assertArrayEquals(new String[]{tag, dynamicTag}, requestMessage.getTags().toArray());
     }
 
-    private RequesterImpl<Payload> initRequesterForResponsesWithTimeout(int numberOfResponses) throws Exception {
+    private RequesterImpl<RestPayload> initRequesterForResponsesWithTimeout(int numberOfResponses) throws Exception {
 
         MessageTemplate messageTemplateMock = mock(MessageTemplate.class);
 
@@ -224,10 +224,10 @@ public class RequesterImplTest {
                 .withChannelManager(channelManagerMock)
                 .build();
 
-        RequesterImpl<Payload> requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, msbContext, new TypeReference<Payload>() {}));
+        RequesterImpl<RestPayload> requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, msbContext, new TypeReference<RestPayload>() {}));
 
         collectorMock = spy(new Collector<>(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptionsMock, msbContext, eventHandlerMock,
-                new TypeReference<Payload>() {}));
+                new TypeReference<RestPayload>() {}));
 
         doReturn(collectorMock)
                 .when(requester)

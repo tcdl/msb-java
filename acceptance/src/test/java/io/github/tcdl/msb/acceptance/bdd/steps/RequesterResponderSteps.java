@@ -3,7 +3,7 @@ package io.github.tcdl.msb.acceptance.bdd.steps;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.acceptance.MsbTestHelper;
 import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;
@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public class RequesterResponderSteps extends MsbSteps {
 
-    private Requester<Payload<Object, Object, Object, Map<String, Object>>> requester;
+    private Requester<RestPayload<Object, Object, Object, Map<String, Object>>> requester;
     private String responseBody;
     private Map<String, Object> receivedResponse;
 
@@ -36,7 +36,7 @@ public class RequesterResponderSteps extends MsbSteps {
         ObjectMapper mapper = helper.getPayloadMapper(contextName);
         helper.createResponderServer(contextName, namespace, (request, responder) -> {
             if (responseBody != null) {
-                Payload payload = new Payload.Builder<Object, Object, Object, Map>()
+                RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map>()
                         .withBody(Utils.fromJson(responseBody, Map.class, mapper))
                         .build();
                 responder.send(payload);
@@ -81,7 +81,7 @@ public class RequesterResponderSteps extends MsbSteps {
         helper.sendRequest(requester, null, body, true, 1, null, this::onResponse);
     }
 
-    private void onResponse(Payload<Object, Object, Object, Map<String, Object>> payload) {
+    private void onResponse(RestPayload<Object, Object, Object, Map<String, Object>> payload) {
         receivedResponse = payload.getBody();
     }
 

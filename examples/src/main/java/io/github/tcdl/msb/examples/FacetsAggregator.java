@@ -6,7 +6,7 @@ import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.Responder;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.examples.payload.Request;
 
 import javax.script.ScriptException;
@@ -39,7 +39,7 @@ public class FacetsAggregator {
             String q = facetsRequest.getQuery().getQ();
 
             if (q == null) {
-                Payload responsePayload = new Payload.Builder()
+                RestPayload responsePayload = new RestPayload.Builder()
                         .withStatusCode(400)
                         .build();
                 responder.send(responsePayload);
@@ -55,7 +55,7 @@ public class FacetsAggregator {
 
                 responseBodyAny.setFacets(Collections.singletonList(facet));
 
-                Payload responsePayloadAny = new Payload.Builder<Object, Object, Object, ResponseBodyAny>()
+                RestPayload responsePayloadAny = new RestPayload.Builder<Object, Object, Object, ResponseBodyAny>()
                         .withStatusCode(200)
                         .withBody(responseBodyAny)
                         .build();
@@ -69,20 +69,20 @@ public class FacetsAggregator {
                         .withResponseTimeout(600)
                         .build();
 
-                Requester<Payload> requester = msbContext.getObjectFactory().createRequester("search:parsers:facets:v1",
-                        requestOptions, Payload.class);
+                Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester("search:parsers:facets:v1",
+                        requestOptions, RestPayload.class);
 
                 final String[] result = {""};
 
-                List<Payload> responses = Collections.synchronizedList(new ArrayList<>());
+                List<RestPayload> responses = Collections.synchronizedList(new ArrayList<>());
                 requester.onResponse(responses::add)
                 .onEnd(end -> {
-                    for (Payload payload : responses) {
+                    for (RestPayload payload : responses) {
                         System.out.println(">>> MESSAGE: " + payload);
                         result[0] += payload;
                     }
 
-                    Payload responsePayload = new Payload.Builder<Object, Object, Object, String>()
+                    RestPayload responsePayload = new RestPayload.Builder<Object, Object, Object, String>()
                             .withStatusCode(200)
                             .withBody(result[0])
                             .build();

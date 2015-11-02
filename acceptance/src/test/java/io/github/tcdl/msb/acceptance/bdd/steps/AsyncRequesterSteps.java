@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.acceptance.bdd.steps;
 
 import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
 
@@ -25,7 +25,7 @@ public class AsyncRequesterSteps extends MsbSteps {
 
         for (int i = 0; i < numberOfRequesters; i++) {
             CompletableFuture.supplyAsync(() -> {
-                Requester<Payload<Object, Object, Object, Map<String, Object>>> requester = helper.createRequester(namespace, 1);
+                Requester<RestPayload<Object, Object, Object, Map<String, Object>>> requester = helper.createRequester(namespace, 1);
                 try {
                     helper.sendRequest(requester, query, null, true, 1, null, this::onResponse);
                 } catch (Exception e) {
@@ -42,7 +42,7 @@ public class AsyncRequesterSteps extends MsbSteps {
         assertEquals("Some requests were not responded", 0, await.getCount());
     }
 
-    private void onResponse(Payload payload) {
+    private void onResponse(RestPayload payload) {
         await.countDown();
     }
 }

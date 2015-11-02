@@ -10,7 +10,7 @@ import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.Topics;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
@@ -111,7 +111,7 @@ public class ProducerTest {
         Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
         Map<String, String> body = new HashMap<>();
         body.put("body", "{\\\"x\\\" : 3} garbage");
-        Payload<?, ?, ?, Map<String, String>> payload = new Payload.Builder<Object, Object, Object, Map<String, String>>()
+        RestPayload<?, ?, ?, Map<String, String>> payload = new RestPayload.Builder<Object, Object, Object, Map<String, String>>()
                 .withBody(body)
                 .build();
         JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);

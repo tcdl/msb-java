@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.acceptance;
 
 import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import java.util.Map;
@@ -56,7 +56,7 @@ public class MultipleRequesterResponder {
     }
 
     private Future<String> createAndRunRequester(ExecutorService executor, String namespace) {
-        Requester<Payload<Object, Object, Object, Map<String, Object>>> requester = util.createRequester(namespace, NUMBER_OF_RESPONSES, null, 5000);
+        Requester<RestPayload<Object, Object, Object, Map<String, Object>>> requester = util.createRequester(namespace, NUMBER_OF_RESPONSES, null, 5000);
         Future<String> future = executor.submit(new Callable<String>() {
             String result = null;
 

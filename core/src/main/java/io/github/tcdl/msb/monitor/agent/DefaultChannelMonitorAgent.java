@@ -3,12 +3,12 @@ package io.github.tcdl.msb.monitor.agent;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.Responder;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ResponderImpl;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.message.MessageFactory;
-import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.support.Utils;
 
 import java.time.Clock;
@@ -59,7 +59,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
         channelManager.subscribe(Utils.TOPIC_HEARTBEAT, // Launch listener for heartbeat topic
                 message -> {
                         Responder responder = new ResponderImpl(null, message, msbContext);
-                        Payload payload = new Payload.Builder<Object, Object, Object, Map<String, AgentTopicStats>>()
+                        RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map<String, AgentTopicStats>>()
                                 .withBody(topicInfoMap)
                                 .build();
                         responder.send(payload);
@@ -140,7 +140,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
      * Makes broadcast of the current statistics.
      */
     private void doAnnounce() {
-        Payload payload = new Payload.Builder<Object, Object, Object, Map<String, AgentTopicStats>>()
+        RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map<String, AgentTopicStats>>()
                 .withBody(topicInfoMap)
                 .build();
 

@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 // Workaround to using setFieldVisibility on object mapper. It caused infinite recursion
 @JsonAutoDetect(getterVisibility = PROTECTED_AND_PUBLIC, setterVisibility = PROTECTED_AND_PUBLIC)
-public class Payload<Q, H, P, B> {
+public class RestPayload<Q, H, P, B> {
 
     /**
      * Response status code
@@ -55,11 +55,11 @@ public class Payload<Q, H, P, B> {
      */
     private byte[] bodyBuffer;
 
-    protected Payload() {
+    protected RestPayload() {
     }
 
     @JsonCreator
-    private Payload(
+    private RestPayload(
             @JsonProperty("statusCode") Integer statusCode,
             @JsonProperty("statusMessage") String statusMessage,
             @JsonProperty("query") Q query,
@@ -177,21 +177,21 @@ public class Payload<Q, H, P, B> {
             return this;
         }
 
-        public Payload<Q, H, P, B> build() {
-            return new Payload<>(statusCode, statusMessage, query, headers, params, body, bodyBuffer);
+        public RestPayload<Q, H, P, B> build() {
+            return new RestPayload<>(statusCode, statusMessage, query, headers, params, body, bodyBuffer);
         }
     }
 
     @Override
     public String toString() {
-        return String.format("Payload [statusCode=%s, statusMessage=%s, query=%s, headers=%s, params=%s, body=%s, bodyBuffer=%s]",
+        return String.format("RestPayload [statusCode=%s, statusMessage=%s, query=%s, headers=%s, params=%s, body=%s, bodyBuffer=%s]",
                 statusCode, statusMessage, query, headers, params, body, Arrays.toString(bodyBuffer));
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Payload) {
-            Payload<?, ?, ?, ?> other = (Payload<?, ?, ?, ?>) obj;
+        if (obj instanceof RestPayload) {
+            RestPayload<?, ?, ?, ?> other = (RestPayload<?, ?, ?, ?>) obj;
             return Objects.equals(body, other.body)
                     && Objects.deepEquals(bodyBuffer, other.bodyBuffer)
                     && Objects.equals(headers, other.headers)

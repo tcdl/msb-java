@@ -5,7 +5,7 @@ import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.message.MessageFactory;
 import io.github.tcdl.msb.support.TestUtils;
@@ -36,7 +36,7 @@ public class ResponderImplTest {
     private MsbContextImpl msbContextSpy;
     private ChannelManager mockChannelManager;
     private Producer mockProducer;
-    private Payload emptyPayload;
+    private RestPayload emptyPayload;
     private Message originalMessage;
     private Responder responder;
 
@@ -54,7 +54,7 @@ public class ResponderImplTest {
         msbContextSpy = spy(msbContext);
         mockChannelManager = mock(ChannelManager.class);
         mockProducer = mock(Producer.class);
-        emptyPayload = new Payload.Builder().build();
+        emptyPayload = new RestPayload.Builder().build();
         originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
 
         when(msbContextSpy.getChannelManager()).thenReturn(mockChannelManager);
@@ -91,7 +91,7 @@ public class ResponderImplTest {
     @Test
     public void testProducerPublishUseCorrectPayload() {
         String bodyText = "This is body";
-        Payload<?, ?, ?, String> simplePayload = TestUtils.createPayloadWithTextBody(bodyText);
+        RestPayload<?, ?, ?, String> simplePayload = TestUtils.createPayloadWithTextBody(bodyText);
 
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
         responder.send(simplePayload);

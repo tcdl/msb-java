@@ -8,13 +8,13 @@ import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ResponderServerImpl<T extends Payload> implements ResponderServer<T> {
+public class ResponderServerImpl<T extends RestPayload> implements ResponderServer<T> {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServerImpl.class);
 
     private String namespace;
@@ -37,7 +37,7 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
     /**
      * {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(String, MessageTemplate, RequestHandler, Class)}
      */
-    static <T extends Payload> ResponderServerImpl<T> create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext,
+    static <T extends RestPayload> ResponderServerImpl<T> create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext,
             RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
         return new ResponderServerImpl<>(namespace, messageTemplate, msbContext, requestHandler, payloadTypeReference);
     }
@@ -93,7 +93,7 @@ public class ResponderServerImpl<T extends Payload> implements ResponderServer<T
     private void errorHandler(Responder responder, Exception exception, int errorStatusCode) {
         Message originalMessage = responder.getOriginalMessage();
         LOG.error("[{}] Error while processing message with id: [{}]", namespace, originalMessage.getId(), exception);
-        Payload responsePayload = new Payload.Builder()
+        RestPayload responsePayload = new RestPayload.Builder()
                 .withStatusCode(errorStatusCode)
                 .withStatusMessage(exception.getMessage())
                 .build();

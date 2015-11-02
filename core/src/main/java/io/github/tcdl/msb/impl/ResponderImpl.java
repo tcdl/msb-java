@@ -6,7 +6,7 @@ import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.message.MessageFactory;
 import io.github.tcdl.msb.support.Utils;
 
@@ -51,7 +51,7 @@ public class ResponderImpl implements Responder {
      * {@inheritDoc}
      */
     @Override
-    public void send(Payload<?, ?, ?, ?> responsePayload) {
+    public void send(RestPayload<?, ?, ?, ?> responsePayload) {
         Builder ackBuilder = this.messageFactory.createAckBuilder();
         ackBuilder.withResponderId(responderId);
         ackBuilder.withResponsesRemaining(-1);

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Base64;
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.support.TestUtils;
 import org.junit.Before;
@@ -30,8 +30,8 @@ public class RequesterIT {
 
     @Test
     public void testRequestMessage() throws Exception {
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
+        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
@@ -41,8 +41,8 @@ public class RequesterIT {
     @Test
     public void testRequestMessageWithBodyBufferBase64Encoded() throws Exception {
         byte[] bytesToSend = new byte[] { 1, 2 };
-        Payload requestPayload = TestUtils.createSimpleRequestPayloadWithBodyBuffer(bytesToSend);
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayloadWithBodyBuffer(bytesToSend);
+        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
@@ -55,8 +55,8 @@ public class RequesterIT {
     @Test
     public void testRequestMessageWithDynamicTag() throws Exception {
         String dynamicTag = "dynamic-tag";
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
+        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload, dynamicTag);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
@@ -69,8 +69,8 @@ public class RequesterIT {
         String dynamicTag = "dynamic-tag";
         String dynamicTagOriginal = "dynamic-tag-original";
         Message originalMessage = TestUtils.createSimpleRequestMessageWithTags(NAMESPACE, dynamicTagOriginal);
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
+        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload, originalMessage, dynamicTag);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
@@ -83,8 +83,8 @@ public class RequesterIT {
         String dynamicTag = "dynamic-tag";
         String dynamicTagOriginal = "dynamic-tag-original";
         Message originalMessage = TestUtils.createSimpleRequestMessageWithTags(NAMESPACE, dynamicTagOriginal, STATIC_TAG);
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
+        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload, originalMessage, dynamicTag);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);

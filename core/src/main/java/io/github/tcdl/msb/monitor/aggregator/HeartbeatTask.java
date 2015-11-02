@@ -4,7 +4,7 @@ import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,7 @@ public class HeartbeatTask implements Runnable {
                     .withWaitForResponses(-1)
                     .build();
 
-            Payload emptyPayload = new Payload.Builder().build();
+            RestPayload emptyPayload = new RestPayload.Builder().build();
 
             List<Message> messages = new LinkedList<>();
             objectFactory.createRequester(Utils.TOPIC_HEARTBEAT, requestOptions)

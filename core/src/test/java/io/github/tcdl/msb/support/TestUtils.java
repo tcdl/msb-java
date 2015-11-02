@@ -15,7 +15,7 @@ import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.Topics;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.collector.CollectorManagerFactory;
 import io.github.tcdl.msb.collector.TimeoutManager;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -109,7 +109,7 @@ public class TestUtils {
                 .build();
     }
 
-    public static Message createMsbRequestMessageWithCorrelationId(String topicTo, String correlationId, Payload payload) {
+    public static Message createMsbRequestMessageWithCorrelationId(String topicTo, String correlationId, RestPayload payload) {
         ObjectMapper payloadMapper = createMessageMapper();
         JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
         return createMsbRequestMessage(topicTo, null, correlationId, payloadNode);
@@ -135,7 +135,7 @@ public class TestUtils {
         }
     }
 
-    public static Message createMsbRequestMessage(String topicTo, String instanceId, Payload payload, String... tags) {
+    public static Message createMsbRequestMessage(String topicTo, String instanceId, RestPayload payload, String... tags) {
         ObjectMapper payloadMapper = createMessageMapper();
         JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
         return createMsbRequestMessage(topicTo, instanceId, null, payloadNode, tags);
@@ -162,8 +162,8 @@ public class TestUtils {
         return builder.build();
     }
 
-    public static Payload<Object, Object, Object, String> createPayloadWithTextBody(String bodyText) {
-        return new Payload.Builder<Object, Object, Object, String>()
+    public static RestPayload<Object, Object, Object, String> createPayloadWithTextBody(String bodyText) {
+        return new RestPayload.Builder<Object, Object, Object, String>()
                 .withBody(bodyText)
                 .build();
     }
@@ -217,7 +217,7 @@ public class TestUtils {
         return new MsbContextBuilder().createMessageEnvelopeMapper();
     }
 
-    public static Payload<Object, Map<String, String>, Object, Map<String, String>> createSimpleRequestPayload() {
+    public static RestPayload<Object, Map<String, String>, Object, Map<String, String>> createSimpleRequestPayload() {
         Map<String, String> headers = new HashMap<>();
         headers.put("url", "http://mock/request");
         headers.put("method", "Request");
@@ -226,25 +226,25 @@ public class TestUtils {
 
         body.put("body", "someRequestBody created at " + Clock.systemDefaultZone().millis());
 
-        return new Payload.Builder<Object, Map<String, String>, Object, Map<String, String>>()
+        return new RestPayload.Builder<Object, Map<String, String>, Object, Map<String, String>>()
                 .withHeaders(headers)
                 .withBody(body)
                 .withBodyBuffer(new byte[5])
                 .build();
     }
 
-    public static Payload<Object, Map<String, String>, Object, Map<String, String>> createSimpleRequestPayloadWithBodyBuffer(byte [] bodyBuffer) {
+    public static RestPayload<Object, Map<String, String>, Object, Map<String, String>> createSimpleRequestPayloadWithBodyBuffer(byte [] bodyBuffer) {
         Map<String, String> headers = new HashMap<>();
         headers.put("url", "http://mock/request");
         headers.put("method", "APPLICATION/OCTET-STREAM");
 
-        return new Payload.Builder<Object, Map<String, String>, Object, Map<String, String>>()
+        return new RestPayload.Builder<Object, Map<String, String>, Object, Map<String, String>>()
                 .withHeaders(headers)
                 .withBodyBuffer(bodyBuffer)
                 .build();
     }
 
-    public static Payload<Object, Map<String, String>, Object, Map<String, String>> createSimpleResponsePayload() {
+    public static RestPayload<Object, Map<String, String>, Object, Map<String, String>> createSimpleResponsePayload() {
         Map<String, String> headers = new HashMap<>();
         headers.put("statusCode", "200");
         headers.put("method", "Response");
@@ -252,7 +252,7 @@ public class TestUtils {
         Map<String, String> body = new HashMap<>();
         body.put("body", "someResponseBody");
 
-        return new Payload.Builder<Object, Map<String, String>, Object, Map<String, String>>()
+        return new RestPayload.Builder<Object, Map<String, String>, Object, Map<String, String>>()
                 .withHeaders(headers)
                 .withBody(body)
                 .build();
@@ -274,7 +274,7 @@ public class TestUtils {
         assertEquals(value, jsonObject.get(field).asText());
     }
 
-    public static void assertRequestMessagePayload(String json, Payload payload, String requestNamespace) {
+    public static void assertRequestMessagePayload(String json, RestPayload payload, String requestNamespace) {
         try {
             MsbContextImpl msbContext = TestUtils.createMsbContextBuilder().build();
             new JsonValidator().validate(json, msbContext.getMsbConfig().getSchema());
@@ -303,7 +303,7 @@ public class TestUtils {
         }
     }
 
-    public static void assertResponseMessagePayload(String json, Payload originalResponsePayload, String responseNamespace) {
+    public static void assertResponseMessagePayload(String json, RestPayload originalResponsePayload, String responseNamespace) {
         try {
             MsbContextImpl msbContext = TestUtils.createMsbContextBuilder().build();
             new JsonValidator().validate(json, msbContext.getMsbConfig().getSchema());

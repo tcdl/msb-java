@@ -6,7 +6,7 @@ import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,11 +29,11 @@ public class PingService {
                 .build();
 
         ObjectFactory objectFactory = msbContext.getObjectFactory();
-        Requester<Payload> requester = objectFactory.createRequester("pingpong:namespace", requestOptions)
+        Requester<RestPayload> requester = objectFactory.createRequester("pingpong:namespace", requestOptions)
                 .onResponse(payload -> LOG.info(String.format("Received response '%s'", payload.getBody()))) // Handling the one response
                 .onEnd(arg -> LOG.info("Received all expected responses")); // Handling all response arrival or timeout
 
-        Payload pingPayload = new Payload.Builder<Object, Object, Object, String>()
+        RestPayload pingPayload = new RestPayload.Builder<Object, Object, Object, String>()
                 .withBody("PING")
                 .build();
 

@@ -1,6 +1,6 @@
 package io.github.tcdl.msb.api;
 
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 
 /**
  * {@link ResponderServer} enable user to listen on messages from the bus and executing microservice business logic.
@@ -11,7 +11,7 @@ import io.github.tcdl.msb.api.message.payload.Payload;
  *
  * @param <T> expected payload type of incoming message
  */
-public interface ResponderServer<T extends Payload> {
+public interface ResponderServer<T extends RestPayload> {
 
     int INTERNAL_SERVER_ERROR_CODE = 500;
     int PAYLOAD_CONVERSION_ERROR_CODE = 422;
@@ -25,7 +25,7 @@ public interface ResponderServer<T extends Payload> {
     /**
      * Implementation of this interface contains business logic processed by microservice.
      */
-    interface RequestHandler<T extends Payload> {
+    interface RequestHandler<T extends RestPayload> {
         /**
          * Execute business logic and send response.
          * @param request request received from a bus

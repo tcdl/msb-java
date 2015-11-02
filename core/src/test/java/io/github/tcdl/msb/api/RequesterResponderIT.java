@@ -2,7 +2,7 @@ package io.github.tcdl.msb.api;
 
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.message.Acknowledge;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.message.payload.Body;
 import io.github.tcdl.msb.message.payload.MyPayload;
@@ -50,8 +50,8 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
+        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
 
         msbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
             requestReceived.countDown();
@@ -70,9 +70,9 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
         Body sentBody = new Body("test:requester-responder-test-body");
-        Payload<Object, Object, Object, Body> requestPayload = new Payload.Builder<Object, Object, Object, Body>()
+        RestPayload<Object, Object, Object, Body> requestPayload = new RestPayload.Builder<Object, Object, Object, Body>()
                 .withBody(sentBody)
                 .build();
 
@@ -96,9 +96,9 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
         Body sentBody = new Body("test:requester-responder-test-body");
-        Payload<Object, Object, Object, Body> requestPayload = new Payload.Builder<Object, Object, Object, Body>()
+        RestPayload<Object, Object, Object, Body> requestPayload = new RestPayload.Builder<Object, Object, Object, Body>()
                 .withBody(sentBody)
                 .build();
 
@@ -131,7 +131,7 @@ public class RequesterResponderIT {
         List<Acknowledge> receivedResponseAcks = new LinkedList<>();
 
         //Create and send request message directly to broker, wait for ack  
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
         msbContext.getObjectFactory().createRequester(namespace, requestOptions).
                 onAcknowledge((Acknowledge ack) -> {
                     receivedResponseAcks.add(ack);
@@ -164,12 +164,12 @@ public class RequesterResponderIT {
         CountDownLatch respSend = new CountDownLatch(1);
         CountDownLatch respReceived = new CountDownLatch(1);
 
-        ConcurrentLinkedQueue<Payload> sentResponses = new ConcurrentLinkedQueue<>();
-        ConcurrentLinkedQueue<Payload> receivedResponses = new ConcurrentLinkedQueue<>();
+        ConcurrentLinkedQueue<RestPayload> sentResponses = new ConcurrentLinkedQueue<>();
+        ConcurrentLinkedQueue<RestPayload> receivedResponses = new ConcurrentLinkedQueue<>();
 
         //Create and send request message directly to broker, wait for response
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
-        msbContext.getObjectFactory().createRequester(namespace, requestOptions, Payload.class)
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
+        msbContext.getObjectFactory().createRequester(namespace, requestOptions, RestPayload.class)
                 .onResponse(payload -> {
                     receivedResponses.add(payload);
                     respReceived.countDown();
@@ -181,7 +181,7 @@ public class RequesterResponderIT {
         Map<String, String> bodyMap = new HashMap<>();
         bodyMap.put("body", "payload from test testResponderAnswerWithResponseRequesterReceiveResponse");
         serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, response) -> {
-            Payload payload = new Payload.Builder<Object, Object, Object, Map<String, String>>()
+            RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map<String, String>>()
                     .withBody(bodyMap)
                     .withStatusCode(3333)
                     .build();
@@ -209,11 +209,11 @@ public class RequesterResponderIT {
         CountDownLatch respSend = new CountDownLatch(1);
         CountDownLatch respReceived = new CountDownLatch(1);
 
-        ConcurrentLinkedQueue<Payload> sentResponses = new ConcurrentLinkedQueue<>();
-        ConcurrentLinkedQueue<Payload> receivedResponses = new ConcurrentLinkedQueue<>();
+        ConcurrentLinkedQueue<RestPayload> sentResponses = new ConcurrentLinkedQueue<>();
+        ConcurrentLinkedQueue<RestPayload> receivedResponses = new ConcurrentLinkedQueue<>();
 
         //Create and send request message directly to broker, wait for response
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
         Body receivedBody = new Body();
         msbContext.getObjectFactory().createRequester(namespace, requestOptions, MyPayload.class)
                 .onResponse(payload -> {
@@ -226,7 +226,7 @@ public class RequesterResponderIT {
         //listen for message and send response
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
         Body responseBody = new Body("payload from test testResponderAnswerWithResponseRequesterReceiveResponse");
-        Payload responsePayload = new Payload.Builder<Object, Object, Object, Body>()
+        RestPayload responsePayload = new RestPayload.Builder<Object, Object, Object, Body>()
                 .withBody(responseBody)
                 .build();
 
@@ -263,8 +263,8 @@ public class RequesterResponderIT {
         serverOneMsbContext.getObjectFactory().createResponderServer(namespace1, responderServerOneMessageOptions, (request, response) -> {
 
             //Create and send request message, wait for ack
-            Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace2, requestAwaitAckMessageOptions);
-            Payload requestPayload = TestUtils.createSimpleRequestPayload();
+            Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(namespace2, requestAwaitAckMessageOptions);
+            RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
             requester.onAcknowledge((Acknowledge a) -> ackReceived.countDown());
             requester.publish(requestPayload);
         })
@@ -301,7 +301,7 @@ public class RequesterResponderIT {
         Set<Acknowledge> receivedResponseAcks = new HashSet<>();
 
         //Create and send request messages directly to broker, wait for ack
-        Payload requestPayload = TestUtils.createSimpleRequestPayload();
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
 
         final AtomicInteger messagesToSend = new AtomicInteger(requestsToSendDuringTest);
         Thread publishingThread = new Thread(() -> {
@@ -346,7 +346,7 @@ public class RequesterResponderIT {
 
         Thread serverListenThread = new Thread(() -> {
             msbContext.getObjectFactory().createResponderServer(namespace, requestOptionsWaitResponse.getMessageTemplate(), (request, response) -> {
-                Payload payload = new Payload.Builder<Object, Object, Object, String>()
+                RestPayload payload = new RestPayload.Builder<Object, Object, Object, String>()
                         .withBody(new HashMap<String, String>()
                                 .put("body", "payload from test : testRequestMessageCollectorUnsubscribeAfterResponsesAndSubscribeAgain"))
                         .withStatusCode(4444)
@@ -363,7 +363,7 @@ public class RequesterResponderIT {
         CountDownLatch endConversation2 = new CountDownLatch(1);
 
         //Create and send request message
-        Requester<Payload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptionsWaitResponse).onEnd(arg -> endConversation1.countDown());
+        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptionsWaitResponse).onEnd(arg -> endConversation1.countDown());
         requester.publish(TestUtils.createSimpleRequestPayload());
         assertTrue("Message was not received", endConversation1.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
 

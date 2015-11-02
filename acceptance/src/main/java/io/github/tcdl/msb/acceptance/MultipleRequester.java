@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.RequestOptions;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -48,12 +48,12 @@ public class MultipleRequester {
                 .build();
 
         SearchRequest request = new SearchRequest(requestId, queryString);
-        Payload requestPayload = new Payload.Builder<Object, Object, Object, SearchRequest>()
+        RestPayload requestPayload = new RestPayload.Builder<Object, Object, Object, SearchRequest>()
                 .withBody(request)
                 .build();
 
         CompletableFuture.supplyAsync(() -> {
-            msbContext.getObjectFactory().createRequester(namespace, options, new TypeReference<Payload<?, ?, ?, Map>>() {})
+            msbContext.getObjectFactory().createRequester(namespace, options, new TypeReference<RestPayload<?, ?, ?, Map>>() {})
                     .onAcknowledge(acknowledge ->
                                     System.out.println(">>> ACK timeout: " + acknowledge.getTimeoutMs())
                     )

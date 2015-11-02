@@ -4,7 +4,7 @@ import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 
 /**
  * {@link Requester} enable user send message to bus and process responses for this messages if any expected.
@@ -13,12 +13,12 @@ import io.github.tcdl.msb.api.message.payload.Payload;
  * response mechanism in case we create Requester with {@literal RequestOptions.waitForResponses => 0} and received Acknowledgement response
  * before RequestOptions.ackTimeout or RequestOptions.responseTimeout (takes max of two).
  *
- * Please note: RequestOptions.waitForResponses represent number of response messages with {@link Payload} set and in case we received
+ * Please note: RequestOptions.waitForResponses represent number of response messages with {@link RestPayload} set and in case we received
  * all expected before RequestOptions.responseTimeout we don't wait for Acknowledgement response and RequestOptions.ackTimeout is not used.
  *
  * @param <T> expected payload type of response messages
  */
-public interface Requester<T extends Payload> {
+public interface Requester<T extends RestPayload> {
 
     /**
      * Wraps a payload with protocol information and sends to bus.
@@ -28,7 +28,7 @@ public interface Requester<T extends Payload> {
      * @throws ChannelException if an error is encountered during publishing to bus
      * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
-    void publish(Payload<?, ?, ?, ?> requestPayload);
+    void publish(RestPayload<?, ?, ?, ?> requestPayload);
 
     /**
      * Wraps a payload with protocol information and sends to bus.
@@ -39,7 +39,7 @@ public interface Requester<T extends Payload> {
      * @throws ChannelException if an error is encountered during publishing to bus
      * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
-    void publish(Payload<?, ?, ?, ?> requestPayload, String tag);
+    void publish(RestPayload<?, ?, ?, ?> requestPayload, String tag);
 
     /**
      * Wraps a payload with protocol information, preserves original message and sends to bus.
@@ -51,7 +51,7 @@ public interface Requester<T extends Payload> {
      * @throws ChannelException if an error is encountered during publishing to bus
      * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
-    void publish(Payload<?, ?, ?, ?> requestPayload, Message originalMessage, String tag);
+    void publish(RestPayload<?, ?, ?, ?> requestPayload, Message originalMessage, String tag);
 
     /**
      * Wraps a payload with protocol information, preserves original message and sends to bus.
@@ -62,7 +62,7 @@ public interface Requester<T extends Payload> {
      * @throws ChannelException if an error is encountered during publishing to bus
      * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
-    void publish(Payload<?, ?, ?, ?> requestPayload, Message originalMessage);
+    void publish(RestPayload<?, ?, ?, ?> requestPayload, Message originalMessage);
 
     /**
      * Registers a callback to be called when {@link Message} with {@link Acknowledge} part set is received.
@@ -73,16 +73,16 @@ public interface Requester<T extends Payload> {
     Requester<T> onAcknowledge(Callback<Acknowledge> acknowledgeHandler);
 
     /**
-     * Registers a callback to be called when response {@link Message} with {@link Payload} part set of type {@literal<}T{@literal>} is received.
+     * Registers a callback to be called when response {@link Message} with {@link RestPayload} part set of type {@literal<}T{@literal>} is received.
      *
      * @param responseHandler callback to be called
      * @return requester
-     * @throws JsonConversionException if unable to convert {@link Payload} to type {@literal<}T{@literal>}
+     * @throws JsonConversionException if unable to convert {@link RestPayload} to type {@literal<}T{@literal>}
      */
     Requester<T> onResponse(Callback<T> responseHandler);
 
     /**
-     * Registers a callback to be called when response {@link Message} with {@link Payload} part set of is received.
+     * Registers a callback to be called when response {@link Message} with {@link RestPayload} part set of is received.
      *
      * @param responseHandler callback to be called
      * @return requester

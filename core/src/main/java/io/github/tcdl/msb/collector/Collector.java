@@ -7,7 +7,7 @@ import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.support.Utils;
@@ -29,7 +29,7 @@ import static io.github.tcdl.msb.support.Utils.ifNull;
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
  */
-public class Collector<T extends Payload> {
+public class Collector<T extends RestPayload> {
 
     private static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
