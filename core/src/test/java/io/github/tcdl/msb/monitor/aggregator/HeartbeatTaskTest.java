@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.monitor.aggregator;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.RequestOptions;
@@ -27,7 +28,7 @@ public class HeartbeatTaskTest {
 
     private ObjectFactory mockObjectFactory = mock(ObjectFactory.class);
     @SuppressWarnings("unchecked")
-    private Requester<RestPayload> mockRequester = mock(Requester.class);
+    private Requester<JsonNode> mockRequester = mock(Requester.class);
     @SuppressWarnings("unchecked")
     private Callback<List<Message>> mockMessageHandler = mock(Callback.class);
     private HeartbeatTask heartbeatTask = new HeartbeatTask(ChannelMonitorAggregator.DEFAULT_HEARTBEAT_TIMEOUT_MS, mockObjectFactory, mockMessageHandler);

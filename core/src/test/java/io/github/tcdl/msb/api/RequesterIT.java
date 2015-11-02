@@ -31,7 +31,7 @@ public class RequesterIT {
     @Test
     public void testRequestMessage() throws Exception {
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
@@ -42,7 +42,7 @@ public class RequesterIT {
     public void testRequestMessageWithBodyBufferBase64Encoded() throws Exception {
         byte[] bytesToSend = new byte[] { 1, 2 };
         RestPayload requestPayload = TestUtils.createSimpleRequestPayloadWithBodyBuffer(bytesToSend);
-        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
@@ -56,7 +56,7 @@ public class RequesterIT {
     public void testRequestMessageWithDynamicTag() throws Exception {
         String dynamicTag = "dynamic-tag";
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload, dynamicTag);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
@@ -70,7 +70,7 @@ public class RequesterIT {
         String dynamicTagOriginal = "dynamic-tag-original";
         Message originalMessage = TestUtils.createSimpleRequestMessageWithTags(NAMESPACE, dynamicTagOriginal);
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload, originalMessage, dynamicTag);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
@@ -84,7 +84,7 @@ public class RequesterIT {
         String dynamicTagOriginal = "dynamic-tag-original";
         Message originalMessage = TestUtils.createSimpleRequestMessageWithTags(NAMESPACE, dynamicTagOriginal, STATIC_TAG);
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
+        Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload, originalMessage, dynamicTag);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);

@@ -136,7 +136,7 @@ public class MsbTestHelper {
     public ResponderServer createResponderServer(String contextName, String namespace, ResponderServer.RequestHandler<RestPayload> requestHandler) {
         MessageTemplate options = new MessageTemplate();
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
-        return getContext(contextName).getObjectFactory().createResponderServer(namespace, options, requestHandler);
+        return getContext(contextName).getObjectFactory().createResponderServer(namespace, options, requestHandler, RestPayload.class);
     }
 
     public <T extends RestPayload> ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {

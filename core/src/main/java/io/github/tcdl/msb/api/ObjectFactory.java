@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.api;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import io.github.tcdl.msb.api.message.payload.RestPayload;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 
@@ -13,12 +13,12 @@ import java.lang.reflect.Type;
 public interface ObjectFactory {
 
     /**
-     * Convenience method that specifies response payload type as {@link RestPayload}
+     * Convenience method that specifies response payload type as {@link JsonNode}
      *
      * See {@link #createRequester(String, RequestOptions, TypeReference)}
      */
-    default Requester<RestPayload> createRequester(String namespace, RequestOptions requestOptions) {
-        return createRequester(namespace, requestOptions, RestPayload.class); // TODO use JsonNode here?
+    default Requester<JsonNode> createRequester(String namespace, RequestOptions requestOptions) {
+        return createRequester(namespace, requestOptions, JsonNode.class);
     }
 
     /**
@@ -44,13 +44,13 @@ public interface ObjectFactory {
     <T> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference);
 
     /**
-     * Convenience method that specifies incoming payload type as {@link RestPayload}
+     * Convenience method that specifies incoming payload type as {@link JsonNode}
      *
      * See {@link #createRequester(String, RequestOptions, TypeReference)}
      */
     default ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
-            ResponderServer.RequestHandler<RestPayload> requestHandler) {
-        return createResponderServer(namespace, messageTemplate, requestHandler, RestPayload.class); // TODO use JsonNode here?
+            ResponderServer.RequestHandler<JsonNode> requestHandler) {
+        return createResponderServer(namespace, messageTemplate, requestHandler, JsonNode.class);
     }
 
     /**

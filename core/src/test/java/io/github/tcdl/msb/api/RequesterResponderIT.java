@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
@@ -50,7 +51,7 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
 
         msbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
@@ -70,7 +71,7 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
         Body sentBody = new Body("test:requester-responder-test-body");
         RestPayload<Object, Object, Object, Body> requestPayload = new RestPayload.Builder<Object, Object, Object, Body>()
                 .withBody(sentBody)
@@ -96,7 +97,7 @@ public class RequesterResponderIT {
         CountDownLatch requestReceived = new CountDownLatch(1);
 
         //Create and send request message
-        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+        Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
         Body sentBody = new Body("test:requester-responder-test-body");
         RestPayload<Object, Object, Object, Body> requestPayload = new RestPayload.Builder<Object, Object, Object, Body>()
                 .withBody(sentBody)
@@ -107,7 +108,7 @@ public class RequesterResponderIT {
             PayloadConverter payloadConverter = msbContext.getObjectFactory().getPayloadConverter();
             receivedBody.setBody(payloadConverter.getAs(request.getBody(), Body.class).getBody());
             requestReceived.countDown();
-        })
+        }, RestPayload.class)
         .listen();
 
         requester.publish(requestPayload);
@@ -263,7 +264,7 @@ public class RequesterResponderIT {
         serverOneMsbContext.getObjectFactory().createResponderServer(namespace1, responderServerOneMessageOptions, (request, response) -> {
 
             //Create and send request message, wait for ack
-            Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(namespace2, requestAwaitAckMessageOptions);
+            Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(namespace2, requestAwaitAckMessageOptions);
             RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
             requester.onAcknowledge((Acknowledge a) -> ackReceived.countDown());
             requester.publish(requestPayload);
@@ -363,7 +364,7 @@ public class RequesterResponderIT {
         CountDownLatch endConversation2 = new CountDownLatch(1);
 
         //Create and send request message
-        Requester<RestPayload> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptionsWaitResponse).onEnd(arg -> endConversation1.countDown());
+        Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptionsWaitResponse).onEnd(arg -> endConversation1.countDown());
         requester.publish(TestUtils.createSimpleRequestPayload());
         assertTrue("Message was not received", endConversation1.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
 
