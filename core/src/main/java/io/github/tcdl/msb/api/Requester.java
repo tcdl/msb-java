@@ -68,7 +68,6 @@ public interface Requester<T> {
      */
     Requester<T> onAcknowledge(Callback<Acknowledge> acknowledgeHandler);
 
-    // TODO Fix reference to RestPayload in javadocs
     /**
      * Registers a callback to be called when response {@link Message} with payload part set of type {@literal<}T{@literal>} is received.
      *

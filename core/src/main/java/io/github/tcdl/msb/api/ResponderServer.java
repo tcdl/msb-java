@@ -6,10 +6,8 @@ package io.github.tcdl.msb.api;
  * And also it's required to implement interface {@link RequestHandler}. Implementation of this interface will be
  * business logic processed by microservice. Inside this logic we can use instance of {@link Responder} created by {@code ResponderServer}
  * for each message from bus, and can be used for sending responses back to bus.
- *
- * @param <T> expected payload type of incoming message
  */
-public interface ResponderServer<T> {
+public interface ResponderServer {
 
     int INTERNAL_SERVER_ERROR_CODE = 500;
     int PAYLOAD_CONVERSION_ERROR_CODE = 422;
@@ -18,7 +16,6 @@ public interface ResponderServer<T> {
      * Start listening for message on specified topic.
      */
      ResponderServer listen();
-
 
     /**
      * Implementation of this interface contains business logic processed by microservice.

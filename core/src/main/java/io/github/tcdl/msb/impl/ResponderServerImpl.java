@@ -14,7 +14,7 @@ import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ResponderServerImpl<T> implements ResponderServer<T> {
+public class ResponderServerImpl<T> implements ResponderServer {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServerImpl.class);
 
     private String namespace;
