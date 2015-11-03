@@ -9,6 +9,7 @@ import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.config.ServiceDetails;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
+import io.github.tcdl.msb.support.TestClockWithStep;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -17,6 +18,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -241,7 +243,9 @@ public class MessageFactoryTest {
         String bodyText = "body text";
         Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
 
-        Builder requestMessageBuilder = TestUtils.createMessageBuilder(Clock.systemDefaultZone());
+        TestClockWithStep testClockWithStep = new TestClockWithStep(FIXED_CLOCK_INSTANT, ZoneId.systemDefault(), 1, ChronoUnit.SECONDS);
+
+        Builder requestMessageBuilder = TestUtils.createMessageBuilder(testClockWithStep);
 
         Message message = messageFactory.createRequestMessage(requestMessageBuilder, requestPayload);
 
