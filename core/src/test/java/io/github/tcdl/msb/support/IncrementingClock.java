@@ -6,14 +6,14 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.TemporalUnit;
 
-public class TestClockWithStep extends Clock implements Serializable {
+public class IncrementingClock extends Clock implements Serializable {
     private static final long serialVersionUID = 4423672464736353647L;
     private Instant instant;
     private final ZoneId zone;
     final long step;
     final TemporalUnit unit;
 
-    public TestClockWithStep(Instant fixedInstant, ZoneId zone, long step, TemporalUnit unit) {
+    public IncrementingClock(Instant fixedInstant, ZoneId zone, long step, TemporalUnit unit) {
         this.instant = fixedInstant;
         this.zone = zone;
         this.step = step;
@@ -30,7 +30,7 @@ public class TestClockWithStep extends Clock implements Serializable {
         if (zone.equals(this.zone)) {
             return this;
         }
-        return new TestClockWithStep(instant, zone, step, unit);
+        return new IncrementingClock(instant, zone, step, unit);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class TestClockWithStep extends Clock implements Serializable {
         if (!super.equals(o))
             return false;
 
-        TestClockWithStep that = (TestClockWithStep) o;
+        IncrementingClock that = (IncrementingClock) o;
 
         if (step != that.step)
             return false;
