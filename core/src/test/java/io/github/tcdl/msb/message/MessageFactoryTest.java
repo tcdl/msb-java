@@ -237,8 +237,6 @@ public class MessageFactoryTest {
     }
 
     @Test
-    //This test potentially blinking(time when we create message Builder and Message could be equal)
-    //But the probability is very small
     public void testCreateRequestMessageBuilderPublishedAtIsAfterCreatedAt() {
         String bodyText = "body text";
         Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
