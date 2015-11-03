@@ -1,6 +1,6 @@
 package io.github.tcdl.msb.acceptance.payload;
 
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 
-public class MyPayload extends Payload<Query, Object, Object, Body> {
+public class MyPayload extends RestPayload<Query, Object, Object, Body> {
 }

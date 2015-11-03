@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ResponderImpl;
 import io.github.tcdl.msb.support.JsonValidator;
@@ -90,7 +90,7 @@ public class ResponderIT {
         Message originalMessage = TestUtils.createSimpleRequestMessage(namespace);
 
         Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
-        Payload responsePayload = TestUtils.createSimpleResponsePayload();
+        RestPayload responsePayload = TestUtils.createSimpleResponsePayload();
         responder.send(responsePayload);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());
@@ -107,7 +107,7 @@ public class ResponderIT {
         Message originalMessage = TestUtils.createSimpleRequestMessageWithTags(namespace, dynamicTagOriginal);
 
         Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
-        Payload responsePayload = TestUtils.createSimpleResponsePayload();
+        RestPayload responsePayload = TestUtils.createSimpleResponsePayload();
         responder.send(responsePayload);
 
         String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());

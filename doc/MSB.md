@@ -109,7 +109,7 @@ ack                     | section that describes acknowledgement part of the mes
   responderId           | unique id of a _responder_. _Resonder_ is a component that is created for _each_ request and is used to send responses and acks back
   responsesRemaining    | adjusts the number of responses expected from this _responder_
   timeoutMs             | defines amount of time this _responder_ needs to completely process the message and send all responses back
-payload                 | section for message payload (REST-like)
+payload                 | section for message payload. It may be anything (even plain string) but it is a good idea to make it REST-like for extensibility. Below you can find descripton of fields for REST-like payloads
   headers               | provides things like authorisation, information about the body and information about the user. (Request Meta Info/Who)
   params                | provides hierarchical ids of the entities acted upon. (What)
   query                 | provides instructions. (How)
@@ -162,14 +162,16 @@ Let's consider two simple microservices: one sends "PING" to another and the oth
 ```java
 package io.github.tcdl.msb.examples;
 
+import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.message.payload.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 public class PingService {
     private static final Logger LOG = LoggerFactory.getLogger(PingService.class);
@@ -179,22 +181,20 @@ public class PingService {
                 enableShutdownHook(true).
                 build();
 
+        MessageTemplate messageTemplate = new MessageTemplate().withTags("ping-service");
         RequestOptions requestOptions = new RequestOptions.Builder()
                 .withAckTimeout(1000)
                 .withResponseTimeout(2000)
                 .withWaitForResponses(1)
+                .withMessageTemplate(messageTemplate)
                 .build();
 
         ObjectFactory objectFactory = msbContext.getObjectFactory();
-        Requester<Payload> requester = objectFactory.createRequester("pingpong:namespace", requestOptions)
-                .onResponse(payload -> LOG.info(String.format("Received response '%s'", payload.getBody()))) // Handling the one response
+        Requester<String> requester = objectFactory.createRequester("pingpong:namespace", requestOptions, String.class)
+                .onResponse(payload -> LOG.info(String.format("Received response '%s'", payload))) // Handling the one response
                 .onEnd(arg -> LOG.info("Received all expected responses")); // Handling all response arrival or timeout
 
-        Payload pingPayload = new Payload.Builder<Object, Object, Object, String>()
-                .withBody("PING")
-                .build();
-
-        requester.publish(pingPayload); // Send the message
+        requester.publish("PING", UUID.randomUUID().toString()); // Send the message
     }
 }
 ```
@@ -209,7 +209,6 @@ import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.ResponderServer;
-import io.github.tcdl.msb.api.message.payload.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -222,18 +221,15 @@ public class PongService {
                 build();
 
         ObjectFactory objectFactory = msbContext.getObjectFactory();
-        ResponderServer responderServer = objectFactory.createResponderServer("pingpong:namespace", new MessageTemplate(), (request, responder) -> {
+        MessageTemplate messageTemplate = new MessageTemplate().withTags("pong-static-tag");
+        ResponderServer responderServer = objectFactory.createResponderServer("pingpong:namespace", messageTemplate, (request, responder) -> {
             // Response handling logic
-            LOG.info(String.format("Handling %s...", request.getBody()));
+            LOG.info(String.format("Handling %s...", request));
 
-            Payload pongPayload = new Payload.Builder<Object, Object, Object, String>()
-                    .withBody("PONG")
-                    .build();
-
-            responder.send(pongPayload);
+            responder.send("PONG");
 
             LOG.info("Response sent");
-        });
+        }, String.class);
         responderServer.listen(); // Need not forget to hook up the responder server
     }
 }

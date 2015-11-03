@@ -1,11 +1,12 @@
 package io.github.tcdl.msb.monitor.aggregator;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
@@ -27,7 +28,7 @@ public class HeartbeatTaskTest {
 
     private ObjectFactory mockObjectFactory = mock(ObjectFactory.class);
     @SuppressWarnings("unchecked")
-    private Requester<Payload> mockRequester = mock(Requester.class);
+    private Requester<JsonNode> mockRequester = mock(Requester.class);
     @SuppressWarnings("unchecked")
     private Callback<List<Message>> mockMessageHandler = mock(Callback.class);
     private HeartbeatTask heartbeatTask = new HeartbeatTask(ChannelMonitorAggregator.DEFAULT_HEARTBEAT_TIMEOUT_MS, mockObjectFactory, mockMessageHandler);
@@ -55,7 +56,7 @@ public class HeartbeatTaskTest {
         verify(mockObjectFactory).createRequester(eq(Utils.TOPIC_HEARTBEAT), any(RequestOptions.class));
         verify(mockRequester).onRawResponse(onResponseCaptor.capture());
         verify(mockRequester).onEnd(onEndCaptor.capture());
-        verify(mockRequester).publish(any(Payload.class));
+        verify(mockRequester).publish(any(RestPayload.class));
 
         // simulate incoming messages
         Message msg1 = TestUtils.createSimpleRequestMessage("from:responder");

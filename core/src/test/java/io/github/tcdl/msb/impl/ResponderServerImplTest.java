@@ -9,7 +9,7 @@ import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.message.payload.MyPayload;
 import io.github.tcdl.msb.support.TestUtils;
 import org.junit.Before;
@@ -70,7 +70,7 @@ public class ResponderServerImplTest {
 
     @Test
     public void testResponderServerProcessDefaultPayloadSuccess() throws Exception {
-        ResponderServer.RequestHandler<Payload> handler = (request, responder) -> {
+        ResponderServer.RequestHandler<RestPayload> handler = (request, responder) -> {
         };
 
         ArgumentCaptor<MessageHandler> subscriberCaptor = ArgumentCaptor.forClass(MessageHandler.class);
@@ -80,7 +80,7 @@ public class ResponderServerImplTest {
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 
         ResponderServerImpl responderServer = ResponderServerImpl
-                .create(TOPIC, requestOptions.getMessageTemplate(), spyMsbContext, handler, new TypeReference<Payload>() {});
+                .create(TOPIC, requestOptions.getMessageTemplate(), spyMsbContext, handler, new TypeReference<RestPayload>() {});
 
         ResponderServerImpl spyResponderServer = (ResponderServerImpl) spy(responderServer).listen();
 
@@ -99,18 +99,18 @@ public class ResponderServerImplTest {
 
     @Test
     public void testResponderServerProcessUnexpectedPayload() throws Exception {
-        ResponderServer.RequestHandler<Payload<?, ?, ?, Integer>> handler = (request, responder) -> {
+        ResponderServer.RequestHandler<RestPayload<?, ?, ?, Integer>> handler = (request, responder) -> {
         };
 
         String bodyText = "some body";
         Message incomingMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
 
         ResponderServerImpl responderServer = ResponderServerImpl
-                .create(TOPIC, messageTemplate, msbContext, handler, new TypeReference<Payload<?, ?, ?, Integer>>() {});
+                .create(TOPIC, messageTemplate, msbContext, handler, new TypeReference<RestPayload<?, ?, ?, Integer>>() {});
         responderServer.listen();
 
         // simulate incoming request
-        ArgumentCaptor<Payload> responseCaptor = ArgumentCaptor.forClass(Payload.class);
+        ArgumentCaptor<RestPayload> responseCaptor = ArgumentCaptor.forClass(RestPayload.class);
         ResponderImpl responder = spy(
                 new ResponderImpl(messageTemplate, incomingMessage, msbContext));
         responderServer.onResponder(responder);
@@ -132,7 +132,7 @@ public class ResponderServerImplTest {
         responderServer.listen();
 
         // simulate incoming request
-        ArgumentCaptor<Payload> responseCaptor = ArgumentCaptor.forClass(Payload.class);
+        ArgumentCaptor<RestPayload> responseCaptor = ArgumentCaptor.forClass(RestPayload.class);
         ResponderImpl responder = spy(
                 new ResponderImpl(messageTemplate, TestUtils.createMsbRequestMessageNoPayload(TOPIC), msbContext));
         responderServer.onResponder(responder);

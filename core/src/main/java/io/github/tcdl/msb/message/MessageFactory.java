@@ -8,7 +8,7 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.MetaMessage.Builder;
 import io.github.tcdl.msb.api.message.Topics;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.config.ServiceDetails;
 import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
@@ -33,20 +33,20 @@ public class MessageFactory {
         this.payloadMapper = payloadMapper;
     }
 
-    public Message createRequestMessage(Message.Builder messageBuilder, Payload payload) {
+    public Message createRequestMessage(Message.Builder messageBuilder, Object payload) {
         JsonNode convertedPayload = Utils.convert(payload, JsonNode.class, payloadMapper);
         messageBuilder.withPayload(convertedPayload);
         return messageBuilder.build();
     }
 
-    public Message createResponseMessage(Message.Builder messageBuilder, Acknowledge ack, Payload<?, ?, ?, ?> payload) {
+    public Message createResponseMessage(Message.Builder messageBuilder, Acknowledge ack, Object payload) {
         JsonNode convertedPayload = Utils.convert(payload, JsonNode.class, payloadMapper);
         messageBuilder.withPayload(convertedPayload);
         messageBuilder.withAck(ack);
         return messageBuilder.build();
     }
 
-    public Message createBroadcastMessage(Message.Builder messageBuilder, Payload payload) {
+    public Message createBroadcastMessage(Message.Builder messageBuilder, RestPayload payload) {
         return createRequestMessage(messageBuilder, payload);
     }
 

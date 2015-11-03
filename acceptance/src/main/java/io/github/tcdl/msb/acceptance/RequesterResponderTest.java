@@ -2,7 +2,7 @@ package io.github.tcdl.msb.acceptance;
 
 import io.github.tcdl.msb.acceptance.payload.MyPayload;
 import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -39,7 +39,7 @@ public class RequesterResponderTest {
         .listen();
 
         // sending a request
-        Requester<Payload<Object, Object, Object, Map<String, Object>>> requester = helper.createRequester(NAMESPACE, NUMBER_OF_RESPONSES);
+        Requester<RestPayload<Object, Object, Object, Map<String, Object>>> requester = helper.createRequester(NAMESPACE, NUMBER_OF_RESPONSES);
         passedLatch = new CountDownLatch(1);
         helper.sendRequest(requester, NUMBER_OF_RESPONSES, payload -> passedLatch.countDown());
     }

@@ -1,12 +1,12 @@
 package io.github.tcdl.msb.api.message.payload;
 
 import static org.junit.Assert.*;
-import io.github.tcdl.msb.api.message.payload.Payload.Builder;
+import io.github.tcdl.msb.api.message.payload.RestPayload.Builder;
 
 import org.junit.Test;
 
 
-public class PayloadTest {
+public class RestPayloadTest {
     @Test
     public void testEquals() {
         Builder bob = payloadBuilder();
@@ -46,7 +46,7 @@ public class PayloadTest {
     }
 
     private Builder<String, String, String, String> payloadBuilder() {
-        return new Payload.Builder<String, String, String, String>()
+        return new RestPayload.Builder<String, String, String, String>()
             .withBody("some-body")
             .withBodyBuffer("some-body".getBytes())
             .withHeaders("headers")

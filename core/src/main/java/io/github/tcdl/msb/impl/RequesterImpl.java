@@ -8,7 +8,6 @@ import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
 import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.message.MessageFactory;
@@ -21,7 +20,7 @@ import org.apache.commons.lang3.Validate;
  *
  * @see Requester
  */
-public class RequesterImpl<T extends Payload> implements Requester<T> {
+public class RequesterImpl<T> implements Requester<T> {
 
     private RequestOptions requestOptions;
     private MsbContextImpl context;
@@ -39,7 +38,7 @@ public class RequesterImpl<T extends Payload> implements Requester<T> {
      * @param context        shared by all Requester instances
      * @return instance of a requester
      */
-    static <T extends  Payload> RequesterImpl<T> create(String namespace, RequestOptions requestOptions, MsbContextImpl context, TypeReference<T> payloadTypeReference) {
+    static <T> RequesterImpl<T> create(String namespace, RequestOptions requestOptions, MsbContextImpl context, TypeReference<T> payloadTypeReference) {
         return new RequesterImpl<>(namespace, requestOptions, context, payloadTypeReference);
     }
 
@@ -61,7 +60,7 @@ public class RequesterImpl<T extends Payload> implements Requester<T> {
      * {@inheritDoc}
      */
     @Override
-    public void publish(Payload<?, ?, ?, ?> requestPayload) {
+    public void publish(Object requestPayload) {
         publish(requestPayload, null, null);
     }
 
@@ -69,7 +68,7 @@ public class RequesterImpl<T extends Payload> implements Requester<T> {
      * {@inheritDoc}
      */
     @Override
-    public void publish(Payload<?, ?, ?, ?> requestPayload, String tag) {
+    public void publish(Object requestPayload, String tag) {
         publish(requestPayload, null, tag);
     }
 
@@ -77,7 +76,7 @@ public class RequesterImpl<T extends Payload> implements Requester<T> {
      * {@inheritDoc}
      */
     @Override
-    public void publish(Payload<?, ?, ?, ?> requestPayload, Message originalMessage) {
+    public void publish(Object requestPayload, Message originalMessage) {
         publish(requestPayload, originalMessage, null);
     }
 
@@ -85,7 +84,7 @@ public class RequesterImpl<T extends Payload> implements Requester<T> {
      * {@inheritDoc}
      */
     @Override
-    public void publish(Payload<?, ?, ?, ?> requestPayload, Message originalMessage, String tag) {
+    public void publish(Object requestPayload, Message originalMessage, String tag) {
         MessageTemplate messageTemplate = MessageTemplate.copyOf(requestOptions.getMessageTemplate());
         if (tag != null) {
             messageTemplate.addTag(tag);

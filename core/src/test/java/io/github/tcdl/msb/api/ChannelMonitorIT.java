@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 import io.github.tcdl.msb.impl.MsbContextImpl;
@@ -96,7 +96,7 @@ public class ChannelMonitorIT {
         Map<String, AgentTopicStats> topicInfoMap = new HashMap<>();
         topicInfoMap.put(TOPIC_NAME, new AgentTopicStats(true, false, LAST_PRODUCED_TIME, LAST_CONSUMED_TIME));
 
-        Payload payload = new Payload.Builder<Object, Object, Object, Map<String, AgentTopicStats>>()
+        RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map<String, AgentTopicStats>>()
                 .withBody(topicInfoMap)
                 .build();
 
@@ -129,7 +129,7 @@ public class ChannelMonitorIT {
         Map<String, AgentTopicStats> topicInfoMap = new HashMap<>();
         topicInfoMap.put(TOPIC_NAME, new AgentTopicStats(true, false, LAST_PRODUCED_TIME, LAST_CONSUMED_TIME));
 
-        Payload payload = new Payload.Builder<Object, Object, Object, Map<String, AgentTopicStats>>()
+        RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map<String, AgentTopicStats>>()
                 .withBody(topicInfoMap)
                 .build();
 

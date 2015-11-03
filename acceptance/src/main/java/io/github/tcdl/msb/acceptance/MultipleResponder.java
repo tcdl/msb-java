@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 
 import java.util.Map;
 
@@ -26,10 +26,10 @@ public class MultipleResponder {
             String requestId = (String) requestBody.get("requestId");
             SearchResponse response = new SearchResponse(requestId, "response");
             System.out.println(">>> SENDING response in request to " + requestId);
-            responder.send(new Payload.Builder<Object, Object, Object, SearchResponse>()
+            responder.send(new RestPayload.Builder<Object, Object, Object, SearchResponse>()
                     .withBody(response)
                     .build());
-        }, new TypeReference<Payload<Object, Object, Object, Map>>() {})
+        }, new TypeReference<RestPayload<Object, Object, Object, Map>>() {})
         .listen();
     }
 

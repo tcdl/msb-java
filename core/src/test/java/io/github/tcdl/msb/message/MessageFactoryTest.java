@@ -4,7 +4,7 @@ import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.Message.Builder;
-import io.github.tcdl.msb.api.message.payload.Payload;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.config.ServiceDetails;
 import io.github.tcdl.msb.support.TestUtils;
@@ -51,7 +51,7 @@ public class MessageFactoryTest {
     @Test
     public void testCreateRequestMessageWithPayload() {
         String bodyText = "body text";
-        Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
+        RestPayload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
 
         Builder requestMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
 
@@ -75,7 +75,7 @@ public class MessageFactoryTest {
     public void testCreateResponseMessageWithPayloadAndAck() {
         String bodyText = "body text";
         Builder responseMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
-        Payload responsePayload = TestUtils.createPayloadWithTextBody(bodyText);
+        RestPayload responsePayload = TestUtils.createPayloadWithTextBody(bodyText);
         Acknowledge ack = new Acknowledge.Builder()
                 .withResponderId(Utils.generateId())
                 .withResponsesRemaining(3)
@@ -101,7 +101,7 @@ public class MessageFactoryTest {
     @Test
     public void testBroadcastMessage() {
         String bodyText = "body text";
-        Payload broadcastPayload = TestUtils.createPayloadWithTextBody(bodyText);
+        RestPayload broadcastPayload = TestUtils.createPayloadWithTextBody(bodyText);
         Builder broadcastMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
 
         Message message = messageFactory.createBroadcastMessage(broadcastMessageBuilder, broadcastPayload);
@@ -224,7 +224,7 @@ public class MessageFactoryTest {
     @Test
     public void testCreateRequestMessageBuilderPublishedAtPresent() {
         String bodyText = "body text";
-        Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
+        RestPayload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
 
         Builder requestMessageBuilder = TestUtils.createMessageBuilder(FIXED_CLOCK);
 
@@ -239,7 +239,7 @@ public class MessageFactoryTest {
     //But the probability is very small
     public void testCreateRequestMessageBuilderPublishedAtIsAfterCreatedAt() {
         String bodyText = "body text";
-        Payload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
+        RestPayload requestPayload = TestUtils.createPayloadWithTextBody(bodyText);
 
         Builder requestMessageBuilder = TestUtils.createMessageBuilder(Clock.systemDefaultZone());
 
