@@ -69,11 +69,11 @@ public interface Requester<T> {
     Requester<T> onAcknowledge(Callback<Acknowledge> acknowledgeHandler);
 
     /**
-     * Registers a callback to be called when response {@link Message} with payload part set of type {@literal<}T{@literal>} is received.
+     * Registers a callback to be called when response {@link Message} with payload part set of type {@literal T} is received.
      *
      * @param responseHandler callback to be called
      * @return requester
-     * @throws JsonConversionException if unable to convert payload to type {@literal<}T{@literal>}
+     * @throws JsonConversionException if unable to convert payload to type {@literal T}
      */
     Requester<T> onResponse(Callback<T> responseHandler);
 
