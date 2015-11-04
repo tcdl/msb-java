@@ -9,6 +9,7 @@ import io.github.tcdl.msb.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -40,9 +41,9 @@ public class HeartbeatTask implements Runnable {
 
             RestPayload emptyPayload = new RestPayload.Builder().build();
 
-            List<Message> messages = new LinkedList<>();
+            List<Message> messages = Collections.synchronizedList(new LinkedList<>());
             objectFactory.createRequester(Utils.TOPIC_HEARTBEAT, requestOptions)
-                    .onRawResponse(message -> messages.add(message))
+                    .onRawResponse(messages::add)
                     .onEnd(end -> heartbeatHandler.call(messages))
                     .publish(emptyPayload);
 
