@@ -1,6 +1,5 @@
 package io.github.tcdl.msb.acceptance;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import io.github.tcdl.msb.api.Callback;
@@ -9,7 +8,6 @@ import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
@@ -71,47 +69,33 @@ public class MsbTestHelper {
         return getPayloadMapper(DEFAULT_CONTEXT_NAME);
     }
 
-    public Requester<RestPayload<Object, Object, Object, Map<String, Object>>> createRequester(String namespace, Integer numberOfResponses) {
-        return createRequester(DEFAULT_CONTEXT_NAME, namespace, numberOfResponses, null, null);
+    public <T> Requester<T> createRequester(String namespace, Integer numberOfResponses, Class<T> responsePayloadClass) {
+        return createRequester(DEFAULT_CONTEXT_NAME, namespace, numberOfResponses, null, null, responsePayloadClass);
     }
 
-    public Requester<RestPayload<Object, Object, Object, Map<String, Object>>> createRequester(String contextName, String namespace, Integer numberOfResponses) {
-        return createRequester(contextName, namespace, numberOfResponses, null, null);
+    public <T> Requester<T> createRequester(String contextName, String namespace, Integer numberOfResponses, Class<T> responsePayloadClass) {
+        return createRequester(contextName, namespace, numberOfResponses, null, null, responsePayloadClass);
     }
 
-    public Requester<RestPayload<Object, Object, Object, Map<String, Object>>> createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout) {
-        return createRequester(DEFAULT_CONTEXT_NAME, namespace, numberOfResponses, ackTimeout, responseTimeout);
+    public <T> Requester<T> createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout, Class<T> responsePayloadClass) {
+        return createRequester(DEFAULT_CONTEXT_NAME, namespace, numberOfResponses, ackTimeout, responseTimeout, responsePayloadClass);
     }
 
-    public Requester<RestPayload<Object, Object, Object, Map<String, Object>>> createRequester(String contextName, String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout) {
+    public <T> Requester<T> createRequester(String contextName, String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout, Class<T> responsePayloadClass) {
         RequestOptions options = new RequestOptions.Builder()
                 .withWaitForResponses(numberOfResponses)
                 .withAckTimeout(Utils.ifNull(ackTimeout, 5000))
                 .withResponseTimeout(Utils.ifNull(responseTimeout, 15000))
                 .build();
-        return getContext(contextName).getObjectFactory().createRequester(namespace, options,
-                new TypeReference<RestPayload<Object, Object, Object, Map<String, Object>>>() {
-                });
+        return getContext(contextName).getObjectFactory().createRequester(namespace, options, responsePayloadClass);
     }
 
-    public void sendRequest(Requester<RestPayload<Object, Object, Object, Map<String, Object>>> requester, Integer waitForResponses, Callback<RestPayload<Object, Object, Object, Map<String, Object>>> responseCallback) throws Exception {
-        sendRequest(DEFAULT_CONTEXT_NAME, requester, "QUERY", null, true, waitForResponses, null, responseCallback);
+    public <T> void sendRequest(Requester<T> requester, Object payload, Integer waitForResponses, Callback<T> responseCallback) throws Exception {
+        sendRequest(requester, payload, true, waitForResponses, null, responseCallback);
     }
 
-    public void sendRequest(String contextName, Requester<RestPayload<Object, Object, Object, Map<String, Object>>> requester, Integer waitForResponses, Callback<RestPayload<Object, Object, Object, Map<String, Object>>> responseCallback) throws Exception {
-        sendRequest(contextName, requester, "QUERY", null, true, waitForResponses, null, responseCallback);
-    }
-
-    public void sendRequest(Requester<RestPayload<Object, Object, Object, Map<String, Object>>> requester, String query, String body, boolean waitForAck, Integer waitForResponses,
-            Callback<Acknowledge> ackCallback,
-            Callback<RestPayload<Object, Object, Object, Map<String, Object>>> responseCallback) throws Exception {
-
-        sendRequest(DEFAULT_CONTEXT_NAME, requester, query, body, waitForAck, waitForResponses, ackCallback, responseCallback);
-    }
-
-    public void sendRequest(String contextName, Requester<RestPayload<Object, Object, Object, Map<String, Object>>> requester, String query, String body, boolean waitForAck, Integer waitForResponses,
-            Callback<Acknowledge> ackCallback,
-            Callback<RestPayload<Object, Object, Object, Map<String, Object>>> responseCallback) throws Exception {
+    public <T> void sendRequest(Requester<T> requester, Object payload, boolean waitForAck, Integer waitForResponses,
+            Callback<Acknowledge> ackCallback, Callback<T> responseCallback) throws Exception {
 
         requester.onAcknowledge(acknowledge -> {
             System.out.println(">>> ACKNOWLEDGE: " + acknowledge);
@@ -126,7 +110,7 @@ public class MsbTestHelper {
             }
         });
 
-        requester.publish(createPayload(contextName, query, body));
+        requester.publish(payload);
     }
 
     public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler<RestPayload> requestHandler) {
@@ -139,22 +123,10 @@ public class MsbTestHelper {
         return getContext(contextName).getObjectFactory().createResponderServer(namespace, options, requestHandler, RestPayload.class);
     }
 
-    public <T extends RestPayload> ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {
+    public <T> ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {
         MessageTemplate options = new MessageTemplate();
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
         return getDefaultContext().getObjectFactory().createResponderServer(namespace, options, requestHandler, payloadClass);
-    }
-
-    public void respond(Responder responder) {
-        responder.send(createPayload(MsbTestHelper.DEFAULT_CONTEXT_NAME, null, "RESPONSE"));
-    }
-
-    public void respond(Responder responder, String text) {
-        responder.send(createPayload(MsbTestHelper.DEFAULT_CONTEXT_NAME, null, text));
-    }
-
-    public void sleep(int timeout) throws InterruptedException {
-        Thread.sleep(timeout);
     }
 
     public void shutdown(String contextName) {
@@ -169,11 +141,15 @@ public class MsbTestHelper {
         getDefaultContext().shutdown();
     }
 
-    public RestPayload createPayload(String contextName, String query, String body) {
-        ObjectMapper mapper = ((MsbContextImpl) getContext(contextName)).getPayloadMapper();
-        return new RestPayload.Builder<Map, Object, Object, Map>()
-                .withQuery(Utils.fromJson("{\"q\": \"" + query + "\"}", Map.class, mapper))
-                .withBody(Utils.fromJson("{\"body\": \"" + body + "\"}", Map.class, mapper))
+    public RestPayload<?, ?, ?, ?> createFacetParserPayload(String query, String body) {
+        Map<String, String> queryMap = new HashMap<>();
+        queryMap.put("q", query);
+
+        Map<String, String> bodyMap = new HashMap<>();
+        bodyMap.put("body", body);
+        return new RestPayload.Builder<Map<String, String>, Object, Object, Map<String, String>>()
+                .withQuery(queryMap)
+                .withBody(bodyMap)
                 .build();
     }
 }

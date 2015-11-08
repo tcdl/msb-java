@@ -1,9 +1,7 @@
 package io.github.tcdl.msb.acceptance;
 
 import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.message.payload.RestPayload;
 
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -30,14 +28,13 @@ public class SimpleRequester {
     }
 
     public void runSimpleRequesterExample(String... expectedResponses) throws Exception {
-        Requester<RestPayload<Object, Object, Object, Map<String, Object>>> requester = helper.createRequester(namespace, NUMBER_OF_RESPONSES);
+        Requester<String> requester = helper.createRequester(namespace, NUMBER_OF_RESPONSES, String.class);
 
         passedLatch = new CountDownLatch(expectedResponses != null ? expectedResponses.length : 0);
 
-        helper.sendRequest(requester, NUMBER_OF_RESPONSES, response -> {
-            String body = response.getBody().toString();
+        helper.sendRequest(requester, "PING", NUMBER_OF_RESPONSES, response -> {
             for (String bodyFragment : expectedResponses) {
-                if (body.contains(bodyFragment)) {
+                if (response.contains(bodyFragment)) {
                     passedLatch.countDown();
                 }
             }

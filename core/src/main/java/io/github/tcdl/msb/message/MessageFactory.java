@@ -8,7 +8,6 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.MetaMessage.Builder;
 import io.github.tcdl.msb.api.message.Topics;
-import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.config.ServiceDetails;
 import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
@@ -46,7 +45,7 @@ public class MessageFactory {
         return messageBuilder.build();
     }
 
-    public Message createBroadcastMessage(Message.Builder messageBuilder, RestPayload payload) {
+    public Message createBroadcastMessage(Message.Builder messageBuilder, Object payload) {
         return createRequestMessage(messageBuilder, payload);
     }
 
