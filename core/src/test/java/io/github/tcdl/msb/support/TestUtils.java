@@ -268,6 +268,11 @@ public class TestUtils {
         assertEquals(bodyText, message.getRawPayload().get("body").asText());
     }
 
+    public static void assertRawPayload(String expectedPayload, Message message) {
+        assertNotNull(message.getRawPayload());
+        assertEquals(expectedPayload, message.getRawPayload().asText());
+    }
+
     public static void assertJsonContains(JsonNode jsonObject, String field, String value) {
         assertTrue(jsonObject.has(field));
         assertNotNull(jsonObject.get(field));

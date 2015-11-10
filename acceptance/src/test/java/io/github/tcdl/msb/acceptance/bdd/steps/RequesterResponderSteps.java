@@ -1,7 +1,6 @@
 package io.github.tcdl.msb.acceptance.bdd.steps;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.tcdl.msb.acceptance.MsbTestHelper;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
@@ -15,19 +14,21 @@ import org.junit.Assert;
 
 import java.util.Map;
 
+import static io.github.tcdl.msb.acceptance.MsbTestHelper.DEFAULT_CONTEXT_NAME;
+
 /**
  * Steps to send requests and respond with predifined responses
  */
 public class RequesterResponderSteps extends MsbSteps {
 
-    private Requester<RestPayload<Object, Object, Object, Map<String, Object>>> requester;
+    private Requester<RestPayload> requester;
     private String responseBody;
     private Map<String, Object> receivedResponse;
 
     // responder steps
     @Given("responder server listens on namespace $namespace")
     public void createResponderServer(String namespace) {
-        createResponderServer(MsbTestHelper.DEFAULT_CONTEXT_NAME, namespace);
+        createResponderServer(DEFAULT_CONTEXT_NAME, namespace);
     }
 
     @Given("responder server from $contextName listens on namespace $namespace")
@@ -53,32 +54,35 @@ public class RequesterResponderSteps extends MsbSteps {
     // requester steps
     @Given("requester sends requests to namespace $namespace")
     public void createRequester(String namespace) {
-        createRequester(MsbTestHelper.DEFAULT_CONTEXT_NAME, namespace);
+        createRequester(DEFAULT_CONTEXT_NAME, namespace);
     }
 
     @Given("requester from $contextName sends requests to namespace $namespace")
     public void createRequester(String contextName, String namespace) {
-        requester = helper.createRequester(contextName, namespace, 1);
+        requester = helper.createRequester(contextName, namespace, 1, RestPayload.class);
     }
 
     @When("requester sends a request")
     public void sendRequest() throws Exception {
-        sendRequest(MsbTestHelper.DEFAULT_CONTEXT_NAME);
+        sendRequest(DEFAULT_CONTEXT_NAME);
     }
 
     @When("requester from $contextName sends a request")
     public void sendRequest(String contextName) throws Exception {
-        helper.sendRequest(contextName, requester, 1, this::onResponse);
+        RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload("QUERY", null);
+        helper.sendRequest(requester, payload, 1, this::onResponse);
     }
 
     @When("requester sends a request with query '$query'")
     public void sendRequestWithQuery(String query) throws Exception {
-        helper.sendRequest(requester, query, null, true, 1, null, this::onResponse);
+        RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(query, null);
+        helper.sendRequest(requester, payload, true, 1, null, this::onResponse);
     }
 
     @When("requester sends a request with body '$body'")
     public void sendRequestWithBody(String body) throws Exception {
-        helper.sendRequest(requester, null, body, true, 1, null, this::onResponse);
+        RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(null, body);
+        helper.sendRequest(requester, payload, true, 1, null, this::onResponse);
     }
 
     private void onResponse(RestPayload<Object, Object, Object, Map<String, Object>> payload) {

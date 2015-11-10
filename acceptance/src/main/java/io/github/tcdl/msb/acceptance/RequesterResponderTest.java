@@ -1,10 +1,7 @@
 package io.github.tcdl.msb.acceptance;
 
-import io.github.tcdl.msb.acceptance.payload.MyPayload;
 import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.message.payload.RestPayload;
 
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -32,15 +29,15 @@ public class RequesterResponderTest {
         helper.initDefault();
         // running responder server
         helper.createResponderServer(NAMESPACE, (request, responder) -> {
-            System.out.println(">>> QUERY: " + request.getQuery().getQ());
+            System.out.println(">>> REQUEST: " + request);
             responder.sendAck(1000, NUMBER_OF_RESPONSES);
-            helper.respond(responder);
-        }, MyPayload.class)
+            responder.send("Pong");
+        }, String.class)
         .listen();
 
         // sending a request
-        Requester<RestPayload<Object, Object, Object, Map<String, Object>>> requester = helper.createRequester(NAMESPACE, NUMBER_OF_RESPONSES);
+        Requester<String> requester = helper.createRequester(NAMESPACE, NUMBER_OF_RESPONSES, String.class);
         passedLatch = new CountDownLatch(1);
-        helper.sendRequest(requester, NUMBER_OF_RESPONSES, payload -> passedLatch.countDown());
+        helper.sendRequest(requester, "Ping", true, NUMBER_OF_RESPONSES, arg -> {}, payload -> passedLatch.countDown());
     }
 }

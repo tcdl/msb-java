@@ -15,10 +15,10 @@ public class SimpleResponder {
     public void runSimpleResponderExample() {
         helper.initDefault();
         helper.createResponderServer(namespace, (request, responder) -> {
-            System.out.print(">>> REQUEST: " + request.getBody());
-            helper.sleep(500);
-            helper.respond(responder, namespace + ":" + "SimpleResponder");
-        })
+            System.out.print(">>> REQUEST: " + request);
+            Thread.sleep(500);
+            responder.send(namespace + ":" + "SimpleResponder");
+        }, String.class)
         .listen();
     }
 

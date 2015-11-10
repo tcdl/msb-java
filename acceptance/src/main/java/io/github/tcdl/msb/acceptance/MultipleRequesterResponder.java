@@ -1,10 +1,8 @@
 package io.github.tcdl.msb.acceptance;
 
 import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.message.payload.RestPayload;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,15 +37,15 @@ public class MultipleRequesterResponder {
             Future<String> futureRequester1 = createAndRunRequester(executor, requesterNamespace1);
             Future<String> futureRequester2 = createAndRunRequester(executor, requesterNamespace2);
 
-            util.sleep(500);
+            Thread.sleep(500);
 
             String result1 = futureRequester1.get();
             String result2 = futureRequester2.get();
 
             executor.shutdownNow();
 
-            util.respond(responder, "response from MultipleRequesterResponder:" + (result1 + result2));
-        })
+            responder.send("response from MultipleRequesterResponder:" + (result1 + result2));
+        }, String.class)
         .listen();
     }
 
@@ -56,15 +54,15 @@ public class MultipleRequesterResponder {
     }
 
     private Future<String> createAndRunRequester(ExecutorService executor, String namespace) {
-        Requester<RestPayload<Object, Object, Object, Map<String, Object>>> requester = util.createRequester(namespace, NUMBER_OF_RESPONSES, null, 5000);
+        Requester<String> requester = util.createRequester(namespace, NUMBER_OF_RESPONSES, null, 5000, String.class);
         Future<String> future = executor.submit(new Callable<String>() {
             String result = null;
 
             @Override
             public String call() throws Exception {
-                util.sendRequest(requester, NUMBER_OF_RESPONSES, response -> {
-                    System.out.println(">>> RESPONSE body: " + response.getBody());
-                    result = response.getBody().toString();
+                util.sendRequest(requester, "PING", NUMBER_OF_RESPONSES, response -> {
+                    System.out.println(">>> RESPONSE body: " + response);
+                    result = response;
                     synchronized (this) {
                         notify();
                     }

@@ -5,7 +5,6 @@ import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.message.MessageFactory;
 import io.github.tcdl.msb.support.TestUtils;
@@ -36,7 +35,6 @@ public class ResponderImplTest {
     private MsbContextImpl msbContextSpy;
     private ChannelManager mockChannelManager;
     private Producer mockProducer;
-    private RestPayload emptyPayload;
     private Message originalMessage;
     private Responder responder;
 
@@ -54,7 +52,6 @@ public class ResponderImplTest {
         msbContextSpy = spy(msbContext);
         mockChannelManager = mock(ChannelManager.class);
         mockProducer = mock(Producer.class);
-        emptyPayload = new RestPayload.Builder().build();
         originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
 
         when(msbContextSpy.getChannelManager()).thenReturn(mockChannelManager);
@@ -74,7 +71,7 @@ public class ResponderImplTest {
     @Test
     public void testProducerWasCreatedForProperTopic() {
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-        responder.send(emptyPayload);
+        responder.send("");
 
         verify(mockChannelManager).findOrCreateProducer(argument.capture());
 
@@ -83,23 +80,22 @@ public class ResponderImplTest {
 
     @Test
     public void testProducerPublishMethodInvoked() {
-        responder.send(emptyPayload);
+        responder.send("");
 
         verify(mockProducer, times(1)).publish(anyObject());
     }
 
     @Test
     public void testProducerPublishUseCorrectPayload() {
-        String bodyText = "This is body";
-        RestPayload<?, ?, ?, String> simplePayload = TestUtils.createPayloadWithTextBody(bodyText);
+        String responsePayload = "This is body";
 
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
-        responder.send(simplePayload);
+        responder.send(responsePayload);
 
         verify(mockProducer).publish(argument.capture());
 
         assertNotNull(argument.getValue().getRawPayload());
-        TestUtils.assertRawPayloadContainsBodyText(bodyText, argument.getValue());
+        TestUtils.assertRawPayload(responsePayload, argument.getValue());
     }
 
     @Test
