@@ -361,14 +361,23 @@ An interest twist is related to consumption of incoming messages. The adapter ge
 
 The adapter supports AMQP connection recovery out of the box and it's always enabled. It's regulated by `heartbeatIntervalSec` and  `networkRecoveryIntervalMs` configuration values (see [this section](#description-of-amqp-connection-configuration-fields) for more details).
 
-## Channel monitor agent
+## Channel monitoring
 
-Channel monitor agent is an MSB component that can be activated via `MsbContextBuilder`.
+Built-in channel monitoring allows to monitor micorservices/channels on the bus level. It consists of 2 components:
 
-It collects statistics about all topics that a microservice uses to send or receive messages.
+- **Agent** which resides in each microservice we'd like to monitor
+- **Aggregator** which is a part of special _infrastructure_ microservice(s) that are able to process the information sent by agents
 
-* When the microservice starts using a new topic the agent sends a broadcast message to special topic `_channels:announce`
-* Agent is subscribed to special topic `_channels:heartbeat` and whenever a heartbeat message arrives it sends back fresh stats.
+The following diagrams illustrates monitoring:
+
+![Channel Monitoring](Channel Monitoring.png)
+
+1. Agent runs as part of a microservice (`DateExtractor` in this example). It's activated/deactivated via `MsbContextBuilder`. It collects statistics about all topics that the microservice uses to send or receive messages as well as _when_ the last message was consumed or produced in each of them by the microservice.
+2. When the microservice starts using a new topic the agent sends a broadcast message to service topic `_channels:announce`.
+3. Aggregator runs as a part of another microservice (`Monitor` in this example). It's subscribed to the announcement topic and collect information from _all_ microservices that have agents activated.
+4. In addition to that aggregator sends periodic heartbeat requests into a service topic `_channels:heartbeat`.
+5. The agent is subscribed to the heartbeat topic and whenever a heartbeat message arrives it sends back fresh stats (into the response topic). That fresh stats can be used to actualize aggregator's statistics.
+6. The aggregator statistics may be used to build graph of "alive" microservices. Another example would be logger that subscribes to every known channel and achives all the messages going though them.
 
 Here's an example of payload of heartbeat/announcement message:
 
@@ -388,8 +397,6 @@ Here's an example of payload of heartbeat/announcement message:
   }
 }
 ```
-
-The statistics may be used by some "infrastructure" microservice(s) that use/process/display it in some way.
 
 ## API class diagram
 
