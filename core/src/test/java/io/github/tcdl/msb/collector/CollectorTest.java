@@ -35,9 +35,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by rdro on 4/27/2015.
- */
+
 @RunWith(MockitoJUnitRunner.class)
 public class CollectorTest {
 
@@ -88,45 +86,55 @@ public class CollectorTest {
     }
 
     @Test
-    public void testGetWaitForResponsesConfigsReturnFalse() {
+    public void testIsAwaitingResponsesConfigsReturnNull() {
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(null);
+        Collector<RestPayload> collector = new Collector<>(TOPIC, originalMessage, requestOptionsMock, msbContext, eventHandlers, new TypeReference<RestPayload>() {});
+        assertTrue("expect true if MessageOptions.waitForResponses is null", collector.isAwaitingResponses());
+    }
+
+    @Test
+    public void testIsAwaitingResponsesConfigsReturnZero() {
         when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
         Collector<RestPayload> collector = new Collector<>(TOPIC, originalMessage, requestOptionsMock, msbContext, eventHandlers, new TypeReference<RestPayload>() {});
         assertFalse("expect false if MessageOptions.waitForResponses equals 0", collector.isAwaitingResponses());
     }
 
     @Test
-    public void testGetWaitForResponsesConfigsReturnFalseMinusCase() {
-        when(requestOptionsMock.getWaitForResponses()).thenReturn(-10);
-        Collector<RestPayload> collector = new Collector<>(TOPIC, originalMessage, requestOptionsMock, msbContext, eventHandlers, new TypeReference<RestPayload>() {});
-        assertFalse("expect false if MessageOptions.waitForResponses equals -10", collector.isAwaitingResponses());
-    }
-
-    @Test
-    public void testGetWaitForResponsesConfigsReturnTrue() {
-        when(requestOptionsMock.getWaitForResponses()).thenReturn(100);
-        Collector<RestPayload> collector = new Collector<>(TOPIC, originalMessage, requestOptionsMock, msbContext, eventHandlers, new TypeReference<RestPayload>() {});
-        assertTrue("expect true if MessageOptions.waitForResponses equals 100", collector.isAwaitingResponses());
-    }
-
-    @Test
-    public void testGetWaitForResponsesConfigsReturnTrueMinusOne() {
+    public void testIsAwaitingResponsesConfigsReturnMinusOne() {
         when(requestOptionsMock.getWaitForResponses()).thenReturn(-1);
         Collector<RestPayload> collector = new Collector<>(TOPIC, originalMessage, requestOptionsMock, msbContext, eventHandlers, new TypeReference<RestPayload>() {});
         assertTrue("expect true if MessageOptions.waitForResponses equals -1", collector.isAwaitingResponses());
     }
 
     @Test
-    public void testIsAwaitingAcksConfigsNotSetAckTimeoutReturnFalse() {
+    public void testIsAwaitingResponsesConfigsReturnPositive() {
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(100);
+        Collector<RestPayload> collector = new Collector<>(TOPIC, originalMessage, requestOptionsMock, msbContext, eventHandlers, new TypeReference<RestPayload>() {});
+        assertTrue("expect true if MessageOptions.waitForResponses equals 100", collector.isAwaitingResponses());
+    }
+
+    @Test
+    public void testIsAwaitingAcksConfigsReturnPositiveValue() {
+        when(requestOptionsMock.getAckTimeout()).thenReturn(1000);
+        Collector<RestPayload> collector = new Collector<>(TOPIC, originalMessage, requestOptionsMock, msbContext, eventHandlers, new TypeReference<RestPayload>() {});
+        collector.listenForResponses();
+        assertTrue("expect true if MessageOptions.ackTimeout equals 1000", collector.isAwaitingAcks());
+    }
+
+    @Test
+    public void testIsAwaitingAcksConfigsReturnNull() {
         when(requestOptionsMock.getAckTimeout()).thenReturn(null);
         Collector<RestPayload> collector = new Collector<>(TOPIC, originalMessage, requestOptionsMock, msbContext, eventHandlers, new TypeReference<RestPayload>() {});
+        collector.listenForResponses();
         assertFalse("expect false if MessageOptions.ackTimeout null", collector.isAwaitingAcks());
     }
 
     @Test
-    public void testIsAwaitingAcksReturnTrue() {
-        when(requestOptionsMock.getAckTimeout()).thenReturn(200);
+    public void testIsAwaitingAcksConfigsReturnZero() {
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
         Collector<RestPayload> collector = new Collector<>(TOPIC, originalMessage, requestOptionsMock, msbContext, eventHandlers, new TypeReference<RestPayload>() {});
-        assertTrue("expect true if MessageOptions.ackTimeout equals 200", collector.isAwaitingAcks());
+        collector.listenForResponses();
+        assertFalse("expect false if MessageOptions.ackTimeout=0", collector.isAwaitingAcks());
     }
 
     @Test
@@ -447,7 +455,7 @@ public class CollectorTest {
         int timeoutMs = 50;
         int timeoutMsInAckResponderOne = 100;
         int responsesRemainingResponderOne = 5;
-        int timeoutMsInAckResponderTwo = 222;
+        int timeoutMsInAckResponderTwo = 200;
         int responsesRemainingResponderTwo = 7;
         when(requestOptionsMock.getAckTimeout()).thenReturn(0);
         when(requestOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);

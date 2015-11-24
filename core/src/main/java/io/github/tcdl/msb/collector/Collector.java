@@ -1,5 +1,16 @@
 package io.github.tcdl.msb.collector;
 
+import static io.github.tcdl.msb.support.Utils.ifNull;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ScheduledFuture;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,18 +23,6 @@ import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.time.Clock;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ScheduledFuture;
-
-import static io.github.tcdl.msb.support.Utils.ifNull;
 
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
@@ -42,7 +41,8 @@ public class Collector<T> {
 
     private int timeoutMs;
     private int currentTimeoutMs;
-    private long waitForAcksUntil;
+    private Integer waitForAcksMs;
+    private Long waitForAcksUntil;
     private int waitForResponses;
     private TypeReference<T> payloadTypeReference;
     private int responsesRemaining;
@@ -62,9 +62,9 @@ public class Collector<T> {
     private ScheduledFuture ackTimeoutFuture;
     private ScheduledFuture responseTimeoutFuture;
     private CollectorManager collectorManager;
-    private boolean shouldWaitUntilResponseTimeout;
 
-    public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers<T> eventHandlers, TypeReference<T> payloadTypeReference) {
+    public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers<T> eventHandlers,
+            TypeReference<T> payloadTypeReference) {
         this.requestMessage = requestMessage;
 
         this.clock = msbContext.getClock();
@@ -78,14 +78,15 @@ public class Collector<T> {
         this.timeoutMsById = new HashMap<>();
         this.responsesRemainingById = new HashMap<>();
 
+        this.waitForAcksMs = requestOptions.getAckTimeout();
+        this.waitForAcksUntil = null;
+        this.waitForResponses = getWaitForResponsesFromConfigs(requestOptions);
+
         this.timeoutMs = getResponseTimeoutFromConfigs(requestOptions);
         this.currentTimeoutMs = timeoutMs;
 
-        this.waitForAcksUntil = getWaitForAckUntilFromConfigs(requestOptions);
-        this.waitForResponses = requestOptions.getWaitForResponses();
         this.responsesRemaining = waitForResponses;
         this.payloadTypeReference = payloadTypeReference;
-        this.shouldWaitUntilResponseTimeout = requestOptions.getWaitForResponses() == WAIT_FOR_RESPONSES_UNTIL_TIMEOUT;
 
         if (eventHandlers != null) {
             onRawResponse = Optional.ofNullable(eventHandlers.onRawResponse());
@@ -96,14 +97,17 @@ public class Collector<T> {
     }
 
     boolean isAwaitingAcks() {
-        return waitForAcksUntil > clock.instant().toEpochMilli();
+        return this.waitForAcksUntil != null && waitForAcksUntil > clock.instant().toEpochMilli();
     }
 
-    public boolean isAwaitingResponses() {
-        return getResponsesRemaining() > 0 || shouldWaitUntilResponseTimeout;
+    boolean isAwaitingResponses() {
+        return getResponsesRemaining() > 0;
     }
 
     public void listenForResponses() {
+        if (this.waitForAcksMs != null && this.waitForAcksMs != 0) {
+            this.waitForAcksUntil = this.startedAt + waitForAcksMs;
+        }
         collectorManager.registerCollector(this);
     }
 
@@ -128,9 +132,8 @@ public class Collector<T> {
 
         processAck(incomingMessage.getAck());
 
-        if (isAwaitingResponses()) {
+        if (isAwaitingResponses())
             return;
-        }
 
         //set ack timer task in case we received ALL expected responses but still have to wait for ack
         if (isAwaitingAcks()) {
@@ -149,21 +152,6 @@ public class Collector<T> {
 
         collectorManager.unregisterCollector(this);
         onEnd.ifPresent(handler -> handler.call(null));
-    }
-
-    public void waitForResponses() {
-        LOG.debug("Waiting for responses until {}.", clock.instant().plus(currentTimeoutMs, ChronoUnit.MILLIS));
-        this.responseTimeoutFuture = timeoutManager.enableResponseTimeout(this.currentTimeoutMs, this);
-    }
-
-    private void waitForAcks() {
-        if (ackTimeoutFuture == null) {
-            LOG.debug("Waiting for ack until {}.", Instant.ofEpochMilli(this.waitForAcksUntil));
-            long ackTimeoutMs = waitForAcksUntil - clock.instant().toEpochMilli();
-            ackTimeoutFuture = timeoutManager.enableAckTimeout(ackTimeoutMs, this);
-        } else {
-            LOG.debug("Ack timeout is already scheduled");
-        }
     }
 
     private void processAck(Acknowledge acknowledge) {
@@ -198,19 +186,6 @@ public class Collector<T> {
         return timeoutMs;
     }
 
-    int getResponsesRemaining() {
-        if (responsesRemainingById == null || responsesRemainingById.isEmpty()) {
-            return responsesRemaining;
-        }
-
-        Integer sumOfResponsesRemaining = 0;
-        for (Integer responses : responsesRemainingById.values()) {
-            sumOfResponsesRemaining += responses;
-        }
-
-        return Math.max(responsesRemaining, sumOfResponsesRemaining);
-    }
-
     private int getMaxTimeoutMs() {
         if (timeoutMsById.isEmpty()) {
             return this.timeoutMs;
@@ -232,17 +207,27 @@ public class Collector<T> {
         return (responsesRemaining = Math.max(responsesRemaining + inc, 0));
     }
 
-    private int setResponsesRemainingForResponderId(String responderId, Integer responsesRemaining) {
-        boolean notChanged = (responsesRemainingById != null && responsesRemainingById.containsKey(responderId) && responsesRemainingById
-                .get(responderId).equals(responsesRemaining));
-        if (notChanged)
-            return 0;
+    int getResponsesRemaining() {
+        if (responsesRemainingById.isEmpty()) {
+            return responsesRemaining;
+        }
 
+        Integer sumOfResponsesRemaining = 0;
+        for (Integer responses : responsesRemainingById.values()) {
+            sumOfResponsesRemaining += responses;
+        }
+
+        return Math.max(responsesRemaining, sumOfResponsesRemaining);
+    }
+
+    private Integer setResponsesRemainingForResponderId(String responderId, int responsesRemaining) {
+        //check for responsesRemaining < 0 seems redundant, since if config.waitForResponses == -1 we use  Infinity
         boolean atMin = (responsesRemaining < 0 && (responsesRemainingById.isEmpty() || !responsesRemainingById
                 .containsKey(responderId)));
-        if (atMin)
-            return 0;
-
+        if (atMin) {
+            return null;
+        }
+        //when second, third, etc time same value (not equals 0) for responsesRemaining is received for corresponding responderId, it must be sum up with previous.
         if (responsesRemaining == 0) {
             responsesRemainingById.put(responderId, 0);
         } else {
@@ -253,18 +238,35 @@ public class Collector<T> {
         return responsesRemainingById.get(responderId);
     }
 
+    private int getWaitForResponsesFromConfigs(RequestOptions requestOptions) {
+        if (requestOptions.getWaitForResponses() == null || requestOptions.getWaitForResponses() == WAIT_FOR_RESPONSES_UNTIL_TIMEOUT) {
+            // use for Infinity number or expected responses
+            return Integer.MAX_VALUE;
+        } else {
+            return requestOptions.getWaitForResponses();
+        }
+    }
+
+    public void waitForResponses() {
+        LOG.debug("Waiting for responses until {}.", clock.instant().plus(currentTimeoutMs, ChronoUnit.MILLIS));
+        this.responseTimeoutFuture = timeoutManager.enableResponseTimeout(this.currentTimeoutMs, this);
+    }
+
+    private void waitForAcks() {
+        if (ackTimeoutFuture == null) {
+            LOG.debug("Waiting for ack until {}.", Instant.ofEpochMilli(this.waitForAcksUntil));
+            long ackTimeoutMs = waitForAcksUntil - clock.instant().toEpochMilli();
+            ackTimeoutFuture = timeoutManager.enableAckTimeout(ackTimeoutMs, this);
+        } else {
+            LOG.debug("Ack timeout is already scheduled");
+        }
+    }
+
     private int getResponseTimeoutFromConfigs(RequestOptions requestOptions) {
         if (requestOptions.getResponseTimeout() == null) {
             return 3000;
         }
         return requestOptions.getResponseTimeout();
-    }
-
-    private long getWaitForAckUntilFromConfigs(RequestOptions requestOptions) {
-        if (requestOptions.getAckTimeout() == null) {
-            return 0;
-        }
-        return this.startedAt + requestOptions.getAckTimeout();
     }
 
     private void cancelResponseTimeoutTask() {

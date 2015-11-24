@@ -43,15 +43,7 @@ public class RequestOptions {
     }
 
     public Integer getWaitForResponses() {
-        if (waitForResponses == null) {
-            return 0;
-        } else {
-            return waitForResponses;
-        }
-    }
-
-    public boolean isWaitForResponses() {
-        return getWaitForResponses() != 0;
+       return waitForResponses;
     }
 
     public MessageTemplate getMessageTemplate() {

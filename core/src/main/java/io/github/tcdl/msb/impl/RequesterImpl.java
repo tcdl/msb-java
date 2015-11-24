@@ -15,7 +15,7 @@ import org.apache.commons.lang3.Validate;
 
 /**
  * Implementation of {@link Requester}
- *
+ * 
  * Expected responses are matched by correlationId from original request.
  *
  * @see Requester
@@ -93,7 +93,7 @@ public class RequesterImpl<T> implements Requester<T> {
         Message message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
         //use Collector instance to handle expected responses/acks
-        if (requestOptions.isWaitForResponses()) {
+        if (isWaitForAckMs() || isWaitForResponses()) {
             String topic = message.getTopics().getResponse();
 
             Collector collector = createCollector(topic, message, requestOptions, context, eventHandlers);
@@ -107,6 +107,14 @@ public class RequesterImpl<T> implements Requester<T> {
             getChannelManager().findOrCreateProducer(message.getTopics().getTo())
                     .publish(message);
         }
+    }
+
+    private boolean isWaitForAckMs() {
+        return requestOptions.getAckTimeout() != null && requestOptions.getAckTimeout() != 0;
+    }
+
+    private boolean isWaitForResponses() {
+        return requestOptions.getWaitForResponses() != null && requestOptions.getWaitForResponses() != 0;
     }
 
     /**
