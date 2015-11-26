@@ -84,7 +84,6 @@ public class RequesterImplTest {
 
         Message responseMessage = TestUtils.createMsbRequestMessage("some:topic", "body text");
         collectorMock.handleMessage(responseMessage);
-
     }
 
     @Test
@@ -222,8 +221,12 @@ public class RequesterImplTest {
 
         MessageTemplate messageTemplateMock = mock(MessageTemplate.class);
 
-        RequestOptions requestOptionsMock = new RequestOptions.Builder().withMessageTemplate(messageTemplateMock).withWaitForResponses(numberOfResponses)
-                .withResponseTimeout(respTimeout).withAckTimeout(ackTimeout).build();
+        RequestOptions requestOptionsMock = new RequestOptions.Builder()
+                .withMessageTemplate(messageTemplateMock)
+                .withWaitForResponses(numberOfResponses)
+                .withResponseTimeout(respTimeout)
+                .withAckTimeout(ackTimeout)
+                .build();
 
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
 

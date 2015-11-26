@@ -114,7 +114,7 @@ public class RequesterImpl<T> implements Requester<T> {
     }
 
     private boolean isWaitForResponses() {
-        return requestOptions.getWaitForResponses() != null && requestOptions.getWaitForResponses() != 0;
+        return requestOptions.getWaitForResponses() != 0;
     }
 
     /**

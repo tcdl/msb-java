@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.collector;
 
 import static io.github.tcdl.msb.support.Utils.ifNull;
+import static java.lang.Math.toIntExact;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -31,8 +32,6 @@ public class Collector<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
-    private static final int WAIT_FOR_RESPONSES_UNTIL_TIMEOUT = -1;
-
     private List<Message> ackMessages;
     private List<Message> payloadMessages;
 
@@ -42,12 +41,14 @@ public class Collector<T> {
     private int timeoutMs;
     private int currentTimeoutMs;
     private Integer waitForAcksMs;
-    private Long waitForAcksUntil;
-    private int waitForResponses;
-    private TypeReference<T> payloadTypeReference;
-    private int responsesRemaining;
+    private Instant waitForAcksUntil;
 
-    private Long startedAt;
+    private int responsesRemaining;
+    private boolean shouldWaitUntilResponseTimeout;
+
+    private TypeReference<T> payloadTypeReference;
+
+    private long startedAt;
     private TimeoutManager timeoutManager;
     private ObjectMapper payloadMapper;
 
@@ -80,12 +81,18 @@ public class Collector<T> {
 
         this.waitForAcksMs = requestOptions.getAckTimeout();
         this.waitForAcksUntil = null;
-        this.waitForResponses = getWaitForResponsesFromConfigs(requestOptions);
 
         this.timeoutMs = getResponseTimeoutFromConfigs(requestOptions);
         this.currentTimeoutMs = timeoutMs;
 
+        int waitForResponses = requestOptions.getWaitForResponses();
+
         this.responsesRemaining = waitForResponses;
+
+        if (waitForResponses == RequestOptions.WAIT_FOR_RESPONSES_UNTIL_TIMEOUT) {
+            shouldWaitUntilResponseTimeout = true;
+        }
+
         this.payloadTypeReference = payloadTypeReference;
 
         if (eventHandlers != null) {
@@ -97,16 +104,16 @@ public class Collector<T> {
     }
 
     boolean isAwaitingAcks() {
-        return this.waitForAcksUntil != null && waitForAcksUntil > clock.instant().toEpochMilli();
+        return this.waitForAcksUntil != null && waitForAcksUntil.isAfter(Instant.now());
     }
 
     boolean isAwaitingResponses() {
-        return getResponsesRemaining() > 0;
+        return shouldWaitUntilResponseTimeout || getResponsesRemaining() > 0;
     }
 
     public void listenForResponses() {
         if (this.waitForAcksMs != null && this.waitForAcksMs != 0) {
-            this.waitForAcksUntil = this.startedAt + waitForAcksMs;
+            this.waitForAcksUntil = Instant.ofEpochMilli(this.startedAt).plusMillis(waitForAcksMs);
         }
         collectorManager.registerCollector(this);
     }
@@ -154,26 +161,23 @@ public class Collector<T> {
         onEnd.ifPresent(handler -> handler.call(null));
     }
 
-    private void processAck(Acknowledge acknowledge) {
+    void processAck(Acknowledge acknowledge) {
         if (acknowledge == null)
             return;
-
-        if (acknowledge.getTimeoutMs() != null && acknowledge.getResponderId() != null) {
-            Integer newTimeoutMs = setTimeoutMsForResponderId(acknowledge.getResponderId(), acknowledge.getTimeoutMs());
-            if (newTimeoutMs != null) {
-                int prevTimeoutMs = this.currentTimeoutMs;
-
-                this.currentTimeoutMs = getMaxTimeoutMs();
-                if (prevTimeoutMs != currentTimeoutMs) {
-                    cancelResponseTimeoutTask();
-                    this.responseTimeoutFuture = timeoutManager.enableResponseTimeout(this.currentTimeoutMs, this);
-                }
-            }
-        }
 
         if (acknowledge.getResponsesRemaining() != null) {
             LOG.debug("Responses remaining for responderId [{}] is set to {}", acknowledge.getResponderId(),
                     setResponsesRemainingForResponderId(acknowledge.getResponderId(), acknowledge.getResponsesRemaining()));
+        }
+
+        if (acknowledge.getTimeoutMs() != null) {
+            setTimeoutMsForResponderId(acknowledge.getResponderId(), acknowledge.getTimeoutMs());
+        }
+
+        Integer newTimeoutMs = getMaxTimeoutMs();
+        if (newTimeoutMs != this.currentTimeoutMs) {
+            this.currentTimeoutMs = newTimeoutMs;
+            waitForResponses();
         }
     }
 
@@ -238,25 +242,17 @@ public class Collector<T> {
         return responsesRemainingById.get(responderId);
     }
 
-    private int getWaitForResponsesFromConfigs(RequestOptions requestOptions) {
-        if (requestOptions.getWaitForResponses() == null || requestOptions.getWaitForResponses() == WAIT_FOR_RESPONSES_UNTIL_TIMEOUT) {
-            // use for Infinity number or expected responses
-            return Integer.MAX_VALUE;
-        } else {
-            return requestOptions.getWaitForResponses();
-        }
-    }
-
     public void waitForResponses() {
-        LOG.debug("Waiting for responses until {}.", clock.instant().plus(currentTimeoutMs, ChronoUnit.MILLIS));
-        this.responseTimeoutFuture = timeoutManager.enableResponseTimeout(this.currentTimeoutMs, this);
+        int newTimeoutMs = this.currentTimeoutMs - toIntExact(clock.instant().toEpochMilli() - this.startedAt);
+        LOG.debug("Waiting for responses until {}.", clock.instant().plus(newTimeoutMs, ChronoUnit.MILLIS));
+        this.responseTimeoutFuture = timeoutManager.enableResponseTimeout(newTimeoutMs, this);
     }
 
-    private void waitForAcks() {
+    void waitForAcks() {
         if (ackTimeoutFuture == null) {
-            LOG.debug("Waiting for ack until {}.", Instant.ofEpochMilli(this.waitForAcksUntil));
-            long ackTimeoutMs = waitForAcksUntil - clock.instant().toEpochMilli();
-            ackTimeoutFuture = timeoutManager.enableAckTimeout(ackTimeoutMs, this);
+            LOG.debug("Waiting for ack until {}.", this.waitForAcksUntil);
+            long ackTimeoutMs = waitForAcksUntil.toEpochMilli() - clock.instant().toEpochMilli();
+            ackTimeoutFuture = timeoutManager.enableAckTimeout(toIntExact(ackTimeoutMs), this);
         } else {
             LOG.debug("Ack timeout is already scheduled");
         }

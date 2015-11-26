@@ -5,6 +5,8 @@ package io.github.tcdl.msb.api;
  */
 public class RequestOptions {
 
+    public static final int WAIT_FOR_RESPONSES_UNTIL_TIMEOUT = -1;
+
     /**
      * Min time (in milliseconds) to wait for acknowledgements.
      */
@@ -42,8 +44,13 @@ public class RequestOptions {
         return responseTimeout;
     }
 
-    public Integer getWaitForResponses() {
-       return waitForResponses;
+   public int getWaitForResponses() {
+        if (waitForResponses == null || waitForResponses == -1) {
+            // use for Infinity number or expected responses
+            return WAIT_FOR_RESPONSES_UNTIL_TIMEOUT;
+        } else {
+            return waitForResponses;
+        }
     }
 
     public MessageTemplate getMessageTemplate() {
