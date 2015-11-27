@@ -189,6 +189,22 @@ public class TestUtils {
                 .build();
     }
 
+    public static Message createMsbResponseMessage(Acknowledge ack, JsonNode payload, String topicTo, String correlationId) {
+        MsbConfig msbConf = createMsbConfigurations();
+        Clock clock = Clock.systemDefaultZone();
+
+        Topics topic = new Topics(topicTo, null);
+        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
+        return new Message.Builder()
+                .withCorrelationId(Utils.ifNull(correlationId, Utils.generateId()))
+                .withId(Utils.generateId())
+                .withTopics(topic)
+                .withMetaBuilder(metaBuilder)
+                .withPayload(payload)
+                .withAck(ack)
+                .build();
+    }
+
     public static Message.Builder createMessageBuilder(Clock clock) {
         MsbConfig msbConf = createMsbConfigurations();
 

@@ -25,6 +25,11 @@ public class TimeoutManager {
     protected ScheduledFuture<?> enableResponseTimeout(int timeoutMs, Collector collector) {
         LOG.debug("Enabling response timeout for {} ms", timeoutMs);
 
+        if (timeoutMs <= 0) {
+            LOG.debug("Unable to schedule timeout with negative delay : {}", timeoutMs);
+            return null;
+        }
+
         try {
             return timeoutExecutorDecorator.schedule(() -> {
                 LOG.debug("Response timeout expired.");
@@ -37,7 +42,7 @@ public class TimeoutManager {
 
     }
 
-    protected ScheduledFuture<?> enableAckTimeout(long timeoutMs, Collector collector) {
+    protected ScheduledFuture<?> enableAckTimeout(int timeoutMs, Collector collector) {
         LOG.debug("Enabling ack timeout for {} ms", timeoutMs);
 
         if (timeoutMs <= 0) {

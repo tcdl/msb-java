@@ -26,6 +26,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -44,9 +45,6 @@ public class RequesterImplTest {
     private static final String NAMESPACE = "test:requester";
 
     @Mock
-    private EventHandlers<RestPayload> eventHandlerMock;
-
-    @Mock
     private ChannelManager channelManagerMock;
 
     @Mock
@@ -60,7 +58,7 @@ public class RequesterImplTest {
 
     @Test
     public void testPublishNoWaitForResponses() throws Exception {
-        RequesterImpl<RestPayload> requester = initRequesterForResponsesWithTimeout(0);
+        RequesterImpl<RestPayload> requester = initRequesterForResponsesWith(0, 0, 0, null);
 
         requester.publish(TestUtils.createSimpleRequestPayload());
 
@@ -70,9 +68,7 @@ public class RequesterImplTest {
 
     @Test
     public void testPublishWaitForResponses() throws Exception {
-        RequesterImpl<RestPayload> requester = initRequesterForResponsesWithTimeout(1);
-
-        //doReturn(mock(CollectorManager.class)).when(collectorMock).findOrCreateCollectorManager(anyString());
+        RequesterImpl<RestPayload> requester = initRequesterForResponsesWith(1, 0, 0, null);
 
         requester.publish(TestUtils.createSimpleRequestPayload());
 
@@ -81,9 +77,19 @@ public class RequesterImplTest {
     }
 
     @Test
+    public void testPublishWaitForResponsesAck() throws Exception {
+        RequesterImpl<RestPayload> requester = initRequesterForResponsesWith(1, 1000, 800, arg ->  fail());
+
+        requester.publish(TestUtils.createSimpleRequestPayload());
+
+        Message responseMessage = TestUtils.createMsbRequestMessage("some:topic", "body text");
+        collectorMock.handleMessage(responseMessage);
+    }
+
+    @Test
     public void testProducerPublishWithPayload() throws Exception {
         String bodyText = "Body text";
-        RequesterImpl<RestPayload> requester = initRequesterForResponsesWithTimeout(0);
+        RequesterImpl<RestPayload> requester = initRequesterForResponsesWith(0, 0, 0, null);
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
         RestPayload payload = TestUtils.createPayloadWithTextBody(bodyText);
 
@@ -97,7 +103,7 @@ public class RequesterImplTest {
     @SuppressWarnings("unchecked")
     public void testAcknowledgeEventHandlerIsAdded() throws Exception {
         Callback onAckMock = mock(Callback.class);
-        RequesterImpl requester = initRequesterForResponsesWithTimeout(1);
+        RequesterImpl requester = initRequesterForResponsesWith(1, 0, 0, null);
 
         requester.onAcknowledge(onAckMock);
 
@@ -111,7 +117,7 @@ public class RequesterImplTest {
     @SuppressWarnings("unchecked")
     public void testResponseEventHandlerIsAdded() throws Exception {
         Callback onResponseMock = mock(Callback.class);
-        RequesterImpl requester = initRequesterForResponsesWithTimeout(1);
+        RequesterImpl requester = initRequesterForResponsesWith(1, 0, 0, null);
 
         requester.onResponse(onResponseMock);
 
@@ -126,7 +132,7 @@ public class RequesterImplTest {
     @SuppressWarnings("unchecked")
     public void testRawResponseEventHandlerIsAdded() throws Exception {
         Callback onRawResponseMock = mock(Callback.class);
-        RequesterImpl requester = initRequesterForResponsesWithTimeout(1);
+        RequesterImpl requester = initRequesterForResponsesWith(1, 0, 0, null);
 
         requester.onRawResponse(onRawResponseMock);
 
@@ -141,7 +147,7 @@ public class RequesterImplTest {
     @SuppressWarnings("unchecked")
     public void testEndEventHandlerIsAdded() throws Exception {
         Callback onEndMock = mock(Callback.class);
-        RequesterImpl requester = initRequesterForResponsesWithTimeout(1);
+        RequesterImpl requester = initRequesterForResponsesWith(1, 0, 0, null);
 
         requester.onEnd(onEndMock);
 
@@ -155,7 +161,7 @@ public class RequesterImplTest {
     @SuppressWarnings("unchecked")
     public void testNoEventHandlerAdded() throws Exception {
         Callback onEndMock = mock(Callback.class);
-        RequesterImpl requester = initRequesterForResponsesWithTimeout(1);
+        RequesterImpl requester = initRequesterForResponsesWith(1, 0, 0, null);
 
         assertThat(requester.eventHandlers.onAcknowledge(), not(onEndMock));
         assertThat(requester.eventHandlers.onResponse(), not(onEndMock));
@@ -211,12 +217,16 @@ public class RequesterImplTest {
         assertArrayEquals(new String[]{tag, dynamicTag}, requestMessage.getTags().toArray());
     }
 
-    private RequesterImpl<RestPayload> initRequesterForResponsesWithTimeout(int numberOfResponses) throws Exception {
+    private RequesterImpl<RestPayload> initRequesterForResponsesWith(Integer numberOfResponses, Integer respTimeout,  Integer ackTimeout , Callback<Void> endHandler) throws Exception {
 
         MessageTemplate messageTemplateMock = mock(MessageTemplate.class);
 
-        RequestOptions requestOptionsMock = new RequestOptions.Builder().withMessageTemplate(messageTemplateMock).withWaitForResponses(numberOfResponses)
-                .withResponseTimeout(100).build();
+        RequestOptions requestOptionsMock = new RequestOptions.Builder()
+                .withMessageTemplate(messageTemplateMock)
+                .withWaitForResponses(numberOfResponses)
+                .withResponseTimeout(respTimeout)
+                .withAckTimeout(ackTimeout)
+                .build();
 
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
 
@@ -225,8 +235,9 @@ public class RequesterImplTest {
                 .build();
 
         RequesterImpl<RestPayload> requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, msbContext, new TypeReference<RestPayload>() {}));
+        requester.onEnd(endHandler);
 
-        collectorMock = spy(new Collector<>(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptionsMock, msbContext, eventHandlerMock,
+        collectorMock = spy(new Collector<>(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptionsMock, msbContext, requester.eventHandlers,
                 new TypeReference<RestPayload>() {}));
 
         doReturn(collectorMock)

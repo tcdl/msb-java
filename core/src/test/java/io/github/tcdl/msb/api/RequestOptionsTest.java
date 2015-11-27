@@ -12,7 +12,7 @@ public class RequestOptionsTest {
                 .withWaitForResponses(null)
                 .build();
 
-        assertEquals("expect 0 if MessageOptions.waitForResponses is null", Integer.valueOf(0), requestOptions.getWaitForResponses());
+        assertEquals( RequestOptions.WAIT_FOR_RESPONSES_UNTIL_TIMEOUT, requestOptions.getWaitForResponses());
     }
 
     @Test
@@ -21,16 +21,17 @@ public class RequestOptionsTest {
                 .withWaitForResponses(-1)
                 .build();
 
-        assertEquals("expect -1 if MessageOptions.waitForResponses is -1", Integer.valueOf(-1), requestOptions.getWaitForResponses());
+        assertEquals(RequestOptions.WAIT_FOR_RESPONSES_UNTIL_TIMEOUT, requestOptions.getWaitForResponses());
     }
 
     @Test
     public void testGetWaitForResponsesConfigsPositive() {
+        int responsesRemaining = 100;
         RequestOptions requestOptions = new RequestOptions.Builder()
-                .withWaitForResponses(100)
+                .withWaitForResponses(responsesRemaining)
                 .build();
 
-        assertEquals("expect 100 if MessageOptions.waitForResponses is 100", Integer.valueOf(100), requestOptions.getWaitForResponses());
+        assertEquals(responsesRemaining, requestOptions.getWaitForResponses());
     }
 
 }
