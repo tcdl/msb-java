@@ -13,6 +13,10 @@ import org.jbehave.core.model.OutcomesTable;
 import org.junit.Assert;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static io.github.tcdl.msb.acceptance.MsbTestHelper.DEFAULT_CONTEXT_NAME;
 
@@ -24,6 +28,10 @@ public class RequesterResponderSteps extends MsbSteps {
     private Requester<RestPayload> requester;
     private String responseBody;
     private Map<String, Object> receivedResponse;
+    private CompletableFuture<Map<String, Object>> receivedResponseFuture;
+    private int countRequestsReceived = 0;
+    private Optional<String> nextRequestAckType = Optional.empty();
+
 
     // responder steps
     @Given("responder server listens on namespace $namespace")
@@ -35,14 +43,38 @@ public class RequesterResponderSteps extends MsbSteps {
     @When("responder server from $contextName listens on namespace $namespace")
     public void createResponderServer(String contextName, String namespace) {
         ObjectMapper mapper = helper.getPayloadMapper(contextName);
+        countRequestsReceived = 0;
         helper.createResponderServer(contextName, namespace, (request, responder) -> {
             if (responseBody != null) {
-                RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map>()
-                        .withBody(Utils.fromJson(responseBody, Map.class, mapper))
-                        .build();
-                responder.send(payload);
+                countRequestsReceived++;
+                boolean isSendResponse = true;
+
+                switch (nextRequestAckType.orElseGet(()->"auto")) {
+                    case "confirm":
+                        responder.getAcknowledgementHandler().confirmMessage();
+                        break;
+                    case "reject":
+                        responder.getAcknowledgementHandler().rejectMessage();
+                        isSendResponse = false;
+                        break;
+                }
+
+                nextRequestAckType = Optional.empty();
+
+                if(isSendResponse) {
+                    RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map>()
+                            .withBody(Utils.fromJson(responseBody, Map.class, mapper))
+                            .build();
+                    responder.send(payload);
+                }
             }
         }).listen();
+    }
+
+    @Given("responder server will $nextRequestAckType next request")
+    public void setNextRequestAckType(String nextRequestAckType) throws Exception {
+        this.nextRequestAckType = Optional.of(nextRequestAckType);
+
     }
 
     @Given("responder server responds with '$body'")
@@ -69,30 +101,42 @@ public class RequesterResponderSteps extends MsbSteps {
 
     @When("requester from $contextName sends a request")
     public void sendRequest(String contextName) throws Exception {
+        onBeforeRequest();
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload("QUERY", null);
         helper.sendRequest(requester, payload, 1, this::onResponse);
     }
 
     @When("requester sends a request with query '$query'")
     public void sendRequestWithQuery(String query) throws Exception {
+        onBeforeRequest();
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(query, null);
         helper.sendRequest(requester, payload, true, 1, null, this::onResponse);
     }
 
     @When("requester sends a request with body '$body'")
     public void sendRequestWithBody(String body) throws Exception {
+        onBeforeRequest();
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(null, body);
         helper.sendRequest(requester, payload, true, 1, null, this::onResponse);
     }
 
+    private void onBeforeRequest() {
+        receivedResponse = null;
+        receivedResponseFuture = new CompletableFuture<>();
+    }
+
     private void onResponse(RestPayload<Object, Object, Object, Map<String, Object>> payload) {
-        receivedResponse = payload.getBody();
+        receivedResponseFuture.complete(payload.getBody());
     }
 
     @Then("requester gets response in $timeout ms")
     public void waitForResponse(long timeout) throws Exception {
-        Thread.sleep(timeout);
-        Assert.assertNotNull("Response has not been received", receivedResponse);
+        try {
+            receivedResponse = receivedResponseFuture.get(timeout, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException timeoutException) {
+            Assert.fail("Response has not been received during a timeout");
+        }
+        Assert.assertNotNull("Response received is null", receivedResponse);
     }
 
     @Then("response equals $table")
@@ -105,6 +149,11 @@ public class RequesterResponderSteps extends MsbSteps {
         }
 
         outcomes.verify();
+    }
+
+    @Then("responder requests received count equals $expectedRequestsReceivedCount")
+    public void requestCountEquals(int expectedCountRequestsReceived) throws Exception {
+        Assert.assertEquals(expectedCountRequestsReceived, countRequestsReceived);
     }
 
     @Then("response contains $table")
