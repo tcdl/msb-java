@@ -43,34 +43,34 @@ public class AmqpMessageConsumer extends DefaultConsumer {
 
     @Override
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+        long deliveryTag = envelope.getDeliveryTag();
+        AmqpAcknowledgementHandler ackHandler = createAcknowledgementHandler(
+                getChannel(), consumerTag, deliveryTag, amqpBrokerConfig.isRequeueRejectedMessages());
         try {
             Charset charset = amqpBrokerConfig.getCharset();
-            boolean requeueRejectedMessages = amqpBrokerConfig.isRequeueRejectedMessages();
+
             String bodyStr = new String(body, charset);
-            long deliveryTag = envelope.getDeliveryTag();
-            
+
             LOG.debug(String.format("[consumer tag: %s] Message consumed from broker: %s", consumerTag, bodyStr));
 
-            AmqpAcknowledgementHandler ackHandler = createAcknowledgementHandler(getChannel(), 
-                    consumerTag, bodyStr, deliveryTag, requeueRejectedMessages);
             try {
                 consumerThreadPool.submit(new AmqpMessageProcessingTask(consumerTag, bodyStr, msgHandler, ackHandler));
-                LOG.debug(String.format("[consumer tag: %s] Message has been put in the processing queue: %s. About to send AMQP ack...",
+                LOG.debug(String.format("[consumer tag: %s] Message has been put in the processing queue: %s.",
                         consumerTag, bodyStr));
             } catch (Exception e) {
-                LOG.error(String.format("[consumer tag: %s] Couldn't put message in the processing queue: %s. About to send AMQP reject...",
+                LOG.error(String.format("[consumer tag: %s] Couldn't put message in the processing queue: %s.",
                         consumerTag, bodyStr), e);
-                ackHandler.autoReject();
+                throw e;
             }
         } catch (Exception e) {
             // Catch all exceptions to prevent AMQP channel to be closed
-            LOG.error(String.format("[consumer tag: %s] Got exception while processing incoming message", consumerTag), e);
+            LOG.error(String.format("[consumer tag: %s] Got exception while processing incoming message. About to send AMQP reject...", consumerTag), e);
+            ackHandler.autoReject();
         }
     }
     
-    AmqpAcknowledgementHandler createAcknowledgementHandler(Channel channel, String consumerTag,
-            String bodyStr, long deliveryTag, boolean isRequeueRejectedMessages) {
-        return new AmqpAcknowledgementHandler(channel, consumerTag, bodyStr, deliveryTag, isRequeueRejectedMessages);
+    AmqpAcknowledgementHandler createAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag, boolean isRequeueRejectedMessages) {
+        return new AmqpAcknowledgementHandler(channel, consumerTag, deliveryTag, isRequeueRejectedMessages);
     }
     
 }
