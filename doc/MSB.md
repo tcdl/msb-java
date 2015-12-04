@@ -14,6 +14,12 @@ The diagram below shows one possible approach when microservices communicate thr
 
 MSB = MicroService Bus.
 
+MSb-Java version number MAJOR.MINOR.PATCH, is incremented when:
+
+MAJOR version - MSB compatible protocol was changed 
+MINOR version - incompatible API changes was made,
+PATCH version - added functionality in a backwards-compatible manner, or backwards-compatible bug fixes was made.
+
 # Supported microservice models
 
 Below we consider different ways in which microservices can interact with each other using MSB-Java.
