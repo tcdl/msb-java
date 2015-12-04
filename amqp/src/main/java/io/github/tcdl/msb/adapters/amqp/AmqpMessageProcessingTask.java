@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import com.rabbitmq.client.Channel;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,18 +11,17 @@ import org.slf4j.LoggerFactory;
 public class AmqpMessageProcessingTask implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(AmqpMessageProcessingTask.class);
 
-    String consumerTag;
-    String body;
-    Channel channel;
-    long deliveryTag;
-    ConsumerAdapter.RawMessageHandler msgHandler;
+    final String consumerTag;
+    final String body;
+    final ConsumerAdapter.RawMessageHandler msgHandler;
+    final AmqpAcknowledgementHandler ackHandler;
 
-    public AmqpMessageProcessingTask(String consumerTag, String body, Channel channel, long deliveryTag, ConsumerAdapter.RawMessageHandler msgHandler) {
+    public AmqpMessageProcessingTask(String consumerTag, String body, ConsumerAdapter.RawMessageHandler msgHandler, 
+            AmqpAcknowledgementHandler ackHandler) {
         this.consumerTag = consumerTag;
         this.body = body;
-        this.channel = channel;
-        this.deliveryTag = deliveryTag;
         this.msgHandler = msgHandler;
+        this.ackHandler = ackHandler;
     }
 
     /**
@@ -34,10 +33,13 @@ public class AmqpMessageProcessingTask implements Runnable {
     public void run() {
         try {
             LOG.debug(String.format("[consumer tag: %s] Starting message processing: %s", consumerTag, body));
-            msgHandler.onMessage(body);
+            msgHandler.onMessage(body, ackHandler);
             LOG.debug(String.format("[consumer tag: %s] Message has been processed: %s", consumerTag, body));
+            ackHandler.autoConfirm();
         } catch (Exception e) {
             LOG.error(String.format("[consumer tag: %s] Failed to process message %s", consumerTag, body), e);
+            ackHandler.autoReject();
         }
     }
+    
 }

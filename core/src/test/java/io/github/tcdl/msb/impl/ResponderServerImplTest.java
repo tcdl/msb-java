@@ -1,6 +1,16 @@
 package io.github.tcdl.msb.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.Producer;
@@ -11,21 +21,12 @@ import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.TestUtils;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyObject;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 public class ResponderServerImplTest {
 
@@ -62,7 +63,7 @@ public class ResponderServerImplTest {
         verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
 
         Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
-        subscriberCaptor.getValue().handleMessage(originalMessage);
+        subscriberCaptor.getValue().handleMessage(originalMessage, null);
 
         verify(spyResponderServer).onResponder(anyObject());
     }
@@ -87,7 +88,7 @@ public class ResponderServerImplTest {
         // simulate incoming request
         ArgumentCaptor<RestPayload> responseCaptor = ArgumentCaptor.forClass(RestPayload.class);
         ResponderImpl responder = spy(
-                new ResponderImpl(messageTemplate, incomingMessage, msbContext));
+                new ResponderImpl(messageTemplate, incomingMessage, null, msbContext));
         responderServer.onResponder(responder);
         verify(responder).send(responseCaptor.capture());
         assertEquals(ResponderServer.PAYLOAD_CONVERSION_ERROR_CODE, responseCaptor.getValue().getStatusCode().intValue());
@@ -109,7 +110,7 @@ public class ResponderServerImplTest {
         // simulate incoming request
         ArgumentCaptor<RestPayload> responseCaptor = ArgumentCaptor.forClass(RestPayload.class);
         ResponderImpl responder = spy(
-                new ResponderImpl(messageTemplate, TestUtils.createMsbRequestMessageNoPayload(TOPIC), msbContext));
+                new ResponderImpl(messageTemplate, TestUtils.createMsbRequestMessageNoPayload(TOPIC), null, msbContext));
         responderServer.onResponder(responder);
 
         verify(responder).send(responseCaptor.capture());
@@ -133,7 +134,7 @@ public class ResponderServerImplTest {
                 .create(TOPIC, messageTemplate, msbContext1, handler, new TypeReference<String>() {});
 
         Message incomingMessage = TestUtils.createMsbRequestMessageNoPayload(TOPIC);
-        Responder responder = responderServer.createResponder(incomingMessage);
+        Responder responder = responderServer.createResponder(incomingMessage, null);
         assertEquals(incomingMessage, responder.getOriginalMessage());
 
         responder.sendAck(1, 1);
@@ -157,7 +158,7 @@ public class ResponderServerImplTest {
                 .create(TOPIC, messageTemplate, msbContext, handler, new TypeReference<String>() {});
 
         Message incomingMessage = TestUtils.createMsbBroadcastMessageNoPayload(TOPIC);
-        Responder responder = responderServer.createResponder(incomingMessage);
+        Responder responder = responderServer.createResponder(incomingMessage, null);
         assertEquals(incomingMessage, responder.getOriginalMessage());
 
         responder.sendAck(1, 1);

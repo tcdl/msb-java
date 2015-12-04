@@ -1,6 +1,5 @@
 package io.github.tcdl.msb;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
@@ -10,13 +9,16 @@ import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.Utils;
-import org.apache.commons.lang3.Validate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * {@link Consumer} is a component responsible for consuming messages from the bus.
@@ -82,7 +84,7 @@ public class Consumer {
      *
      * @param jsonMessage message to process
      */
-    protected void handleRawMessage(String jsonMessage) {
+    protected void handleRawMessage(String jsonMessage, ConsumerAdapter.AcknowledgementHandler acknowledgeHandler) {
         LOG.debug("Topic [{}] message received [{}]", this.topic, jsonMessage);
         channelMonitorAgent.consumerMessageReceived(topic);
 
@@ -96,12 +98,14 @@ public class Consumer {
             LOG.debug("Message has been successfully parsed {}", jsonMessage);
 
             if (!isMessageExpired(message)) {
-                messageHandler.handleMessage(message);
+                messageHandler.handleMessage(message, acknowledgeHandler);
             } else {
                 LOG.warn("Expired message: {}", jsonMessage);
+                acknowledgeHandler.rejectMessage();
             }
         } catch (JsonConversionException | JsonSchemaValidationException e) {
             LOG.error("Unable to process consumed message {}", jsonMessage, e);
+            acknowledgeHandler.rejectMessage();
         }
     }
 

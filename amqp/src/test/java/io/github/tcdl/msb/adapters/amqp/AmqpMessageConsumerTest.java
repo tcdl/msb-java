@@ -1,27 +1,28 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Envelope;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Envelope;
 
 public class AmqpMessageConsumerTest {
 
@@ -66,12 +67,7 @@ public class AmqpMessageConsumerTest {
         AmqpMessageProcessingTask task = taskCaptor.getValue();
         assertEquals(consumerTag, task.consumerTag);
         assertEquals(messageStr, task.body);
-        assertEquals(deliveryTag, task.deliveryTag);
-        assertEquals(mockMessageHandler, task.msgHandler);
-        assertEquals(mockChannel, task.channel);
-
-        // verify that ack has been sent
-        mockChannel.basicAck(deliveryTag, false);
+        assertEquals(mockMessageHandler, task.msgHandler);        
     }
 
     @Test

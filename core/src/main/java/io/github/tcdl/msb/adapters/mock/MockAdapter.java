@@ -1,14 +1,10 @@
 package io.github.tcdl.msb.adapters.mock;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.msb.support.JsonValidator;
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -17,6 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * MockAdapter class represents implementation of {@link ProducerAdapter} and {@link ConsumerAdapter}
@@ -83,7 +85,7 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
 
                         if (messageHandler != null && jsonMessage != null) {
                             LOG.debug("Process message for topic {} [{}]", topic, jsonMessage);
-                            messageHandler.onMessage(jsonMessage);
+                            messageHandler.onMessage(jsonMessage, null);
                         } else {
                             try {
                                 Thread.sleep(CONSUMING_INTERVAL);

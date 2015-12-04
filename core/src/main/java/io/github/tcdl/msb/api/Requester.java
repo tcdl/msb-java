@@ -1,9 +1,12 @@
 package io.github.tcdl.msb.api;
 
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
+
+import java.util.function.BiConsumer;
 
 /**
  * {@link Requester} enable user send message to bus and process responses for this messages if any expected.
@@ -66,7 +69,7 @@ public interface Requester<T> {
      * @param acknowledgeHandler callback to be called
      * @return requester
      */
-    Requester<T> onAcknowledge(Callback<Acknowledge> acknowledgeHandler);
+    Requester<T> onAcknowledge(BiConsumer<Acknowledge, ConsumerAdapter.AcknowledgementHandler> acknowledgeHandler);
 
     /**
      * Registers a callback to be called when response {@link Message} with payload part set of type {@literal T} is received.
@@ -75,7 +78,7 @@ public interface Requester<T> {
      * @return requester
      * @throws JsonConversionException if unable to convert payload to type {@literal T}
      */
-    Requester<T> onResponse(Callback<T> responseHandler);
+    Requester<T> onResponse(BiConsumer<T, ConsumerAdapter.AcknowledgementHandler> responseHandler);
 
     /**
      * Registers a callback to be called when response {@link Message} with payload part set of is received.
@@ -83,7 +86,7 @@ public interface Requester<T> {
      * @param responseHandler callback to be called
      * @return requester
      */
-    Requester<T> onRawResponse(Callback<Message> responseHandler);
+    Requester<T> onRawResponse(BiConsumer<Message, ConsumerAdapter.AcknowledgementHandler> responseHandler);
     
     /**
      * Registers a callback to be called when all expected responses for request message are processes or awaiting timeout for responses occurred.

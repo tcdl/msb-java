@@ -9,7 +9,6 @@ import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.examples.payload.Request;
 
-import javax.script.ScriptException;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.script.ScriptException;
 
 /**
  * Microservice which is listening for incoming messages, creates requests to another microservices(
@@ -75,7 +76,7 @@ public class FacetsAggregator {
                 final String[] result = {""};
 
                 List<RestPayload> responses = Collections.synchronizedList(new ArrayList<>());
-                requester.onResponse(responses::add)
+                requester.onResponse((message, ackHandler) -> {responses.add(message);})
                 .onEnd(end -> {
                     for (RestPayload payload : responses) {
                         System.out.println(">>> MESSAGE: " + payload);

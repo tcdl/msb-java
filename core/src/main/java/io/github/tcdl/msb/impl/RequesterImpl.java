@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.RequestOptions;
@@ -11,7 +11,12 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.message.MessageFactory;
+
+import java.util.function.BiConsumer;
+
 import org.apache.commons.lang3.Validate;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * Implementation of {@link Requester}
@@ -121,7 +126,7 @@ public class RequesterImpl<T> implements Requester<T> {
      * {@inheritDoc}
      */
     @Override
-    public Requester<T> onAcknowledge(Callback<Acknowledge> acknowledgeHandler) {
+    public Requester<T> onAcknowledge(BiConsumer<Acknowledge, ConsumerAdapter.AcknowledgementHandler> acknowledgeHandler) {
         eventHandlers.onAcknowledge(acknowledgeHandler);
         return this;
     }
@@ -130,7 +135,7 @@ public class RequesterImpl<T> implements Requester<T> {
      * {@inheritDoc}
      */
     @Override
-    public Requester<T> onResponse(Callback<T> responseHandler) {
+    public Requester<T> onResponse(BiConsumer<T, ConsumerAdapter.AcknowledgementHandler> responseHandler) {
         eventHandlers.onResponse(responseHandler);
         return this;
     }
@@ -138,7 +143,7 @@ public class RequesterImpl<T> implements Requester<T> {
     /**
      * {@inheritDoc}
      */
-    @Override public Requester<T> onRawResponse(Callback<Message> responseHandler) {
+    @Override public Requester<T> onRawResponse(BiConsumer<Message, ConsumerAdapter.AcknowledgementHandler> responseHandler) {
         eventHandlers.onRawResponse(responseHandler);
         return this;
     }

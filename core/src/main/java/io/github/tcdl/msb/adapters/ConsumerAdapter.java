@@ -31,6 +31,23 @@ public interface ConsumerAdapter {
          *
          * @param jsonMessage incomming JSON message
          */
-        void onMessage(String jsonMessage);
+        void onMessage(String jsonMessage, AcknowledgementHandler handler);
+    }
+    
+    /**
+     * Callback interface for a message acknowledgement
+     *
+     */
+    interface AcknowledgementHandler {
+        /**
+         * Server should consider messages acknowledged once delivered
+         */
+        void confirmMessage();
+        
+        /**
+         * Reject a message
+         */
+        void rejectMessage();
+        
     }
 }

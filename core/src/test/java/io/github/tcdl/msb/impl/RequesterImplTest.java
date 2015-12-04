@@ -1,26 +1,5 @@
 package io.github.tcdl.msb.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.Consumer;
-import io.github.tcdl.msb.Producer;
-import io.github.tcdl.msb.api.Callback;
-import io.github.tcdl.msb.api.MessageTemplate;
-import io.github.tcdl.msb.api.RequestOptions;
-import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.RestPayload;
-import io.github.tcdl.msb.collector.Collector;
-import io.github.tcdl.msb.events.EventHandlers;
-import io.github.tcdl.msb.support.TestUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import java.time.Clock;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertArrayEquals;
@@ -35,6 +14,28 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.Consumer;
+import io.github.tcdl.msb.Producer;
+import io.github.tcdl.msb.api.Callback;
+import io.github.tcdl.msb.api.MessageTemplate;
+import io.github.tcdl.msb.api.RequestOptions;
+import io.github.tcdl.msb.api.Requester;
+import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.api.message.payload.RestPayload;
+import io.github.tcdl.msb.collector.Collector;
+import io.github.tcdl.msb.support.TestUtils;
+
+import java.time.Clock;
+import java.util.function.BiConsumer;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * Created by rdro on 4/27/2015.
@@ -83,7 +84,7 @@ public class RequesterImplTest {
         requester.publish(TestUtils.createSimpleRequestPayload());
 
         Message responseMessage = TestUtils.createMsbRequestMessage("some:topic", "body text");
-        collectorMock.handleMessage(responseMessage);
+        collectorMock.handleMessage(responseMessage, null);
     }
 
     @Test
@@ -102,7 +103,7 @@ public class RequesterImplTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testAcknowledgeEventHandlerIsAdded() throws Exception {
-        Callback onAckMock = mock(Callback.class);
+        BiConsumer onAckMock = mock(BiConsumer.class);
         RequesterImpl requester = initRequesterForResponsesWith(1, 0, 0, null);
 
         requester.onAcknowledge(onAckMock);
@@ -116,7 +117,7 @@ public class RequesterImplTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testResponseEventHandlerIsAdded() throws Exception {
-        Callback onResponseMock = mock(Callback.class);
+        BiConsumer onResponseMock = mock(BiConsumer.class);
         RequesterImpl requester = initRequesterForResponsesWith(1, 0, 0, null);
 
         requester.onResponse(onResponseMock);
@@ -131,7 +132,7 @@ public class RequesterImplTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testRawResponseEventHandlerIsAdded() throws Exception {
-        Callback onRawResponseMock = mock(Callback.class);
+        BiConsumer onRawResponseMock = mock(BiConsumer.class);
         RequesterImpl requester = initRequesterForResponsesWith(1, 0, 0, null);
 
         requester.onRawResponse(onRawResponseMock);

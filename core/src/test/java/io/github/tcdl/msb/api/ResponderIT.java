@@ -1,7 +1,10 @@
 package io.github.tcdl.msb.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.msb.api.message.Message;
@@ -10,18 +13,16 @@ import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ResponderImpl;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.TestUtils;
+
+import java.io.IOException;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ResponderIT {
 
@@ -48,7 +49,7 @@ public class ResponderIT {
         MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
         Message originalMessage = TestUtils.createSimpleRequestMessage(namespace);
 
-        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
+        Responder responder = new ResponderImpl(messageOptions, originalMessage, null, msbContext);
 
         responder.sendAck(ackTimeout, responsesRemaining);
 
@@ -89,7 +90,7 @@ public class ResponderIT {
         MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
         Message originalMessage = TestUtils.createSimpleRequestMessage(namespace);
 
-        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
+        Responder responder = new ResponderImpl(messageOptions, originalMessage, null, msbContext);
         RestPayload responsePayload = TestUtils.createSimpleResponsePayload();
         responder.send(responsePayload);
 
@@ -106,7 +107,7 @@ public class ResponderIT {
         String dynamicTagOriginal = "dynamic-tag-original";
         Message originalMessage = TestUtils.createSimpleRequestMessageWithTags(namespace, dynamicTagOriginal);
 
-        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
+        Responder responder = new ResponderImpl(messageOptions, originalMessage, null, msbContext);
         RestPayload responsePayload = TestUtils.createSimpleResponsePayload();
         responder.send(responsePayload);
 

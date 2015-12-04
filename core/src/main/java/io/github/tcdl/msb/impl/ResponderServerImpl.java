@@ -1,8 +1,7 @@
 package io.github.tcdl.msb.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.ResponderServer;
@@ -10,9 +9,13 @@ import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
+
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ResponderServerImpl<T> implements ResponderServer {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServerImpl.class);
@@ -55,20 +58,20 @@ public class ResponderServerImpl<T> implements ResponderServer {
         ChannelManager channelManager = msbContext.getChannelManager();
 
         channelManager.subscribe(namespace,
-                incomingMessage -> {
+                (incomingMessage, acknowledgeHandler) -> {
                     LOG.debug("[{}] Received message with id: [{}]", namespace, incomingMessage.getId());
-                    Responder responder = createResponder(incomingMessage);
+                    Responder responder = createResponder(incomingMessage, acknowledgeHandler);
                     onResponder(responder);
                 });
 
         return this;
     }
 
-    Responder createResponder(Message incomingMessage) {
+    Responder createResponder(Message incomingMessage, ConsumerAdapter.AcknowledgementHandler acknowledgeHandler) {
         if (isResponseNeeded(incomingMessage)) {
-            return new ResponderImpl(messageTemplate, incomingMessage, msbContext);
+            return new ResponderImpl(messageTemplate, incomingMessage, acknowledgeHandler, msbContext);
         } else {
-            return new NoopResponderImpl(incomingMessage);
+            return new NoopResponderImpl(incomingMessage, acknowledgeHandler);
         }
     }
 

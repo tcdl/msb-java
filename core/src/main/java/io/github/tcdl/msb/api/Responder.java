@@ -1,11 +1,12 @@
 package io.github.tcdl.msb.api;
 
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.message.Message;
 
 /**
  * Responsible for creating responses and acknowledgements and sending them to the bus.
  */
-public interface Responder {
+public interface Responder extends ConsumerAdapter.AcknowledgementHandler {
 
     /**
      * Send acknowledge message.

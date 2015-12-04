@@ -1,14 +1,5 @@
 package io.github.tcdl.msb.collector;
 
-import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.support.TestUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -16,6 +7,15 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.support.TestUtils;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CollectorManagerTest {
@@ -39,9 +39,9 @@ public class CollectorManagerTest {
         when(collectorMock.getRequestMessage()).thenReturn(originalAndReceivedMessage);
         CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
         collectorManager.registerCollector(collectorMock);
-        collectorManager.handleMessage(originalAndReceivedMessage);
+        collectorManager.handleMessage(originalAndReceivedMessage, null);
 
-        verify(collectorMock).handleMessage(originalAndReceivedMessage);
+        verify(collectorMock).handleMessage(originalAndReceivedMessage, null);
     }
 
     @Test
@@ -49,9 +49,9 @@ public class CollectorManagerTest {
         Message receivedMessage = TestUtils.createSimpleRequestMessage(TOPIC);
         CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
         collectorManager.registerCollector(collectorMock);
-        collectorManager.handleMessage(receivedMessage);
+        collectorManager.handleMessage(receivedMessage, null);
 
-        verify(collectorMock, never()).handleMessage(receivedMessage);
+        verify(collectorMock, never()).handleMessage(receivedMessage, null);
     }
 
     @Test
@@ -61,9 +61,9 @@ public class CollectorManagerTest {
 
         CollectorManager collectorManager = new CollectorManager("some-other-topic", channelManagerMock);
         collectorManager.registerCollector(collectorMock);
-        collectorManager.handleMessage(receivedMessage);
+        collectorManager.handleMessage(receivedMessage, null);
 
-        verify(collectorMock, never()).handleMessage(receivedMessage);
+        verify(collectorMock, never()).handleMessage(receivedMessage, null);
     }
 
     @Test

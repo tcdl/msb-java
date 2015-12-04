@@ -1,13 +1,13 @@
 package io.github.tcdl.msb.cli;
 
-import org.junit.Test;
-
-import java.util.Collections;
-
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+import java.util.Collections;
+
+import org.junit.Test;
 
 public class CliMessageHandlerTest {
     @Test
@@ -19,7 +19,7 @@ public class CliMessageHandlerTest {
                 "{  \"topics\": {\n"
                         + "    \"to\": \"search:parsers:facets:v1\",\n"
                         + "    \"response\": \"search:parsers:facets:v1:response:3c3dec275b326c6500010843\"\n"
-                        + "  }}"
+                        + "  }}", null
         );
 
         verify(subscriber).subscribe("search:parsers:facets:v1:response:3c3dec275b326c6500010843", handler);
@@ -33,7 +33,7 @@ public class CliMessageHandlerTest {
         handler.onMessage(
                 "{  \"topics\": {\n"
                         + "    \"to\": \"search:parsers:facets:v1\"\n"
-                        + "  }}"
+                        + "  }}", null
         );
 
         verifyNoMoreInteractions(subscriber);
@@ -48,7 +48,7 @@ public class CliMessageHandlerTest {
                 "{  \"topics\": {\n"
                         + "    \"to\": \"search:parsers:facets:v1\",\n"
                         + "    \"response\": null\n"
-                        + "  }}"
+                        + "  }}", null
         );
 
         verifyNoMoreInteractions(subscriber);
@@ -65,7 +65,7 @@ public class CliMessageHandlerTest {
                 "{  \"topics\": {\n"
                         + "    \"to\": \"search:parsers:facets:v1\",\n"
                         + "    \"response\": \"non-existent-queue\"\n"
-                        + "  }}"
+                        + "  }}", null
         );
 
         // The point of this test is to verify that no exception is thrown in such case

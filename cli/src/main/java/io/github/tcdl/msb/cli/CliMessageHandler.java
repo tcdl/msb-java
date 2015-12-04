@@ -1,14 +1,16 @@
 package io.github.tcdl.msb.cli;
 
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.adapters.ConsumerAdapter.AcknowledgementHandler;
+import io.github.tcdl.msb.api.exception.JsonConversionException;
+
+import java.io.IOException;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import io.github.tcdl.msb.api.exception.JsonConversionException;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * This handler dumps messages from the given topics.
@@ -30,7 +32,7 @@ class CliMessageHandler implements ConsumerAdapter.RawMessageHandler {
      * @throws JsonConversionException if some problems during parsing JSON
      */
     @Override
-    public void onMessage(String jsonMessage) {
+    public void onMessage(String jsonMessage, AcknowledgementHandler handler) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 

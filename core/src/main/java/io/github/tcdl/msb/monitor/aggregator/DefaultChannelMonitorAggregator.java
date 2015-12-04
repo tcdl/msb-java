@@ -1,16 +1,8 @@
 package io.github.tcdl.msb.monitor.aggregator;
 
 import static io.github.tcdl.msb.support.Utils.TOPIC_ANNOUNCE;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
@@ -24,8 +16,19 @@ import io.github.tcdl.msb.config.ServiceDetails;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.monitor.agent.AgentTopicStats;
 import io.github.tcdl.msb.support.Utils;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultChannelMonitorAggregator.class);
@@ -85,7 +88,7 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
         }
     }
 
-    void onAnnounce(Message announcementMessage) {
+    void onAnnounce(Message announcementMessage, ConsumerAdapter.AcknowledgementHandler acknowledgeHandler) {
         LOG.debug(String.format("Handling announcement message %s...", announcementMessage));
 
         boolean successfullyAggregated = aggregateInfo(masterAggregatorStats, announcementMessage);

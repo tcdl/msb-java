@@ -1,7 +1,9 @@
 package io.github.tcdl.msb.impl;
 
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Message;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,9 +14,11 @@ public class NoopResponderImpl implements Responder {
     private static final Logger LOG = LoggerFactory.getLogger(NoopResponderImpl.class);
 
     private Message originalMessage;
+    private ConsumerAdapter.AcknowledgementHandler ackHandler;
 
-    public NoopResponderImpl(Message originalMessage) {
+    public NoopResponderImpl(Message originalMessage, ConsumerAdapter.AcknowledgementHandler acknowledgeHandler) {
         this.originalMessage = originalMessage;
+        this.ackHandler = ackHandler;
     }
 
     /** {@inheritDoc} */
@@ -34,4 +38,15 @@ public class NoopResponderImpl implements Responder {
     public Message getOriginalMessage() {
         return originalMessage;
     }
+
+    @Override
+    public void confirmMessage() {
+        ackHandler.confirmMessage();
+    }
+
+    @Override
+    public void rejectMessage() {
+        ackHandler.rejectMessage();
+    }
+    
 }

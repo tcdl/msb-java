@@ -2,13 +2,15 @@ package io.github.tcdl.msb.collector;
 
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.exception.ConsumerSubscriptionException;
 import io.github.tcdl.msb.api.message.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manages instances of {@link Collector}s that listens to the same response topic.
@@ -32,11 +34,11 @@ public class CollectorManager implements MessageHandler {
      * Determines correlationId from the incoming message and invokes the relevant {@link Collector} instance.
      */
     @Override
-    public void handleMessage(Message message) {
+    public void handleMessage(Message message, ConsumerAdapter.AcknowledgementHandler acknowledgeHandler) {
         String correlationId = message.getCorrelationId();
         Collector collector = collectorsByCorrelationId.get(correlationId);
         if (collector != null) {
-            collector.handleMessage(message);
+            collector.handleMessage(message, acknowledgeHandler);
         } else {
             LOG.warn("Message with correlationId {} is not expected to be processed by any Collectors", correlationId);
         }

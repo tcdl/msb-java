@@ -47,7 +47,7 @@ public class AmqpConsumerAdapterTest {
         String topicName = "myTopic";
         AmqpConsumerAdapter adapter = createAdapter(topicName, "myGroupId", false);
 
-        adapter.subscribe(jsonMessage -> {
+        adapter.subscribe((jsonMessage, ackHandler) -> {
         });
 
         verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
@@ -64,7 +64,7 @@ public class AmqpConsumerAdapterTest {
     public void testSubscribeTransientQueueCreated() throws IOException {
         AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", false);
         
-        adapter.subscribe(jsonMessage -> {
+        adapter.subscribe((jsonMessage, ackHandler) -> {
         });
 
         // Verify that the queue has been declared with correct name and settings
@@ -81,7 +81,7 @@ public class AmqpConsumerAdapterTest {
     public void testSubscribeDurableQueueCreated() throws IOException {
         AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", true);
 
-        adapter.subscribe(jsonMessage -> {
+        adapter.subscribe((jsonMessage, ackHandler) -> {
         });
 
         // Verify that the queue has been declared with correct name and settings
@@ -117,7 +117,7 @@ public class AmqpConsumerAdapterTest {
         String consumerTag = "my consumer tag";
         when(mockChannel.basicConsume(anyString(), anyBoolean(), any(Consumer.class))).thenReturn(consumerTag);
 
-        adapter.subscribe(jsonMessage -> {
+        adapter.subscribe((jsonMessage, ackHandler) -> {
         });
         adapter.unsubscribe();
 

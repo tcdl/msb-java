@@ -1,7 +1,15 @@
 package io.github.tcdl.msb.monitor.aggregator;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import static io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator.DEFAULT_HEARTBEAT_INTERVAL_MS;
+import static io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator.DEFAULT_HEARTBEAT_TIMEOUT_MS;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.api.Callback;
@@ -15,7 +23,6 @@ import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.monitor.agent.AgentTopicStats;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
-import org.junit.Test;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -26,16 +33,10 @@ import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator.DEFAULT_HEARTBEAT_INTERVAL_MS;
-import static io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator.DEFAULT_HEARTBEAT_TIMEOUT_MS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import org.junit.Test;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 public class DefaultChannelMonitorAggregatorTest {
 
@@ -59,7 +60,7 @@ public class DefaultChannelMonitorAggregatorTest {
         String INSTANCE_ID = "instanceId";
         Message announcementMessage = createAnnouncementMessageWith2Topics(INSTANCE_ID, TOPIC1, TOPIC2);
 
-        channelMonitor.onAnnounce(announcementMessage);
+        channelMonitor.onAnnounce(announcementMessage, null);
 
         assertEquals(1, channelMonitor.masterAggregatorStats.getServiceDetailsById().size());
         assertTrue(channelMonitor.masterAggregatorStats.getServiceDetailsById().containsKey(INSTANCE_ID));

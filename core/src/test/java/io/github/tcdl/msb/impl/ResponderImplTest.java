@@ -1,19 +1,5 @@
 package io.github.tcdl.msb.impl;
 
-import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.Producer;
-import io.github.tcdl.msb.api.MessageTemplate;
-import io.github.tcdl.msb.api.Responder;
-import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.config.MsbConfig;
-import io.github.tcdl.msb.message.MessageFactory;
-import io.github.tcdl.msb.support.TestUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
-import java.time.Clock;
-
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -25,6 +11,20 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.Producer;
+import io.github.tcdl.msb.api.MessageTemplate;
+import io.github.tcdl.msb.api.Responder;
+import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.config.MsbConfig;
+import io.github.tcdl.msb.message.MessageFactory;
+import io.github.tcdl.msb.support.TestUtils;
+
+import java.time.Clock;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 public class ResponderImplTest {
 
@@ -58,14 +58,14 @@ public class ResponderImplTest {
         when(msbContextSpy.getMessageFactory()).thenReturn(spyMessageFactory);
         when(mockChannelManager.findOrCreateProducer(anyString())).thenReturn(mockProducer);
 
-        responder = new ResponderImpl(messageTemplate, originalMessage, msbContextSpy);
+        responder = new ResponderImpl(messageTemplate, originalMessage, null, msbContextSpy);
     }
 
     @Test
     public void testResponderConstructorOk() {
         MsbContextImpl context = TestUtils.createSimpleMsbContext();
         Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
-        new ResponderImpl(messageTemplate, originalMessage, context);
+        new ResponderImpl(messageTemplate, originalMessage, null, context);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class ResponderImplTest {
     @Test
     public void testProducerPublishWithTags() {
         String[] tags = new String[]{"tag1", "tag2"};
-        responder = new ResponderImpl(TestUtils.createSimpleMessageTemplate(tags), originalMessage, msbContextSpy);
+        responder = new ResponderImpl(TestUtils.createSimpleMessageTemplate(tags), originalMessage, null, msbContextSpy);
 
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
         responder.send(TestUtils.createSimpleRequestPayload());

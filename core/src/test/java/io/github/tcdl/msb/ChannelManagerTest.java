@@ -7,20 +7,23 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import javax.xml.ws.Holder;
-import java.time.Clock;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.exception.ConsumerSubscriptionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.TestUtils;
+
+import java.time.Clock;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import javax.xml.ws.Holder;
+
 import org.junit.Before;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ChannelManagerTest {
 
@@ -60,8 +63,8 @@ public class ChannelManagerTest {
         String topic = "topic:test-consumer-cached";
 
         // Consumer was created and monitor agent notified
-        channelManager.subscribe(topic, message -> {});
-        channelManager.subscribe(topic, message -> {});
+        channelManager.subscribe(topic, (message, acknowledgeHandler) -> {});
+        channelManager.subscribe(topic, (message, acknowledgeHandler) -> {});
     }
 
     @Test
@@ -85,7 +88,7 @@ public class ChannelManagerTest {
         Message message = TestUtils.createSimpleRequestMessage(topic);
         channelManager.findOrCreateProducer(topic).publish(message);
         channelManager.subscribe(topic,
-                msg ->  {
+                (msg, acknowledgeHandler) ->  {
                     messageEvent.value = msg;
                     awaitReceiveEvents.countDown();
                 });
@@ -99,7 +102,7 @@ public class ChannelManagerTest {
     public void testSubscribeUnsubscribe() {
         String topic = "topic:test-unsubscribe-once";
 
-        channelManager.subscribe(topic,  message -> {});
+        channelManager.subscribe(topic, (message, acknowledgeHandler) -> {});
         channelManager.unsubscribe(topic);
 
         verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
@@ -110,8 +113,8 @@ public class ChannelManagerTest {
         String topic1 = "topic:test-unsubscribe-try-first";
         String topic2 = "topic:test-unsubscribe-try-other";
 
-        channelManager.subscribe(topic1, message -> {});
-        channelManager.subscribe(topic2, message -> {});
+        channelManager.subscribe(topic1, (message, acknowledgeHandler) -> {});
+        channelManager.subscribe(topic2, (message, acknowledgeHandler) -> {});
 
         channelManager.unsubscribe(topic1);
         verify(mockChannelMonitorAgent).consumerTopicRemoved(topic1);
