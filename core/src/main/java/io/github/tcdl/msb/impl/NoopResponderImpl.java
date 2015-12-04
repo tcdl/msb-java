@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.impl;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.adapters.ConsumerAdapter.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Message;
 
@@ -40,13 +41,9 @@ public class NoopResponderImpl implements Responder {
     }
 
     @Override
-    public void confirmMessage() {
-        ackHandler.confirmMessage();
+    public AcknowledgementHandler getAcknowledgementHandler() {
+        return ackHandler;
     }
 
-    @Override
-    public void rejectMessage() {
-        ackHandler.rejectMessage();
-    }
     
 }

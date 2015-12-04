@@ -3,6 +3,7 @@ package io.github.tcdl.msb.impl;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.adapters.ConsumerAdapter.AcknowledgementHandler;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Acknowledge.Builder;
@@ -80,13 +81,8 @@ public class ResponderImpl implements Responder {
     }
 
     @Override
-    public void confirmMessage() {
-        ackHandler.confirmMessage();  
+    public AcknowledgementHandler getAcknowledgementHandler() {
+        return this.ackHandler;
     }
 
-    @Override
-    public void rejectMessage() {
-        ackHandler.rejectMessage();
-    }
-    
 }

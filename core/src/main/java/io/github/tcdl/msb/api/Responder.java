@@ -6,7 +6,7 @@ import io.github.tcdl.msb.api.message.Message;
 /**
  * Responsible for creating responses and acknowledgements and sending them to the bus.
  */
-public interface Responder extends ConsumerAdapter.AcknowledgementHandler {
+public interface Responder {
 
     /**
      * Send acknowledge message.
@@ -27,4 +27,9 @@ public interface Responder extends ConsumerAdapter.AcknowledgementHandler {
      * @return original message to send a response to
      */
     Message getOriginalMessage();
+    
+    /**
+     * @return AcknowledgementHandler for explicit confirm/reject incoming messages
+     */
+    ConsumerAdapter.AcknowledgementHandler getAcknowledgementHandler(); 
 }

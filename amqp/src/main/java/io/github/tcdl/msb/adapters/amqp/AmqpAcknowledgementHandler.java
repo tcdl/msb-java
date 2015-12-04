@@ -56,7 +56,7 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
         if (!isAcknowledgementSent) {
             try {
                 channel.basicReject(deliveryTag, isRequeueRejectedMessages);
-                LOG.error(String.format("[consumer tag: %s] AMQP reject has been sent for message: %s", consumerTag, bodyStr));
+                LOG.debug(String.format("[consumer tag: %s] AMQP reject has been sent for message: %s", consumerTag, bodyStr));
                 isAcknowledgementSent = true;
             } catch (Exception e) {
                 LOG.error(String.format("[consumer tag: %s] Got exception:", consumerTag), e);
