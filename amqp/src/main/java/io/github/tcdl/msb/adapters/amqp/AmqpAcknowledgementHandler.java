@@ -2,6 +2,8 @@ package io.github.tcdl.msb.adapters.amqp;
 
 import io.github.tcdl.msb.api.AcknowledgementHandler;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +25,7 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
     final long deliveryTag;
     final boolean isRequeueRejectedMessages;
 
-    boolean isAcknowledgementSent = false;
+    final AtomicBoolean acknowledgementSent = new AtomicBoolean(false);
 
     public AmqpAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag,
             boolean isRequeueRejectedMessages) {
@@ -36,10 +38,9 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
 
     @Override
     public void confirmMessage() {
-        if (!isAcknowledgementSent) {
+        if (acknowledgementSent.compareAndSet(false, true)) {
             try {
                 channel.basicAck(deliveryTag, false);
-                isAcknowledgementSent = true;
             } catch (Exception e) {
                 LOG.error(String.format("[consumer tag: %s] Got exception when trying to confirm a message:", consumerTag), e);
             }
@@ -50,10 +51,9 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
 
     @Override
     public void rejectMessage() {
-        if (!isAcknowledgementSent) {
+        if (acknowledgementSent.compareAndSet(false, true)) {
             try {
                 channel.basicReject(deliveryTag, isRequeueRejectedMessages);
-                isAcknowledgementSent = true;
             } catch (Exception e) {
                 LOG.error(String.format("[consumer tag: %s] Got exception when trying to reject a message:", consumerTag), e);
             }
@@ -63,13 +63,13 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
     }
 
     public void autoConfirm() {
-        if (!isAcknowledgementSent) {
+        if (!acknowledgementSent.get()) {
             confirmMessage();
         }
     }
 
     public void autoReject() {
-        if (!isAcknowledgementSent) {
+        if (!acknowledgementSent.get()) {
             rejectMessage();
         }
     }

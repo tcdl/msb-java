@@ -68,7 +68,7 @@ public interface Requester<T> {
      * @param acknowledgeHandler callback to be called
      * @return requester
      */
-    Requester<T> onAcknowledge(BiConsumer<Acknowledge, AcknowledgementHandler> acknowledgeHandler);
+    Requester<T> onAcknowledge(BiConsumer<Acknowledge, MessageContext> acknowledgeHandler);
 
     /**
      * Registers a callback to be called when response {@link Message} with payload part set of type {@literal T} is received.
@@ -77,7 +77,7 @@ public interface Requester<T> {
      * @return requester
      * @throws JsonConversionException if unable to convert payload to type {@literal T}
      */
-    Requester<T> onResponse(BiConsumer<T, AcknowledgementHandler> responseHandler);
+    Requester<T> onResponse(BiConsumer<T, MessageContext> responseHandler);
 
     /**
      * Registers a callback to be called when response {@link Message} with payload part set of is received.
@@ -85,7 +85,7 @@ public interface Requester<T> {
      * @param responseHandler callback to be called
      * @return requester
      */
-    Requester<T> onRawResponse(BiConsumer<Message, AcknowledgementHandler> responseHandler);
+    Requester<T> onRawResponse(BiConsumer<Message, MessageContext> responseHandler);
     
     /**
      * Registers a callback to be called when all expected responses for request message are processes or awaiting timeout for responses occurred.

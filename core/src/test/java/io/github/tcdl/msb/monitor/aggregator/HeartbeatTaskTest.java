@@ -6,8 +6,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Callback;
+import io.github.tcdl.msb.api.MessageContext;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
@@ -40,7 +40,7 @@ public class HeartbeatTaskTest {
     public void setUp() {
         when(mockObjectFactory.createRequester(anyString(), any(RequestOptions.class))).thenReturn(mockRequester);
         @SuppressWarnings("unchecked")
-        BiConsumer<Message, AcknowledgementHandler> responseHandler = any(BiConsumer.class);
+        BiConsumer<Message, MessageContext> responseHandler = any(BiConsumer.class);
         when(mockRequester.onRawResponse(responseHandler)).thenReturn(mockRequester);
         @SuppressWarnings("unchecked")
         Callback<Void> endHandler = any(Callback.class);

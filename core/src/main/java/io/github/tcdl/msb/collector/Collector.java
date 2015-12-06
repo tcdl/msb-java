@@ -4,10 +4,12 @@ import static io.github.tcdl.msb.support.Utils.ifNull;
 import static java.lang.Math.toIntExact;
 import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Callback;
+import io.github.tcdl.msb.api.MessageContext;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.events.EventHandlers;
+import io.github.tcdl.msb.impl.MessageContextImpl;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.support.Utils;
 
@@ -59,9 +61,9 @@ public class Collector<T> {
     private Clock clock;
     private Message requestMessage;
 
-    private Optional<BiConsumer<Message, AcknowledgementHandler>> onRawResponse = Optional.empty();
-    private Optional<BiConsumer<T, AcknowledgementHandler>> onResponse = Optional.empty();
-    private Optional<BiConsumer<Acknowledge, AcknowledgementHandler>> onAcknowledge = Optional.empty();
+    private Optional<BiConsumer<Message, MessageContext>> onRawResponse = Optional.empty();
+    private Optional<BiConsumer<T, MessageContext>> onResponse = Optional.empty();
+    private Optional<BiConsumer<Acknowledge, MessageContext>> onAcknowledge = Optional.empty();
     private Optional<Callback<Void>> onEnd = Optional.empty();
 
     private ScheduledFuture ackTimeoutFuture;
@@ -126,19 +128,20 @@ public class Collector<T> {
         LOG.debug("Received {}", incomingMessage);
 
         JsonNode rawPayload = incomingMessage.getRawPayload();
+        MessageContext messageContext = createMessageContext(acknowledgeHandler, incomingMessage);
         if (Utils.isPayloadPresent(rawPayload)) {
             LOG.debug("Received Payload {}", rawPayload);
             payloadMessages.add(incomingMessage);
-            onRawResponse.ifPresent(handler -> handler.accept(incomingMessage, acknowledgeHandler));
+            onRawResponse.ifPresent(handler -> handler.accept(incomingMessage, messageContext));
 
             T payload = Utils.convert(rawPayload, payloadTypeReference, payloadMapper);
-            onResponse.ifPresent(handler -> handler.accept(payload, acknowledgeHandler));
+            onResponse.ifPresent(handler -> handler.accept(payload, messageContext));
 
             incResponsesRemaining(-1);
         } else {
             LOG.debug("Received {}", incomingMessage.getAck());
             ackMessages.add(incomingMessage);
-            onAcknowledge.ifPresent(handler -> handler.accept(incomingMessage.getAck(), acknowledgeHandler));
+            onAcknowledge.ifPresent(handler -> handler.accept(incomingMessage.getAck(), messageContext));
         }
 
         processAck(incomingMessage.getAck());
@@ -155,6 +158,10 @@ public class Collector<T> {
         end();
     }
 
+    MessageContext createMessageContext(AcknowledgementHandler acknowledgementHandler, Message originalMessage) {
+        return new MessageContextImpl(acknowledgementHandler, originalMessage);
+    }
+    
     protected void end() {
         LOG.debug("Stop response processing");
 
