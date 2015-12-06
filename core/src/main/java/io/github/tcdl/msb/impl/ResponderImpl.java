@@ -2,8 +2,7 @@ package io.github.tcdl.msb.impl;
 
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Producer;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.ConsumerAdapter.AcknowledgementHandler;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Acknowledge.Builder;
@@ -24,10 +23,10 @@ public class ResponderImpl implements Responder {
     private ChannelManager channelManager;
     private MessageFactory messageFactory;
     private Message.Builder messageBuilder;
-    private ConsumerAdapter.AcknowledgementHandler ackHandler;
+    private AcknowledgementHandler ackHandler;
 
     public ResponderImpl(MessageTemplate messageTemplate, Message originalMessage, 
-            ConsumerAdapter.AcknowledgementHandler ackHandler, MsbContextImpl msbContext) {
+            AcknowledgementHandler ackHandler, MsbContextImpl msbContext) {
         validateReceivedMessage(originalMessage);
         this.responderId = Utils.generateId();
         this.originalMessage = originalMessage;

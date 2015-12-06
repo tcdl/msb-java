@@ -2,7 +2,7 @@ package io.github.tcdl.msb.collector;
 
 import static io.github.tcdl.msb.support.Utils.ifNull;
 import static java.lang.Math.toIntExact;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.message.Acknowledge;
@@ -59,9 +59,9 @@ public class Collector<T> {
     private Clock clock;
     private Message requestMessage;
 
-    private Optional<BiConsumer<Message, ConsumerAdapter.AcknowledgementHandler>> onRawResponse = Optional.empty();
-    private Optional<BiConsumer<T, ConsumerAdapter.AcknowledgementHandler>> onResponse = Optional.empty();
-    private Optional<BiConsumer<Acknowledge, ConsumerAdapter.AcknowledgementHandler>> onAcknowledge = Optional.empty();
+    private Optional<BiConsumer<Message, AcknowledgementHandler>> onRawResponse = Optional.empty();
+    private Optional<BiConsumer<T, AcknowledgementHandler>> onResponse = Optional.empty();
+    private Optional<BiConsumer<Acknowledge, AcknowledgementHandler>> onAcknowledge = Optional.empty();
     private Optional<Callback<Void>> onEnd = Optional.empty();
 
     private ScheduledFuture ackTimeoutFuture;
@@ -122,7 +122,7 @@ public class Collector<T> {
         collectorManager.registerCollector(this);
     }
 
-    public void handleMessage(Message incomingMessage, ConsumerAdapter.AcknowledgementHandler acknowledgeHandler) {
+    public void handleMessage(Message incomingMessage, AcknowledgementHandler acknowledgeHandler) {
         LOG.debug("Received {}", incomingMessage);
 
         JsonNode rawPayload = incomingMessage.getRawPayload();

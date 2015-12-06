@@ -1,6 +1,7 @@
 package io.github.tcdl.msb;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.msb.api.message.Message;
@@ -84,7 +85,7 @@ public class Consumer {
      *
      * @param jsonMessage message to process
      */
-    protected void handleRawMessage(String jsonMessage, ConsumerAdapter.AcknowledgementHandler acknowledgeHandler) {
+    protected void handleRawMessage(String jsonMessage, AcknowledgementHandler acknowledgeHandler) {
         LOG.debug("Topic [{}] message received [{}]", this.topic, jsonMessage);
         channelMonitorAgent.consumerMessageReceived(topic);
 

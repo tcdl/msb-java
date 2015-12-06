@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.impl;
 
 import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.ResponderServer;
@@ -67,7 +67,7 @@ public class ResponderServerImpl<T> implements ResponderServer {
         return this;
     }
 
-    Responder createResponder(Message incomingMessage, ConsumerAdapter.AcknowledgementHandler acknowledgeHandler) {
+    Responder createResponder(Message incomingMessage, AcknowledgementHandler acknowledgeHandler) {
         if (isResponseNeeded(incomingMessage)) {
             return new ResponderImpl(messageTemplate, incomingMessage, acknowledgeHandler, msbContext);
         } else {

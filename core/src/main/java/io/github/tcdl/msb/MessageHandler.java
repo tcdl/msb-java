@@ -1,6 +1,6 @@
 package io.github.tcdl.msb;
 
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.message.Message;
 
 public interface MessageHandler {
@@ -11,5 +11,5 @@ public interface MessageHandler {
      * @param message the message content
      * @param acknowledgeHandler confirm/reject message handler
      */
-    void handleMessage(Message message, ConsumerAdapter.AcknowledgementHandler acknowledgeHandler);
+    void handleMessage(Message message, AcknowledgementHandler acknowledgeHandler);
 }

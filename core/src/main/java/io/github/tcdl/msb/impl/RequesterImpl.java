@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.impl;
 
 import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.RequestOptions;
@@ -126,7 +126,7 @@ public class RequesterImpl<T> implements Requester<T> {
      * {@inheritDoc}
      */
     @Override
-    public Requester<T> onAcknowledge(BiConsumer<Acknowledge, ConsumerAdapter.AcknowledgementHandler> acknowledgeHandler) {
+    public Requester<T> onAcknowledge(BiConsumer<Acknowledge, AcknowledgementHandler> acknowledgeHandler) {
         eventHandlers.onAcknowledge(acknowledgeHandler);
         return this;
     }
@@ -135,7 +135,7 @@ public class RequesterImpl<T> implements Requester<T> {
      * {@inheritDoc}
      */
     @Override
-    public Requester<T> onResponse(BiConsumer<T, ConsumerAdapter.AcknowledgementHandler> responseHandler) {
+    public Requester<T> onResponse(BiConsumer<T, AcknowledgementHandler> responseHandler) {
         eventHandlers.onResponse(responseHandler);
         return this;
     }
@@ -143,7 +143,7 @@ public class RequesterImpl<T> implements Requester<T> {
     /**
      * {@inheritDoc}
      */
-    @Override public Requester<T> onRawResponse(BiConsumer<Message, ConsumerAdapter.AcknowledgementHandler> responseHandler) {
+    @Override public Requester<T> onRawResponse(BiConsumer<Message, AcknowledgementHandler> responseHandler) {
         eventHandlers.onRawResponse(responseHandler);
         return this;
     }

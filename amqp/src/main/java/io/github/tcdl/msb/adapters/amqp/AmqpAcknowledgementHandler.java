@@ -1,6 +1,6 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import io.github.tcdl.msb.adapters.ConsumerAdapter.AcknowledgementHandler;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

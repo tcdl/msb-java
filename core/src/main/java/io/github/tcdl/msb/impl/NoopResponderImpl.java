@@ -1,7 +1,6 @@
 package io.github.tcdl.msb.impl;
 
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.ConsumerAdapter.AcknowledgementHandler;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Message;
 
@@ -15,9 +14,9 @@ public class NoopResponderImpl implements Responder {
     private static final Logger LOG = LoggerFactory.getLogger(NoopResponderImpl.class);
 
     private Message originalMessage;
-    private ConsumerAdapter.AcknowledgementHandler ackHandler;
+    private AcknowledgementHandler ackHandler;
 
-    public NoopResponderImpl(Message originalMessage, ConsumerAdapter.AcknowledgementHandler acknowledgeHandler) {
+    public NoopResponderImpl(Message originalMessage, AcknowledgementHandler acknowledgeHandler) {
         this.originalMessage = originalMessage;
         this.ackHandler = ackHandler;
     }

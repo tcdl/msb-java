@@ -15,7 +15,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
@@ -151,16 +151,16 @@ public class CollectorTest {
         String bodyText = "some body";
         Message responseMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
         @SuppressWarnings("unchecked")
-        BiConsumer<RestPayload, ConsumerAdapter.AcknowledgementHandler> onResponse = mock(BiConsumer.class);
+        BiConsumer<RestPayload, AcknowledgementHandler> onResponse = mock(BiConsumer.class);
         @SuppressWarnings("unchecked")
-        BiConsumer<Message, ConsumerAdapter.AcknowledgementHandler> onRawResponse = mock(BiConsumer.class);
+        BiConsumer<Message, AcknowledgementHandler> onRawResponse = mock(BiConsumer.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
         when(eventHandlers.onRawResponse()).thenReturn(onRawResponse);
         Collector<RestPayload> collector = new Collector<>(TOPIC, originalMessage, requestOptionsMock, msbContext, eventHandlers,
                 new TypeReference<RestPayload>() {
                 });
 
-        ConsumerAdapter.AcknowledgementHandler ackHandler = mock(ConsumerAdapter.AcknowledgementHandler.class);
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         
         // method under test
         collector.handleMessage(responseMessage, ackHandler);
@@ -180,9 +180,9 @@ public class CollectorTest {
         String bodyText = "some body";
         Message responseMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
         @SuppressWarnings("unchecked")
-        BiConsumer<RestPayload<?, ?, ?, Integer>, ConsumerAdapter.AcknowledgementHandler> onResponse = mock(BiConsumer.class);
+        BiConsumer<RestPayload<?, ?, ?, Integer>, AcknowledgementHandler> onResponse = mock(BiConsumer.class);
         @SuppressWarnings("unchecked")
-        BiConsumer<Message, ConsumerAdapter.AcknowledgementHandler> onRawResponse = mock(BiConsumer.class);
+        BiConsumer<Message, AcknowledgementHandler> onRawResponse = mock(BiConsumer.class);
 
         @SuppressWarnings("unchecked")
         EventHandlers<RestPayload<?, ?, ?, Integer>> eventHandlers = mock(EventHandlers.class);
@@ -193,7 +193,7 @@ public class CollectorTest {
         Collector<RestPayload<?, ?, ?, Integer>> collector = new Collector<>(TOPIC, originalMessage, requestOptionsMock, msbContext, eventHandlers,
                 payloadTypeReference);
 
-        ConsumerAdapter.AcknowledgementHandler ackHandler = mock(ConsumerAdapter.AcknowledgementHandler.class);
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         
         // make sure that onRawResponse is called even if conversion of payload to custom type fails
         try {
@@ -207,11 +207,11 @@ public class CollectorTest {
     @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void testHandleResponseReceivedAck() {
-        BiConsumer<Acknowledge, ConsumerAdapter.AcknowledgementHandler> onAck = mock(BiConsumer.class);
+        BiConsumer<Acknowledge, AcknowledgementHandler> onAck = mock(BiConsumer.class);
         when(eventHandlers.onAcknowledge()).thenReturn(onAck);
         Collector<RestPayload> collector = createCollector();
         
-        ConsumerAdapter.AcknowledgementHandler ackHandler = mock(ConsumerAdapter.AcknowledgementHandler.class);
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         collector.handleMessage(responseMessageWithAck, ackHandler);
 
         verify(onAck).accept(responseMessageWithAck.getAck(), ackHandler);
@@ -226,7 +226,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
         Collector<RestPayload> collector = createCollector();
 
-        ConsumerAdapter.AcknowledgementHandler ackHandler = mock(ConsumerAdapter.AcknowledgementHandler.class);
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         collector.handleMessage(responseMessageWithAck, ackHandler);
 
         verify(timeoutManagerMock, never()).enableResponseTimeout(anyInt(), any(Collector.class));
@@ -247,13 +247,13 @@ public class CollectorTest {
         when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
         when(requestOptionsMock.getWaitForResponses()).thenReturn(1);
 
-        BiConsumer<RestPayload, ConsumerAdapter.AcknowledgementHandler> onResponse = mock(BiConsumer.class);
+        BiConsumer<RestPayload, AcknowledgementHandler> onResponse = mock(BiConsumer.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
         Callback<Void> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector<RestPayload> collector = createCollector();
-        ConsumerAdapter.AcknowledgementHandler ackHandler = mock(ConsumerAdapter.AcknowledgementHandler.class);
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         collector.handleMessage(responseMessage, ackHandler);
 
         RestPayload<?, ?, ?, String> expectedPayload = new RestPayload.Builder<Object, Object, Object, String>()
@@ -278,7 +278,7 @@ public class CollectorTest {
         when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
         when(requestOptionsMock.getWaitForResponses()).thenReturn(2);
 
-        BiConsumer<RestPayload, ConsumerAdapter.AcknowledgementHandler> onResponse = mock(BiConsumer.class);
+        BiConsumer<RestPayload, AcknowledgementHandler> onResponse = mock(BiConsumer.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
         Callback<Void> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
@@ -290,7 +290,7 @@ public class CollectorTest {
                 .withBody(bodyText)
                 .build();
 
-        ConsumerAdapter.AcknowledgementHandler ackHandler = mock(ConsumerAdapter.AcknowledgementHandler.class);
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         //send first response
         collector.handleMessage(responseMessage, ackHandler);
         verify(onResponse).accept(expectedPayload, ackHandler);
@@ -317,7 +317,7 @@ public class CollectorTest {
         when(requestOptionsMock.getResponseTimeout()).thenReturn(0);
         when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
 
-        BiConsumer<Acknowledge, ConsumerAdapter.AcknowledgementHandler> onAck = mock(BiConsumer.class);
+        BiConsumer<Acknowledge, AcknowledgementHandler> onAck = mock(BiConsumer.class);
         
         when(eventHandlers.onAcknowledge()).thenReturn(onAck);
         Callback<Void> onEnd = mock(Callback.class);
@@ -326,7 +326,7 @@ public class CollectorTest {
         Collector<RestPayload> collector = createCollector();
         collector.listenForResponses();
 
-        ConsumerAdapter.AcknowledgementHandler ackHandler = mock(ConsumerAdapter.AcknowledgementHandler.class);
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         //send payload response
         collector.handleMessage(responseMessage, ackHandler);
         verify(timeoutManagerMock, never()).enableResponseTimeout(anyInt(), eq(collector));
@@ -347,7 +347,7 @@ public class CollectorTest {
         when(requestOptionsMock.getResponseTimeout()).thenReturn(0);
         when(requestOptionsMock.getWaitForResponses()).thenReturn(1);
 
-        BiConsumer<Acknowledge, ConsumerAdapter.AcknowledgementHandler> onAck = mock(BiConsumer.class);
+        BiConsumer<Acknowledge, AcknowledgementHandler> onAck = mock(BiConsumer.class);
         when(eventHandlers.onAcknowledge()).thenReturn(onAck);
         Callback<Void> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
@@ -355,7 +355,7 @@ public class CollectorTest {
         Collector<RestPayload> collector = createCollector();
         collector.listenForResponses();
 
-        ConsumerAdapter.AcknowledgementHandler ackHandler = mock(ConsumerAdapter.AcknowledgementHandler.class);
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         //send payload response
         collector.handleMessage(responseMessage, ackHandler);
         verify(timeoutManagerMock, never()).enableResponseTimeout(eq(0), eq(collector));
@@ -376,7 +376,7 @@ public class CollectorTest {
         when(requestOptionsMock.getResponseTimeout()).thenReturn(0);
         when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
 
-        BiConsumer<Acknowledge, ConsumerAdapter.AcknowledgementHandler> onAck = mock(BiConsumer.class);
+        BiConsumer<Acknowledge, AcknowledgementHandler> onAck = mock(BiConsumer.class);
         when(eventHandlers.onAcknowledge()).thenReturn(onAck);
         Callback<Void> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);
@@ -384,7 +384,7 @@ public class CollectorTest {
         Collector<RestPayload> collector = createCollector();
         collector.listenForResponses();
 
-        ConsumerAdapter.AcknowledgementHandler ackHandler = mock(ConsumerAdapter.AcknowledgementHandler.class);
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         //send payload response
         collector.handleMessage(responseMessage, ackHandler);
         verify(timeoutManagerMock, never()).enableResponseTimeout(eq(0), eq(collector));
@@ -411,7 +411,7 @@ public class CollectorTest {
         Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMs).build();
         Message responseMessageWithAck = TestUtils.createMsbResponseMessageWithAckNoPayload(ack, TOPIC_RESPONSE, originalMessage.getCorrelationId());
 
-        ConsumerAdapter.AcknowledgementHandler ackHandler = mock(ConsumerAdapter.AcknowledgementHandler.class);
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         collector.handleMessage(responseMessageWithAck, ackHandler);
 
         verify(timeoutManagerMock, never()).enableResponseTimeout(eq(timeoutMs), eq(collector));
@@ -439,7 +439,7 @@ public class CollectorTest {
                 .build();
         Message responseMessageWithAck = TestUtils.createMsbResponseMessageWithAckNoPayload(ack, TOPIC_RESPONSE, originalMessage.getCorrelationId());
 
-        ConsumerAdapter.AcknowledgementHandler ackHandler = mock(ConsumerAdapter.AcknowledgementHandler.class);
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         collector.handleMessage(responseMessageWithAck, ackHandler);
 
         verify(timeoutManagerMock, never()).enableResponseTimeout(eq(timeoutMsInAck), eq(collector));
@@ -536,7 +536,7 @@ public class CollectorTest {
         when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
         when(requestOptionsMock.getWaitForResponses()).thenReturn(responsesRemaining);
 
-        BiConsumer<RestPayload, ConsumerAdapter.AcknowledgementHandler> onResponse = mock(BiConsumer.class);
+        BiConsumer<RestPayload, AcknowledgementHandler> onResponse = mock(BiConsumer.class);
         when(eventHandlers.onResponse()).thenReturn(onResponse);
         Callback<Void> onEnd = mock(Callback.class);
         when(eventHandlers.onEnd()).thenReturn(onEnd);

@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.cli;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.ConsumerAdapter.AcknowledgementHandler;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 
 import java.io.IOException;

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
@@ -185,8 +186,8 @@ public class ConsumerTest {
                 .build();
     }
     
-    private ConsumerAdapter.AcknowledgementHandler createAcknowledgementHandler() {
-        return new ConsumerAdapter.AcknowledgementHandler() {
+    private AcknowledgementHandler createAcknowledgementHandler() {
+        return new AcknowledgementHandler() {
             @Override
             public void confirmMessage() {
             }

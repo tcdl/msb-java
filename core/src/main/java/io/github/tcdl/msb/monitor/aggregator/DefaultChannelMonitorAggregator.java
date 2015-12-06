@@ -2,7 +2,7 @@ package io.github.tcdl.msb.monitor.aggregator;
 
 import static io.github.tcdl.msb.support.Utils.TOPIC_ANNOUNCE;
 import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
@@ -88,7 +88,7 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
         }
     }
 
-    void onAnnounce(Message announcementMessage, ConsumerAdapter.AcknowledgementHandler acknowledgeHandler) {
+    void onAnnounce(Message announcementMessage, AcknowledgementHandler acknowledgeHandler) {
         LOG.debug(String.format("Handling announcement message %s...", announcementMessage));
 
         boolean successfullyAggregated = aggregateInfo(masterAggregatorStats, announcementMessage);

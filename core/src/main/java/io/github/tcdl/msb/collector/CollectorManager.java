@@ -2,7 +2,7 @@ package io.github.tcdl.msb.collector;
 
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.exception.ConsumerSubscriptionException;
 import io.github.tcdl.msb.api.message.Message;
 
@@ -34,7 +34,7 @@ public class CollectorManager implements MessageHandler {
      * Determines correlationId from the incoming message and invokes the relevant {@link Collector} instance.
      */
     @Override
-    public void handleMessage(Message message, ConsumerAdapter.AcknowledgementHandler acknowledgeHandler) {
+    public void handleMessage(Message message, AcknowledgementHandler acknowledgeHandler) {
         String correlationId = message.getCorrelationId();
         Collector collector = collectorsByCorrelationId.get(correlationId);
         if (collector != null) {
