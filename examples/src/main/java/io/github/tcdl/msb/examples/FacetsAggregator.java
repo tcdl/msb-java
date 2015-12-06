@@ -6,6 +6,7 @@ import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.Responder;
+import io.github.tcdl.msb.api.ResponderContext;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.examples.payload.Request;
 
@@ -35,9 +36,11 @@ public class FacetsAggregator {
         MessageTemplate messageTemplate = new MessageTemplate().withTags("facets-aggregator");
         final String namespace = "search:aggregator:facets:v1";
 
-        msbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (Request facetsRequest, Responder responder) -> {
+        msbContext.getObjectFactory().createResponderServer(
+                namespace, messageTemplate, (Request facetsRequest, ResponderContext responderContext) -> {
 
             String q = facetsRequest.getQuery().getQ();
+            Responder responder = responderContext.getResponder();
 
             if (q == null) {
                 RestPayload responsePayload = new RestPayload.Builder()
@@ -91,7 +94,7 @@ public class FacetsAggregator {
                     responder.send(responsePayload);
                 });
 
-                requester.publish(facetsRequest, responder.getOriginalMessage(), UUID.randomUUID().toString());
+                requester.publish(facetsRequest, responderContext.getOriginalMessage(), UUID.randomUUID().toString());
             }
         }, Request.class).listen();
     }

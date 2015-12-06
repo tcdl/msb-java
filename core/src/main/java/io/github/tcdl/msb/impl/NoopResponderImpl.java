@@ -1,6 +1,5 @@
 package io.github.tcdl.msb.impl;
 
-import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Message;
 
@@ -14,11 +13,9 @@ public class NoopResponderImpl implements Responder {
     private static final Logger LOG = LoggerFactory.getLogger(NoopResponderImpl.class);
 
     private Message originalMessage;
-    private AcknowledgementHandler ackHandler;
 
-    public NoopResponderImpl(Message originalMessage, AcknowledgementHandler acknowledgeHandler) {
+    public NoopResponderImpl(Message originalMessage) {
         this.originalMessage = originalMessage;
-        this.ackHandler = ackHandler;
     }
 
     /** {@inheritDoc} */
@@ -33,16 +30,4 @@ public class NoopResponderImpl implements Responder {
         LOG.error("Cannot send response because response topic is unknown. Incoming message: {}", originalMessage);
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public Message getOriginalMessage() {
-        return originalMessage;
-    }
-
-    @Override
-    public AcknowledgementHandler getAcknowledgementHandler() {
-        return ackHandler;
-    }
-
-    
 }

@@ -49,7 +49,7 @@ public class ResponderIT {
         MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
         Message originalMessage = TestUtils.createSimpleRequestMessage(namespace);
 
-        Responder responder = new ResponderImpl(messageOptions, originalMessage, null, msbContext);
+        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
 
         responder.sendAck(ackTimeout, responsesRemaining);
 
@@ -90,7 +90,7 @@ public class ResponderIT {
         MessageTemplate messageOptions = TestUtils.createSimpleMessageTemplate();
         Message originalMessage = TestUtils.createSimpleRequestMessage(namespace);
 
-        Responder responder = new ResponderImpl(messageOptions, originalMessage, null, msbContext);
+        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
         RestPayload responsePayload = TestUtils.createSimpleResponsePayload();
         responder.send(responsePayload);
 
@@ -107,7 +107,7 @@ public class ResponderIT {
         String dynamicTagOriginal = "dynamic-tag-original";
         Message originalMessage = TestUtils.createSimpleRequestMessageWithTags(namespace, dynamicTagOriginal);
 
-        Responder responder = new ResponderImpl(messageOptions, originalMessage, null, msbContext);
+        Responder responder = new ResponderImpl(messageOptions, originalMessage, msbContext);
         RestPayload responsePayload = TestUtils.createSimpleResponsePayload();
         responder.send(responsePayload);
 

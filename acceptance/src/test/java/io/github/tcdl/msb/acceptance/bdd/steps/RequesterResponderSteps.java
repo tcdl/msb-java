@@ -1,9 +1,16 @@
 package io.github.tcdl.msb.acceptance.bdd.steps;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static io.github.tcdl.msb.acceptance.MsbTestHelper.DEFAULT_CONTEXT_NAME;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
@@ -12,13 +19,7 @@ import org.jbehave.core.model.ExamplesTable;
 import org.jbehave.core.model.OutcomesTable;
 import org.junit.Assert;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import static io.github.tcdl.msb.acceptance.MsbTestHelper.DEFAULT_CONTEXT_NAME;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Steps to send requests and respond with predifined responses
@@ -44,17 +45,17 @@ public class RequesterResponderSteps extends MsbSteps {
     public void createResponderServer(String contextName, String namespace) {
         ObjectMapper mapper = helper.getPayloadMapper(contextName);
         countRequestsReceived = 0;
-        helper.createResponderServer(contextName, namespace, (request, responder) -> {
+        helper.createResponderServer(contextName, namespace, (request, responderContext) -> {
             if (responseBody != null) {
                 countRequestsReceived++;
                 boolean isSendResponse = true;
 
                 switch (nextRequestAckType.orElseGet(()->"auto")) {
                     case "confirm":
-                        responder.getAcknowledgementHandler().confirmMessage();
+                        responderContext.getAcknowledgementHandler().confirmMessage();
                         break;
                     case "reject":
-                        responder.getAcknowledgementHandler().rejectMessage();
+                        responderContext.getAcknowledgementHandler().rejectMessage();
                         isSendResponse = false;
                         break;
                 }
@@ -65,7 +66,7 @@ public class RequesterResponderSteps extends MsbSteps {
                     RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map>()
                             .withBody(Utils.fromJson(responseBody, Map.class, mapper))
                             .build();
-                    responder.send(payload);
+                    responderContext.getResponder().send(payload);
                 }
             }
         }).listen();

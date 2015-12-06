@@ -3,6 +3,7 @@ package io.github.tcdl.msb.examples;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
+import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.examples.payload.Query;
 import io.github.tcdl.msb.examples.payload.Request;
@@ -30,13 +31,14 @@ public class DateExtractor {
         MessageTemplate messageTemplate = new MessageTemplate().withTags("date-extractor");
         final String namespace = "search:parsers:facets:v1";
 
-        msbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responder) -> {
+        msbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responderContext) -> {
 
             Query query = request.getQuery();
             String queryString = query.getQ();
             String year = DateExtractorUtils.retrieveYear(queryString);
 
             if (year != null) {
+                Responder responder = responderContext.getResponder();
                 // send acknowledge
                 responder.sendAck(500, null);
 

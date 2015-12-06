@@ -31,6 +31,7 @@ public class EventHandlers<T> {
      * Registered callback for Acknowledge event.
      *
      * @param onAcknowledge callback
+     * @return EventHandlers
      */
     public EventHandlers onAcknowledge(BiConsumer<Acknowledge, AcknowledgementHandler> onAcknowledge) {
         this.onAcknowledge = onAcknowledge;
@@ -41,6 +42,7 @@ public class EventHandlers<T> {
      * Return callback registered for Response event.
      *
      * @return response callback
+     * @return EventHandlers
      */
     public BiConsumer<T, AcknowledgementHandler> onResponse() {
         return onResponse;
@@ -50,6 +52,7 @@ public class EventHandlers<T> {
      * Registered callback for Response event.
      *
      * @param onResponse callback
+     * @return EventHandlers
      */
     public EventHandlers onResponse(BiConsumer<T, AcknowledgementHandler> onResponse) {
         this.onResponse = onResponse;
@@ -60,6 +63,7 @@ public class EventHandlers<T> {
      * Return callback registered for Response event.
      *
      * @return response callback
+     * @return EventHandlers
      */
     public BiConsumer<Message, AcknowledgementHandler> onRawResponse() {
         return onRawResponse;
@@ -69,6 +73,7 @@ public class EventHandlers<T> {
      * Registered callback for Response event.
      *
      * @param onRawResponse callback
+     * @return EventHandlers
      */
     public EventHandlers onRawResponse(BiConsumer<Message, AcknowledgementHandler> onRawResponse) {
         this.onRawResponse = onRawResponse;
@@ -88,6 +93,7 @@ public class EventHandlers<T> {
      * Registered callback for End event.
      *
      * @param onEnd callback
+     * @return EventHandlers
      */
     public EventHandlers onEnd(Callback<Void> onEnd) {
         this.onEnd = onEnd;

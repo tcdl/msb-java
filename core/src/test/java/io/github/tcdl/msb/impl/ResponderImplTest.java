@@ -58,14 +58,14 @@ public class ResponderImplTest {
         when(msbContextSpy.getMessageFactory()).thenReturn(spyMessageFactory);
         when(mockChannelManager.findOrCreateProducer(anyString())).thenReturn(mockProducer);
 
-        responder = new ResponderImpl(messageTemplate, originalMessage, null, msbContextSpy);
+        responder = new ResponderImpl(messageTemplate, originalMessage, msbContextSpy);
     }
 
     @Test
     public void testResponderConstructorOk() {
         MsbContextImpl context = TestUtils.createSimpleMsbContext();
         Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
-        new ResponderImpl(messageTemplate, originalMessage, null, context);
+        new ResponderImpl(messageTemplate, originalMessage, context);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class ResponderImplTest {
     @Test
     public void testProducerPublishWithTags() {
         String[] tags = new String[]{"tag1", "tag2"};
-        responder = new ResponderImpl(TestUtils.createSimpleMessageTemplate(tags), originalMessage, null, msbContextSpy);
+        responder = new ResponderImpl(TestUtils.createSimpleMessageTemplate(tags), originalMessage, msbContextSpy);
 
         ArgumentCaptor<Message> argument = ArgumentCaptor.forClass(Message.class);
         responder.send(TestUtils.createSimpleRequestPayload());

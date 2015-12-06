@@ -26,7 +26,7 @@ public class ResponderImpl implements Responder {
     private AcknowledgementHandler ackHandler;
 
     public ResponderImpl(MessageTemplate messageTemplate, Message originalMessage, 
-            AcknowledgementHandler ackHandler, MsbContextImpl msbContext) {
+            MsbContextImpl msbContext) {
         validateReceivedMessage(originalMessage);
         this.responderId = Utils.generateId();
         this.originalMessage = originalMessage;
@@ -72,16 +72,6 @@ public class ResponderImpl implements Responder {
     private void validateReceivedMessage(Message originalMessage) {
         Validate.notNull(originalMessage, "the 'originalMessage' must not be null");
         Validate.notNull(originalMessage.getTopics(), "the 'originalMessage.topics' must not be null");
-    }
-
-    /** {@inheritDoc} */
-    public Message getOriginalMessage() {
-        return this.originalMessage;
-    }
-
-    @Override
-    public AcknowledgementHandler getAcknowledgementHandler() {
-        return this.ackHandler;
     }
 
 }

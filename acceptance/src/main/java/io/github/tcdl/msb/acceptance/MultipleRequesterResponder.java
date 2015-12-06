@@ -1,12 +1,13 @@
 package io.github.tcdl.msb.acceptance;
 
 import io.github.tcdl.msb.api.Requester;
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 public class MultipleRequesterResponder {
 
@@ -31,7 +32,7 @@ public class MultipleRequesterResponder {
 
         ExecutorService executor = Executors.newFixedThreadPool(2, threadFactory);
 
-        util.createResponderServer(responderNamespace, (request, responder) -> {
+        util.createResponderServer(responderNamespace, (request, responderContext) -> {
             System.out.print(">>> REQUEST: " + request);
 
             Future<String> futureRequester1 = createAndRunRequester(executor, requesterNamespace1);
@@ -44,7 +45,7 @@ public class MultipleRequesterResponder {
 
             executor.shutdownNow();
 
-            responder.send("response from MultipleRequesterResponder:" + (result1 + result2));
+            responderContext.getResponder().send("response from MultipleRequesterResponder:" + (result1 + result2));
         }, String.class)
         .listen();
     }

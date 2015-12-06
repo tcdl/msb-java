@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.acceptance;
 
 import io.github.tcdl.msb.api.Requester;
+import io.github.tcdl.msb.api.Responder;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -28,8 +29,9 @@ public class RequesterResponderTest {
     public void runRequesterResponder() throws Exception {
         helper.initDefault();
         // running responder server
-        helper.createResponderServer(NAMESPACE, (request, responder) -> {
+        helper.createResponderServer(NAMESPACE, (request, responderContext) -> {
             System.out.println(">>> REQUEST: " + request);
+            Responder responder = responderContext.getResponder();
             responder.sendAck(1000, NUMBER_OF_RESPONSES);
             responder.send("Pong");
         }, String.class)

@@ -87,8 +87,8 @@ public class RequesterResponderIT {
 
         //listen for message and send ack
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
-        serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, response) -> {
-            response.sendAck(100, 2);
+        serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responderContext) -> {
+            responderContext.getResponder().sendAck(100, 2);
             ackSend.countDown();
         })
                 .listen();
@@ -126,8 +126,8 @@ public class RequesterResponderIT {
         //listen for message and send response
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
 
-        serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, response) -> {
-            response.send(responsePayload);
+        serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responderContext) -> {
+            responderContext.getResponder().send(responsePayload);
             respSent.countDown();
         }, String.class).listen();
 
@@ -163,10 +163,11 @@ public class RequesterResponderIT {
                 .listen();
 
         MsbContextImpl serverTwoMsbContext = TestUtils.createSimpleMsbContext();
-        serverTwoMsbContext.getObjectFactory().createResponderServer(namespace2, responderServerTwoMessageOptions, (request, response) -> {
-            response.sendAck(100, 2);
-            ackSent.countDown();
-        })
+        serverTwoMsbContext.getObjectFactory().createResponderServer(namespace2, responderServerTwoMessageOptions, 
+                (request, responderContext) -> {
+                    responderContext.getResponder().sendAck(100, 2);
+                    ackSent.countDown();
+                })
                 .listen();
 
         MockAdapter.pushRequestMessage(namespace1,
@@ -216,10 +217,11 @@ public class RequesterResponderIT {
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
         Random randomAckValue = new Random();
         randomAckValue.ints();
-        serverMsbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
-            response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
-            ackSend.countDown();
-        })
+        serverMsbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), 
+                (request, responderContext) -> {
+                    responderContext.getResponder().sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
+                    ackSend.countDown();
+                })
                 .listen();
 
         assertTrue("Message ack was not send", ackSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
@@ -238,7 +240,8 @@ public class RequesterResponderIT {
 
         Thread serverListenThread = new Thread(() -> {
             msbContext.getObjectFactory().createResponderServer(namespace, requestOptionsWaitResponse.getMessageTemplate(),
-                    (request, response) -> response.send("payload from test : testRequestMessageCollectorUnsubscribeAfterResponsesAndSubscribeAgain")
+                    (request, responderContext) -> 
+            responderContext.getResponder().send("payload from test : testRequestMessageCollectorUnsubscribeAfterResponsesAndSubscribeAgain")
             )
             .listen();
         });

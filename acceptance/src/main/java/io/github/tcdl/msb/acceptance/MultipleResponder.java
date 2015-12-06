@@ -1,12 +1,13 @@
 package io.github.tcdl.msb.acceptance;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 
 import java.util.Map;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 public class MultipleResponder {
 
@@ -19,14 +20,14 @@ public class MultipleResponder {
 
     public static void runResponder(String namespace, MsbContext msbContext) {
         MessageTemplate options = new MessageTemplate();
-        msbContext.getObjectFactory().createResponderServer(namespace, options, (request, responder) -> {
+        msbContext.getObjectFactory().createResponderServer(namespace, options, (request, responderContext) -> {
             Map requestBody = request.getBody();
             System.out.println(">>> GOT request: " + requestBody);
 
             String requestId = (String) requestBody.get("requestId");
             SearchResponse response = new SearchResponse(requestId, "response");
             System.out.println(">>> SENDING response in request to " + requestId);
-            responder.send(new RestPayload.Builder<Object, Object, Object, SearchResponse>()
+            responderContext.getResponder().send(new RestPayload.Builder<Object, Object, Object, SearchResponse>()
                     .withBody(response)
                     .build());
         }, new TypeReference<RestPayload<Object, Object, Object, Map>>() {})
