@@ -10,8 +10,8 @@ public interface AcknowledgementHandler {
      * Set autoAcknowledgement value. 
      * @param autoAcknowledgement
      * If autoAcknowledgement is true:
-     * 1. A message can be confirmed/rejected by microservice developer in {@link ResponderServer.process(()} 
-     * or {@link Requester.onAcknowledge()}, {@link Requester.onResponse}, {@link Requester.onRawResponse()} methods. 
+     * 1. A message can be confirmed/rejected by microservice developer in ResponderServer.process(() (see {@link ResponderServer})
+     * or Requester.onAcknowledge(), Requester.onResponse, Requester.onRawResponse() (see {@link Requester}) methods. 
      * 2. If a message is not confirmed/rejected during a message processing, 
      * acknowledgement will be automatically sent just after completion these methods by rules: 
      * - message confirmed if message processed successfully,
@@ -37,15 +37,13 @@ public interface AcknowledgementHandler {
     void confirmMessage();
     
     /**
-     * Inform server that a message was rejected by consumer. 
-     * AMQP Server may requeue message or delete it from queue depending on the
-     * requeueRejectedMessages configuration option   
+     * Inform server that a message was rejected with requeue by consumer. 
      */
-    void rejectMessage();
+    void retryMessage();
     
     /**
-     * Inform server that a message was rejected by consumer and can't be requeue  
+     * Inform server that a message was rejected by consumer without requeue  
      */    
-    void discardMessage(); 
+    void rejectMessage(); 
     
 }

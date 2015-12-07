@@ -60,13 +60,13 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
     }
 
     @Override
-    public void rejectMessage() {
+    public void retryMessage() {
         if (acknowledgementSent.compareAndSet(false, true)) {
             try {
                 channel.basicReject(deliveryTag, isRequeueRejectedMessages);
-                LOG.debug(String.format("[consumer tag: %s] A message was rejected", consumerTag));
+                LOG.debug(String.format("[consumer tag: %s] A message was rejected with requeue", consumerTag));
             } catch (Exception e) {
-                LOG.error(String.format("[consumer tag: %s] Got exception when trying to reject a message:", consumerTag), e);
+                LOG.error(String.format("[consumer tag: %s] Got exception when trying to reject with requeue a message:", consumerTag), e);
             }
         } else {
             LOG.error(String.format(ACK_WAS_ALREADY_SENT, consumerTag));
@@ -74,7 +74,7 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
     }
 
     @Override
-    public void discardMessage() {
+    public void rejectMessage() {
         if (acknowledgementSent.compareAndSet(false, true)) {
             try {
                 channel.basicReject(deliveryTag, false);

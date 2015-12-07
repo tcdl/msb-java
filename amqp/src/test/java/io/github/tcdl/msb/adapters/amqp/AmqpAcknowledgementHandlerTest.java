@@ -1,15 +1,18 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import com.rabbitmq.client.Channel;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+import java.util.stream.IntStream;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.stream.IntStream;
-
-import static org.mockito.Mockito.*;
+import com.rabbitmq.client.Channel;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AmqpAcknowledgementHandlerTest {
@@ -36,20 +39,20 @@ public class AmqpAcknowledgementHandlerTest {
 
     @Test
     public void testMessageRejectedWithRequeue() throws Exception {
-        handler.rejectMessage();
+        handler.retryMessage();
         verifyRejectedOnce(true);
     }
 
     @Test
     public void testMessageRejectedWithoutRequeue() throws Exception {
         handler = getHandler(false);
-        handler.rejectMessage();
+        handler.retryMessage();
         verifyRejectedOnce(false);
     }
 
     @Test
     public void testOnlyFirstRejectInvoked() throws Exception {
-        handler.rejectMessage();
+        handler.retryMessage();
         verifyRejectedOnce();
         submitMultipleConfirmRejectRequests();
         verifyRejectedOnce();
@@ -97,7 +100,7 @@ public class AmqpAcknowledgementHandlerTest {
 
     @Test
     public void testAutoConfirmIgnoredWhenRejectedByClient() throws Exception {
-        handler.rejectMessage();
+        handler.retryMessage();
         verifyRejectedOnce();
         handler.autoConfirm();
         verifyRejectedOnce();
@@ -105,7 +108,7 @@ public class AmqpAcknowledgementHandlerTest {
 
     @Test
     public void testAutoRejectIgnoredWhenRejectedByClient() throws Exception {
-        handler.rejectMessage();
+        handler.retryMessage();
         verifyRejectedOnce();
         handler.autoReject();
         verifyRejectedOnce();
@@ -128,7 +131,7 @@ public class AmqpAcknowledgementHandlerTest {
     private void submitMultipleConfirmRejectRequests() {
         IntStream.range(0, 5).forEach((i) -> {
                 handler.confirmMessage();
-                handler.rejectMessage();
+                handler.retryMessage();
         });
     }
 

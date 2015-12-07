@@ -102,11 +102,11 @@ public class Consumer {
                 messageHandler.handleMessage(message, acknowledgeHandler);
             } else {
                 LOG.warn("Expired message: {}", jsonMessage);
-                acknowledgeHandler.discardMessage();
+                acknowledgeHandler.rejectMessage();
             }
         } catch (JsonConversionException | JsonSchemaValidationException e) {
             LOG.error("Unable to process consumed message {}", jsonMessage, e);
-            acknowledgeHandler.discardMessage();
+            acknowledgeHandler.rejectMessage();
         }
     }
 
