@@ -1,6 +1,8 @@
 package io.github.tcdl.msb.adapters.amqp;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerImpl;
+import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 
 import java.io.IOException;
@@ -44,7 +46,7 @@ public class AmqpMessageConsumer extends DefaultConsumer {
     @Override
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
         long deliveryTag = envelope.getDeliveryTag();
-        AmqpAcknowledgementHandler ackHandler = createAcknowledgementHandler(
+        AcknowledgementHandlerInternal ackHandler = createAcknowledgementHandler(
                 getChannel(), consumerTag, deliveryTag, envelope.isRedeliver());
         try {
             Charset charset = amqpBrokerConfig.getCharset();
@@ -68,9 +70,11 @@ public class AmqpMessageConsumer extends DefaultConsumer {
             ackHandler.autoReject();
         }
     }
-    
-    AmqpAcknowledgementHandler createAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag, boolean isRequeueRejectedMessages) {
-        return new AmqpAcknowledgementHandler(channel, consumerTag, deliveryTag, isRequeueRejectedMessages);
+
+    AcknowledgementHandlerInternal createAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag, boolean isRequeueRejectedMessages) {
+        AmqpAcknowledgementAdapter adapter = new AmqpAcknowledgementAdapter(channel, consumerTag, deliveryTag);
+        String messageTextIdentifier = String.format("consumer tag: %s", consumerTag);
+        return new AcknowledgementHandlerImpl(adapter, isRequeueRejectedMessages, messageTextIdentifier);
     }
     
 }

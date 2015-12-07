@@ -6,21 +6,22 @@ import static org.mockito.Mockito.*;
 
 import java.util.stream.IntStream;
 
+import io.github.tcdl.msb.acknowledge.AcknowledgementAdapter;
+import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.rabbitmq.client.Channel;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AmqpAcknowledgementHandlerTest {
 
-    private AmqpAcknowledgementHandler handler;
+    private AcknowledgementHandlerImpl handler;
 
     @Mock
-    private Channel mockChannel;
+    private AcknowledgementAdapter acknowledgementAdapter;
 
     private long deliveryTag = 123123123;
 
@@ -149,21 +150,21 @@ public class AmqpAcknowledgementHandlerTest {
     public void testAutoConfirmIgnoredWhenAutoAcknowledgementDisabled() throws Exception {
         handler.setAutoAcknowledgement(false);
         handler.autoConfirm();
-        verifyNoMoreInteractions(mockChannel);
+        verifyNoMoreInteractions(acknowledgementAdapter);
     }
 
     @Test
     public void testAutoRejectIgnoredWhenAutoAcknowledgementDisabled() throws Exception {
         handler.setAutoAcknowledgement(false);
         handler.autoReject();
-        verifyNoMoreInteractions(mockChannel);
+        verifyNoMoreInteractions(acknowledgementAdapter);
     }
 
     @Test
     public void testAutoRetryIgnoredWhenAutoAcknowledgementDisabled() throws Exception {
         handler.setAutoAcknowledgement(false);
         handler.autoRetry();
-        verifyNoMoreInteractions(mockChannel);
+        verifyNoMoreInteractions(acknowledgementAdapter);
     }
 
     @Test
@@ -208,18 +209,18 @@ public class AmqpAcknowledgementHandlerTest {
     }
 
     private void verifySingleConfirm() throws Exception {
-        verify(mockChannel, times(1)).basicAck(deliveryTag, false);
-        verifyNoMoreInteractions(mockChannel);
+        verify(acknowledgementAdapter, times(1)).confirm();
+        verifyNoMoreInteractions(acknowledgementAdapter);
     }
 
     private void verifySingleRetry() throws Exception {
-        verify(mockChannel, times(1)).basicReject(deliveryTag, true);
-        verifyNoMoreInteractions(mockChannel);
+        verify(acknowledgementAdapter, times(1)).retry();
+        verifyNoMoreInteractions(acknowledgementAdapter);
     }
 
     private void verifySingleReject() throws Exception {
-        verify(mockChannel, times(1)).basicReject(deliveryTag, false);
-        verifyNoMoreInteractions(mockChannel);
+        verify(acknowledgementAdapter, times(1)).reject();
+        verifyNoMoreInteractions(acknowledgementAdapter);
     }
 
     private void submitMultipleConfirmRejectRequests() {
@@ -238,8 +239,8 @@ public class AmqpAcknowledgementHandlerTest {
         });
     }
 
-    private AmqpAcknowledgementHandler getHandler(boolean isMessageRedelivered) {
-        return new AmqpAcknowledgementHandler(mockChannel, "any", deliveryTag, isMessageRedelivered);
+    private AcknowledgementHandlerImpl getHandler(boolean isMessageRedelivered) {
+        return new AcknowledgementHandlerImpl(acknowledgementAdapter, isMessageRedelivered, "id = 123");
     }
 
 }

@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.adapters.amqp;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-
+import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +14,10 @@ public class AmqpMessageProcessingTask implements Runnable {
     final String consumerTag;
     final String body;
     final ConsumerAdapter.RawMessageHandler msgHandler;
-    final AmqpAcknowledgementHandler ackHandler;
+    final AcknowledgementHandlerInternal ackHandler;
 
-    public AmqpMessageProcessingTask(String consumerTag, String body, ConsumerAdapter.RawMessageHandler msgHandler, 
-            AmqpAcknowledgementHandler ackHandler) {
+    public AmqpMessageProcessingTask(String consumerTag, String body, ConsumerAdapter.RawMessageHandler msgHandler,
+                                     AcknowledgementHandlerInternal ackHandler) {
         this.consumerTag = consumerTag;
         this.body = body;
         this.msgHandler = msgHandler;

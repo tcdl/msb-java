@@ -8,6 +8,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerImpl;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 
 import java.io.IOException;
@@ -41,7 +42,7 @@ public class AmqpMessageConsumerTest {
     private AmqpBrokerConfig mockBrokerConfig;
 
     @Mock
-    private AmqpAcknowledgementHandler amqpAcknowledgementHandler;
+    private AcknowledgementHandlerImpl amqpAcknowledgementHandler;
 
     private AmqpMessageConsumer amqpMessageConsumer;
 
@@ -51,7 +52,7 @@ public class AmqpMessageConsumerTest {
 
         amqpMessageConsumer = new AmqpMessageConsumer(mockChannel, mockExecutorService, mockMessageHandler, mockBrokerConfig) {
             @Override
-            AmqpAcknowledgementHandler createAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag, boolean isRequeueRejectedMessages) {
+            AcknowledgementHandlerImpl createAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag, boolean isRequeueRejectedMessages) {
                 return amqpAcknowledgementHandler;
             }
         };

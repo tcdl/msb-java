@@ -6,7 +6,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.api.AcknowledgementHandler;
+import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
@@ -47,7 +47,7 @@ public class ConsumerTest {
     private MessageHandler messageHandlerMock;
     
     @Mock
-    private AcknowledgementHandler acknowledgementHandler;
+    private AcknowledgementHandlerInternal acknowledgementHandlerMock;
 
     private Clock clock = Clock.systemDefaultZone();
 
@@ -116,7 +116,7 @@ public class ConsumerTest {
     public void testExceptionWhileMessageConvertingProcessedBySubscriber() throws JsonConversionException {
         Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
-        consumer.handleRawMessage("{\"body\":\"fake message\"}", acknowledgementHandler);
+        consumer.handleRawMessage("{\"body\":\"fake message\"}", acknowledgementHandlerMock);
 
         verify(messageHandlerMock, never()).handleMessage(any(Message.class), any());
     }
@@ -154,7 +154,7 @@ public class ConsumerTest {
         MsbConfig msbConf = TestUtils.createMsbConfigurations();
         Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConf, clock, channelMonitorAgentMock, validator, messageMapper);
 
-        consumer.handleRawMessage("{\"body\":\"fake message\"}", acknowledgementHandler);
+        consumer.handleRawMessage("{\"body\":\"fake message\"}", acknowledgementHandlerMock);
         verify(messageHandlerMock, never()).handleMessage(any(Message.class), any()); // no processing
     }
 
@@ -164,7 +164,7 @@ public class ConsumerTest {
         MsbConfig msbConf = TestUtils.createMsbConfigurations();
         Consumer consumer = new Consumer(adapterMock, service_topic, messageHandlerMock, msbConf, clock, channelMonitorAgentMock, validator, messageMapper);
 
-        consumer.handleRawMessage("{\"body\":\"fake message\"}", acknowledgementHandler);
+        consumer.handleRawMessage("{\"body\":\"fake message\"}", acknowledgementHandlerMock);
         verify(messageHandlerMock, never()).handleMessage(any(Message.class), any()); // no processing
     }
 
@@ -173,7 +173,7 @@ public class ConsumerTest {
         Message expiredMessage = createExpiredMsbRequestMessageWithTopicTo(TOPIC);
         Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
 
-        consumer.handleRawMessage(Utils.toJson(expiredMessage, messageMapper), acknowledgementHandler);
+        consumer.handleRawMessage(Utils.toJson(expiredMessage, messageMapper), acknowledgementHandlerMock);
         verify(messageHandlerMock, never()).handleMessage(any(Message.class), any());
     }
 
