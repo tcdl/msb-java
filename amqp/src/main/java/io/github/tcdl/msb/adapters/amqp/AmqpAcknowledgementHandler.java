@@ -1,8 +1,10 @@
 package io.github.tcdl.msb.adapters.amqp;
 
+import com.rabbitmq.client.AMQP;
 import io.github.tcdl.msb.api.AcknowledgementHandler;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,18 +25,18 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
     final Channel channel;
     final String consumerTag;
     final long deliveryTag;
-    final boolean isRequeueRejectedMessages;
+    final boolean isMessageRedelivered;
 
     final AtomicBoolean acknowledgementSent = new AtomicBoolean(false);
     boolean autoAcknowledgement = true;
 
     public AmqpAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag,
-            boolean isRequeueRejectedMessages) {
+            boolean isMessageRedelivered) {
         super();
         this.channel = channel;
         this.consumerTag = consumerTag;
         this.deliveryTag = deliveryTag;
-        this.isRequeueRejectedMessages = isRequeueRejectedMessages;
+        this.isMessageRedelivered = isMessageRedelivered;
     }
 
     public boolean isAutoAcknowledgement() {
@@ -47,40 +49,39 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
 
     @Override
     public void confirmMessage() {
-        if (acknowledgementSent.compareAndSet(false, true)) {
-            try {
-                channel.basicAck(deliveryTag, false);
-                LOG.debug(String.format("[consumer tag: %s] A message was confirmed", consumerTag));
-            } catch (Exception e) {
-                LOG.error(String.format("[consumer tag: %s] Got exception when trying to confirm a message:", consumerTag), e);
-            }
-        } else {
-            LOG.error(String.format(ACK_WAS_ALREADY_SENT, consumerTag));
-        }
+        executeAck("confirm", () -> {
+            channel.basicAck(deliveryTag, false);
+            LOG.debug(String.format("[consumer tag: %s] A message was confirmed", consumerTag));
+        });
     }
 
     @Override
     public void retryMessage() {
-        if (acknowledgementSent.compareAndSet(false, true)) {
-            try {
-                channel.basicReject(deliveryTag, isRequeueRejectedMessages);
+        executeAck("requeue", () -> {
+            if(!isMessageRedelivered) {
+                channel.basicReject(deliveryTag, true);
                 LOG.debug(String.format("[consumer tag: %s] A message was rejected with requeue", consumerTag));
-            } catch (Exception e) {
-                LOG.error(String.format("[consumer tag: %s] Got exception when trying to reject with requeue a message:", consumerTag), e);
+            } else {
+                channel.basicReject(deliveryTag, false);
+                LOG.warn(String.format("[consumer tag: %s] Can't requeue message because it already was redelivered once, discarding it instead", consumerTag));
             }
-        } else {
-            LOG.error(String.format(ACK_WAS_ALREADY_SENT, consumerTag));
-        }
+        });
     }
 
     @Override
     public void rejectMessage() {
+        executeAck("reject", () -> {
+            channel.basicReject(deliveryTag, false);
+            LOG.debug(String.format("[consumer tag: %s] A message was discarded", consumerTag));
+        });
+    }
+
+    private void executeAck(String actionName, AckAction ackAction) {
         if (acknowledgementSent.compareAndSet(false, true)) {
             try {
-                channel.basicReject(deliveryTag, false);
-                LOG.debug(String.format("[consumer tag: %s] A message was discarded", consumerTag));
+                ackAction.perform();
             } catch (Exception e) {
-                LOG.error(String.format("[consumer tag: %s] Got exception when trying to discard a message:", consumerTag), e);
+                LOG.error(String.format("[consumer tag: %s] Got exception when trying to %s a message:", consumerTag, actionName), e);
             }
         } else {
             LOG.error(String.format(ACK_WAS_ALREADY_SENT, consumerTag));
@@ -88,17 +89,40 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
     }
     
     public void autoConfirm() {
-        if (autoAcknowledgement && !acknowledgementSent.get()) {
+        executeAutoAck(() -> {
             confirmMessage();
             LOG.debug(String.format("[consumer tag: %s] A message was automatically confirmed after message processing", consumerTag));
-        }
+        });
     }
 
     public void autoReject() {
-        if (autoAcknowledgement && !acknowledgementSent.get()) {
+        executeAutoAck(() -> {
             rejectMessage();
             LOG.debug(String.format("[consumer tag: %s] A message was automatically rejected due to error during message processing", consumerTag));
+        });
+    }
+
+    public void autoRetry() {
+        executeAutoAck(() -> {
+            retryMessage();
+            LOG.debug(String.format("[consumer tag: %s] A message was automatically rejected (with a requeue attempt) due to error during message processing", consumerTag));
+        });
+    }
+
+    private void executeAutoAck(AutoAckAction ackAction) {
+        if (autoAcknowledgement && !acknowledgementSent.get()) {
+            ackAction.perform();
         }
+    }
+
+    @FunctionalInterface
+    private interface AckAction {
+        void perform() throws Exception;
+    }
+
+    @FunctionalInterface
+    private interface AutoAckAction {
+        void perform();
     }
 
 }

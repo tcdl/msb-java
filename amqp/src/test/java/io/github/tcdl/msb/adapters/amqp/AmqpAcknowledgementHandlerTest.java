@@ -1,8 +1,8 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
 
 import java.util.stream.IntStream;
 
@@ -24,107 +24,201 @@ public class AmqpAcknowledgementHandlerTest {
 
     private long deliveryTag = 123123123;
 
-    private boolean isRequeueByDefault = true;
 
     @Before
     public void setUp() {
-        handler = getHandler(isRequeueByDefault);
+        handler = getHandler(false);
     }
 
     @Test
     public void testMessageConfirmed() throws Exception {
         handler.confirmMessage();
-        verifyConfirmedOnce();
+        verifySingleConfirm();
     }
 
     @Test
-    public void testMessageRejectedWithRequeue() throws Exception {
-        handler.retryMessage();
-        verifyRejectedOnce(true);
+    public void testMessageRejected() throws Exception {
+        handler.rejectMessage();
+        verifySingleReject();
     }
 
     @Test
-    public void testMessageRejectedWithoutRequeue() throws Exception {
-        handler = getHandler(false);
+    public void testMessageRequeued() throws Exception {
         handler.retryMessage();
-        verifyRejectedOnce(false);
+        verifySingleRetry();
+    }
+
+    @Test
+    public void testMessageConfirmedWhenAutoAcknowledgementDisabled() throws Exception {
+        handler.setAutoAcknowledgement(false);
+        handler.confirmMessage();
+        verifySingleConfirm();
+    }
+
+    @Test
+    public void testMessageRejectedWhenAutoAcknowledgementDisabled() throws Exception {
+        handler.setAutoAcknowledgement(false);
+        handler.rejectMessage();
+        verifySingleReject();
+    }
+
+    @Test
+    public void testMessageRequeuedWhenAutoAcknowledgementDisabled() throws Exception {
+        handler.setAutoAcknowledgement(false);
+        handler.retryMessage();
+        verifySingleRetry();
+    }
+
+    @Test
+    public void testAutoAcknowledgementChanged() throws Exception {
+        assertTrue(handler.isAutoAcknowledgement());
+        handler.setAutoAcknowledgement(false);
+        assertFalse(handler.isAutoAcknowledgement());
+    }
+
+    @Test
+    public void testRedeliveredMessageRejected() throws Exception {
+        handler = getHandler(true);
+        handler.rejectMessage();
+        verifySingleReject();
+    }
+
+    @Test
+    public void testRedeliveredMessageRejectedInsteadOfRetry() throws Exception {
+        handler = getHandler(true);
+        handler.retryMessage();
+        verifySingleReject();
+    }
+
+    @Test
+    public void testRedeliveredMessageConfirmed() throws Exception {
+        handler = getHandler(true);
+        handler.confirmMessage();
+        verifySingleConfirm();
     }
 
     @Test
     public void testOnlyFirstRejectInvoked() throws Exception {
-        handler.retryMessage();
-        verifyRejectedOnce();
+        handler.rejectMessage();
+        verifySingleReject();
         submitMultipleConfirmRejectRequests();
-        verifyRejectedOnce();
+        verifySingleReject();
+    }
+
+    @Test
+    public void testOnlyFirstRetryInvoked() throws Exception {
+        handler.retryMessage();
+        verifySingleRetry();
+        submitMultipleConfirmRejectRequests();
+        verifySingleRetry();
     }
 
     @Test
     public void testOnlyFirstConfirmInvoked() throws Exception {
         handler.confirmMessage();
-        verifyConfirmedOnce();
+        verifySingleConfirm();
         submitMultipleConfirmRejectRequests();
-        verifyConfirmedOnce();
+        verifySingleConfirm();
     }
 
     @Test
     public void testAutoConfirmConfirmsMessageOnce() throws Exception {
         handler.autoConfirm();
-        verifyConfirmedOnce();
+        verifySingleConfirm();
         submitMultipleAutoConfirmAutoRejectRequests();
-        verifyConfirmedOnce();
+        verifySingleConfirm();
     }
 
     @Test
     public void testAutoRejectRejectsMessageOnce() throws Exception {
         handler.autoReject();
-        verifyRejectedOnce();
+        verifySingleReject();
         submitMultipleAutoConfirmAutoRejectRequests();
-        verifyRejectedOnce();
+        verifySingleReject();
+    }
+
+    @Test
+    public void testAutoRetryRequeueMessageOnce() throws Exception {
+        handler.autoRetry();
+        verifySingleRetry();
+        submitMultipleAutoConfirmAutoRejectRequests();
+        verifySingleRetry();
+    }
+
+    @Test
+    public void testAutoConfirmIgnoredWhenAutoAcknowledgementDisabled() throws Exception {
+        handler.setAutoAcknowledgement(false);
+        handler.autoConfirm();
+        verifyNoMoreInteractions(mockChannel);
+    }
+
+    @Test
+    public void testAutoRejectIgnoredWhenAutoAcknowledgementDisabled() throws Exception {
+        handler.setAutoAcknowledgement(false);
+        handler.autoReject();
+        verifyNoMoreInteractions(mockChannel);
+    }
+
+    @Test
+    public void testAutoRetryIgnoredWhenAutoAcknowledgementDisabled() throws Exception {
+        handler.setAutoAcknowledgement(false);
+        handler.autoRetry();
+        verifyNoMoreInteractions(mockChannel);
+    }
+
+    @Test
+    public void testAutoRetryRejectRedeliveredMessageOnce() throws Exception {
+        handler = getHandler(true);
+        handler.autoRetry();
+        verifySingleReject();
+        submitMultipleAutoConfirmAutoRejectRequests();
+        verifySingleReject();
     }
 
     @Test
     public void testAutoConfirmIgnoredWhenConfirmedByClient() throws Exception {
         handler.confirmMessage();
-        verifyConfirmedOnce();
+        verifySingleConfirm();
         handler.autoConfirm();
-        verifyConfirmedOnce();
+        verifySingleConfirm();
     }
 
     @Test
     public void testAutoRejectIgnoredWhenConfirmedByClient() throws Exception {
         handler.confirmMessage();
-        verifyConfirmedOnce();
+        verifySingleConfirm();
         handler.autoReject();
-        verifyConfirmedOnce();
+        verifySingleConfirm();
     }
 
     @Test
-    public void testAutoConfirmIgnoredWhenRejectedByClient() throws Exception {
+    public void testAutoConfirmIgnoredWhenRetryByClient() throws Exception {
         handler.retryMessage();
-        verifyRejectedOnce();
+        verifySingleRetry();
         handler.autoConfirm();
-        verifyRejectedOnce();
+        verifySingleRetry();
     }
 
     @Test
     public void testAutoRejectIgnoredWhenRejectedByClient() throws Exception {
-        handler.retryMessage();
-        verifyRejectedOnce();
+        handler.rejectMessage();
+        verifySingleReject();
         handler.autoReject();
-        verifyRejectedOnce();
+        verifySingleReject();
     }
 
-    private void verifyConfirmedOnce() throws Exception {
+    private void verifySingleConfirm() throws Exception {
         verify(mockChannel, times(1)).basicAck(deliveryTag, false);
         verifyNoMoreInteractions(mockChannel);
     }
 
-    private void verifyRejectedOnce() throws Exception {
-        verifyRejectedOnce(isRequeueByDefault);
+    private void verifySingleRetry() throws Exception {
+        verify(mockChannel, times(1)).basicReject(deliveryTag, true);
+        verifyNoMoreInteractions(mockChannel);
     }
 
-    private void verifyRejectedOnce(boolean isRequeue) throws Exception {
-        verify(mockChannel, times(1)).basicReject(deliveryTag, isRequeue);
+    private void verifySingleReject() throws Exception {
+        verify(mockChannel, times(1)).basicReject(deliveryTag, false);
         verifyNoMoreInteractions(mockChannel);
     }
 
@@ -132,18 +226,20 @@ public class AmqpAcknowledgementHandlerTest {
         IntStream.range(0, 5).forEach((i) -> {
                 handler.confirmMessage();
                 handler.retryMessage();
+                handler.rejectMessage();
         });
     }
 
     private void submitMultipleAutoConfirmAutoRejectRequests() {
         IntStream.range(0, 5).forEach((i) -> {
             handler.autoReject();
+            handler.autoRetry();
             handler.autoConfirm();
         });
     }
 
-    private AmqpAcknowledgementHandler getHandler(boolean isRequeue) {
-        return new AmqpAcknowledgementHandler(mockChannel, "any", deliveryTag, isRequeue);
+    private AmqpAcknowledgementHandler getHandler(boolean isMessageRedelivered) {
+        return new AmqpAcknowledgementHandler(mockChannel, "any", deliveryTag, isMessageRedelivered);
     }
 
 }

@@ -38,7 +38,7 @@ public class AmqpMessageProcessingTask implements Runnable {
             ackHandler.autoConfirm();
         } catch (Exception e) {
             LOG.error(String.format("[consumer tag: %s] Failed to process message %s", consumerTag, body), e);
-            ackHandler.autoReject();
+            ackHandler.autoRetry();
         }
     }
     

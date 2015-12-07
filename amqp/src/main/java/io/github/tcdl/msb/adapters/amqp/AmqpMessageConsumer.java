@@ -45,7 +45,7 @@ public class AmqpMessageConsumer extends DefaultConsumer {
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
         long deliveryTag = envelope.getDeliveryTag();
         AmqpAcknowledgementHandler ackHandler = createAcknowledgementHandler(
-                getChannel(), consumerTag, deliveryTag, amqpBrokerConfig.isRequeueRejectedMessages());
+                getChannel(), consumerTag, deliveryTag, envelope.isRedeliver());
         try {
             Charset charset = amqpBrokerConfig.getCharset();
 

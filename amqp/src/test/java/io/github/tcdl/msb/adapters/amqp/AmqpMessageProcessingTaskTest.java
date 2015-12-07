@@ -55,7 +55,7 @@ public class AmqpMessageProcessingTaskTest {
             // Verify that AMQP ack has not been sent
             verifyNoMoreInteractions(mockChannel);
 
-            verify(mockAcknowledgementHandler, times(1)).autoReject();
+            verify(mockAcknowledgementHandler, times(1)).autoRetry();
             verifyNoMoreInteractions(mockAcknowledgementHandler);
         } catch (Exception e) {
             fail();
