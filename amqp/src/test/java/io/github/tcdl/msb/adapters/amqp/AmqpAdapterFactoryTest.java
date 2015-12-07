@@ -2,12 +2,13 @@ package io.github.tcdl.msb.adapters.amqp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import com.rabbitmq.client.Recoverable;
+import static org.mockito.Mockito.withSettings;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -24,12 +25,9 @@ import org.junit.Test;
 
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Recoverable;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.withSettings;
 
 public class AmqpAdapterFactoryTest {
     final Charset charset = Charset.forName("UTF-8");
@@ -46,6 +44,7 @@ public class AmqpAdapterFactoryTest {
     final boolean requeueRejectedMessages = true;
     final int heartbeatIntervalSec = 1;
     final long networkRecoveryIntervalMs = 5000;
+    final int prefetchCount = 1;
     
     AmqpBrokerConfig amqpConfig;
     AmqpAdapterFactory amqpAdapterFactory;
@@ -84,7 +83,8 @@ public class AmqpAdapterFactoryTest {
         
         amqpConfig = new AmqpBrokerConfig(charset, host, port,
                 Optional.of(username), Optional.of(password), Optional.of(virtualHost), useSSL, Optional.of(groupId), durable,
-                consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages, heartbeatIntervalSec, networkRecoveryIntervalMs);
+                consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages, 
+                heartbeatIntervalSec, networkRecoveryIntervalMs, prefetchCount);
         
         amqpAdapterFactory = new AmqpAdapterFactory() {
             @Override

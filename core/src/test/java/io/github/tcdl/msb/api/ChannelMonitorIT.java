@@ -3,14 +3,6 @@ package io.github.tcdl.msb.api;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
@@ -22,6 +14,15 @@ import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.monitor.agent.DefaultChannelMonitorAgent;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -164,7 +165,7 @@ public class ChannelMonitorIT {
         //need to await for original request for heartbeat to be send to simulate response with same correlationId
         CountDownLatch awaitRequestMessage = new CountDownLatch(1);
         List<Message> outgoingRequestMessages = new LinkedList<>();
-        msbContext.getChannelManager().subscribe(Utils.TOPIC_HEARTBEAT, message -> {
+        msbContext.getChannelManager().subscribe(Utils.TOPIC_HEARTBEAT, (message, acknowledgeHandler) -> {
             outgoingRequestMessages.add(message);
             awaitRequestMessage.countDown();
         });

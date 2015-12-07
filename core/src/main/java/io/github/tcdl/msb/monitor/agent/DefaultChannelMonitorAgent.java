@@ -57,7 +57,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
      */
     public DefaultChannelMonitorAgent start() {
         channelManager.subscribe(Utils.TOPIC_HEARTBEAT, // Launch listener for heartbeat topic
-                message -> {
+                (message, acknowledgeHandler) -> {
                         Responder responder = new ResponderImpl(null, message, msbContext);
                         RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map<String, AgentTopicStats>>()
                                 .withBody(topicInfoMap)

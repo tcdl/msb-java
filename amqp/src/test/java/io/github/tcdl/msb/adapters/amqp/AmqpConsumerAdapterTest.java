@@ -1,19 +1,5 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.Consumer;
-import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -22,6 +8,21 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.Consumer;
 
 public class AmqpConsumerAdapterTest {
 
@@ -46,7 +47,7 @@ public class AmqpConsumerAdapterTest {
         String topicName = "myTopic";
         AmqpConsumerAdapter adapter = createAdapter(topicName, "myGroupId", false);
 
-        adapter.subscribe(jsonMessage -> {
+        adapter.subscribe((jsonMessage, ackHandler) -> {
         });
 
         verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
@@ -63,7 +64,7 @@ public class AmqpConsumerAdapterTest {
     public void testSubscribeTransientQueueCreated() throws IOException {
         AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", false);
         
-        adapter.subscribe(jsonMessage -> {
+        adapter.subscribe((jsonMessage, ackHandler) -> {
         });
 
         // Verify that the queue has been declared with correct name and settings
@@ -80,7 +81,7 @@ public class AmqpConsumerAdapterTest {
     public void testSubscribeDurableQueueCreated() throws IOException {
         AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", true);
 
-        adapter.subscribe(jsonMessage -> {
+        adapter.subscribe((jsonMessage, ackHandler) -> {
         });
 
         // Verify that the queue has been declared with correct name and settings
@@ -116,7 +117,7 @@ public class AmqpConsumerAdapterTest {
         String consumerTag = "my consumer tag";
         when(mockChannel.basicConsume(anyString(), anyBoolean(), any(Consumer.class))).thenReturn(consumerTag);
 
-        adapter.subscribe(jsonMessage -> {
+        adapter.subscribe((jsonMessage, ackHandler) -> {
         });
         adapter.unsubscribe();
 
@@ -125,7 +126,7 @@ public class AmqpConsumerAdapterTest {
 
     private AmqpConsumerAdapter createAdapter(String topic, String groupId, boolean durable) {
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig(Charset.forName("UTF-8"), "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(),
-                false, Optional.of(groupId), durable, 5, 20, true, 1, 5000);
+                false, Optional.of(groupId), durable, 5, 20, true, 1, 5000, 1);
         return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, mockConsumerThreadPool);
     }
 }

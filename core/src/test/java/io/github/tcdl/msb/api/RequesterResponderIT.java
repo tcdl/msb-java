@@ -1,14 +1,13 @@
 package io.github.tcdl.msb.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -20,8 +19,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class RequesterResponderIT {
 
@@ -78,16 +79,16 @@ public class RequesterResponderIT {
         //Create and send request message directly to broker, wait for ack  
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
         msbContext.getObjectFactory().createRequester(namespace, requestOptions).
-                onAcknowledge((Acknowledge ack) -> {
-                    receivedResponseAcks.add(ack);
+                onAcknowledge((ackMessage, ackHandler) -> {
+                    receivedResponseAcks.add(ackMessage);
                     ackResponseReceived.countDown();
                 })
                 .publish(requestPayload);
 
         //listen for message and send ack
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
-        serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, response) -> {
-            response.sendAck(100, 2);
+        serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responderContext) -> {
+            responderContext.getResponder().sendAck(100, 2);
             ackSend.countDown();
         })
                 .listen();
@@ -115,7 +116,7 @@ public class RequesterResponderIT {
         String responsePayload = "response payload";
         //Create and send request message directly to broker, wait for response
         msbContext.getObjectFactory().createRequester(namespace, requestOptions, String.class)
-                .onResponse(payload -> {
+                .onResponse((payload, ackHandler) -> {
                     receivedResponses.add(payload);
                     respReceived.countDown();
                     assertEquals(responsePayload, payload);
@@ -125,8 +126,8 @@ public class RequesterResponderIT {
         //listen for message and send response
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
 
-        serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, response) -> {
-            response.send(responsePayload);
+        serverMsbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responderContext) -> {
+            responderContext.getResponder().send(responsePayload);
             respSent.countDown();
         }, String.class).listen();
 
@@ -156,16 +157,17 @@ public class RequesterResponderIT {
             //Create and send request message, wait for ack
             Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(namespace2, requestAwaitAckMessageOptions);
             RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
-            requester.onAcknowledge((Acknowledge a) -> ackReceived.countDown());
+            requester.onAcknowledge((ackMessage, achHandler) -> ackReceived.countDown());
             requester.publish(requestPayload);
         })
                 .listen();
 
         MsbContextImpl serverTwoMsbContext = TestUtils.createSimpleMsbContext();
-        serverTwoMsbContext.getObjectFactory().createResponderServer(namespace2, responderServerTwoMessageOptions, (request, response) -> {
-            response.sendAck(100, 2);
-            ackSent.countDown();
-        })
+        serverTwoMsbContext.getObjectFactory().createResponderServer(namespace2, responderServerTwoMessageOptions, 
+                (request, responderContext) -> {
+                    responderContext.getResponder().sendAck(100, 2);
+                    ackSent.countDown();
+                })
                 .listen();
 
         MockAdapter.pushRequestMessage(namespace1,
@@ -199,7 +201,7 @@ public class RequesterResponderIT {
             while (messagesToSend.get() > 0) {
 
                 msbContext.getObjectFactory().createRequester(namespace, requestOptions).
-                        onAcknowledge((Acknowledge ack) -> {
+                        onAcknowledge((ack, ackHanlder) -> {
                             receivedResponseAcks.add(ack);
                             ackResponseReceived.countDown();
                         })
@@ -215,10 +217,11 @@ public class RequesterResponderIT {
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
         Random randomAckValue = new Random();
         randomAckValue.ints();
-        serverMsbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
-            response.sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
-            ackSend.countDown();
-        })
+        serverMsbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), 
+                (request, responderContext) -> {
+                    responderContext.getResponder().sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
+                    ackSend.countDown();
+                })
                 .listen();
 
         assertTrue("Message ack was not send", ackSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
@@ -237,7 +240,8 @@ public class RequesterResponderIT {
 
         Thread serverListenThread = new Thread(() -> {
             msbContext.getObjectFactory().createResponderServer(namespace, requestOptionsWaitResponse.getMessageTemplate(),
-                    (request, response) -> response.send("payload from test : testRequestMessageCollectorUnsubscribeAfterResponsesAndSubscribeAgain")
+                    (request, responderContext) -> 
+            responderContext.getResponder().send("payload from test : testRequestMessageCollectorUnsubscribeAfterResponsesAndSubscribeAgain")
             )
             .listen();
         });

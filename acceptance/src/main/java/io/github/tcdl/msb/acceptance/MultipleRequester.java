@@ -1,6 +1,5 @@
 package io.github.tcdl.msb.acceptance;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.RequestOptions;
@@ -12,6 +11,8 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 public class MultipleRequester {
 
@@ -54,10 +55,10 @@ public class MultipleRequester {
 
         CompletableFuture.supplyAsync(() -> {
             msbContext.getObjectFactory().createRequester(namespace, options, new TypeReference<RestPayload<?, ?, ?, Map>>() {})
-                    .onAcknowledge(acknowledge ->
+                    .onAcknowledge((acknowledge, ackHandler) ->
                                     System.out.println(">>> ACK timeout: " + acknowledge.getTimeoutMs())
                     )
-                    .onResponse(payload -> {
+                    .onResponse((payload, ackHandler) -> {
                         System.out.println(">>> RESPONSE body: " + payload.getBody());
                         callback.accept(payload.getBody());
                     })

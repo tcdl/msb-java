@@ -2,6 +2,17 @@ package io.github.tcdl.msb.collector;
 
 import static io.github.tcdl.msb.support.Utils.ifNull;
 import static java.lang.Math.toIntExact;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
+import io.github.tcdl.msb.api.Callback;
+import io.github.tcdl.msb.api.MessageContext;
+import io.github.tcdl.msb.api.RequestOptions;
+import io.github.tcdl.msb.api.message.Acknowledge;
+import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.events.EventHandlers;
+import io.github.tcdl.msb.impl.MessageContextImpl;
+import io.github.tcdl.msb.impl.MsbContextImpl;
+import io.github.tcdl.msb.support.Utils;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -11,19 +22,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
+import java.util.function.BiConsumer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.tcdl.msb.api.Callback;
-import io.github.tcdl.msb.api.RequestOptions;
-import io.github.tcdl.msb.api.message.Acknowledge;
-import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.events.EventHandlers;
-import io.github.tcdl.msb.impl.MsbContextImpl;
-import io.github.tcdl.msb.support.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
@@ -55,9 +61,9 @@ public class Collector<T> {
     private Clock clock;
     private Message requestMessage;
 
-    private Optional<Callback<Message>> onRawResponse = Optional.empty();
-    private Optional<Callback<T>> onResponse = Optional.empty();
-    private Optional<Callback<Acknowledge>> onAcknowledge = Optional.empty();
+    private Optional<BiConsumer<Message, MessageContext>> onRawResponse = Optional.empty();
+    private Optional<BiConsumer<T, MessageContext>> onResponse = Optional.empty();
+    private Optional<BiConsumer<Acknowledge, MessageContext>> onAcknowledge = Optional.empty();
     private Optional<Callback<Void>> onEnd = Optional.empty();
 
     private ScheduledFuture ackTimeoutFuture;
@@ -118,23 +124,24 @@ public class Collector<T> {
         collectorManager.registerCollector(this);
     }
 
-    public void handleMessage(Message incomingMessage) {
+    public void handleMessage(Message incomingMessage, AcknowledgementHandler acknowledgeHandler) {
         LOG.debug("Received {}", incomingMessage);
 
         JsonNode rawPayload = incomingMessage.getRawPayload();
+        MessageContext messageContext = createMessageContext(acknowledgeHandler, incomingMessage);
         if (Utils.isPayloadPresent(rawPayload)) {
             LOG.debug("Received Payload {}", rawPayload);
             payloadMessages.add(incomingMessage);
-            onRawResponse.ifPresent(handler -> handler.call(incomingMessage));
+            onRawResponse.ifPresent(handler -> handler.accept(incomingMessage, messageContext));
 
             T payload = Utils.convert(rawPayload, payloadTypeReference, payloadMapper);
-            onResponse.ifPresent(handler -> handler.call(payload));
+            onResponse.ifPresent(handler -> handler.accept(payload, messageContext));
 
             incResponsesRemaining(-1);
         } else {
             LOG.debug("Received {}", incomingMessage.getAck());
             ackMessages.add(incomingMessage);
-            onAcknowledge.ifPresent(handler -> handler.call((incomingMessage.getAck())));
+            onAcknowledge.ifPresent(handler -> handler.accept(incomingMessage.getAck(), messageContext));
         }
 
         processAck(incomingMessage.getAck());
@@ -151,6 +158,10 @@ public class Collector<T> {
         end();
     }
 
+    MessageContext createMessageContext(AcknowledgementHandler acknowledgementHandler, Message originalMessage) {
+        return new MessageContextImpl(acknowledgementHandler, originalMessage);
+    }
+    
     protected void end() {
         LOG.debug("Stop response processing");
 

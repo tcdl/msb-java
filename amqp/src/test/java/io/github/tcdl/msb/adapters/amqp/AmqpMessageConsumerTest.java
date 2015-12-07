@@ -1,50 +1,60 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Envelope;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
+
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Envelope;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+@RunWith(MockitoJUnitRunner.class)
 public class AmqpMessageConsumerTest {
 
-    private static final boolean REQUEUE_REJECTED_MESSAGES = true;
-
+    @Mock
     private Channel mockChannel;
+
+    @Mock
     private ExecutorService mockExecutorService;
+
+    @Mock
     private ConsumerAdapter.RawMessageHandler mockMessageHandler;
+
+    @Mock
     private AmqpBrokerConfig mockBrokerConfig;
+
+    @Mock
+    private AmqpAcknowledgementHandler amqpAcknowledgementHandler;
 
     private AmqpMessageConsumer amqpMessageConsumer;
 
     @Before
     public void setUp() {
-        mockChannel = mock(Channel.class);
-        mockExecutorService = mock(ExecutorService.class);
-        mockMessageHandler = mock(ConsumerAdapter.RawMessageHandler.class);
-        mockBrokerConfig = mock(AmqpBrokerConfig.class);
-
         when(mockBrokerConfig.getCharset()).thenReturn(Charset.forName("UTF-8"));
-        when(mockBrokerConfig.isRequeueRejectedMessages()).thenReturn(REQUEUE_REJECTED_MESSAGES);
 
-        amqpMessageConsumer = new AmqpMessageConsumer(mockChannel, mockExecutorService, mockMessageHandler, mockBrokerConfig);
+        amqpMessageConsumer = new AmqpMessageConsumer(mockChannel, mockExecutorService, mockMessageHandler, mockBrokerConfig) {
+            @Override
+            AmqpAcknowledgementHandler createAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag, boolean isRequeueRejectedMessages) {
+                return amqpAcknowledgementHandler;
+            }
+        };
     }
 
     @Test
@@ -66,12 +76,7 @@ public class AmqpMessageConsumerTest {
         AmqpMessageProcessingTask task = taskCaptor.getValue();
         assertEquals(consumerTag, task.consumerTag);
         assertEquals(messageStr, task.body);
-        assertEquals(deliveryTag, task.deliveryTag);
-        assertEquals(mockMessageHandler, task.msgHandler);
-        assertEquals(mockChannel, task.channel);
-
-        // verify that ack has been sent
-        mockChannel.basicAck(deliveryTag, false);
+        assertEquals(mockMessageHandler, task.msgHandler);        
     }
 
     @Test
@@ -84,7 +89,24 @@ public class AmqpMessageConsumerTest {
 
         try {
             amqpMessageConsumer.handleDelivery("consumer tag", envelope, null, "some message".getBytes());
-            verify(mockChannel).basicReject(deliveryTag, REQUEUE_REJECTED_MESSAGES);
+            verify(amqpAcknowledgementHandler, times(1)).autoReject();
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testMessageCannotBeProcessedBeforeSubmit() throws IOException {
+        long deliveryTag = 1234L;
+        Envelope envelope = mock(Envelope.class);
+        when(envelope.getDeliveryTag()).thenReturn(deliveryTag);
+
+        when(mockBrokerConfig.getCharset()).thenThrow(
+                new RuntimeException("Something really unexpected happened even before task submit attempt"));
+
+        try {
+            amqpMessageConsumer.handleDelivery("consumer tag", envelope, null, "some message".getBytes());
+            verify(amqpAcknowledgementHandler, times(1)).autoReject();
         } catch (Exception e) {
             fail();
         }
@@ -101,7 +123,7 @@ public class AmqpMessageConsumerTest {
 
         try {
             amqpMessageConsumer.handleDelivery("consumer tag", envelope, null, "some message".getBytes());
-            verify(mockChannel).basicReject(eq(deliveryTag), anyBoolean());
+            verify(amqpAcknowledgementHandler, times(1)).autoReject();
         } catch (Exception e) {
             fail();
         }

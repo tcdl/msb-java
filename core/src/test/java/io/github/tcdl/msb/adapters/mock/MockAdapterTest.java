@@ -2,16 +2,11 @@ package io.github.tcdl.msb.adapters.mock;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.api.exception.ChannelException;
@@ -19,7 +14,15 @@ import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
+
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * MockAdapter class represents implementation of {@link ProducerAdapter} and {@link ConsumerAdapter}
@@ -55,7 +58,7 @@ public class MockAdapterTest {
         mockAdapter.subscribe(mockHandler);
 
         assertTrue(activeConsumerExecutors.size() == 1);
-        verify(mockHandler, timeout(500)).onMessage(eq(message));
+        verify(mockHandler, timeout(500)).onMessage(eq(message), any());
     }
 
     @Test

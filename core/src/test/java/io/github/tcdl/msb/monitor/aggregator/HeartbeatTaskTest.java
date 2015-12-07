@@ -1,7 +1,13 @@
 package io.github.tcdl.msb.monitor.aggregator;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import io.github.tcdl.msb.api.Callback;
+import io.github.tcdl.msb.api.MessageContext;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
@@ -10,19 +16,16 @@ import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
+
+import java.util.List;
+import java.util.function.BiConsumer;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.List;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class HeartbeatTaskTest {
 
@@ -37,7 +40,7 @@ public class HeartbeatTaskTest {
     public void setUp() {
         when(mockObjectFactory.createRequester(anyString(), any(RequestOptions.class))).thenReturn(mockRequester);
         @SuppressWarnings("unchecked")
-        Callback<Message> responseHandler = any(Callback.class);
+        BiConsumer<Message, MessageContext> responseHandler = any(BiConsumer.class);
         when(mockRequester.onRawResponse(responseHandler)).thenReturn(mockRequester);
         @SuppressWarnings("unchecked")
         Callback<Void> endHandler = any(Callback.class);
@@ -49,7 +52,7 @@ public class HeartbeatTaskTest {
     public void testRun() {
         heartbeatTask.run();
 
-        ArgumentCaptor<Callback> onResponseCaptor = ArgumentCaptor.forClass(Callback.class);
+        ArgumentCaptor<BiConsumer> onResponseCaptor = ArgumentCaptor.forClass(BiConsumer.class);
         ArgumentCaptor<Callback> onEndCaptor = ArgumentCaptor.forClass(Callback.class);
         ArgumentCaptor<List> messageCaptor = ArgumentCaptor.forClass(List.class);
 
@@ -61,8 +64,8 @@ public class HeartbeatTaskTest {
         // simulate incoming messages
         Message msg1 = TestUtils.createSimpleRequestMessage("from:responder");
         Message msg2 = TestUtils.createSimpleRequestMessage("from:responder");
-        onResponseCaptor.getValue().call(msg1);
-        onResponseCaptor.getValue().call(msg2);
+        onResponseCaptor.getValue().accept(msg1, null);
+        onResponseCaptor.getValue().accept(msg2, null);
         onEndCaptor.getValue().call(null);
 
         verify(mockMessageHandler).call(messageCaptor.capture());

@@ -6,12 +6,13 @@ import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Sends heartbeat requests and passes the aggregated responses to the registered handler. This task is meant to be scheduled periodically.
@@ -43,7 +44,7 @@ public class HeartbeatTask implements Runnable {
 
             List<Message> messages = Collections.synchronizedList(new LinkedList<>());
             objectFactory.createRequester(Utils.TOPIC_HEARTBEAT, requestOptions)
-                    .onRawResponse(messages::add)
+                    .onRawResponse((message, achHandler) -> {messages.add(message);})
                     .onEnd(end -> heartbeatHandler.call(messages))
                     .publish(emptyPayload);
 

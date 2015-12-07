@@ -1,17 +1,19 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.DefaultConsumer;
-import com.rabbitmq.client.Envelope;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
 
 /**
  * Special consumer that allows to process messages coming from single AMQP channel in parallel.
@@ -41,27 +43,34 @@ public class AmqpMessageConsumer extends DefaultConsumer {
 
     @Override
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+        long deliveryTag = envelope.getDeliveryTag();
+        AmqpAcknowledgementHandler ackHandler = createAcknowledgementHandler(
+                getChannel(), consumerTag, deliveryTag, envelope.isRedeliver());
         try {
             Charset charset = amqpBrokerConfig.getCharset();
-            boolean requeueRejectedMessages = amqpBrokerConfig.isRequeueRejectedMessages();
-            String bodyStr = new String(body, charset);
-            LOG.debug(String.format("[consumer tag: %s] Message consumed from broker: %s", consumerTag, bodyStr));
-            try {
-                consumerThreadPool.submit(new AmqpMessageProcessingTask(consumerTag, bodyStr, getChannel(), envelope.getDeliveryTag(), msgHandler));
-                LOG.debug(String.format("[consumer tag: %s] Message has been put in the processing queue: %s. About to send AMQP ack...",
-                        consumerTag, bodyStr));
 
-                getChannel().basicAck(envelope.getDeliveryTag(), false);
-                LOG.debug(String.format("[consumer tag: %s] AMQP ack has been sent for message '%s'", consumerTag, bodyStr));
+            String bodyStr = new String(body, charset);
+
+            LOG.debug(String.format("[consumer tag: %s] Message consumed from broker: %s", consumerTag, bodyStr));
+
+            try {
+                consumerThreadPool.submit(new AmqpMessageProcessingTask(consumerTag, bodyStr, msgHandler, ackHandler));
+                LOG.debug(String.format("[consumer tag: %s] Message has been put in the processing queue: %s.",
+                        consumerTag, bodyStr));
             } catch (Exception e) {
-                LOG.error(String.format("[consumer tag: %s] Couldn't put message in the processing queue: %s. About to send AMQP reject...",
+                LOG.error(String.format("[consumer tag: %s] Couldn't put message in the processing queue: %s.",
                         consumerTag, bodyStr), e);
-                getChannel().basicReject(envelope.getDeliveryTag(), requeueRejectedMessages);
-                LOG.error(String.format("[consumer tag: %s] AMQP reject has been sent for message: %s", consumerTag, bodyStr));
+                throw e;
             }
         } catch (Exception e) {
             // Catch all exceptions to prevent AMQP channel to be closed
-            LOG.error(String.format("[consumer tag: %s] Got exception while processing incoming message", consumerTag), e);
+            LOG.error(String.format("[consumer tag: %s] Got exception while processing incoming message. About to send AMQP reject...", consumerTag), e);
+            ackHandler.autoReject();
         }
     }
+    
+    AmqpAcknowledgementHandler createAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag, boolean isRequeueRejectedMessages) {
+        return new AmqpAcknowledgementHandler(channel, consumerTag, deliveryTag, isRequeueRejectedMessages);
+    }
+    
 }

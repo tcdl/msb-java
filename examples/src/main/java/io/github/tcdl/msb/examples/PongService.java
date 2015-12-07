@@ -5,6 +5,7 @@ import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.ObjectFactory;
 import io.github.tcdl.msb.api.ResponderServer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,11 +19,12 @@ public class PongService {
 
         ObjectFactory objectFactory = msbContext.getObjectFactory();
         MessageTemplate messageTemplate = new MessageTemplate().withTags("pong-static-tag");
-        ResponderServer responderServer = objectFactory.createResponderServer("pingpong:namespace", messageTemplate, (request, responder) -> {
+        ResponderServer responderServer = objectFactory.createResponderServer("pingpong:namespace", messageTemplate, 
+                (request, responderContext) -> {
             // Response handling logic
             LOG.info(String.format("Handling %s...", request));
 
-            responder.send("PONG");
+            responderContext.getResponder().send("PONG");
 
             LOG.info("Response sent");
         }, String.class);

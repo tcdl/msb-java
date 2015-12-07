@@ -6,12 +6,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import java.time.Clock;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.googlecode.junittoolbox.MultithreadingTester;
 import io.github.tcdl.msb.api.RequesterResponderIT;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.collector.CollectorManager;
@@ -19,8 +13,16 @@ import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.TestUtils;
+
+import java.time.Clock;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Before;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.googlecode.junittoolbox.MultithreadingTester;
 
 public class ChannelManagerConcurrentTest {
 
@@ -97,7 +99,7 @@ public class ChannelManagerConcurrentTest {
 
         channelManager.findOrCreateProducer(topic);
         channelManager.subscribe(topic,
-                msg -> {
+                (msg, acknowledgeHandler) -> {
                     messagesReceived.countDown();
                 });
 

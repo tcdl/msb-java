@@ -2,16 +2,17 @@ package io.github.tcdl.msb.impl;
 
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Producer;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
+import io.github.tcdl.msb.api.message.Acknowledge.Builder;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.message.MessageFactory;
 import io.github.tcdl.msb.support.Utils;
+
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static io.github.tcdl.msb.api.message.Acknowledge.Builder;
 
 public class ResponderImpl implements Responder {
 
@@ -22,11 +23,14 @@ public class ResponderImpl implements Responder {
     private ChannelManager channelManager;
     private MessageFactory messageFactory;
     private Message.Builder messageBuilder;
+    private AcknowledgementHandler ackHandler;
 
-    public ResponderImpl(MessageTemplate messageTemplate, Message originalMessage, MsbContextImpl msbContext) {
+    public ResponderImpl(MessageTemplate messageTemplate, Message originalMessage, 
+            MsbContextImpl msbContext) {
         validateReceivedMessage(originalMessage);
         this.responderId = Utils.generateId();
         this.originalMessage = originalMessage;
+        this.ackHandler = ackHandler;
         this.channelManager = msbContext.getChannelManager();
         this.messageFactory = msbContext.getMessageFactory();
         this.messageBuilder = messageFactory.createResponseMessageBuilder(messageTemplate, originalMessage);
@@ -70,8 +74,4 @@ public class ResponderImpl implements Responder {
         Validate.notNull(originalMessage.getTopics(), "the 'originalMessage.topics' must not be null");
     }
 
-    /** {@inheritDoc} */
-    public Message getOriginalMessage() {
-        return this.originalMessage;
-    }
 }

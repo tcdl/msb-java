@@ -1,14 +1,16 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import com.rabbitmq.client.Channel;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 import io.github.tcdl.msb.support.Utils;
-import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+
+import org.apache.commons.lang3.Validate;
+
+import com.rabbitmq.client.Channel;
 
 public class AmqpConsumerAdapter implements ConsumerAdapter {
 
@@ -50,11 +52,13 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
     public void subscribe(RawMessageHandler msgHandler) {
         String groupId = adapterConfig.getGroupId().orElse(Utils.generateId());
         boolean durable = adapterConfig.isDurable();
+        int prefetchCount = adapterConfig.getPrefetchCount();
 
         String queueName = generateQueueName(topic, groupId, durable);
 
         try {
             channel.queueDeclare(queueName, durable /* durable */, false /* exclusive */, !durable /*auto-delete */, null);
+            channel.basicQos(prefetchCount); // Don't accept more messages if we have any unacknowledged
             channel.queueBind(queueName, exchangeName, "");
 
             consumerTag = channel.basicConsume(queueName, false /* autoAck */, new AmqpMessageConsumer(channel, consumerThreadPool, msgHandler, adapterConfig));

@@ -1,7 +1,5 @@
 package io.github.tcdl.msb.acceptance;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.typesafe.config.Config;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContext;
@@ -16,6 +14,9 @@ import io.github.tcdl.msb.support.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.typesafe.config.Config;
 
 /**
  * Utility to simplify using requester and responder server
@@ -97,13 +98,13 @@ public class MsbTestHelper {
     public <T> void sendRequest(Requester<T> requester, Object payload, boolean waitForAck, Integer waitForResponses,
             Callback<Acknowledge> ackCallback, Callback<T> responseCallback) throws Exception {
 
-        requester.onAcknowledge(acknowledge -> {
+        requester.onAcknowledge((acknowledge, ackHandler) -> {
             System.out.println(">>> ACKNOWLEDGE: " + acknowledge);
             if (waitForAck && ackCallback != null)
                 ackCallback.call(acknowledge);
         });
 
-        requester.onResponse(response -> {
+        requester.onResponse((response, ackHandler) -> {
             System.out.println(">>> RESPONSE: " + response);
             if (waitForResponses != null && waitForResponses > 0 && responseCallback != null) {
                 responseCallback.call(response);

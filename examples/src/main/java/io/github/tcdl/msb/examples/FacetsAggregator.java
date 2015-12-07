@@ -6,10 +6,10 @@ import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.Responder;
+import io.github.tcdl.msb.api.ResponderContext;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.examples.payload.Request;
 
-import javax.script.ScriptException;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.script.ScriptException;
 
 /**
  * Microservice which is listening for incoming messages, creates requests to another microservices(
@@ -34,9 +36,11 @@ public class FacetsAggregator {
         MessageTemplate messageTemplate = new MessageTemplate().withTags("facets-aggregator");
         final String namespace = "search:aggregator:facets:v1";
 
-        msbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (Request facetsRequest, Responder responder) -> {
+        msbContext.getObjectFactory().createResponderServer(
+                namespace, messageTemplate, (Request facetsRequest, ResponderContext responderContext) -> {
 
             String q = facetsRequest.getQuery().getQ();
+            Responder responder = responderContext.getResponder();
 
             if (q == null) {
                 RestPayload responsePayload = new RestPayload.Builder()
@@ -75,7 +79,7 @@ public class FacetsAggregator {
                 final String[] result = {""};
 
                 List<RestPayload> responses = Collections.synchronizedList(new ArrayList<>());
-                requester.onResponse(responses::add)
+                requester.onResponse((message, ackHandler) -> {responses.add(message);})
                 .onEnd(end -> {
                     for (RestPayload payload : responses) {
                         System.out.println(">>> MESSAGE: " + payload);
@@ -90,7 +94,7 @@ public class FacetsAggregator {
                     responder.send(responsePayload);
                 });
 
-                requester.publish(facetsRequest, responder.getOriginalMessage(), UUID.randomUUID().toString());
+                requester.publish(facetsRequest, responderContext.getOriginalMessage(), UUID.randomUUID().toString());
             }
         }, Request.class).listen();
     }

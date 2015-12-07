@@ -1,26 +1,29 @@
 package io.github.tcdl.msb.events;
 
 import io.github.tcdl.msb.api.Callback;
+import io.github.tcdl.msb.api.MessageContext;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
+
+import java.util.function.BiConsumer;
 
 /**
  * {@link EventHandlers} is a component that allows to register custom event handlers for {@link Requester} specific events.
  */
 public class EventHandlers<T> {
 
-    private Callback<Acknowledge> onAcknowledge = acknowledge -> {};
-    private Callback<T> onResponse = response -> {};
-    private Callback<Message> onRawResponse = response -> {};
+    private BiConsumer<Acknowledge, MessageContext> onAcknowledge = (acknowledge, msgContext) -> {};
+    private BiConsumer<T, MessageContext> onResponse = (acknowledge, msgContext) -> {};
+    private BiConsumer<Message, MessageContext> onRawResponse = (acknowledge, msgContext) -> {};
     private Callback<Void> onEnd = messages -> {};
-
+    
     /**
      * Return callback registered for Acknowledge event.
      *
      * @return acknowledge callback
      */
-    public Callback<Acknowledge> onAcknowledge() {
+    public BiConsumer<Acknowledge, MessageContext> onAcknowledge() {
         return onAcknowledge;
     }
 
@@ -28,8 +31,9 @@ public class EventHandlers<T> {
      * Registered callback for Acknowledge event.
      *
      * @param onAcknowledge callback
+     * @return EventHandlers
      */
-    public EventHandlers onAcknowledge(Callback<Acknowledge> onAcknowledge) {
+    public EventHandlers onAcknowledge(BiConsumer<Acknowledge, MessageContext> onAcknowledge) {
         this.onAcknowledge = onAcknowledge;
         return this;
     }
@@ -38,8 +42,9 @@ public class EventHandlers<T> {
      * Return callback registered for Response event.
      *
      * @return response callback
+     * @return EventHandlers
      */
-    public Callback<T> onResponse() {
+    public BiConsumer<T, MessageContext> onResponse() {
         return onResponse;
     }
 
@@ -47,8 +52,9 @@ public class EventHandlers<T> {
      * Registered callback for Response event.
      *
      * @param onResponse callback
+     * @return EventHandlers
      */
-    public EventHandlers onResponse(Callback<T> onResponse) {
+    public EventHandlers onResponse(BiConsumer<T, MessageContext> onResponse) {
         this.onResponse = onResponse;
         return this;
     }
@@ -57,8 +63,9 @@ public class EventHandlers<T> {
      * Return callback registered for Response event.
      *
      * @return response callback
+     * @return EventHandlers
      */
-    public Callback<Message> onRawResponse() {
+    public BiConsumer<Message, MessageContext> onRawResponse() {
         return onRawResponse;
     }
 
@@ -66,8 +73,9 @@ public class EventHandlers<T> {
      * Registered callback for Response event.
      *
      * @param onRawResponse callback
+     * @return EventHandlers
      */
-    public EventHandlers onRawResponse(Callback<Message> onRawResponse) {
+    public EventHandlers onRawResponse(BiConsumer<Message, MessageContext> onRawResponse) {
         this.onRawResponse = onRawResponse;
         return this;
     }
@@ -85,6 +93,7 @@ public class EventHandlers<T> {
      * Registered callback for End event.
      *
      * @param onEnd callback
+     * @return EventHandlers
      */
     public EventHandlers onEnd(Callback<Void> onEnd) {
         this.onEnd = onEnd;

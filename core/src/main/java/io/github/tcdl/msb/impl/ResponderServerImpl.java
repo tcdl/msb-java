@@ -1,18 +1,22 @@
 package io.github.tcdl.msb.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
+import io.github.tcdl.msb.api.ResponderContext;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
+
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ResponderServerImpl<T> implements ResponderServer {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServerImpl.class);
@@ -55,10 +59,11 @@ public class ResponderServerImpl<T> implements ResponderServer {
         ChannelManager channelManager = msbContext.getChannelManager();
 
         channelManager.subscribe(namespace,
-                incomingMessage -> {
+                (incomingMessage, acknowledgeHandler) -> {
                     LOG.debug("[{}] Received message with id: [{}]", namespace, incomingMessage.getId());
                     Responder responder = createResponder(incomingMessage);
-                    onResponder(responder);
+                    ResponderContext responderContext = createResponderContext(responder, acknowledgeHandler, incomingMessage);
+                    onResponder(responderContext);
                 });
 
         return this;
@@ -72,17 +77,21 @@ public class ResponderServerImpl<T> implements ResponderServer {
         }
     }
 
-    void onResponder(Responder responder) {
-        Message originalMessage = responder.getOriginalMessage();
+    ResponderContext createResponderContext(Responder responder, AcknowledgementHandler acknowledgeHandler, Message incomingMessage) {
+        return new ResponderContextImpl(responder, acknowledgeHandler, incomingMessage);
+    }
+
+    void onResponder(ResponderContext responderContext) {
+        Message originalMessage = responderContext.getOriginalMessage();
         Object rawPayload = originalMessage.getRawPayload();
         try {
             T request = Utils.convert(rawPayload, payloadTypeReference, payloadMapper);
             LOG.debug("[{}] Process message with id: [{}]", namespace, originalMessage.getId());
-            requestHandler.process(request, responder);
+            requestHandler.process(request, responderContext);
         } catch (JsonConversionException conversionEx) {
-            errorHandler(responder, conversionEx, PAYLOAD_CONVERSION_ERROR_CODE);
+            errorHandler(responderContext, conversionEx, PAYLOAD_CONVERSION_ERROR_CODE);
         } catch (Exception internalEx) {
-            errorHandler(responder, internalEx, INTERNAL_SERVER_ERROR_CODE);
+            errorHandler(responderContext, internalEx, INTERNAL_SERVER_ERROR_CODE);
         }
     }
 
@@ -90,13 +99,15 @@ public class ResponderServerImpl<T> implements ResponderServer {
         return incomingMessage.getTopics().getResponse() != null;
     }
 
-    private void errorHandler(Responder responder, Exception exception, int errorStatusCode) {
-        Message originalMessage = responder.getOriginalMessage();
+    private void errorHandler(ResponderContext responderContext, Exception exception, int errorStatusCode) {
+        Message originalMessage = responderContext.getOriginalMessage();
         LOG.error("[{}] Error while processing message with id: [{}]", namespace, originalMessage.getId(), exception);
         RestPayload responsePayload = new RestPayload.Builder()
                 .withStatusCode(errorStatusCode)
                 .withStatusMessage(exception.getMessage())
                 .build();
-        responder.send(responsePayload);
+        responderContext.getResponder().send(responsePayload);
+        //Confirm message for prevention requeue message with incorrect structure
+        responderContext.getAcknowledgementHandler().confirmMessage();
     }
 }

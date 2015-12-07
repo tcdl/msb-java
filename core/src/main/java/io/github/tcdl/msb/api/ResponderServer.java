@@ -24,10 +24,12 @@ public interface ResponderServer {
         /**
          * Execute business logic and send response.
          * @param request request received from a bus
-         * @param responder object of type {@link Responder} which will be used for sending response
+         * @param responderContext object of type {@link ResponderContext} which will 
+         * provide access to {@link Responder} that used for sending response and 
+         * {@link AcknowledgementHandler} that used for explicit confirm/reject received request
          * @throws Exception if some problems during execution business logic or sending response were occurred
          */
-        void process(T request, Responder responder) throws Exception;
+        void process(T request, ResponderContext responderContext) throws Exception;
     }
 
 }
