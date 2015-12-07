@@ -18,4 +18,9 @@ public interface AcknowledgementHandler {
      */
     void rejectMessage();
     
+    /**
+     * Inform server that a message was rejected by consumer and can't be requeue  
+     */    
+    void discardMessage(); 
+    
 }

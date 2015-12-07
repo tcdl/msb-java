@@ -16,7 +16,7 @@ import com.rabbitmq.client.Channel;
 
 public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
 
-    private static final String ACK_WAS_ALREADY_SENT = "Acknowledgement was already sent during message processing.";
+    private static final String ACK_WAS_ALREADY_SENT = "[consumer tag: %s] Acknowledgement was already sent during message processing.";
 
     private static final Logger LOG = LoggerFactory.getLogger(AmqpAcknowledgementHandler.class);
 
@@ -26,6 +26,7 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
     final boolean isRequeueRejectedMessages;
 
     final AtomicBoolean acknowledgementSent = new AtomicBoolean(false);
+    boolean autoAcknowledgement = true;
 
     public AmqpAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag,
             boolean isRequeueRejectedMessages) {
@@ -36,16 +37,25 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
         this.isRequeueRejectedMessages = isRequeueRejectedMessages;
     }
 
+    public boolean isAutoAcknowledgement() {
+        return autoAcknowledgement;
+    }
+
+    public void setAutoAcknowledgement(boolean autoAcknowledgement) {
+        this.autoAcknowledgement = autoAcknowledgement;
+    }
+
     @Override
     public void confirmMessage() {
         if (acknowledgementSent.compareAndSet(false, true)) {
             try {
                 channel.basicAck(deliveryTag, false);
+                LOG.debug(String.format("[consumer tag: %s] A message was confirmed", consumerTag));
             } catch (Exception e) {
                 LOG.error(String.format("[consumer tag: %s] Got exception when trying to confirm a message:", consumerTag), e);
             }
         } else {
-            LOG.warn(ACK_WAS_ALREADY_SENT);
+            LOG.error(String.format(ACK_WAS_ALREADY_SENT, consumerTag));
         }
     }
 
@@ -54,23 +64,40 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
         if (acknowledgementSent.compareAndSet(false, true)) {
             try {
                 channel.basicReject(deliveryTag, isRequeueRejectedMessages);
+                LOG.debug(String.format("[consumer tag: %s] A message was rejected", consumerTag));
             } catch (Exception e) {
                 LOG.error(String.format("[consumer tag: %s] Got exception when trying to reject a message:", consumerTag), e);
             }
         } else {
-            LOG.warn(ACK_WAS_ALREADY_SENT);
+            LOG.error(String.format(ACK_WAS_ALREADY_SENT, consumerTag));
         }
     }
 
+    @Override
+    public void discardMessage() {
+        if (acknowledgementSent.compareAndSet(false, true)) {
+            try {
+                channel.basicReject(deliveryTag, false);
+                LOG.debug(String.format("[consumer tag: %s] A message was discarded", consumerTag));
+            } catch (Exception e) {
+                LOG.error(String.format("[consumer tag: %s] Got exception when trying to discard a message:", consumerTag), e);
+            }
+        } else {
+            LOG.error(String.format(ACK_WAS_ALREADY_SENT, consumerTag));
+        }
+    }
+    
     public void autoConfirm() {
-        if (!acknowledgementSent.get()) {
+        if (autoAcknowledgement && !acknowledgementSent.get()) {
             confirmMessage();
+            LOG.debug(String.format("[consumer tag: %s] A message was automatically confirmed after message processing", consumerTag));
         }
     }
 
     public void autoReject() {
-        if (!acknowledgementSent.get()) {
+        if (autoAcknowledgement && !acknowledgementSent.get()) {
             rejectMessage();
+            LOG.debug(String.format("[consumer tag: %s] A message was automatically rejected due to error during message processing", consumerTag));
         }
     }
 
