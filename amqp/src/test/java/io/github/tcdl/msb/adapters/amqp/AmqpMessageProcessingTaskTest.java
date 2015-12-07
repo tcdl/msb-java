@@ -9,6 +9,7 @@ import io.github.tcdl.msb.adapters.ConsumerAdapter;
 
 import java.io.IOException;
 
+import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerImpl;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,7 +30,7 @@ public class AmqpMessageProcessingTaskTest {
     private ConsumerAdapter.RawMessageHandler mockMessageHandler;
 
     @Mock
-    private AmqpAcknowledgementHandler mockAcknowledgementHandler;
+    private AcknowledgementHandlerImpl mockAcknowledgementHandler;
 
     private AmqpMessageProcessingTask task;
 

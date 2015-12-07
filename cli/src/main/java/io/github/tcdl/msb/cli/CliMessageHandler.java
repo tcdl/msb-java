@@ -1,7 +1,7 @@
 package io.github.tcdl.msb.cli;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.api.AcknowledgementHandler;
+import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ class CliMessageHandler implements ConsumerAdapter.RawMessageHandler {
      * @throws JsonConversionException if some problems during parsing JSON
      */
     @Override
-    public void onMessage(String jsonMessage, AcknowledgementHandler handler) {
+    public void onMessage(String jsonMessage, AcknowledgementHandlerInternal handler) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 

@@ -1,6 +1,6 @@
 package io.github.tcdl.msb.adapters;
 
-import io.github.tcdl.msb.api.AcknowledgementHandler;
+import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
 import io.github.tcdl.msb.api.exception.ChannelException;
 
 /**
@@ -33,7 +33,7 @@ public interface ConsumerAdapter {
          * @param jsonMessage incomming JSON message
          * @param acknowledgementHandler confirm/reject message handler
          */
-        void onMessage(String jsonMessage, AcknowledgementHandler acknowledgementHandler);
+        void onMessage(String jsonMessage, AcknowledgementHandlerInternal acknowledgementHandler);
     }
     
 }

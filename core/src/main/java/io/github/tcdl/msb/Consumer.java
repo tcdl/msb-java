@@ -1,9 +1,7 @@
 package io.github.tcdl.msb;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.api.AcknowledgementHandler;
-import io.github.tcdl.msb.api.exception.JsonConversionException;
-import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
+import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -85,29 +83,43 @@ public class Consumer {
      *
      * @param jsonMessage message to process
      */
-    protected void handleRawMessage(String jsonMessage, AcknowledgementHandler acknowledgeHandler) {
+    protected void handleRawMessage(String jsonMessage, AcknowledgementHandlerInternal acknowledgeHandler) {
         LOG.debug("Topic [{}] message received [{}]", this.topic, jsonMessage);
         channelMonitorAgent.consumerMessageReceived(topic);
 
-        try {
-            if (msbConfig.getSchema() != null && !Utils.isServiceTopic(topic) && msbConfig.isValidateMessage()) {
-                LOG.debug("Validating schema for {}", jsonMessage);
-                validator.validate(jsonMessage, msbConfig.getSchema());
-            }
-            LOG.debug("Parsing message {}", jsonMessage);
-            Message message = Utils.fromJson(jsonMessage, Message.class, messageMapper);
-            LOG.debug("Message has been successfully parsed {}", jsonMessage);
+        Message message;
 
-            if (!isMessageExpired(message)) {
-                messageHandler.handleMessage(message, acknowledgeHandler);
-            } else {
-                LOG.warn("Expired message: {}", jsonMessage);
-                acknowledgeHandler.rejectMessage();
-            }
-        } catch (JsonConversionException | JsonSchemaValidationException e) {
+        try {
+            message = parseMessage(jsonMessage);
+        } catch (Exception e) {
             LOG.error("Unable to process consumed message {}", jsonMessage, e);
-            acknowledgeHandler.rejectMessage();
+            acknowledgeHandler.autoReject();
+            return;
         }
+
+        if (isMessageExpired(message)) {
+            LOG.warn("Expired message: {}", jsonMessage);
+            acknowledgeHandler.autoReject();
+            return;
+        }
+
+        try {
+            messageHandler.handleMessage(message, acknowledgeHandler);
+        } catch (Exception e) {
+            LOG.warn("Error while trying to handle a message: {}", jsonMessage, e);
+            acknowledgeHandler.autoRetry();
+        }
+    }
+
+    private Message parseMessage(String jsonMessage) {
+        if (msbConfig.getSchema() != null && !Utils.isServiceTopic(topic) && msbConfig.isValidateMessage()) {
+            LOG.debug("Validating schema for {}", jsonMessage);
+            validator.validate(jsonMessage, msbConfig.getSchema());
+        }
+        LOG.debug("Parsing message {}", jsonMessage);
+        Message result = Utils.fromJson(jsonMessage, Message.class, messageMapper);
+        LOG.debug("Message has been successfully parsed {}", jsonMessage);
+        return result;
     }
 
     private boolean isMessageExpired(Message message) {
