@@ -28,7 +28,7 @@ public class AmqpAcknowledgementHandler implements AcknowledgementHandler {
     final boolean isMessageRedelivered;
 
     final AtomicBoolean acknowledgementSent = new AtomicBoolean(false);
-    boolean autoAcknowledgement = true;
+    volatile boolean autoAcknowledgement = true;
 
     public AmqpAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag,
             boolean isMessageRedelivered) {

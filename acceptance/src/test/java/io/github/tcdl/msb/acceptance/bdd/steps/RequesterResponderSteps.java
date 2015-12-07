@@ -32,7 +32,12 @@ public class RequesterResponderSteps extends MsbSteps {
     private CompletableFuture<Map<String, Object>> receivedResponseFuture;
     private int countRequestsReceived = 0;
     private Optional<String> nextRequestAckType = Optional.empty();
+    private Optional<String> defaultRequestsAckType = Optional.empty();
+    private boolean isResponseInNewThread = false;
 
+    public Optional<String> getDefaultRequestsAckType() {
+        return defaultRequestsAckType;
+    }
 
     // responder steps
     @Given("responder server listens on namespace $namespace")
@@ -45,28 +50,48 @@ public class RequesterResponderSteps extends MsbSteps {
     public void createResponderServer(String contextName, String namespace) {
         ObjectMapper mapper = helper.getPayloadMapper(contextName);
         countRequestsReceived = 0;
+        nextRequestAckType = Optional.empty();
+        defaultRequestsAckType = Optional.empty();
+        isResponseInNewThread = false;
         helper.createResponderServer(contextName, namespace, (request, responderContext) -> {
             if (responseBody != null) {
                 countRequestsReceived++;
-                boolean isSendResponse = true;
 
-                switch (nextRequestAckType.orElseGet(()->"auto")) {
-                    case "confirm":
-                        responderContext.getAcknowledgementHandler().confirmMessage();
-                        break;
-                    case "reject":
-                        responderContext.getAcknowledgementHandler().rejectMessage();
-                        isSendResponse = false;
-                        break;
-                }
+                Runnable responseActions = () -> {
+                    boolean isSendResponse = true;
+                    String ackType = nextRequestAckType.orElseGet(
+                            () -> defaultRequestsAckType.orElseGet(
+                                    () -> "auto"));
 
-                nextRequestAckType = Optional.empty();
+                    switch (ackType) {
+                        case "confirm":
+                            responderContext.getAcknowledgementHandler().confirmMessage();
+                            break;
+                        case "reject":
+                            responderContext.getAcknowledgementHandler().rejectMessage();
+                            isSendResponse = false;
+                            break;
+                        case "retry":
+                            responderContext.getAcknowledgementHandler().retryMessage();
+                            isSendResponse = false;
+                            break;
+                    }
 
-                if(isSendResponse) {
-                    RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map>()
-                            .withBody(Utils.fromJson(responseBody, Map.class, mapper))
-                            .build();
-                    responderContext.getResponder().send(payload);
+                    nextRequestAckType = Optional.empty();
+
+                    if (isSendResponse) {
+                        RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map>()
+                                .withBody(Utils.fromJson(responseBody, Map.class, mapper))
+                                .build();
+                        responderContext.getResponder().send(payload);
+                    }
+                };
+
+                if(isResponseInNewThread) {
+                    responderContext.getAcknowledgementHandler().setAutoAcknowledgement(false);
+                    new Thread(responseActions).run();
+                } else {
+                    responseActions.run();
                 }
             }
         }).listen();
@@ -75,7 +100,16 @@ public class RequesterResponderSteps extends MsbSteps {
     @Given("responder server will $nextRequestAckType next request")
     public void setNextRequestAckType(String nextRequestAckType) throws Exception {
         this.nextRequestAckType = Optional.of(nextRequestAckType);
+    }
 
+    @Given("responder server will $allRequestsAckType all requests")
+    public void setDefaultRequestsAckType(String allRequestsAckType) throws Exception {
+        this.defaultRequestsAckType = Optional.of(allRequestsAckType);
+    }
+
+    @Given("responder server will send acknowledge and response from a new thread")
+    public void setResponseInNewThread() throws Exception {
+        isResponseInNewThread = true;
     }
 
     @Given("responder server responds with '$body'")
@@ -138,6 +172,16 @@ public class RequesterResponderSteps extends MsbSteps {
             Assert.fail("Response has not been received during a timeout");
         }
         Assert.assertNotNull("Response received is null", receivedResponse);
+    }
+
+    @Then("requester does not get a response in $timeout ms")
+    public void waitForNoResponse(long timeout) throws Exception {
+        try {
+            receivedResponse = receivedResponseFuture.get(timeout, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException timeoutException) {
+            //ok
+        }
+        Assert.assertNull("Unexpected response received", receivedResponse);
     }
 
     @Then("response equals $table")
