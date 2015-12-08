@@ -23,44 +23,44 @@ public class TimeoutManager {
     }
 
     protected ScheduledFuture<?> enableResponseTimeout(int timeoutMs, Collector collector) {
-        LOG.debug("Enabling response timeout for {} ms", timeoutMs);
+        LOG.debug("[correlation id: {}] Enabling response timeout for {} ms", collector.getRequestMessage().getCorrelationId(), timeoutMs);
 
         if (timeoutMs <= 0) {
-            LOG.debug("Unable to schedule timeout with negative delay : {}", timeoutMs);
+            LOG.debug("[correlation id: {}] Unable to schedule timeout with negative delay : {}", collector.getRequestMessage().getCorrelationId(), timeoutMs);
             return null;
         }
 
         try {
             return timeoutExecutorDecorator.schedule(() -> {
-                LOG.debug("Response timeout expired.");
+                LOG.debug("[correlation id: {}] Response timeout expired.", collector.getRequestMessage().getCorrelationId());
                 collector.end();
             }, timeoutMs, TimeUnit.MILLISECONDS);
         } catch (RejectedExecutionException e) {
-            LOG.warn("Unable to schedule task for execution", e);
+            LOG.warn("[correlation id: {}] Unable to schedule task for execution", collector.getRequestMessage().getCorrelationId(), e);
             return null;
         }
 
     }
 
     protected ScheduledFuture<?> enableAckTimeout(int timeoutMs, Collector collector) {
-        LOG.debug("Enabling ack timeout for {} ms", timeoutMs);
+        LOG.debug("[correlation id: {}] Enabling ack timeout for {} ms", collector.getRequestMessage().getCorrelationId(), timeoutMs);
 
         if (timeoutMs <= 0) {
-            LOG.debug("Unable to schedule timeout with negative delay : {}", timeoutMs);
+            LOG.debug("[correlation id: {}] Unable to schedule timeout with negative delay : {}", collector.getRequestMessage().getCorrelationId(), timeoutMs);
             return null;
         }
 
         try {
             return timeoutExecutorDecorator.schedule(() -> {
                 if (collector.isAwaitingResponses()) {
-                    LOG.debug("Ack timeout expired, but waiting for responses.");
+                    LOG.debug("[correlation id: {}] Ack timeout expired, but waiting for responses.", collector.getRequestMessage().getCorrelationId());
                     return;
                 }
-                LOG.debug("Ack timeout expired.");
+                LOG.debug("[correlation id: {}] Ack timeout expired.", collector.getRequestMessage().getCorrelationId());
                 collector.end();
             }, timeoutMs, TimeUnit.MILLISECONDS);
         } catch (RejectedExecutionException e) {
-            LOG.warn("Unable to schedule task for execution", e);
+            LOG.warn("[correlation id: {}] Unable to schedule task for execution", collector.getRequestMessage().getCorrelationId(), e);
             return null;
         }
     }

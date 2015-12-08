@@ -4,7 +4,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+import io.github.tcdl.msb.support.TestUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -14,7 +15,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class TimeoutManagerTest {
 
     @Mock
-    Collector mockCollector;
+    private Collector mockCollector;
+
+    @Before
+    public void setUp() {
+        when(mockCollector.getRequestMessage()).thenReturn(TestUtils.createSimpleRequestMessage("123"));
+    }
 
     @Test
     public void testEnableResponseTimeout() {
