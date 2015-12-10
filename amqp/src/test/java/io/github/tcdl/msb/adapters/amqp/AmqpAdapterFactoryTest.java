@@ -41,7 +41,6 @@ public class AmqpAdapterFactoryTest {
     final boolean durable = false;
     final int consumerThreadPoolSize = 5;
     final int consumerThreadPoolQueueCapacity = 20;
-    final boolean requeueRejectedMessages = true;
     final int heartbeatIntervalSec = 1;
     final long networkRecoveryIntervalMs = 5000;
     final int prefetchCount = 1;
@@ -83,7 +82,7 @@ public class AmqpAdapterFactoryTest {
         
         amqpConfig = new AmqpBrokerConfig(charset, host, port,
                 Optional.of(username), Optional.of(password), Optional.of(virtualHost), useSSL, Optional.of(groupId), durable,
-                consumerThreadPoolSize, consumerThreadPoolQueueCapacity, requeueRejectedMessages, 
+                consumerThreadPoolSize, consumerThreadPoolQueueCapacity, 
                 heartbeatIntervalSec, networkRecoveryIntervalMs, prefetchCount);
         
         amqpAdapterFactory = new AmqpAdapterFactory() {

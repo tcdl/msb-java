@@ -1,12 +1,11 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Recoverable;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.withSettings;
 import io.github.tcdl.msb.config.MsbConfig;
-import org.junit.Test;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -14,11 +13,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.withSettings;
+import org.junit.Test;
+
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Recoverable;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 public class AmqpAdapterFactoryExecutorTest {
 
@@ -48,7 +49,6 @@ public class AmqpAdapterFactoryExecutorTest {
                         + "    charsetName = \"UTF-8\"\n"
                         + "    consumerThreadPoolSize = 5\n"
                         + "    consumerThreadPoolQueueCapacity = 20\n"
-                        + "    requeueRejectedMessages = true\n"
                         + "  }";
 
         Config msbConfig = ConfigFactory.parseString(String.format(basicConfig, brokerConf));
@@ -75,7 +75,6 @@ public class AmqpAdapterFactoryExecutorTest {
                         + "    charsetName = \"UTF-8\"\n"
                         + "    consumerThreadPoolSize = 5\n"
                         + "    consumerThreadPoolQueueCapacity = -1\n"
-                        + "    requeueRejectedMessages = true\n"
                         + "  }";
         Config msbConfig = ConfigFactory.parseString(String.format(basicConfig, brokerConf));
         MsbConfig msbConfigurations = new MsbConfig(msbConfig);
