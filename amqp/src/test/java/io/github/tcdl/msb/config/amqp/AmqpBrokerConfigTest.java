@@ -26,7 +26,6 @@ public class AmqpBrokerConfigTest {
     final boolean durable = false;
     final int consumerThreadPoolSize = 5;
     final int consumerThreadPoolQueueCapacity = 20;
-    final boolean requeueRejectedMessages = true;
     final int heartbeatIntervalSec = 1;
     final long networkRecoveryIntervalMs = 5000;
     final int prefetchCount = 1;
@@ -45,7 +44,6 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -62,7 +60,6 @@ public class AmqpBrokerConfigTest {
         assertEquals(brokerConfig.isDurable(), durable);
         assertEquals(brokerConfig.getConsumerThreadPoolSize(), consumerThreadPoolSize);
         assertEquals(brokerConfig.getConsumerThreadPoolQueueCapacity(), consumerThreadPoolQueueCapacity);
-        assertEquals(brokerConfig.isRequeueRejectedMessages(), requeueRejectedMessages);
 
         assertEquals(brokerConfig.getUsername().get(), username);
         assertEquals(brokerConfig.getPassword().get(), password);
@@ -86,7 +83,6 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -117,7 +113,6 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -139,7 +134,6 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -161,7 +155,6 @@ public class AmqpBrokerConfigTest {
                 + " groupId = \"" + groupId + "\"\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -183,7 +176,6 @@ public class AmqpBrokerConfigTest {
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -205,7 +197,6 @@ public class AmqpBrokerConfigTest {
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -227,7 +218,6 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -283,28 +273,6 @@ public class AmqpBrokerConfigTest {
     }
 
     @Test
-    public void testRequeueRejectedMessagesOption() {
-        String configStr = "config.amqp {"
-                + " charsetName = \"" + charsetName + "\"\n"
-                + " host = \"" + host + "\"\n"
-                + " port = \"" + port + "\"\n"
-                + " username = \"" + username + "\"\n"
-                + " password = \"" + password + "\"\n"
-                + " virtualHost = \"" + virtualHost + "\"\n"
-                + " useSSL = \"" + useSSL + "\"\n"
-                + " groupId = \"" + groupId + "\"\n"
-                + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
-                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
-                + " prefetchCount = " + prefetchCount + "\n"
-                + "}";
-
-        testMandatoryConfigurationOption(configStr, "requeueRejectedMessages");
-    }
-
-    @Test
     public void testHeartbeatIntervalOption() {
         String configStr = "config.amqp {"
                 + " charsetName = \"" + charsetName + "\"\n"
@@ -318,7 +286,6 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
                 + "}";
@@ -340,7 +307,6 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
                 + "}";
@@ -362,7 +328,6 @@ public class AmqpBrokerConfigTest {
                 + " durable = " + durable + "\n"
                 + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
                 + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " requeueRejectedMessages = " + requeueRejectedMessages + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";
