@@ -45,6 +45,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
      */
     public void init(MsbConfig msbConfig) {
         amqpBrokerConfig = createAmqpBrokerConfig(msbConfig);
+        LOG.debug("MSB AMQP Broker configuration {}", amqpBrokerConfig);
         ConnectionFactory connectionFactory = createConnectionFactory(amqpBrokerConfig);
         Connection connection = createConnection(connectionFactory);
         connectionManager = createConnectionManager(connection);
