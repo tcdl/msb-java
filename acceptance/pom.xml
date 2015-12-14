@@ -32,12 +32,13 @@
             <artifactId>msb-java-amqp</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.github.tcdl.msb</groupId>
-            <artifactId>msb-java-examples</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.jbehave</groupId>
             <artifactId>jbehave-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.tcdl.msb</groupId>
+            <artifactId>msb-java-examples</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

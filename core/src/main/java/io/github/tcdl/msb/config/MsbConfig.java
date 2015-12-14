@@ -44,14 +44,14 @@ public class MsbConfig {
         this.timerThreadPoolSize = getInt(config, "timerThreadPoolSize");
         this.validateMessage = getBoolean(config, "validateMessage");
 
-        LOG.debug("MSB configuration {}", this);
+        LOG.debug("Loaded {}", this);
     }
 
     private String readJsonSchema() {
         try {
             return IOUtils.toString(getClass().getResourceAsStream("/schema.js"));
         } catch (IOException e) {
-            LOG.error("MSB configuration failed to load Json validation schema", this);
+            LOG.error("Failed to load Json validation schema", this);
             return null;
         }
     }
@@ -86,7 +86,7 @@ public class MsbConfig {
 
     @Override
     public String toString() {
-        return String.format("MsbConfig [serviceDetails=%s, schema=%s, validateMessage=%b, timerThreadPoolSize=%d, brokerAdapterFactory=%s, brokerConfig=%s]", serviceDetails, schema, validateMessage, timerThreadPoolSize, brokerAdapterFactoryClass, brokerConfig);
+        return String.format("MsbConfig [serviceDetails=%s, schema=%s, validateMessage=%b, timerThreadPoolSize=%d, brokerAdapterFactory=%s, brokerConfig=%s]", serviceDetails, schema, validateMessage, timerThreadPoolSize, brokerAdapterFactoryClass, brokerConfig.root().render());
     }
 
 }
