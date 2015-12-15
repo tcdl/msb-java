@@ -27,6 +27,11 @@
             <artifactId>msb-java-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.github.tcdl.msb</groupId>
+            <artifactId>msb-java-core</artifactId>
+            <type>test-jar</type>
+        </dependency>
+        <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
         </dependency>

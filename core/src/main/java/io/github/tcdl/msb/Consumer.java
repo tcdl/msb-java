@@ -2,6 +2,7 @@ package io.github.tcdl.msb;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
+import io.github.tcdl.msb.adapters.MessageHandlerInvokeAdapter;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -12,6 +13,7 @@ import io.github.tcdl.msb.support.Utils;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -27,31 +29,33 @@ public class Consumer {
     private static final Logger LOG = LoggerFactory.getLogger(Consumer.class);
 
     private final ConsumerAdapter rawAdapter;
+    private final MessageHandlerInvokeAdapter messageHandlerInvokeAdapter;
     private final String topic;
     private MsbConfig msbConfig;
     private ChannelMonitorAgent channelMonitorAgent;
     private Clock clock;
-    private MessageHandler messageHandler;
+    private MessageHandlerResolver messageHandlerResolver;
     private JsonValidator validator;
     private ObjectMapper messageMapper;
 
     /**
      * @param rawAdapter instance of {@link ConsumerAdapter} that allows to receive messages from message bus
      * @param topic
-     * @param messageHandler interface that user can implement to handle received message
+     * @param messageHandlerResolver resolves {@link MessageHandler} instance that user can implement to handle received messages.
      * @param msbConfig consumer configs
      * @param clock
      * @param channelMonitorAgent
      * @param validator validates incoming messages
      * @param messageMapper message deserializer
      */
-    public Consumer(ConsumerAdapter rawAdapter, String topic, MessageHandler messageHandler, MsbConfig msbConfig,
+    public Consumer(ConsumerAdapter rawAdapter, MessageHandlerInvokeAdapter messageHandlerInvokeAdapter,
+            String topic, MessageHandlerResolver messageHandlerResolver, MsbConfig msbConfig,
             Clock clock, ChannelMonitorAgent channelMonitorAgent, JsonValidator validator, ObjectMapper messageMapper) {
 
         LOG.debug("Creating consumer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
         Validate.notNull(topic, "the 'topic' must not be null");
-        Validate.notNull(messageHandler, "the 'messageHandler' must not be null");
+        Validate.notNull(messageHandlerResolver, "the 'messageHandlerResolver' must not be null");
         Validate.notNull(msbConfig, "the 'msbConfig' must not be null");
         Validate.notNull(clock, "the 'clock' must not be null");
         Validate.notNull(channelMonitorAgent, "the 'channelMonitorAgent' must not be null");
@@ -59,8 +63,9 @@ public class Consumer {
         Validate.notNull(messageMapper, "the 'messageMapper' must not be null");
 
         this.rawAdapter = rawAdapter;
+        this.messageHandlerInvokeAdapter = messageHandlerInvokeAdapter;
         this.topic = topic;
-        this.messageHandler = messageHandler;
+        this.messageHandlerResolver = messageHandlerResolver;
         this.msbConfig = msbConfig;
         this.clock = clock;
         this.channelMonitorAgent = channelMonitorAgent;
@@ -104,7 +109,13 @@ public class Consumer {
         }
 
         try {
-            messageHandler.handleMessage(message, acknowledgeHandler);
+            Optional<MessageHandler> messageHandler = messageHandlerResolver.resolveMessageHandler(message);
+            if(messageHandler.isPresent()) {
+                messageHandlerInvokeAdapter.execute(messageHandler.get(), message, acknowledgeHandler);
+            } else {
+                LOG.warn("Cant't resolve message handler for a message: {}", jsonMessage);
+                acknowledgeHandler.autoReject();
+            }
         } catch (Exception e) {
             LOG.warn("Error while trying to handle a message: {}", jsonMessage, e);
             acknowledgeHandler.autoRetry();

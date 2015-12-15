@@ -50,6 +50,12 @@
             </dependency>
             <dependency>
                 <groupId>io.github.tcdl.msb</groupId>
+                <artifactId>msb-java-core</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+            </dependency>
+            <dependency>
+                <groupId>io.github.tcdl.msb</groupId>
                 <artifactId>msb-java-amqp</artifactId>
                 <version>${project.version}</version>
             </dependency>

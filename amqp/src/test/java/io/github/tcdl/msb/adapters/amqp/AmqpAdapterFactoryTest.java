@@ -1,15 +1,15 @@
 package io.github.tcdl.msb.adapters.amqp;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.adapters.MessageHandlerInvokeAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
@@ -25,10 +25,13 @@ import org.junit.Test;
 
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Recoverable;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
+@RunWith(MockitoJUnitRunner.class)
 public class AmqpAdapterFactoryTest {
     final Charset charset = Charset.forName("UTF-8");
     final String host = "127.0.0.1";
@@ -44,13 +47,21 @@ public class AmqpAdapterFactoryTest {
     final int heartbeatIntervalSec = 1;
     final long networkRecoveryIntervalMs = 5000;
     final int prefetchCount = 1;
-    
+
+    @Mock
+    AmqpConnectionManager mockConnectionManager;
+
+    @Mock
+    ConnectionFactory mockConnectionFactory;
+
+    @Mock
+    Connection mockConnection;
+
+    @Mock
+    ExecutorService mockConsumerThreadPool;
+
     AmqpBrokerConfig amqpConfig;
     AmqpAdapterFactory amqpAdapterFactory;
-    AmqpConnectionManager mockConnectionManager;
-    ConnectionFactory mockConnectionFactory;
-    Connection mockConnection;
-    ExecutorService mockConsumerThreadPool;
     MsbConfig msbConfigurations;
     
     @Before
@@ -68,11 +79,6 @@ public class AmqpAdapterFactoryTest {
         Config msbConfig = ConfigFactory.parseString(configStr);
         msbConfigurations = new MsbConfig(msbConfig); 
 
-        mockConnectionFactory = mock(ConnectionFactory.class);
-        mockConnection = mock(Connection.class, withSettings().extraInterfaces(Recoverable.class));
-        mockConnectionManager = mock(AmqpConnectionManager.class);
-        mockConsumerThreadPool = mock(ExecutorService.class);
-        
         //Define conditions for ExecutorService termination
         try {
             when(mockConsumerThreadPool.awaitTermination(anyInt(), any(TimeUnit.class))).thenReturn(true);
@@ -93,7 +99,7 @@ public class AmqpAdapterFactoryTest {
 
             @Override
             public ConsumerAdapter createConsumerAdapter(String topic) {
-                return new AmqpConsumerAdapter(topic, amqpConfig, mockConnectionManager, mockConsumerThreadPool);
+                return new AmqpConsumerAdapter(topic, amqpConfig, mockConnectionManager);
             }
 
             @Override
@@ -145,6 +151,12 @@ public class AmqpAdapterFactoryTest {
     public void testInitGroupIdWithServiceName() {
         AmqpBrokerConfig amqpBrokerConfig = new AmqpAdapterFactory().createAmqpBrokerConfig(msbConfigurations);
         assertEquals(amqpBrokerConfig.getGroupId().get(), msbConfigurations.getServiceDetails().getName());
+    }
+
+    @Test
+    public void testCreateMessageHandlerInvokeAdapter() {
+        MessageHandlerInvokeAdapter adapter = amqpAdapterFactory.createMessageHandlerInvokeAdapter("any");
+        assertTrue(adapter instanceof AmqpMessageHandlerInvokeAdapter);
     }
 
     @Test

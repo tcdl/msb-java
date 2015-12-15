@@ -28,7 +28,7 @@ public class AmqpConsumerAdapterTest {
 
     private Channel mockChannel;
     private AmqpConnectionManager mockAmqpConnectionManager;
-    private ExecutorService mockConsumerThreadPool;
+
 
     @Before
     public void setUp() throws Exception {
@@ -38,8 +38,6 @@ public class AmqpConsumerAdapterTest {
         
         when(mockAmqpConnectionManager.obtainConnection()).thenReturn(mockConnection);
         when(mockConnection.createChannel()).thenReturn(mockChannel);
-
-        mockConsumerThreadPool = mock(ExecutorService.class);
     }
 
     @Test
@@ -107,7 +105,6 @@ public class AmqpConsumerAdapterTest {
 
         AmqpMessageConsumer consumer = amqpConsumerCaptor.getValue();
         assertEquals(mockChannel, consumer.getChannel());
-        assertEquals(mockConsumerThreadPool, consumer.consumerThreadPool);
         assertEquals(mockHandler, consumer.msgHandler);
     }
 
@@ -127,6 +124,6 @@ public class AmqpConsumerAdapterTest {
     private AmqpConsumerAdapter createAdapter(String topic, String groupId, boolean durable) {
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig(Charset.forName("UTF-8"), "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(),
                 false, Optional.of(groupId), durable, 5, 20, 1, 5000, 1);
-        return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, mockConsumerThreadPool);
+        return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager);
     }
 }

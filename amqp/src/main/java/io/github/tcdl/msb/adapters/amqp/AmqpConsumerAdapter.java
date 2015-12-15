@@ -19,23 +19,18 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
     private String exchangeName;
     private String consumerTag;
     private AmqpBrokerConfig adapterConfig;
-    private ExecutorService consumerThreadPool;
 
     /**
      * The constructor.
      * @param topic - a topic name associated with the adapter
-     * @param consumerThreadPool contains incoming messages wrapped as tasks for further processing. Parameters of this thread pool determine degree of
-     *                           parallelism of incoming message processing
      * @throws ChannelException if some problems during setup channel from RabbitMQ connection were occurred
      */
-
-    public AmqpConsumerAdapter(String topic, AmqpBrokerConfig amqpBrokerConfig, AmqpConnectionManager connectionManager, ExecutorService consumerThreadPool) {
+    public AmqpConsumerAdapter(String topic, AmqpBrokerConfig amqpBrokerConfig, AmqpConnectionManager connectionManager) {
         Validate.notNull(topic, "the 'topic' must not be null");
 
         this.topic = topic;
         this.exchangeName = topic;
         this.adapterConfig = amqpBrokerConfig;
-        this.consumerThreadPool = consumerThreadPool;
 
         try {
             channel = connectionManager.obtainConnection().createChannel();
@@ -61,7 +56,7 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
             channel.basicQos(prefetchCount); // Don't accept more messages if we have any unacknowledged
             channel.queueBind(queueName, exchangeName, "");
 
-            consumerTag = channel.basicConsume(queueName, false /* autoAck */, new AmqpMessageConsumer(channel, consumerThreadPool, msgHandler, adapterConfig));
+            consumerTag = channel.basicConsume(queueName, false /* autoAck */, new AmqpMessageConsumer(channel, msgHandler, adapterConfig));
         } catch (IOException e) {
             throw new ChannelException(String.format("Failed to subscribe to topic %s", topic), e);
         }

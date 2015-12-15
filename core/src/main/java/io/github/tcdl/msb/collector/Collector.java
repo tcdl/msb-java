@@ -2,6 +2,7 @@ package io.github.tcdl.msb.collector;
 
 import static io.github.tcdl.msb.support.Utils.ifNull;
 import static java.lang.Math.toIntExact;
+import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageContext;
@@ -34,7 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
  */
-public class Collector<T> {
+public class Collector<T> implements MessageHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
@@ -124,6 +125,7 @@ public class Collector<T> {
         collectorManager.registerCollector(this);
     }
 
+    @Override
     public void handleMessage(Message incomingMessage, AcknowledgementHandler acknowledgeHandler) {
         LOG.debug("Received {}", incomingMessage);
 

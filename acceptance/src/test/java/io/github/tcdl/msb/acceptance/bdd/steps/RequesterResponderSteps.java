@@ -8,8 +8,10 @@ import io.github.tcdl.msb.support.Utils;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;
@@ -26,14 +28,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class RequesterResponderSteps extends MsbSteps {
 
-    private Requester<RestPayload> requester;
-    private String responseBody;
-    private Map<String, Object> receivedResponse;
-    private CompletableFuture<Map<String, Object>> receivedResponseFuture;
-    private int countRequestsReceived = 0;
-    private Optional<String> nextRequestAckType = Optional.empty();
-    private Optional<String> defaultRequestsAckType = Optional.empty();
-    private boolean isResponseInNewThread = false;
+    private volatile Requester<RestPayload> requester;
+    private volatile String responseBody;
+    private volatile Map<String, Object> receivedResponse;
+    private volatile CompletableFuture<Map<String, Object>> receivedResponseFuture;
+    private volatile CountDownLatch responseCountDown;
+    private volatile AtomicInteger countRequestsReceived;
+    private volatile AtomicInteger countResponsesReceived;
+    private volatile Optional<String> nextRequestAckType = Optional.empty();
+    private volatile Optional<String> defaultRequestsAckType = Optional.empty();
+    private volatile boolean isResponseInNewThread = false;
+    private volatile int responseProcessingDelay;
+    private volatile int responsesToSendCount;
+    private volatile int responsesToExpectCount;
 
     public Optional<String> getDefaultRequestsAckType() {
         return defaultRequestsAckType;
@@ -48,14 +55,11 @@ public class RequesterResponderSteps extends MsbSteps {
     @Given("responder server from $contextName listens on namespace $namespace")
     @When("responder server from $contextName listens on namespace $namespace")
     public void createResponderServer(String contextName, String namespace) {
+        beforeCreateResponder();
         ObjectMapper mapper = helper.getPayloadMapper(contextName);
-        countRequestsReceived = 0;
-        nextRequestAckType = Optional.empty();
-        defaultRequestsAckType = Optional.empty();
-        isResponseInNewThread = false;
         helper.createResponderServer(contextName, namespace, (request, responderContext) -> {
             if (responseBody != null) {
-                countRequestsReceived++;
+                countRequestsReceived.incrementAndGet();
 
                 Runnable responseActions = () -> {
                     boolean isSendResponse = true;
@@ -83,7 +87,9 @@ public class RequesterResponderSteps extends MsbSteps {
                         RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map>()
                                 .withBody(Utils.fromJson(responseBody, Map.class, mapper))
                                 .build();
-                        responderContext.getResponder().send(payload);
+                        for(int i=0; i< responsesToSendCount; i++) {
+                            responderContext.getResponder().send(payload);
+                        }
                     }
                 };
 
@@ -97,6 +103,18 @@ public class RequesterResponderSteps extends MsbSteps {
         }).listen();
     }
 
+    private void beforeCreateResponder() {
+        responseCountDown = null;
+        countRequestsReceived = new AtomicInteger(0);
+        countResponsesReceived = new AtomicInteger(0);
+        responseProcessingDelay = 0;
+        responsesToSendCount = 1;
+        responsesToExpectCount = 1;
+        nextRequestAckType = Optional.empty();
+        defaultRequestsAckType = Optional.empty();
+        isResponseInNewThread = false;
+    }
+
     @Given("responder server will $nextRequestAckType next request")
     public void setNextRequestAckType(String nextRequestAckType) throws Exception {
         this.nextRequestAckType = Optional.of(nextRequestAckType);
@@ -105,6 +123,16 @@ public class RequesterResponderSteps extends MsbSteps {
     @Given("responder server will $allRequestsAckType all requests")
     public void setDefaultRequestsAckType(String allRequestsAckType) throws Exception {
         this.defaultRequestsAckType = Optional.of(allRequestsAckType);
+    }
+
+    @Given("requester will process responses with $timeout ms delay")
+    public void setesponseDelay(int responseDelay) throws Exception {
+        this.responseProcessingDelay = responseDelay;
+    }
+
+    @Given("responder will provide $responseCount responses")
+    public void setResponsesToSendCount(int responsesToSendCount) throws Exception {
+        this.responsesToSendCount = responsesToSendCount;
     }
 
     @Given("responder server will send acknowledge and response from a new thread")
@@ -124,6 +152,14 @@ public class RequesterResponderSteps extends MsbSteps {
         createRequester(DEFAULT_CONTEXT_NAME, namespace);
     }
 
+    // requester steps
+    @Given("requester (with $requestTimeout ms request timeout to receive $responseCount responses) sends requests to namespace $namespace")
+    public void createRequester(int requestTimeout, int responseCount, String namespace) {
+        responseCountDown = new CountDownLatch(responseCount);
+        responsesToExpectCount = responseCount;
+        requester = helper.createRequester(DEFAULT_CONTEXT_NAME, namespace, responsesToExpectCount, 100, requestTimeout, RestPayload.class);
+    }
+
     @Given("requester from $contextName sends requests to namespace $namespace")
     public void createRequester(String contextName, String namespace) {
         requester = helper.createRequester(contextName, namespace, 1, RestPayload.class);
@@ -138,21 +174,21 @@ public class RequesterResponderSteps extends MsbSteps {
     public void sendRequest(String contextName) throws Exception {
         onBeforeRequest();
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload("QUERY", null);
-        helper.sendRequest(requester, payload, 1, this::onResponse);
+        helper.sendRequest(requester, payload, responsesToExpectCount, this::onResponse);
     }
 
     @When("requester sends a request with query '$query'")
     public void sendRequestWithQuery(String query) throws Exception {
         onBeforeRequest();
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(query, null);
-        helper.sendRequest(requester, payload, true, 1, null, this::onResponse);
+        helper.sendRequest(requester, payload, true, responsesToExpectCount, null, this::onResponse);
     }
 
     @When("requester sends a request with body '$body'")
     public void sendRequestWithBody(String body) throws Exception {
         onBeforeRequest();
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(null, body);
-        helper.sendRequest(requester, payload, true, 1, null, this::onResponse);
+        helper.sendRequest(requester, payload, true, responsesToExpectCount, null, this::onResponse);
     }
 
     private void onBeforeRequest() {
@@ -161,6 +197,19 @@ public class RequesterResponderSteps extends MsbSteps {
     }
 
     private void onResponse(RestPayload<Object, Object, Object, Map<String, Object>> payload) {
+        if(responseProcessingDelay > 0) {
+            try {
+                Thread.sleep(responseProcessingDelay);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if(responseCountDown != null) {
+            responseCountDown.countDown();
+        }
+
+        countResponsesReceived.incrementAndGet();
         receivedResponseFuture.complete(payload.getBody());
     }
 
@@ -172,6 +221,13 @@ public class RequesterResponderSteps extends MsbSteps {
             Assert.fail("Response has not been received during a timeout");
         }
         Assert.assertNotNull("Response received is null", receivedResponse);
+    }
+
+    @Then("requester will get all responses in $timeout ms")
+    public void waitForAllResponses(long timeout) throws Exception {
+        if(!responseCountDown.await(timeout, TimeUnit.MILLISECONDS)) {
+            Assert.fail("All responses has not been received during a timeout, pending count: " + responseCountDown.getCount());
+        }
     }
 
     @Then("requester does not get a response in $timeout ms")
@@ -198,7 +254,12 @@ public class RequesterResponderSteps extends MsbSteps {
 
     @Then("responder requests received count equals $expectedRequestsReceivedCount")
     public void requestCountEquals(int expectedCountRequestsReceived) throws Exception {
-        Assert.assertEquals(expectedCountRequestsReceived, countRequestsReceived);
+        Assert.assertEquals(expectedCountRequestsReceived, countRequestsReceived.get());
+    }
+
+    @Then("requester responses received count equals $expectedRequestsReceivedCount")
+    public void responseCountEquals(int expectedCountResponsesReceived) throws Exception {
+        Assert.assertEquals(expectedCountResponsesReceived, countResponsesReceived.get());
     }
 
     @Then("response contains $table")
