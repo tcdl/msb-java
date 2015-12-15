@@ -1,6 +1,7 @@
 Lifecycle:
 Before:
-Given start MSB
+Given MSB configuration with consumer prefetch count 20
+And start MSB
 After:
 Outcome: ANY
 Then shutdown MSB
@@ -94,5 +95,17 @@ And requester sends requests to namespace test:jbehave
 When requester sends a request
 Then requester does not get a response in 1000 ms
 And responder requests received count equals 2
+
+Scenario: Requester processes callback with a delay
+
+Given responder server responds with '{"result": "hello jbehave"}'
+And responder server listens on namespace test:jbehave
+And responder will provide 10 responses
+And requester (with 1000 ms request timeout to receive 10 responses) sends requests to namespace test:jbehave
+And requester will process responses with 200 ms delay
+When requester sends a request
+Then requester will get all responses in 5000 ms
+And responder requests received count equals 1
+
 
 

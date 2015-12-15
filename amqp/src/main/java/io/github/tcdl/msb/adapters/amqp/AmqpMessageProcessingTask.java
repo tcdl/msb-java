@@ -1,7 +1,9 @@
 package io.github.tcdl.msb.adapters.amqp;
 
+import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
+import io.github.tcdl.msb.api.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,16 +13,14 @@ import org.slf4j.LoggerFactory;
 public class AmqpMessageProcessingTask implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(AmqpMessageProcessingTask.class);
 
-    final String consumerTag;
-    final String body;
-    final ConsumerAdapter.RawMessageHandler msgHandler;
+    final Message message;
+    final MessageHandler messageHandler;
     final AcknowledgementHandlerInternal ackHandler;
 
-    public AmqpMessageProcessingTask(String consumerTag, String body, ConsumerAdapter.RawMessageHandler msgHandler,
+    public AmqpMessageProcessingTask( MessageHandler messageHandler, Message message,
                                      AcknowledgementHandlerInternal ackHandler) {
-        this.consumerTag = consumerTag;
-        this.body = body;
-        this.msgHandler = msgHandler;
+        this.message = message;
+        this.messageHandler = messageHandler;
         this.ackHandler = ackHandler;
     }
 
@@ -32,12 +32,12 @@ public class AmqpMessageProcessingTask implements Runnable {
     @Override
     public void run() {
         try {
-            LOG.debug(String.format("[consumer tag: %s] Starting message processing: %s", consumerTag, body));
-            msgHandler.onMessage(body, ackHandler);
-            LOG.debug(String.format("[consumer tag: %s] Message has been processed: %s", consumerTag, body));
+            LOG.debug(String.format("[correlation id: %s] Starting message processing", message.getCorrelationId()));
+            messageHandler.handleMessage(message, ackHandler);
+            LOG.debug(String.format("[correlation id: %s] Message has been processed", message.getCorrelationId()));
             ackHandler.autoConfirm();
         } catch (Exception e) {
-            LOG.error(String.format("[consumer tag: %s] Failed to process message %s", consumerTag, body), e);
+            LOG.error(String.format("[correlation id: %s] Failed to process message", message.getCorrelationId()), e);
             ackHandler.autoRetry();
         }
     }

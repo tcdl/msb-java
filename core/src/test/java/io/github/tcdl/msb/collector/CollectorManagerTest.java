@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.collector;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -8,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.support.TestUtils;
 
@@ -16,6 +18,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.Optional;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CollectorManagerTest {
@@ -39,9 +43,9 @@ public class CollectorManagerTest {
         when(collectorMock.getRequestMessage()).thenReturn(originalAndReceivedMessage);
         CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
         collectorManager.registerCollector(collectorMock);
-        collectorManager.handleMessage(originalAndReceivedMessage, null);
+        Optional<MessageHandler> resolved = collectorManager.resolveMessageHandler(originalAndReceivedMessage);
 
-        verify(collectorMock).handleMessage(originalAndReceivedMessage, null);
+        assertEquals(resolved.get(), collectorMock);
     }
 
     @Test
@@ -49,9 +53,9 @@ public class CollectorManagerTest {
         Message receivedMessage = TestUtils.createSimpleRequestMessage(TOPIC);
         CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
         collectorManager.registerCollector(collectorMock);
-        collectorManager.handleMessage(receivedMessage, null);
+        Optional<MessageHandler> resolved = collectorManager.resolveMessageHandler(receivedMessage);
 
-        verify(collectorMock, never()).handleMessage(receivedMessage, null);
+        assertFalse(resolved.isPresent());
     }
 
     @Test
@@ -61,9 +65,9 @@ public class CollectorManagerTest {
 
         CollectorManager collectorManager = new CollectorManager("some-other-topic", channelManagerMock);
         collectorManager.registerCollector(collectorMock);
-        collectorManager.handleMessage(receivedMessage, null);
+        Optional<MessageHandler> resolved = collectorManager.resolveMessageHandler(receivedMessage);
 
-        verify(collectorMock, never()).handleMessage(receivedMessage, null);
+        assertFalse(resolved.isPresent());
     }
 
     @Test
