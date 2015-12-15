@@ -1,10 +1,8 @@
 package io.github.tcdl.msb;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
@@ -156,6 +154,7 @@ public class ConsumerTest {
 
         consumer.handleRawMessage("{\"body\":\"fake message\"}", acknowledgementHandlerMock);
         verify(messageHandlerMock, never()).handleMessage(any(Message.class), any()); // no processing
+        verify(acknowledgementHandlerMock, times(1)).autoReject();
     }
 
     @Test
@@ -175,6 +174,21 @@ public class ConsumerTest {
 
         consumer.handleRawMessage(Utils.toJson(expiredMessage, messageMapper), acknowledgementHandlerMock);
         verify(messageHandlerMock, never()).handleMessage(any(Message.class), any());
+        verify(acknowledgementHandlerMock, times(1)).autoReject();
+    }
+
+    @Test
+    public void testHandleMessageException() throws JsonConversionException {
+        Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
+        messageHandlerMock.handleMessage(any(Message.class), any());
+
+        doThrow(new RuntimeException()).when(messageHandlerMock).handleMessage(any(), any());
+
+        Consumer consumer = new Consumer(adapterMock, TOPIC, messageHandlerMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
+
+        consumer.handleRawMessage(Utils.toJson(originalMessage, messageMapper), acknowledgementHandlerMock);
+        
+        verify(acknowledgementHandlerMock, times(1)).autoRetry();
     }
 
     private  Message createExpiredMsbRequestMessageWithTopicTo(String topicTo) {

@@ -125,12 +125,14 @@ public class Collector<T> {
     }
 
     public void handleMessage(Message incomingMessage, AcknowledgementHandler acknowledgeHandler) {
-        LOG.debug("Received {}", incomingMessage);
+        LOG.debug("[correlation ids: {}-{}] Received {}",
+                requestMessage.getCorrelationId(), incomingMessage.getCorrelationId(), incomingMessage);
 
         JsonNode rawPayload = incomingMessage.getRawPayload();
         MessageContext messageContext = createMessageContext(acknowledgeHandler, incomingMessage);
         if (Utils.isPayloadPresent(rawPayload)) {
-            LOG.debug("Received Payload {}", rawPayload);
+            LOG.debug("[correlation ids: {}-{}] Received Payload {}",
+                    requestMessage.getCorrelationId(), incomingMessage.getCorrelationId(), rawPayload);
             payloadMessages.add(incomingMessage);
             onRawResponse.ifPresent(handler -> handler.accept(incomingMessage, messageContext));
 
@@ -139,7 +141,8 @@ public class Collector<T> {
 
             incResponsesRemaining(-1);
         } else {
-            LOG.debug("Received {}", incomingMessage.getAck());
+            LOG.debug("[correlation ids: {}-{}] Received {}",
+                    requestMessage.getCorrelationId(), incomingMessage.getCorrelationId(), incomingMessage.getAck());
             ackMessages.add(incomingMessage);
             onAcknowledge.ifPresent(handler -> handler.accept(incomingMessage.getAck(), messageContext));
         }
@@ -155,6 +158,7 @@ public class Collector<T> {
             return;
         }
 
+        LOG.debug("[correlation ids: {}] All messages has been received", requestMessage.getCorrelationId());
         end();
     }
 
@@ -163,7 +167,7 @@ public class Collector<T> {
     }
     
     protected void end() {
-        LOG.debug("Stop response processing");
+        LOG.debug("[correlation id: {}] Stop response processing ", requestMessage.getCorrelationId());
 
         cancelAckTimeoutTask();
         cancelResponseTimeoutTask();
@@ -177,7 +181,8 @@ public class Collector<T> {
             return;
 
         if (acknowledge.getResponsesRemaining() != null) {
-            LOG.debug("Responses remaining for responderId [{}] is set to {}", acknowledge.getResponderId(),
+            LOG.debug("[correlation id: {}] Responses remaining for responderId [{}] is set to {}",
+                    requestMessage.getCorrelationId(), acknowledge.getResponderId(),
                     setResponsesRemainingForResponderId(acknowledge.getResponderId(), acknowledge.getResponsesRemaining()));
         }
 
@@ -255,17 +260,17 @@ public class Collector<T> {
 
     public void waitForResponses() {
         int newTimeoutMs = this.currentTimeoutMs - toIntExact(clock.instant().toEpochMilli() - this.startedAt);
-        LOG.debug("Waiting for responses until {}.", clock.instant().plus(newTimeoutMs, ChronoUnit.MILLIS));
+        LOG.debug("[correlation id: {}] Waiting for responses until {}.", requestMessage.getCorrelationId(), clock.instant().plus(newTimeoutMs, ChronoUnit.MILLIS));
         this.responseTimeoutFuture = timeoutManager.enableResponseTimeout(newTimeoutMs, this);
     }
 
     void waitForAcks() {
         if (ackTimeoutFuture == null) {
-            LOG.debug("Waiting for ack until {}.", this.waitForAcksUntil);
+            LOG.debug("[correlation id: {}] Waiting for ack until {}.", requestMessage.getCorrelationId(), this.waitForAcksUntil);
             long ackTimeoutMs = waitForAcksUntil.toEpochMilli() - clock.instant().toEpochMilli();
             ackTimeoutFuture = timeoutManager.enableAckTimeout(toIntExact(ackTimeoutMs), this);
         } else {
-            LOG.debug("Ack timeout is already scheduled");
+            LOG.debug("[correlation id: {}] Ack timeout is already scheduled", requestMessage.getCorrelationId());
         }
     }
 
