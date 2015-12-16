@@ -19,6 +19,7 @@ public class ConfigurationSteps extends MsbSteps {
     private String MSB_BROKER_CONFIG_ROOT = "msbConfig.brokerConfig";
     private String MSB_BROKER_CONSUMER_THREAD_POOL_SIZE = MSB_BROKER_CONFIG_ROOT + ".consumerThreadPoolSize";
     private String MSB_BROKER_CONSUMER_THREAD_POOL_QUEUE_CAPACITY = MSB_BROKER_CONFIG_ROOT + ".consumerThreadPoolQueueCapacity";
+    private String MSB_BROKER_CONSUMER_THREAD_POOL_PREFETCH_COUNT = MSB_BROKER_CONFIG_ROOT + ".prefetchCount";
 
     private Config config = ConfigFactory.load();
 
@@ -41,6 +42,12 @@ public class ConfigurationSteps extends MsbSteps {
     public void initWithConsumerThreadPoolQueueCapacity(int capacity) {
         config = config.withValue(MSB_BROKER_CONSUMER_THREAD_POOL_QUEUE_CAPACITY, ConfigValueFactory.fromAnyRef(capacity));
     }
+
+    @Given("MSB configuration with consumer prefetch count $count")
+    public void initWithConsumerPrefetchCount(int capacity) {
+        config = config.withValue(MSB_BROKER_CONSUMER_THREAD_POOL_PREFETCH_COUNT, ConfigValueFactory.fromAnyRef(capacity));
+    }
+
 
     @Given("start MSB")
     public void initMSB() {

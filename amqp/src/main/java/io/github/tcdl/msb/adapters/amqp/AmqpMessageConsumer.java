@@ -32,13 +32,11 @@ public class AmqpMessageConsumer extends DefaultConsumer {
 
     private static final Logger LOG = LoggerFactory.getLogger(AmqpMessageConsumer.class);
 
-    ExecutorService consumerThreadPool;
     ConsumerAdapter.RawMessageHandler msgHandler;
     private AmqpBrokerConfig amqpBrokerConfig;
 
-    public AmqpMessageConsumer(Channel channel, ExecutorService consumerThreadPool, ConsumerAdapter.RawMessageHandler msgHandler, AmqpBrokerConfig amqpBrokerConfig) {
+    public AmqpMessageConsumer(Channel channel, ConsumerAdapter.RawMessageHandler msgHandler, AmqpBrokerConfig amqpBrokerConfig) {
         super(channel);
-        this.consumerThreadPool = consumerThreadPool;
         this.msgHandler = msgHandler;
         this.amqpBrokerConfig = amqpBrokerConfig;
     }
@@ -56,11 +54,11 @@ public class AmqpMessageConsumer extends DefaultConsumer {
             LOG.debug(String.format("[consumer tag: %s] Message consumed from broker: %s", consumerTag, bodyStr));
 
             try {
-                consumerThreadPool.submit(new AmqpMessageProcessingTask(consumerTag, bodyStr, msgHandler, ackHandler));
-                LOG.debug(String.format("[consumer tag: %s] Message has been put in the processing queue: %s.",
+                msgHandler.onMessage(bodyStr, ackHandler);
+                LOG.debug(String.format("[consumer tag: %s] Raw message has been handled: %s.",
                         consumerTag, bodyStr));
             } catch (Exception e) {
-                LOG.error(String.format("[consumer tag: %s] Couldn't put message in the processing queue: %s.",
+                LOG.error(String.format("[consumer tag: %s] Can't handle a raw message: %s.",
                         consumerTag, bodyStr), e);
                 throw e;
             }

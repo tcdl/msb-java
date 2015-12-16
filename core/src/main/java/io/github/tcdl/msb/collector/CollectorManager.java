@@ -2,11 +2,13 @@ package io.github.tcdl.msb.collector;
 
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
+import io.github.tcdl.msb.MessageHandlerResolver;
 import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.exception.ConsumerSubscriptionException;
 import io.github.tcdl.msb.api.message.Message;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -15,14 +17,14 @@ import org.slf4j.LoggerFactory;
 /**
  * Manages instances of {@link Collector}s that listens to the same response topic.
  */
-public class CollectorManager implements MessageHandler {
+public class CollectorManager implements MessageHandlerResolver {
 
     private static final Logger LOG = LoggerFactory.getLogger(CollectorManager.class);
 
-    private boolean isSubscribed = false;
+    private volatile boolean isSubscribed = false;
 
-    private String topic;
-    private ChannelManager channelManager;
+    private final String topic;
+    private final ChannelManager channelManager;
     Map<String, Collector> collectorsByCorrelationId = new ConcurrentHashMap<>();
 
     public CollectorManager(String topic, ChannelManager channelManager) {
@@ -31,18 +33,17 @@ public class CollectorManager implements MessageHandler {
     }
 
     /**
-     * Determines correlationId from the incoming message and invokes the relevant {@link Collector} instance.
+     * Determines correlationId from the incoming message and resolves the relevant {@link Collector} instance.
      */
-    @Override
-    public void handleMessage(Message message, AcknowledgementHandler acknowledgeHandler) {
+    @Override public Optional<MessageHandler> resolveMessageHandler(Message message) {
         String correlationId = message.getCorrelationId();
         Collector collector = collectorsByCorrelationId.get(correlationId);
         if (collector != null) {
-            collector.handleMessage(message, acknowledgeHandler);
+            return Optional.of(collector);
         } else {
             LOG.warn("Message with correlationId {} is not expected to be processed by any Collectors", correlationId);
+            return Optional.empty();
         }
-
     }
 
     /**

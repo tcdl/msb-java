@@ -33,9 +33,6 @@ public class AmqpMessageConsumerTest {
     private Channel mockChannel;
 
     @Mock
-    private ExecutorService mockExecutorService;
-
-    @Mock
     private ConsumerAdapter.RawMessageHandler mockMessageHandler;
 
     @Mock
@@ -50,7 +47,7 @@ public class AmqpMessageConsumerTest {
     public void setUp() {
         when(mockBrokerConfig.getCharset()).thenReturn(Charset.forName("UTF-8"));
 
-        amqpMessageConsumer = new AmqpMessageConsumer(mockChannel, mockExecutorService, mockMessageHandler, mockBrokerConfig) {
+        amqpMessageConsumer = new AmqpMessageConsumer(mockChannel, mockMessageHandler, mockBrokerConfig) {
             @Override
             AcknowledgementHandlerImpl createAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag, boolean isRequeueRejectedMessages) {
                 return amqpAcknowledgementHandler;
@@ -69,15 +66,8 @@ public class AmqpMessageConsumerTest {
         // method under test
         amqpMessageConsumer.handleDelivery(consumerTag, envelope, null, messageStr.getBytes());
 
-        // verify that a new task has been submitted
-        ArgumentCaptor<AmqpMessageProcessingTask> taskCaptor = ArgumentCaptor.forClass(AmqpMessageProcessingTask.class);
-        verify(mockExecutorService).submit(taskCaptor.capture());
+        verify(mockMessageHandler, times(1)).onMessage(eq(messageStr), eq(amqpAcknowledgementHandler));
 
-        // verify that the right task was submitted
-        AmqpMessageProcessingTask task = taskCaptor.getValue();
-        assertEquals(consumerTag, task.consumerTag);
-        assertEquals(messageStr, task.body);
-        assertEquals(mockMessageHandler, task.msgHandler);        
     }
 
     @Test
@@ -86,7 +76,7 @@ public class AmqpMessageConsumerTest {
         Envelope envelope = mock(Envelope.class);
         when(envelope.getDeliveryTag()).thenReturn(deliveryTag);
 
-        doThrow(new RejectedExecutionException()).when(mockExecutorService).submit(any(Runnable.class));
+        doThrow(new RejectedExecutionException()).when(mockMessageHandler).onMessage(anyString(), any());
 
         try {
             amqpMessageConsumer.handleDelivery("consumer tag", envelope, null, "some message".getBytes());
@@ -119,7 +109,7 @@ public class AmqpMessageConsumerTest {
         Envelope envelope = mock(Envelope.class);
         when(envelope.getDeliveryTag()).thenReturn(deliveryTag);
 
-        doThrow(new RejectedExecutionException()).when(mockExecutorService).submit(any(Runnable.class));
+        doThrow(new RejectedExecutionException()).when(mockMessageHandler).onMessage(anyString(), any());
         doThrow(new RuntimeException()).when(mockChannel).basicReject(eq(deliveryTag), anyBoolean());
 
         try {
@@ -140,12 +130,11 @@ public class AmqpMessageConsumerTest {
         Envelope envelope = mock(Envelope.class);
         when(envelope.getDeliveryTag()).thenReturn(1234L);
 
-        AmqpMessageConsumer consumer = new AmqpMessageConsumer(mockChannel, mockExecutorService, mockMessageHandler, mockBrokerConfig);
+        AmqpMessageConsumer consumer = new AmqpMessageConsumer(mockChannel, mockMessageHandler, mockBrokerConfig);
         consumer.handleDelivery("some tag", envelope, null, encodedMessage);
 
-        ArgumentCaptor<AmqpMessageProcessingTask> taskCaptor = ArgumentCaptor.forClass(AmqpMessageProcessingTask.class);
-        verify(mockExecutorService).submit(taskCaptor.capture());
-        assertEquals(expectedDecodedMessage, taskCaptor.getValue().body);
+        verify(mockMessageHandler, times(1)).onMessage(eq(expectedDecodedMessage), any());
+
     }
 
 }

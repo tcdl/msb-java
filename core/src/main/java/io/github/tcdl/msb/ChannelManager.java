@@ -5,14 +5,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.tcdl.msb.adapters.AdapterFactory;
-import io.github.tcdl.msb.adapters.AdapterFactoryLoader;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.ProducerAdapter;
+import io.github.tcdl.msb.adapters.*;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.exception.ConsumerSubscriptionException;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.impl.SimpleMessageHandlerResolverImpl;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.monitor.agent.NoopChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
@@ -70,12 +68,16 @@ public class ChannelManager {
      * @throws ConsumerSubscriptionException if subscriber for topic already exist
      */
     public synchronized boolean subscribe(String topic, MessageHandler messageHandler) {
+        return subscribe(topic, new SimpleMessageHandlerResolverImpl(messageHandler));
+    }
+
+    public synchronized boolean subscribe(String topic, MessageHandlerResolver messageHandlerResolver) {
         Validate.notNull(topic, "field 'topic' is null");
-        Validate.notNull(messageHandler, "field 'messageHandler' is null");
+        Validate.notNull(messageHandlerResolver, "field 'messageHandlerResolver' is null");
         if (consumersByTopic.get(topic) != null) {
             throw new ConsumerSubscriptionException("Subscriber for this topic: " + topic + " already exist");
         } else {
-            Consumer newConsumer = createConsumer(topic, messageHandler);
+            Consumer newConsumer = createConsumer(topic, messageHandlerResolver);
             channelMonitorAgent.consumerTopicCreated(topic);
             consumersByTopic.put(topic, newConsumer);
             return false;
@@ -104,12 +106,12 @@ public class ChannelManager {
         return new Producer(adapter, topic, handler, messageMapper);
     }
 
-    private Consumer createConsumer(String topic, MessageHandler messageHandler) {
+    private Consumer createConsumer(String topic, MessageHandlerResolver messageHandlerResolver) {
         Utils.validateTopic(topic);
 
         ConsumerAdapter adapter = getAdapterFactory().createConsumerAdapter(topic);
-
-        return new Consumer(adapter, topic, messageHandler, msbConfig, clock, channelMonitorAgent, validator, messageMapper);
+        MessageHandlerInvokeAdapter invokeAdapter = getAdapterFactory().createMessageHandlerInvokeAdapter(topic);
+        return new Consumer(adapter, invokeAdapter, topic, messageHandlerResolver, msbConfig, clock, channelMonitorAgent, validator, messageMapper);
     }
 
     public void shutdown() {
