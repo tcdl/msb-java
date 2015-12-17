@@ -11,7 +11,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SimpleMessageHandlerInvokeAdapterImplTest {
+public class SimpleMessageHandlerInvokeStrategyImplTest {
 
     @Mock
     MessageHandler messageHandler;
@@ -22,12 +22,13 @@ public class SimpleMessageHandlerInvokeAdapterImplTest {
     Message message;
 
     @InjectMocks
-    SimpleMessageHandlerInvokeAdapterImpl adapter;
+    SimpleMessageHandlerInvokeStrategyImpl adapter;
 
     @Test
     public void testDirectInvoke() {
         adapter.execute(messageHandler, message, acknowledgeHandler);
         verify(messageHandler, times(1)).handleMessage(message, acknowledgeHandler);
+        verify(acknowledgeHandler, times(1)).autoConfirm();
     }
 
 }

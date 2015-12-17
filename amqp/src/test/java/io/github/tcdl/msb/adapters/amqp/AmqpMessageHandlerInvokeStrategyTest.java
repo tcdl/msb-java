@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AmqpMessageHandlerInvokeAdapterTest {
+public class AmqpMessageHandlerInvokeStrategyTest {
     @Mock
     ExecutorService mockExecutor;
 
@@ -30,7 +30,7 @@ public class AmqpMessageHandlerInvokeAdapterTest {
     Message message = TestUtils.createMsbRequestMessage("any","any");
 
     @InjectMocks
-    AmqpMessageHandlerInvokeAdapter adapter;
+    AmqpMessageHandlerInvokeStrategy adapter;
 
     @Test
     public void testMessageHandling() {

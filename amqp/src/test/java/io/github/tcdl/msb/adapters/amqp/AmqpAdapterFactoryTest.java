@@ -9,7 +9,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.MessageHandlerInvokeAdapter;
+import io.github.tcdl.msb.adapters.MessageHandlerInvokeStrategy;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
@@ -155,8 +155,8 @@ public class AmqpAdapterFactoryTest {
 
     @Test
     public void testCreateMessageHandlerInvokeAdapter() {
-        MessageHandlerInvokeAdapter adapter = amqpAdapterFactory.createMessageHandlerInvokeAdapter("any");
-        assertTrue(adapter instanceof AmqpMessageHandlerInvokeAdapter);
+        MessageHandlerInvokeStrategy adapter = amqpAdapterFactory.createMessageHandlerInvokeStrategy("any");
+        assertTrue(adapter instanceof AmqpMessageHandlerInvokeStrategy);
     }
 
     @Test

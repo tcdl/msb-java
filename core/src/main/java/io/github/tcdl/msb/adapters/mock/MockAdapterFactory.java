@@ -3,11 +3,10 @@ package io.github.tcdl.msb.adapters.mock;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
-
-import io.github.tcdl.msb.impl.SimpleMessageHandlerInvokeAdapterImpl;
+import io.github.tcdl.msb.impl.SimpleMessageHandlerInvokeStrategyImpl;
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.MessageHandlerInvokeAdapter;
+import io.github.tcdl.msb.adapters.MessageHandlerInvokeStrategy;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.support.Utils;
@@ -36,8 +35,8 @@ public class MockAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public MessageHandlerInvokeAdapter createMessageHandlerInvokeAdapter(String topic) {
-        return new SimpleMessageHandlerInvokeAdapterImpl();
+    public MessageHandlerInvokeStrategy createMessageHandlerInvokeStrategy(String topic) {
+        return new SimpleMessageHandlerInvokeStrategyImpl();
     }
 
     @Override

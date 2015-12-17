@@ -71,6 +71,14 @@ public class ChannelManager {
         return subscribe(topic, new SimpleMessageHandlerResolverImpl(messageHandler));
     }
 
+    /**
+     * Start consuming messages on specified topic with handler resolver.
+     * Calls to subscribe() and unsubscribe() have to be properly synchronized by client code not to lose messages.
+     *
+     * @param topic
+     * @param messageHandlerResolver resolver of {@link MessageHandler}  for processing messages
+     * @throws ConsumerSubscriptionException if subscriber for topic already exist
+     */
     public synchronized boolean subscribe(String topic, MessageHandlerResolver messageHandlerResolver) {
         Validate.notNull(topic, "field 'topic' is null");
         Validate.notNull(messageHandlerResolver, "field 'messageHandlerResolver' is null");
@@ -110,7 +118,7 @@ public class ChannelManager {
         Utils.validateTopic(topic);
 
         ConsumerAdapter adapter = getAdapterFactory().createConsumerAdapter(topic);
-        MessageHandlerInvokeAdapter invokeAdapter = getAdapterFactory().createMessageHandlerInvokeAdapter(topic);
+        MessageHandlerInvokeStrategy invokeAdapter = getAdapterFactory().createMessageHandlerInvokeStrategy(topic);
         return new Consumer(adapter, invokeAdapter, topic, messageHandlerResolver, msbConfig, clock, channelMonitorAgent, validator, messageMapper);
     }
 
