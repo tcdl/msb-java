@@ -33,11 +33,11 @@ public interface AdapterFactory {
     ConsumerAdapter createConsumerAdapter(String topic);
 
     /**
-     * Create {@link MessageHandlerInvokeAdapter} instance.
+     * Create {@link MessageHandlerInvokeStrategy} instance.
      * @param topic topic name
-     * @return {@link MessageHandlerInvokeAdapter} instance associated with a topic.
+     * @return {@link MessageHandlerInvokeStrategy} instance associated with a topic.
      */
-    MessageHandlerInvokeAdapter createMessageHandlerInvokeAdapter(String topic);
+    MessageHandlerInvokeStrategy createMessageHandlerInvokeStrategy(String topic);
 
     /**
      * Closes all resources used by amqp producers and consumers. Should be called for graceful shutdown.

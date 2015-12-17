@@ -85,7 +85,7 @@ public class MockAdapter implements ProducerAdapter, ConsumerAdapter {
 
                         if (messageHandler != null && jsonMessage != null) {
                             LOG.debug("Process message for topic {} [{}]", topic, jsonMessage);
-                            messageHandler.onMessage(jsonMessage, null);
+                            messageHandler.onMessage(jsonMessage, new MockAcknowledgementHandler());
                         } else {
                             try {
                                 Thread.sleep(CONSUMING_INTERVAL);

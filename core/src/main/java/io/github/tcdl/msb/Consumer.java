@@ -2,7 +2,7 @@ package io.github.tcdl.msb;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
-import io.github.tcdl.msb.adapters.MessageHandlerInvokeAdapter;
+import io.github.tcdl.msb.adapters.MessageHandlerInvokeStrategy;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -29,7 +29,7 @@ public class Consumer {
     private static final Logger LOG = LoggerFactory.getLogger(Consumer.class);
 
     private final ConsumerAdapter rawAdapter;
-    private final MessageHandlerInvokeAdapter messageHandlerInvokeAdapter;
+    private final MessageHandlerInvokeStrategy messageHandlerInvokeStrategy;
     private final String topic;
     private MsbConfig msbConfig;
     private ChannelMonitorAgent channelMonitorAgent;
@@ -48,12 +48,13 @@ public class Consumer {
      * @param validator validates incoming messages
      * @param messageMapper message deserializer
      */
-    public Consumer(ConsumerAdapter rawAdapter, MessageHandlerInvokeAdapter messageHandlerInvokeAdapter,
+    public Consumer(ConsumerAdapter rawAdapter, MessageHandlerInvokeStrategy messageHandlerInvokeStrategy,
             String topic, MessageHandlerResolver messageHandlerResolver, MsbConfig msbConfig,
             Clock clock, ChannelMonitorAgent channelMonitorAgent, JsonValidator validator, ObjectMapper messageMapper) {
 
         LOG.debug("Creating consumer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
+        Validate.notNull(messageHandlerInvokeStrategy, "the 'messageHandlerInvokeStrategy' must not be null");
         Validate.notNull(topic, "the 'topic' must not be null");
         Validate.notNull(messageHandlerResolver, "the 'messageHandlerResolver' must not be null");
         Validate.notNull(msbConfig, "the 'msbConfig' must not be null");
@@ -63,7 +64,7 @@ public class Consumer {
         Validate.notNull(messageMapper, "the 'messageMapper' must not be null");
 
         this.rawAdapter = rawAdapter;
-        this.messageHandlerInvokeAdapter = messageHandlerInvokeAdapter;
+        this.messageHandlerInvokeStrategy = messageHandlerInvokeStrategy;
         this.topic = topic;
         this.messageHandlerResolver = messageHandlerResolver;
         this.msbConfig = msbConfig;
@@ -84,7 +85,8 @@ public class Consumer {
     }
 
     /**
-     * Process incoming message.
+     * Process raw incoming message JSON. If Message JSON is invalid or the message has been expired, the message
+     * will be rejected by means of {@link AcknowledgementHandlerInternal}.
      *
      * @param jsonMessage message to process
      */
@@ -111,7 +113,7 @@ public class Consumer {
         try {
             Optional<MessageHandler> messageHandler = messageHandlerResolver.resolveMessageHandler(message);
             if(messageHandler.isPresent()) {
-                messageHandlerInvokeAdapter.execute(messageHandler.get(), message, acknowledgeHandler);
+                messageHandlerInvokeStrategy.execute(messageHandler.get(), message, acknowledgeHandler);
             } else {
                 LOG.warn("Cant't resolve message handler for a message: {}", jsonMessage);
                 acknowledgeHandler.autoReject();

@@ -7,7 +7,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.MessageHandlerInvokeAdapter;
+import io.github.tcdl.msb.adapters.MessageHandlerInvokeStrategy;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.api.exception.ConfigurationException;
@@ -175,8 +175,8 @@ public class AmqpAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public MessageHandlerInvokeAdapter createMessageHandlerInvokeAdapter(String topic) {
-        return new AmqpMessageHandlerInvokeAdapter(consumerThreadPool);
+    public MessageHandlerInvokeStrategy createMessageHandlerInvokeStrategy(String topic) {
+        return new AmqpMessageHandlerInvokeStrategy(consumerThreadPool);
     }
 
     AmqpBrokerConfig getAmqpBrokerConfig() {
