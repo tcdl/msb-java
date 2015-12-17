@@ -45,7 +45,7 @@ public final class MetaMessage {
 
         public MetaMessage build() {
             publishedAt = clock.instant();
-            Long durationMs = Duration.between(publishedAt, this.createdAt).toMillis();;
+            Long durationMs = Duration.between(this.createdAt, publishedAt).toMillis();;
             return new MetaMessage(ttl, createdAt, publishedAt, durationMs, serviceDetails);
         }
     }
