@@ -76,7 +76,7 @@ public class CollectorManagerTest {
         collectorManager.registerCollector(collectorMock);
 
         assertEquals(1, collectorManager.collectorsByCorrelationId.size());
-        verify(channelManagerMock, times(1)).subscribe(TOPIC, collectorManager);
+        verify(channelManagerMock, times(1)).subscribeForResponses(TOPIC, collectorManager);
     }
 
     @Test
@@ -89,7 +89,7 @@ public class CollectorManagerTest {
         collectorManager.registerCollector(secondCollectorMock);
 
         assertEquals(2, collectorManager.collectorsByCorrelationId.size());
-        verify(channelManagerMock, times(1)).subscribe(TOPIC, collectorManager);
+        verify(channelManagerMock, times(1)).subscribeForResponses(TOPIC, collectorManager);
     }
 
     @Test
@@ -97,7 +97,7 @@ public class CollectorManagerTest {
         CollectorManager collectorManager = new CollectorManager(TOPIC, channelManagerMock);
         collectorManager.registerCollector(collectorMock);
 
-        verify(channelManagerMock, times(1)).subscribe(TOPIC, collectorManager);
+        verify(channelManagerMock, times(1)).subscribeForResponses(TOPIC, collectorManager);
 
         reset(channelManagerMock);
         collectorManager.registerCollector(collectorMock);
@@ -157,7 +157,7 @@ public class CollectorManagerTest {
 
         reset(channelManagerMock);
         collectorManager.registerCollector(collectorMock);
-        verify(channelManagerMock, times(1)).subscribe(TOPIC, collectorManager);
+        verify(channelManagerMock, times(1)).subscribeForResponses(TOPIC, collectorManager);
     }
 
 }

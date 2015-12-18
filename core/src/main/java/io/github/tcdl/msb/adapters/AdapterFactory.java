@@ -27,10 +27,11 @@ public interface AdapterFactory {
 
     /**
      * @param topic topic name
+     * @param isResponseTopic specify if this topic used to handle response
      * @return Consumer Adapter associated with a topic
      * @throws ChannelException if some problems during creation were occurred
      */
-    ConsumerAdapter createConsumerAdapter(String topic);
+    ConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic);
 
     /**
      * Create {@link MessageHandlerInvokeStrategy} instance.

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.adapters.*;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.exception.ConsumerSubscriptionException;
+import io.github.tcdl.msb.collector.CollectorManager;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.impl.SimpleMessageHandlerResolverImpl;
@@ -68,24 +69,33 @@ public class ChannelManager {
      * @throws ConsumerSubscriptionException if subscriber for topic already exist
      */
     public synchronized boolean subscribe(String topic, MessageHandler messageHandler) {
-        return subscribe(topic, new SimpleMessageHandlerResolverImpl(messageHandler));
-    }
-
-    /**
-     * Start consuming messages on specified topic with handler resolver.
-     * Calls to subscribe() and unsubscribe() have to be properly synchronized by client code not to lose messages.
-     *
-     * @param topic
-     * @param messageHandlerResolver resolver of {@link MessageHandler}  for processing messages
-     * @throws ConsumerSubscriptionException if subscriber for topic already exist
-     */
-    public synchronized boolean subscribe(String topic, MessageHandlerResolver messageHandlerResolver) {
         Validate.notNull(topic, "field 'topic' is null");
-        Validate.notNull(messageHandlerResolver, "field 'messageHandlerResolver' is null");
+        Validate.notNull(messageHandler, "field 'messageHandler' is null");
         if (consumersByTopic.get(topic) != null) {
             throw new ConsumerSubscriptionException("Subscriber for this topic: " + topic + " already exist");
         } else {
-            Consumer newConsumer = createConsumer(topic, messageHandlerResolver);
+            Consumer newConsumer = createConsumer(topic, false, new SimpleMessageHandlerResolverImpl(messageHandler));
+            channelMonitorAgent.consumerTopicCreated(topic);
+            consumersByTopic.put(topic, newConsumer);
+            return false;
+        }
+    }
+
+    /**
+     * Start consuming response messages on specified topic and pass processing to CollectorManager.
+     * Calls to subscribe() and unsubscribe() have to be properly synchronized by client code not to lose messages.
+     *
+     * @param topic
+     * @param collectorManager resolver of {@link MessageHandler}  for processing messages
+     * @throws ConsumerSubscriptionException if subscriber for topic already exist
+     */
+    public synchronized boolean subscribeForResponses(String topic, CollectorManager collectorManager) {
+        Validate.notNull(topic, "field 'topic' is null");
+        Validate.notNull(collectorManager, "field 'collectorManager' is null");
+        if (consumersByTopic.get(topic) != null) {
+            throw new ConsumerSubscriptionException("Subscriber for this topic: " + topic + " already exist");
+        } else {
+            Consumer newConsumer = createConsumer(topic, true, collectorManager);
             channelMonitorAgent.consumerTopicCreated(topic);
             consumersByTopic.put(topic, newConsumer);
             return false;
@@ -114,10 +124,10 @@ public class ChannelManager {
         return new Producer(adapter, topic, handler, messageMapper);
     }
 
-    private Consumer createConsumer(String topic, MessageHandlerResolver messageHandlerResolver) {
+    private Consumer createConsumer(String topic, boolean isResponseTopic, MessageHandlerResolver messageHandlerResolver) {
         Utils.validateTopic(topic);
 
-        ConsumerAdapter adapter = getAdapterFactory().createConsumerAdapter(topic);
+        ConsumerAdapter adapter = getAdapterFactory().createConsumerAdapter(topic, isResponseTopic );
         MessageHandlerInvokeStrategy invokeAdapter = getAdapterFactory().createMessageHandlerInvokeStrategy(topic);
         return new Consumer(adapter, invokeAdapter, topic, messageHandlerResolver, msbConfig, clock, channelMonitorAgent, validator, messageMapper);
     }
@@ -128,7 +138,7 @@ public class ChannelManager {
         LOG.info("Shutdown complete");
     }
 
-    public AdapterFactory getAdapterFactory() {
+    private AdapterFactory getAdapterFactory() {
         return this.adapterFactory;
     }
 

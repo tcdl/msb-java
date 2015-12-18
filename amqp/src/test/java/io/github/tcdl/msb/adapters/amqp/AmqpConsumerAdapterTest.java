@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.adapters.amqp;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
@@ -43,7 +44,7 @@ public class AmqpConsumerAdapterTest {
     @Test
     public void testTopicExchangeCreated() throws Exception {
         String topicName = "myTopic";
-        AmqpConsumerAdapter adapter = createAdapter(topicName, "myGroupId", false);
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf(topicName, "myGroupId", false);
 
         adapter.subscribe((jsonMessage, ackHandler) -> {
         });
@@ -55,12 +56,12 @@ public class AmqpConsumerAdapterTest {
     public void testInitializationError() throws IOException {
         when(mockChannel.exchangeDeclare(anyString(), anyString(), anyBoolean(), anyBoolean(), any())).thenThrow(new IOException());
 
-        createAdapter("myTopic", "myGroupId", false);
+        createAdapterWithNonDurableConf("myTopic", "myGroupId", false);
     }
 
     @Test
     public void testSubscribeTransientQueueCreated() throws IOException {
-        AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", false);
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf("myTopic", "myGroupId", false);
         
         adapter.subscribe((jsonMessage, ackHandler) -> {
         });
@@ -76,8 +77,25 @@ public class AmqpConsumerAdapterTest {
     }
 
     @Test
+    public void testSubscribeTransientQueueCreatedWhenIsResponseTopic() throws IOException {
+        AmqpConsumerAdapter adapter = createAdapterWithDurableConf("myTopic", "myGroupId", true);
+
+        adapter.subscribe((jsonMessage, ackHandler) -> {
+        });
+
+        // Verify that the queue has been declared with correct name and settings
+        verify(mockChannel).queueDeclare("myTopic.myGroupId.t", /* queue name */
+                false, /* durable */
+                false, /* exclusive */
+                true,  /* auto-delete */
+                null);
+        // Verify that the queue has been bound to the exchange
+        verify(mockChannel).queueBind("myTopic.myGroupId.t", "myTopic", "");
+    }
+
+    @Test
     public void testSubscribeDurableQueueCreated() throws IOException {
-        AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", true);
+        AmqpConsumerAdapter adapter = createAdapterWithDurableConf("myTopic", "myGroupId", false);
 
         adapter.subscribe((jsonMessage, ackHandler) -> {
         });
@@ -94,7 +112,7 @@ public class AmqpConsumerAdapterTest {
 
     @Test
     public void testRegisteredHandlerInvoked() throws IOException {
-        AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", false);
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf("myTopic", "myGroupId", false);
         ConsumerAdapter.RawMessageHandler mockHandler = mock(ConsumerAdapter.RawMessageHandler.class);
 
         adapter.subscribe(mockHandler);
@@ -110,7 +128,7 @@ public class AmqpConsumerAdapterTest {
 
     @Test
     public void testUnsubscribe() throws IOException {
-        AmqpConsumerAdapter adapter = createAdapter("myTopic", "myGroupId", false);
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf("myTopic", "myGroupId", false);
         String consumerTag = "my consumer tag";
         when(mockChannel.basicConsume(anyString(), anyBoolean(), any(Consumer.class))).thenReturn(consumerTag);
 
@@ -121,9 +139,53 @@ public class AmqpConsumerAdapterTest {
         verify(mockChannel).basicCancel(consumerTag);
     }
 
-    private AmqpConsumerAdapter createAdapter(String topic, String groupId, boolean durable) {
+    @Test
+    public void testIsDurableFalseIfResponseTopicAndNonDurableConfig() throws IOException {
+        boolean isResponseTopic = true;
+
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf("myTopic", "myGroupId", isResponseTopic);
+
+        assertTrue(adapter.isDurable() == false);
+    }
+
+    @Test
+    public void testIsDurableFalseIfNotResponseTopicAndNonDurableConfig() throws IOException {
+        boolean isResponseTopic = false;
+
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf("myTopic", "myGroupId", isResponseTopic);
+
+        assertTrue(adapter.isDurable() == false);
+    }
+
+    @Test
+    public void testIsDurableFalseIfResponseTopicAndDurableConfig() throws IOException {
+        boolean isResponseTopic = true;
+
+        AmqpConsumerAdapter adapter = createAdapterWithDurableConf("myTopic", "myGroupId", isResponseTopic);
+
+        assertTrue(adapter.isDurable() == false);
+    }
+
+    @Test
+    public void testIsDurableTrueIfNotResponseTopicAndDurableConfig() throws IOException {
+        boolean isResponseTopic = false;
+
+        AmqpConsumerAdapter adapter = createAdapterWithDurableConf("myTopic", "myGroupId", isResponseTopic);
+
+        assertTrue(adapter.isDurable() == true);
+    }
+
+    private AmqpConsumerAdapter createAdapterWithNonDurableConf(String topic, String groupId, boolean isResponseTopic) {
+        boolean isDurableConf = false;
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig(Charset.forName("UTF-8"), "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(),
-                false, Optional.of(groupId), durable, 5, 20, 1, 5000, 1);
-        return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager);
+                false, Optional.of(groupId), isDurableConf, 5, 20, 1, 5000, 1);
+        return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, isResponseTopic);
+    }
+
+    private AmqpConsumerAdapter createAdapterWithDurableConf(String topic, String groupId, boolean isResponseTopic) {
+        boolean isDurableConf = true;
+        AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig(Charset.forName("UTF-8"), "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(),
+                false, Optional.of(groupId), isDurableConf, 5, 20, 1, 5000, 1);
+        return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, isResponseTopic);
     }
 }

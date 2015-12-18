@@ -24,7 +24,7 @@ public class CliMessageSubscriberTest {
     public void setUp() {
         mockAdapterFactory = mock(AdapterFactory.class);
         mockConsumerAdapter = mock(ConsumerAdapter.class);
-        when(mockAdapterFactory.createConsumerAdapter(TOPIC_NAME)).thenReturn(mockConsumerAdapter);
+        when(mockAdapterFactory.createConsumerAdapter(TOPIC_NAME, false)).thenReturn(mockConsumerAdapter);
 
         mockMessageHandler = mock(CliMessageHandler.class);
 
@@ -52,7 +52,7 @@ public class CliMessageSubscriberTest {
         // method under test
         subscriptionManager.subscribe(topicName, mockMessageHandler);
 
-        verify(mockAdapterFactory).createConsumerAdapter(topicName);
+        verify(mockAdapterFactory).createConsumerAdapter(topicName, false);
         verify(mockConsumerAdapter).subscribe(mockMessageHandler);
     }
 }

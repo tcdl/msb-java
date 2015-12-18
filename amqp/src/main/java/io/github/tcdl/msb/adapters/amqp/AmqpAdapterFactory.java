@@ -74,8 +74,8 @@ public class AmqpAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public ConsumerAdapter createConsumerAdapter(String topic) {
-        return new AmqpConsumerAdapter(topic, amqpBrokerConfig, connectionManager);
+    public ConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic) {
+        return new AmqpConsumerAdapter(topic, amqpBrokerConfig, connectionManager, isResponseTopic);
     }
 
     protected ConnectionFactory createConnectionFactory(AmqpBrokerConfig adapterConfig) {
