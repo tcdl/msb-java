@@ -5,6 +5,7 @@ import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
 import io.github.tcdl.msb.adapters.MessageHandlerInvokeStrategy;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
+import io.github.tcdl.msb.collector.ConsumedMessagesAwareMessageHandler;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
@@ -110,10 +111,16 @@ public class Consumer {
             return;
         }
 
+        ConsumedMessagesAwareMessageHandler consumedMessagesAwareMessageHandler = null;
         try {
-            Optional<MessageHandler> messageHandler = messageHandlerResolver.resolveMessageHandler(message);
-            if(messageHandler.isPresent()) {
-                messageHandlerInvokeStrategy.execute(messageHandler.get(), message, acknowledgeHandler);
+            Optional<MessageHandler> optionalMessageHandler = messageHandlerResolver.resolveMessageHandler(message);
+            if(optionalMessageHandler.isPresent()) {
+                MessageHandler messageHandler = optionalMessageHandler.get();
+                if(messageHandler instanceof ConsumedMessagesAwareMessageHandler) {
+                    consumedMessagesAwareMessageHandler = ((ConsumedMessagesAwareMessageHandler) messageHandler);
+                    consumedMessagesAwareMessageHandler.notifyMessageConsumed();
+                }
+                messageHandlerInvokeStrategy.execute(messageHandler, message, acknowledgeHandler);
             } else {
                 LOG.warn("Cant't resolve message handler for a message: {}", jsonMessage);
                 acknowledgeHandler.autoReject();
@@ -121,6 +128,9 @@ public class Consumer {
         } catch (Exception e) {
             LOG.warn("Error while trying to handle a message: {}", jsonMessage, e);
             acknowledgeHandler.autoRetry();
+            if(consumedMessagesAwareMessageHandler != null) {
+                consumedMessagesAwareMessageHandler.notifyConsumedMessageIsLost();
+            }
         }
     }
 

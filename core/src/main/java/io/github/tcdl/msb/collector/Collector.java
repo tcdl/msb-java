@@ -2,7 +2,7 @@ package io.github.tcdl.msb.collector;
 
 import static io.github.tcdl.msb.support.Utils.ifNull;
 import static java.lang.Math.toIntExact;
-import io.github.tcdl.msb.MessageHandler;
+
 import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageContext;
@@ -17,12 +17,9 @@ import io.github.tcdl.msb.support.Utils;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BiConsumer;
 
 import org.slf4j.Logger;
@@ -35,41 +32,69 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
  */
-public class Collector<T> implements MessageHandler {
+public class Collector<T> implements ConsumedMessagesAwareMessageHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
-    private List<Message> ackMessages;
-    private List<Message> payloadMessages;
+    private final List<Message> ackMessages;
+    private final List<Message> payloadMessages;
 
-    private Map<String, Integer> timeoutMsById;
-    private Map<String, Integer> responsesRemainingById;
+    private final Map<String, Integer> timeoutMsById;
+    private final Map<String, Integer> responsesRemainingById;
+    private final Set<String> handledMessagesIds;
 
-    private int timeoutMs;
-    private int currentTimeoutMs;
-    private Integer waitForAcksMs;
-    private Instant waitForAcksUntil;
+    private final int timeoutMs;
+    private volatile int currentTimeoutMs;
+    private final Integer waitForAcksMs;
+    private volatile Instant waitForAcksUntil;
 
-    private int responsesRemaining;
-    private boolean shouldWaitUntilResponseTimeout;
+    private volatile int responsesRemaining;
+    private final boolean shouldWaitUntilResponseTimeout;
 
-    private TypeReference<T> payloadTypeReference;
+    private final TypeReference<T> payloadTypeReference;
 
-    private long startedAt;
-    private TimeoutManager timeoutManager;
-    private ObjectMapper payloadMapper;
+    private final long startedAt;
+    private final TimeoutManager timeoutManager;
+    private final ObjectMapper payloadMapper;
 
-    private Clock clock;
-    private Message requestMessage;
+    private final Clock clock;
+    private final Message requestMessage;
 
-    private Optional<BiConsumer<Message, MessageContext>> onRawResponse = Optional.empty();
-    private Optional<BiConsumer<T, MessageContext>> onResponse = Optional.empty();
-    private Optional<BiConsumer<Acknowledge, MessageContext>> onAcknowledge = Optional.empty();
-    private Optional<Callback<Void>> onEnd = Optional.empty();
+    private final Optional<BiConsumer<Message, MessageContext>> onRawResponse;
+    private final Optional<BiConsumer<T, MessageContext>> onResponse;
+    private final Optional<BiConsumer<Acknowledge, MessageContext>> onAcknowledge;
+    private final Optional<Callback<Void>> onEnd;
 
     private ScheduledFuture ackTimeoutFuture;
     private ScheduledFuture responseTimeoutFuture;
-    private CollectorManager collectorManager;
+    private final CollectorManager collectorManager;
+
+    /**
+     * Count of consumed incoming messages so {@link #handleMessage} invocation is expected in future.
+     * Even redelivered messages increment this counter.
+     */
+    private final LongAdder consumedMessagesCount = new LongAdder();
+
+    /**
+     * Count of consumed incoming messages that were lost afterwards so {@link #handleMessage} invocation is
+     * no longer expected
+     */
+    private final LongAdder consumedAndLostMessagesCount = new LongAdder();
+
+    /**
+     * Counter of consumed incoming messages that are already handled by {@link #handleMessage}.
+     */
+    private final LongAdder handledMessagesHandledCount = new LongAdder();
+
+    /**
+     * Is the current instance unsubscribed from message source so new incoming messages are no longer expected.
+     */
+    private volatile boolean isUnsubscribed = false;
+
+    /**
+     * Was the "onEnd" callback invoked? Used to guarantee that "onEnd" will not be invoked more than once.
+     */
+    private volatile boolean isOnEndInvoked = false;
 
     public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers<T> eventHandlers,
             TypeReference<T> payloadTypeReference) {
@@ -85,6 +110,7 @@ public class Collector<T> implements MessageHandler {
         this.payloadMessages = new LinkedList<>();
         this.timeoutMsById = new HashMap<>();
         this.responsesRemainingById = new HashMap<>();
+        this.handledMessagesIds = new HashSet<>();
 
         this.waitForAcksMs = requestOptions.getAckTimeout();
         this.waitForAcksUntil = null;
@@ -96,9 +122,7 @@ public class Collector<T> implements MessageHandler {
 
         this.responsesRemaining = waitForResponses;
 
-        if (waitForResponses == RequestOptions.WAIT_FOR_RESPONSES_UNTIL_TIMEOUT) {
-            shouldWaitUntilResponseTimeout = true;
-        }
+        shouldWaitUntilResponseTimeout = (waitForResponses == RequestOptions.WAIT_FOR_RESPONSES_UNTIL_TIMEOUT);
 
         this.payloadTypeReference = payloadTypeReference;
 
@@ -107,7 +131,22 @@ public class Collector<T> implements MessageHandler {
             onResponse = Optional.ofNullable(eventHandlers.onResponse());
             onAcknowledge = Optional.ofNullable(eventHandlers.onAcknowledge());
             onEnd = Optional.ofNullable(eventHandlers.onEnd());
+        } else {
+            onRawResponse = Optional.empty();
+            onResponse = Optional.empty();
+            onAcknowledge = Optional.empty();
+            onEnd = Optional.empty();
         }
+    }
+
+    @Override
+    public synchronized void notifyMessageConsumed() {
+        consumedMessagesCount.increment();
+    }
+
+    @Override
+    public synchronized void notifyConsumedMessageIsLost() {
+        consumedAndLostMessagesCount.increment();
     }
 
     boolean isAwaitingAcks() {
@@ -132,16 +171,21 @@ public class Collector<T> implements MessageHandler {
 
         JsonNode rawPayload = incomingMessage.getRawPayload();
         MessageContext messageContext = createMessageContext(acknowledgeHandler, incomingMessage);
-        if (Utils.isPayloadPresent(rawPayload)) {
+        boolean isWithPayload = Utils.isPayloadPresent(rawPayload);
+
+        if (isWithPayload) {
             LOG.debug("[correlation ids: {}-{}] Received Payload {}",
                     requestMessage.getCorrelationId(), incomingMessage.getCorrelationId(), rawPayload);
             payloadMessages.add(incomingMessage);
-            onRawResponse.ifPresent(handler -> handler.accept(incomingMessage, messageContext));
+            try {
+                onRawResponse.ifPresent(handler -> handler.accept(incomingMessage, messageContext));
 
-            T payload = Utils.convert(rawPayload, payloadTypeReference, payloadMapper);
-            onResponse.ifPresent(handler -> handler.accept(payload, messageContext));
-
-            incResponsesRemaining(-1);
+                T payload = Utils.convert(rawPayload, payloadTypeReference, payloadMapper);
+                onResponse.ifPresent(handler -> handler.accept(payload, messageContext));
+            } catch (Exception e) {
+                //do not propagate exception outside of this method in order to prevent autoRetry for responses
+                LOG.warn("Unexpected exception during response handler invocation", e);
+            }
         } else {
             LOG.debug("[correlation ids: {}-{}] Received {}",
                     requestMessage.getCorrelationId(), incomingMessage.getCorrelationId(), incomingMessage.getAck());
@@ -151,31 +195,72 @@ public class Collector<T> implements MessageHandler {
 
         processAck(incomingMessage.getAck());
 
-        if (isAwaitingResponses())
-            return;
+        synchronized (this) {
+            handledMessagesHandledCount.increment();
+            updateCounters(incomingMessage, isWithPayload);
 
-        //set ack timer task in case we received ALL expected responses but still have to wait for ack
-        if (isAwaitingAcks()) {
-            waitForAcks();
-            return;
+            boolean isInvokeOnEnd = false;
+            if (!isAwaitingResponses()) {
+                //set ack timer task in case we received ALL expected responses but still have to wait for ack
+                if (isAwaitingAcks()) {
+                    waitForAcks();
+                } else {
+                    isInvokeOnEnd = true;
+                }
+            }
+
+            isInvokeOnEnd = isInvokeOnEnd || isNoMoreMessagesHandlingPossible();
+
+            if(isInvokeOnEnd) {
+                LOG.debug("[correlation ids: {}] All messages has been received", requestMessage.getCorrelationId());
+                end();
+            }
         }
-
-        LOG.debug("[correlation ids: {}] All messages has been received", requestMessage.getCorrelationId());
-        end();
     }
 
     MessageContext createMessageContext(AcknowledgementHandler acknowledgementHandler, Message originalMessage) {
         return new MessageContextImpl(acknowledgementHandler, originalMessage);
     }
-    
-    protected void end() {
-        LOG.debug("[correlation id: {}] Stop response processing ", requestMessage.getCorrelationId());
 
+    protected synchronized void end() {
+        LOG.debug("[correlation id: {}] Stop response processing ", requestMessage.getCorrelationId());
         cancelAckTimeoutTask();
         cancelResponseTimeoutTask();
 
         collectorManager.unregisterCollector(this);
-        onEnd.ifPresent(handler -> handler.call(null));
+        isUnsubscribed = true;
+
+        if(!isOnEndInvoked && isAllConsumedMessagesHandled()) {
+            isOnEndInvoked = true;
+            LOG.debug("[correlation id: {}] triggering 'onEnd' callback", requestMessage.getCorrelationId());
+            try {
+                onEnd.ifPresent(handler -> handler.call(null));
+            } catch (Exception e) {
+                LOG.warn("Unexpected exception during 'onEnd' handler invocation", e);
+            }
+        }
+    }
+
+    /**
+     * Returns true if no more {@link #handleMessage} invocations are expected.
+     */
+    private boolean isNoMoreMessagesHandlingPossible() {
+        return isUnsubscribed && isAllConsumedMessagesHandled();
+    }
+
+    /**
+     * Returns true if all incoming messages consumed at the moment were handled by {@link #handleMessage}.
+     * But it is possible, that some new messages will be consumed and handled afterwards.
+     */
+    private synchronized boolean isAllConsumedMessagesHandled() {
+        int consumed = consumedMessagesCount.intValue();
+        int handled = handledMessagesHandledCount.intValue();
+        int consumedAndLost = consumedAndLostMessagesCount.intValue();
+
+        LOG.debug("[correlation id: {}] Messages consumed: {}; handled: {} consumed and lost: {}  ",
+                requestMessage.getCorrelationId(), consumed, handled, consumedAndLost);
+
+        return (consumed == consumedAndLost + handled);
     }
 
     void processAck(Acknowledge acknowledge) {
@@ -225,7 +310,22 @@ public class Collector<T> implements MessageHandler {
         return maxTimeoutMs;
     }
 
-    private Integer incResponsesRemaining(Integer inc) {
+    private synchronized void updateCounters(Message message, boolean isWithPayload) {
+        String id = message.getId();
+
+        /**
+         * Don't update remaining messages counter when a message id was already recorder so the current
+         * message is a redelivery of a previous one.
+         */
+        if(!handledMessagesIds.contains(id)) {
+            if(isWithPayload) {
+                incResponsesRemaining(-1);
+            }
+            handledMessagesIds.add(message.getId());
+        }
+    }
+
+    private synchronized Integer incResponsesRemaining(Integer inc) {
         return (responsesRemaining = Math.max(responsesRemaining + inc, 0));
     }
 

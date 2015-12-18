@@ -92,11 +92,21 @@ public class MsbTestHelper {
     }
 
     public <T> void sendRequest(Requester<T> requester, Object payload, Integer waitForResponses, Callback<T> responseCallback) throws Exception {
-        sendRequest(requester, payload, true, waitForResponses, null, responseCallback);
+        sendRequest(requester, payload, true, waitForResponses, null, responseCallback, null);
+    }
+
+    public <T> void sendRequest(Requester<T> requester, Object payload, Integer waitForResponses, Callback<T> responseCallback, Callback<Void> endCallback) throws Exception {
+        sendRequest(requester, payload, true, waitForResponses, null, responseCallback, endCallback);
     }
 
     public <T> void sendRequest(Requester<T> requester, Object payload, boolean waitForAck, Integer waitForResponses,
             Callback<Acknowledge> ackCallback, Callback<T> responseCallback) throws Exception {
+        sendRequest(requester, payload, waitForAck, waitForResponses,
+                 ackCallback, responseCallback, null);
+    }
+
+    public <T> void sendRequest(Requester<T> requester, Object payload, boolean waitForAck, Integer waitForResponses,
+            Callback<Acknowledge> ackCallback, Callback<T> responseCallback, Callback<Void> endCallback) throws Exception {
 
         requester.onAcknowledge((acknowledge, ackHandler) -> {
             System.out.println(">>> ACKNOWLEDGE: " + acknowledge);
@@ -108,6 +118,13 @@ public class MsbTestHelper {
             System.out.println(">>> RESPONSE: " + response);
             if (waitForResponses != null && waitForResponses > 0 && responseCallback != null) {
                 responseCallback.call(response);
+            }
+        });
+
+        requester.onEnd((end) -> {
+            System.out.println(">>> END: ");
+            if(endCallback != null) {
+                endCallback.call(null);
             }
         });
 
