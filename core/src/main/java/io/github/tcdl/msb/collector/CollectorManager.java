@@ -55,7 +55,7 @@ public class CollectorManager implements MessageHandlerResolver {
 
         synchronized (this) {
             if (!isSubscribed) {
-                channelManager.subscribe(topic, this);
+                channelManager.subscribeForResponses(topic, this);
                 isSubscribed = true;
             }
         }

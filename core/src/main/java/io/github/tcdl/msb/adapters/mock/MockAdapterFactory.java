@@ -30,7 +30,7 @@ public class MockAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public ConsumerAdapter createConsumerAdapter(String topic) {
+    public ConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic) {
         return new MockAdapter(topic, consumerExecutors);
     }
 

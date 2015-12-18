@@ -98,8 +98,8 @@ public class AmqpAdapterFactoryTest {
             }
 
             @Override
-            public ConsumerAdapter createConsumerAdapter(String topic) {
-                return new AmqpConsumerAdapter(topic, amqpConfig, mockConnectionManager);
+            public ConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic) {
+                return new AmqpConsumerAdapter(topic, amqpConfig, mockConnectionManager, isResponseTopic);
             }
 
             @Override

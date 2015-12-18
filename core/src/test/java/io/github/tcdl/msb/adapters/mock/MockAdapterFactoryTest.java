@@ -18,7 +18,7 @@ public class MockAdapterFactoryTest {
     @Test
     public void testCreateConsumerAdapter() {
         MockAdapterFactory mockAdapterFactory = new MockAdapterFactory();
-        ConsumerAdapter consumer = mockAdapterFactory.createConsumerAdapter("");
+        ConsumerAdapter consumer = mockAdapterFactory.createConsumerAdapter("", true);
         assertThat(consumer, instanceOf(MockAdapter.class));
         assertTrue(mockAdapterFactory.consumerExecutors.size() == 1);
     }
@@ -34,7 +34,7 @@ public class MockAdapterFactoryTest {
     @Test
     public void testShutdown() {
         MockAdapterFactory mockAdapterFactory = new MockAdapterFactory();
-        mockAdapterFactory.createConsumerAdapter("");
+        mockAdapterFactory.createConsumerAdapter("", true);
         assertTrue(mockAdapterFactory.consumerExecutors.size() == 1);
         mockAdapterFactory.shutdown();
         assertTrue(mockAdapterFactory.consumerExecutors.size() == 0);

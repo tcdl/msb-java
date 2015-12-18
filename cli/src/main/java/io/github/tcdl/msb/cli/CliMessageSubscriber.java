@@ -23,7 +23,7 @@ public class CliMessageSubscriber {
     public void subscribe(String topicName, CliMessageHandler handler) {
         synchronized (registeredTopics) {
             if (!registeredTopics.contains(topicName)) {
-                ConsumerAdapter adapter = adapterFactory.createConsumerAdapter(topicName);
+                ConsumerAdapter adapter = adapterFactory.createConsumerAdapter(topicName, false);
                 adapter.subscribe(handler);
                 registeredTopics.add(topicName);
             }

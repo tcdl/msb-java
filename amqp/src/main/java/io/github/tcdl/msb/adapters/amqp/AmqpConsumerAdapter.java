@@ -1,16 +1,13 @@
 package io.github.tcdl.msb.adapters.amqp;
 
+import java.io.IOException;
+
+import com.rabbitmq.client.Channel;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 import io.github.tcdl.msb.support.Utils;
-
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-
 import org.apache.commons.lang3.Validate;
-
-import com.rabbitmq.client.Channel;
 
 public class AmqpConsumerAdapter implements ConsumerAdapter {
 
@@ -19,18 +16,20 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
     private String exchangeName;
     private String consumerTag;
     private AmqpBrokerConfig adapterConfig;
+    private boolean isResponseTopic = false;
 
     /**
      * The constructor.
      * @param topic - a topic name associated with the adapter
      * @throws ChannelException if some problems during setup channel from RabbitMQ connection were occurred
      */
-    public AmqpConsumerAdapter(String topic, AmqpBrokerConfig amqpBrokerConfig, AmqpConnectionManager connectionManager) {
+    public AmqpConsumerAdapter(String topic, AmqpBrokerConfig amqpBrokerConfig, AmqpConnectionManager connectionManager, boolean isResponseTopic) {
         Validate.notNull(topic, "the 'topic' must not be null");
 
         this.topic = topic;
         this.exchangeName = topic;
         this.adapterConfig = amqpBrokerConfig;
+        this.isResponseTopic = isResponseTopic;
 
         try {
             channel = connectionManager.obtainConnection().createChannel();
@@ -46,7 +45,7 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
     @Override
     public void subscribe(RawMessageHandler msgHandler) {
         String groupId = adapterConfig.getGroupId().orElse(Utils.generateId());
-        boolean durable = adapterConfig.isDurable();
+        boolean durable = isDurable();
         int prefetchCount = adapterConfig.getPrefetchCount();
 
         String queueName = generateQueueName(topic, groupId, durable);
@@ -60,6 +59,14 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
         } catch (IOException e) {
             throw new ChannelException(String.format("Failed to subscribe to topic %s", topic), e);
         }
+    }
+
+    protected boolean isDurable() {
+        if(isResponseTopic) {
+            //response topic is always auto-delete and not durable
+            return false;
+        }
+        return adapterConfig.isDurable();
     }
 
     /**
