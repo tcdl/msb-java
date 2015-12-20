@@ -146,16 +146,19 @@ public class ChannelMonitorIT {
         //need to await for original request for heartbeat to be send to simulate response with same correlationId
         Message requestMessage = awaitHeartBeatRequestSent();
 
-        Message brokenResponseMessage = TestUtils.createMsbRequestMessageWithCorrelationId(requestMessage.getTopics().getResponse(),
+        Message brokenResponseMessage1 = TestUtils.createMsbRequestMessageWithCorrelationId(requestMessage.getTopics().getResponse(),
+                requestMessage.getCorrelationId(),
+                " unexpected statistics format received");
+        Message brokenResponseMessage2 = TestUtils.createMsbRequestMessageWithCorrelationId(requestMessage.getTopics().getResponse(),
                 requestMessage.getCorrelationId(),
                 " unexpected statistics format received");
         Message responseMessage = TestUtils
                 .createMsbRequestMessageWithCorrelationId(requestMessage.getTopics().getResponse(), requestMessage.getCorrelationId(),
                         payload);
         //simulate 3 heartbeatResponses: 1 valid and 2 broken
-        MockAdapter.pushRequestMessage(requestMessage.getTopics().getResponse(), Utils.toJson(brokenResponseMessage, msbContext.getPayloadMapper()));
+        MockAdapter.pushRequestMessage(requestMessage.getTopics().getResponse(), Utils.toJson(brokenResponseMessage1, msbContext.getPayloadMapper()));
         MockAdapter.pushRequestMessage(requestMessage.getTopics().getResponse(), Utils.toJson(responseMessage, msbContext.getPayloadMapper()));
-        MockAdapter.pushRequestMessage(requestMessage.getTopics().getResponse(), Utils.toJson(brokenResponseMessage, msbContext.getPayloadMapper()));
+        MockAdapter.pushRequestMessage(requestMessage.getTopics().getResponse(), Utils.toJson(brokenResponseMessage2, msbContext.getPayloadMapper()));
 
         assertTrue("Heartbeat response was not received",
                 heartBeatResponseReceived.await(HEARTBEAT_TIMEOUT_MS * 2, TimeUnit.MILLISECONDS));

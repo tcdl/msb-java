@@ -174,21 +174,21 @@ public class RequesterResponderSteps extends MsbSteps {
     public void sendRequest(String contextName) throws Exception {
         onBeforeRequest();
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload("QUERY", null);
-        helper.sendRequest(requester, payload, responsesToExpectCount, this::onResponse);
+        helper.sendRequest(requester, payload, responsesToExpectCount, this::onResponse, this::onEnd);
     }
 
     @When("requester sends a request with query '$query'")
     public void sendRequestWithQuery(String query) throws Exception {
         onBeforeRequest();
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(query, null);
-        helper.sendRequest(requester, payload, true, responsesToExpectCount, null, this::onResponse);
+        helper.sendRequest(requester, payload, true, responsesToExpectCount, null, this::onResponse, this::onEnd);
     }
 
     @When("requester sends a request with body '$body'")
     public void sendRequestWithBody(String body) throws Exception {
         onBeforeRequest();
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(null, body);
-        helper.sendRequest(requester, payload, true, responsesToExpectCount, null, this::onResponse);
+        helper.sendRequest(requester, payload, true, responsesToExpectCount, null, this::onResponse, this::onEnd);
     }
 
     private void onBeforeRequest() {
@@ -211,6 +211,12 @@ public class RequesterResponderSteps extends MsbSteps {
 
         countResponsesReceived.incrementAndGet();
         receivedResponseFuture.complete(payload.getBody());
+    }
+
+    private void onEnd(Void in) {
+        if(responseCountDown != null && responseCountDown.getCount() > 0) {
+            Assert.fail("onEnd has been executed while not all responses were received yet, pending responses count: " + responseCountDown.getCount());
+        }
     }
 
     @Then("requester gets response in $timeout ms")
