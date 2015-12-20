@@ -147,6 +147,9 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler {
     @Override
     public synchronized void notifyConsumedMessageIsLost() {
         consumedAndLostMessagesCount.increment();
+        if(isNoMoreMessagesHandlingPossible()) {
+            end();
+        }
     }
 
     boolean isAwaitingAcks() {

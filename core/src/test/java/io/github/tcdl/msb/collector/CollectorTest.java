@@ -325,6 +325,52 @@ public class CollectorTest {
 
     @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testHandleResponseLastResponseLostAfterTimeout() {
+        String bodyText = "some body";
+        Message responseMessage1 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
+        Message responseMessage2 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
+        /*ackTimeout = 0, responseTimeout=200; waitForResponses = 2
+        */
+        int responseTimeout = 200;
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(2);
+
+        BiConsumer<RestPayload, MessageContext> onResponse = mock(BiConsumer.class);
+        when(eventHandlers.onResponse()).thenReturn(onResponse);
+        Callback<Void> onEnd = mock(Callback.class);
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        Collector<RestPayload> collector = createCollector();
+        collector.listenForResponses();
+
+        RestPayload<?, ?, ?, String> expectedPayload = new RestPayload.Builder<Object, Object, Object, String>()
+                .withBody(bodyText)
+                .build();
+
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
+
+        //send first response
+        notifyMessagesConsumed(collector, 3);
+        collector.handleMessage(responseMessage1, ackHandler);
+        verify(onResponse).accept(expectedPayload, messageContextMock);
+        verify(onEnd, never()).call(any());
+
+        //timeout
+        collector.end();
+        verify(onEnd, never()).call(any());
+
+        //second response lost
+        notifyMessagesLost(collector, 1);
+        verify(onEnd, never()).call(any());
+
+        //third response lost
+        notifyMessagesLost(collector, 1);
+        verify(onEnd).call(any());
+    }
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public void testHandleResponseNoResponsesRemainingButAwaitAck() {
         String bodyText = "some body";
         Message responseMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
