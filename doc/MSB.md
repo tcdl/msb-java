@@ -337,7 +337,7 @@ See for more [detail](https://www.rabbitmq.com/tutorials/amqp-concepts.html).
 
 `consumerThreadPoolSize` – number of consumer threads used to process incoming messages. Defines the level of parallelism. Default is 5.
 
-`consumerThreadPoolQueueCapacity` – maximum number of requests waiting in FIFO queue to be processed by consumer thread pool. Should be positive integer or -1. Value of -1 stands for unlimited.
+`consumerThreadPoolQueueCapacity` – maximum number of requests waiting in FIFO queue to be processed by consumer thread pool. Should be positive integer or -1. Value of -1 stands for unlimited. The default value is -1.
 
 The following fields are optional in case of broker running on local machine
 but are mandatory when using broker on remote computer. When there is a need to override the default values these fields are specified in application.conf file as additional `brokerConfig` parameters.
@@ -353,7 +353,7 @@ More references on how to configure the broker to allow the remote access with t
 
 `heartbeatIntervalSec` - interval of the heartbeats that are used to detect broken connections. Zero for none. See for more details: https://www.rabbitmq.com/heartbeats.html. Defaults to 1 second.
 
-`prefetchCount` - Specify the limit number of unacknowledged messages on a channel when consuming. The default value is 10.
+`prefetchCount` - Specify the limit number of unacknowledged messages on a channel when consuming. Value of 0 stands for unlimited. The default value is 10.
 
 
 ## AMQP adapter
