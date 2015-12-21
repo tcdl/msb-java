@@ -328,10 +328,10 @@ The section `brokerConfig` from [reference.conf](/core/src/main/resources/refere
 
 `groupId` – microservices with the same `groupId` subscribed to the same namespace will receive messages from that namespace in round-robin fashion. If microservices have different `groupId`s and subscribed to the same namespace then all of those microservices are going to receive a copy of a message from that namespace.
 
-`durable` – queue durability, true/false. Defaults to false.
-Specifies one of the two types of the queue:
-`durable` = `true` – durable queue, that survives broker restart
-`durable` = `false` – transient queue, is auto removed once the listening service is stopped.
+`durable` – queue durability, true/false. Opposite for this value is used to set auto-delete option. Defaults to false.
+Specifies types of the queue used for incomming messages (except for responses that are always non-durable and auto-delete):
+`durable` = `true` – durable queue, that survives broker restart. Auto-delete is set to false.
+`durable` = `false` – transient queue, not survives broker restart. Auto-delete is set to true.
 
 See for more [detail](https://www.rabbitmq.com/tutorials/amqp-concepts.html).
 
