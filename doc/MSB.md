@@ -317,7 +317,7 @@ Here, the override field `name = ${?MSB_SERVICE_NAME}` simply vanishes if there'
 The _key values pairs_ described in this section are specific for the chosen Broker.
 The section `brokerConfig` from [reference.conf](/core/src/main/resources/reference.conf) file override values from [amqp.conf](/amqp/src/main/resources/amqp.conf).
 
- `charsetName` – specifies charset for encoding and decoding of messages. Defaults to "UTF-8"  as
+`charsetName` – specifies charset for encoding and decoding of messages. Defaults to "UTF-8"  as
  this encoding is used in MSB (Node.js).
 
 `host` – IP address of message broker, defaults to "127.0.0.1"
@@ -353,7 +353,8 @@ More references on how to configure the broker to allow the remote access with t
 
 `heartbeatIntervalSec` - interval of the heartbeats that are used to detect broken connections. Zero for none. See for more details: https://www.rabbitmq.com/heartbeats.html. Defaults to 1 second.
 
-`networkRecoveryIntervalMs` - interval of connection recovery attempts. See for more details: https://www.rabbitmq.com/api-guide.html#connection-recovery. Defaults to 5 seconds.
+`prefetchCount` - Specify the limit number of unacknowledged messages on a channel when consuming. The default value is 10.
+
 
 ## AMQP adapter
 
@@ -366,6 +367,8 @@ Basically it allows to send and receive messages to _namespaces_ which consists 
 An interest twist is related to consumption of incoming messages. The adapter gets a message as soon as it arrives from broker and immediately puts it in _processing executor service_ from which those messages are picked up by worker threads. Parameters for that executor service like queue size and number of workers may be tweaked via configuration.
 
 The adapter supports AMQP connection recovery out of the box and it's always enabled. It's regulated by `heartbeatIntervalSec` and  `networkRecoveryIntervalMs` configuration values (see [this section](#description-of-amqp-connection-configuration-fields) for more details).
+
+The AMQP adapter supports explicit and automation message confirm/reject/retry acknowledgment. If a message was successfully processed, a microservice should enable confirms. In exceptional cases when the microservice is unable to handle messages successfully, reject or retry acknowledgment need be to send. If microservice doesn't explicitly send acknowledgment, MSB-Java can do it automatically after completion of message processing in current thread. If microservice provides more complexity message processing, for example in additional threads, AutoAcknowledgement need to be set to false. In this case a microservice is responsible for acknowledgment.
 
 ## Channel monitoring
 
