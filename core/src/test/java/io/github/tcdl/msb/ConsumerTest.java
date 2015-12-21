@@ -10,6 +10,7 @@ import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.Topics;
+import io.github.tcdl.msb.collector.ConsumedMessagesAwareMessageHandler;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
@@ -48,7 +49,13 @@ public class ConsumerTest {
     private MessageHandler messageHandlerMock;
 
     @Mock
+    private ConsumedMessagesAwareMessageHandler consumedMessagesAwareMessageHandlerMock;
+
+    @Mock
     private MessageHandlerResolver messageHandlerResolverMock;
+
+    @Mock
+    private MessageHandlerResolver consumedMessagesAwareMessageHandlerResolverMock;
 
     @Mock
     private MessageHandlerInvokeStrategy messageHandlerInvokeStrategyMock;
@@ -66,6 +73,9 @@ public class ConsumerTest {
     public void setUp() {
         when(messageHandlerResolverMock.resolveMessageHandler(any()))
                 .thenReturn(Optional.of(messageHandlerMock));
+
+        when(consumedMessagesAwareMessageHandlerResolverMock.resolveMessageHandler(any()))
+                .thenReturn(Optional.of(consumedMessagesAwareMessageHandlerMock));
     }
 
     @Test(expected = NullPointerException.class)
@@ -123,6 +133,29 @@ public class ConsumerTest {
         consumer.handleRawMessage(Utils.toJson(originalMessage, messageMapper), acknowledgementHandlerMock);
 
         verifyMessageHandled();
+    }
+
+    @Test
+    public void testConsumedMessagesAwareMessageHandlerNotifiedWhenMessageHandled() throws JsonConversionException {
+        Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
+        Consumer consumer = new Consumer(adapterMock, messageHandlerInvokeStrategyMock, TOPIC, consumedMessagesAwareMessageHandlerResolverMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
+
+        consumer.handleRawMessage(Utils.toJson(originalMessage, messageMapper), acknowledgementHandlerMock);
+
+        verify(consumedMessagesAwareMessageHandlerMock, times(1)).notifyMessageConsumed();
+    }
+
+    @Test
+    public void testConsumedMessagesAwareMessageHandlerNotifiedWhenMessageLost() throws JsonConversionException {
+        doThrow(new RuntimeException("Something really unexpected.")).when(messageHandlerInvokeStrategyMock).execute(any(), any(), any());
+
+        Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
+        Consumer consumer = new Consumer(adapterMock, messageHandlerInvokeStrategyMock, TOPIC, consumedMessagesAwareMessageHandlerResolverMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
+
+        consumer.handleRawMessage(Utils.toJson(originalMessage, messageMapper), acknowledgementHandlerMock);
+
+        verify(consumedMessagesAwareMessageHandlerMock, times(1)).notifyMessageConsumed();
+        verify(consumedMessagesAwareMessageHandlerMock, times(1)).notifyConsumedMessageIsLost();
     }
 
     @Test

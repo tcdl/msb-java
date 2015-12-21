@@ -1,25 +1,19 @@
 package io.github.tcdl.msb.collector;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageContext;
 import io.github.tcdl.msb.api.RequestOptions;
-import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
@@ -32,9 +26,11 @@ import io.github.tcdl.msb.support.Utils;
 
 import java.io.IOException;
 import java.time.Clock;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BiConsumer;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -174,6 +170,7 @@ public class CollectorTest {
         };
         
         // method under test
+        notifyMessagesConsumed(collector, 1);
         collector.handleMessage(responseMessage, acknowledgeHandler);
 
         RestPayload<?, ?, ?, String> expectedPayload = new RestPayload.Builder<Object, Object, Object, String>()
@@ -187,7 +184,6 @@ public class CollectorTest {
         assertFalse(collector.getAckMessages().contains(responseMessage));
     }
 
-    @Test(expected = JsonConversionException.class)
     public void testHandleResponseConversionFailed() {
         String bodyText = "some body";
         Message responseMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
@@ -214,12 +210,11 @@ public class CollectorTest {
         };
 
         // make sure that onRawResponse is called even if conversion of payload to custom type fails
-        try {
-            collector.handleMessage(responseMessage, ackHandler);
-        } finally {
-            verify(onRawResponse).accept(responseMessage, messageContext);
-            verify(onResponse, never()).accept(any(), any());
-        }
+
+        collector.handleMessage(responseMessage, ackHandler);
+
+        verify(onRawResponse).accept(responseMessage, messageContext);
+        verify(onResponse, never()).accept(any(), any());
     }
 
     @Test
@@ -244,6 +239,7 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
         Collector<RestPayload> collector = createCollector();
 
+        notifyMessagesConsumed(collector, 1);
         AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         collector.handleMessage(responseMessageWithAck, ackHandler);
 
@@ -271,6 +267,8 @@ public class CollectorTest {
         when(eventHandlers.onEnd()).thenReturn(onEnd);
 
         Collector<RestPayload> collector = createCollector();
+
+        notifyMessagesConsumed(collector, 1);
         AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         collector.handleMessage(responseMessage, ackHandler);
 
@@ -287,8 +285,8 @@ public class CollectorTest {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void testHandleResponseWaitForOneMoreResponse() {
         String bodyText = "some body";
-        Message responseMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
-
+        Message responseMessage1 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
+        Message responseMessage2 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
         /*ackTimeout = 0, responseTimeout=200; waitForResponses = 2
         */
         int responseTimeout = 200;
@@ -309,16 +307,65 @@ public class CollectorTest {
                 .build();
 
         AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
+
         //send first response
-        collector.handleMessage(responseMessage, ackHandler);
+        notifyMessagesConsumed(collector, 1);
+        collector.handleMessage(responseMessage1, ackHandler);
         verify(onResponse).accept(expectedPayload, messageContextMock);
         verify(onEnd, never()).call(any());
 
         //send last response
-        collector.handleMessage(responseMessage, ackHandler);
+        notifyMessagesConsumed(collector, 1);
+        collector.handleMessage(responseMessage2, ackHandler);
         verify(onResponse, times(2)).accept(expectedPayload, messageContextMock);
         verify(timeoutManagerMock, never()).enableResponseTimeout(eq(responseTimeout), eq(collector));
         verify(timeoutManagerMock, never()).enableAckTimeout(eq(0), eq(collector));
+        verify(onEnd).call(any());
+    }
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testHandleResponseLastResponseLostAfterTimeout() {
+        String bodyText = "some body";
+        Message responseMessage1 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
+        Message responseMessage2 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
+        /*ackTimeout = 0, responseTimeout=200; waitForResponses = 2
+        */
+        int responseTimeout = 200;
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(2);
+
+        BiConsumer<RestPayload, MessageContext> onResponse = mock(BiConsumer.class);
+        when(eventHandlers.onResponse()).thenReturn(onResponse);
+        Callback<Void> onEnd = mock(Callback.class);
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        Collector<RestPayload> collector = createCollector();
+        collector.listenForResponses();
+
+        RestPayload<?, ?, ?, String> expectedPayload = new RestPayload.Builder<Object, Object, Object, String>()
+                .withBody(bodyText)
+                .build();
+
+        AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
+
+        //send first response
+        notifyMessagesConsumed(collector, 3);
+        collector.handleMessage(responseMessage1, ackHandler);
+        verify(onResponse).accept(expectedPayload, messageContextMock);
+        verify(onEnd, never()).call(any());
+
+        //timeout
+        collector.end();
+        verify(onEnd, never()).call(any());
+
+        //second response lost
+        notifyMessagesLost(collector, 1);
+        verify(onEnd, never()).call(any());
+
+        //third response lost
+        notifyMessagesLost(collector, 1);
         verify(onEnd).call(any());
     }
 
@@ -404,6 +451,7 @@ public class CollectorTest {
 
         AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         //send payload response
+        notifyMessagesConsumed(collector, 1);
         collector.handleMessage(responseMessage, ackHandler);
         verify(timeoutManagerMock, never()).enableResponseTimeout(eq(0), eq(collector));
         verify(timeoutManagerMock, never()).enableAckTimeout(eq(ackTimeoutMs), eq(collector));
@@ -429,6 +477,7 @@ public class CollectorTest {
         Acknowledge ack = new Acknowledge.Builder().withResponderId(Utils.generateId()).withResponsesRemaining(0).withTimeoutMs(timeoutMs).build();
         Message responseMessageWithAck = TestUtils.createMsbResponseMessageWithAckNoPayload(ack, TOPIC_RESPONSE, originalMessage.getCorrelationId());
 
+        notifyMessagesConsumed(collector, 1);
         AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         collector.handleMessage(responseMessageWithAck, ackHandler);
 
@@ -457,6 +506,7 @@ public class CollectorTest {
                 .build();
         Message responseMessageWithAck = TestUtils.createMsbResponseMessageWithAckNoPayload(ack, TOPIC_RESPONSE, originalMessage.getCorrelationId());
 
+        notifyMessagesConsumed(collector, 1);
         AcknowledgementHandler ackHandler = mock(AcknowledgementHandler.class);
         collector.handleMessage(responseMessageWithAck, ackHandler);
 
@@ -544,8 +594,8 @@ public class CollectorTest {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void testHandleResponseEnsureResponsesRemainingIsDecreased() {
         String bodyText = "some body";
-        Message responseMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
-
+        Message responseMessage1 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
+        Message responseMessage2 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
         /*ackTimeout = 0, responseTimeout=200; waitForResponses = 2
         */
         int responseTimeout = 200;
@@ -564,16 +614,131 @@ public class CollectorTest {
 
         assertEquals(responsesRemaining, collector.getResponsesRemaining());
 
+        notifyMessagesConsumed(collector, 2);
         //send first response
-        collector.handleMessage(responseMessage, null);
+        collector.handleMessage(responseMessage1, null);
         assertEquals(1, collector.getResponsesRemaining());
         verify(onEnd, never()).call(any());
 
         //send last response
-        collector.handleMessage(responseMessage, null);
+        collector.handleMessage(responseMessage2, null);
         assertEquals(0, collector.getResponsesRemaining());
         verify(onEnd).call(any());
     }
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testHandleResponseRedelivery() {
+        String bodyText = "some body";
+        Message responseMessage1 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
+        Message responseMessage2 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
+        /*ackTimeout = 0, responseTimeout=200; waitForResponses = 2
+        */
+        int responseTimeout = 200;
+        int responsesRemaining = 2;
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(responsesRemaining);
+
+        BiConsumer<RestPayload, MessageContext> onResponse = mock(BiConsumer.class);
+        when(eventHandlers.onResponse()).thenReturn(onResponse);
+        Callback<Void> onEnd = mock(Callback.class);
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        Collector<RestPayload> collector = createCollector();
+        collector.listenForResponses();
+
+        assertEquals(responsesRemaining, collector.getResponsesRemaining());
+
+        notifyMessagesConsumed(collector, 2);
+        //send first response
+        collector.handleMessage(responseMessage1, null);
+        assertEquals(1, collector.getResponsesRemaining());
+        verify(onEnd, never()).call(any());
+
+        //redeliver first response
+        collector.handleMessage(responseMessage1, null);
+        assertEquals(1, collector.getResponsesRemaining());
+        verify(onEnd, never()).call(any());
+
+        notifyMessagesConsumed(collector, 1);
+        //send last response
+        collector.handleMessage(responseMessage2, null);
+        assertEquals(0, collector.getResponsesRemaining());
+        verify(onEnd).call(any());
+    }
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testEndInvokedWhenOnResponseCallbacksThrowExceptions() {
+        String bodyText = "some body";
+        Message responseMessage1 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
+        Message responseMessage2 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
+        /*ackTimeout = 0, responseTimeout=200; waitForResponses = 2
+        */
+        int responseTimeout = 200;
+        int responsesRemaining = 2;
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(responsesRemaining);
+
+        BiConsumer<RestPayload, MessageContext> onResponse = mock(BiConsumer.class);
+        when(eventHandlers.onResponse()).thenReturn(onResponse);
+        doThrow(new RuntimeException("Unexpected error in a callback!")).when(onResponse).accept(any(), any());
+
+        Callback<Void> onEnd = mock(Callback.class);
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        Collector<RestPayload> collector = createCollector();
+        collector.listenForResponses();
+
+        assertEquals(responsesRemaining, collector.getResponsesRemaining());
+
+        notifyMessagesConsumed(collector, 2);
+
+        //send first response
+        collector.handleMessage(responseMessage1, null);
+        verify(onEnd, never()).call(any());
+
+        collector.handleMessage(responseMessage2, null);
+
+        verify(onEnd, times(1)).call(any());
+    }
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testEndThrowsExceptions() {
+        String bodyText = "some body";
+        Message responseMessage1 = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
+
+        /*ackTimeout = 0, responseTimeout=200; waitForResponses = 2
+        */
+        int responseTimeout = 200;
+        int responsesRemaining = 1;
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(responseTimeout);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(responsesRemaining);
+
+        BiConsumer<RestPayload, MessageContext> onResponse = mock(BiConsumer.class);
+        when(eventHandlers.onResponse()).thenReturn(onResponse);
+
+        Callback<Void> onEnd = mock(Callback.class);
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        doThrow(new RuntimeException("Unexpected error in a callback!")).when(onEnd).call(any());
+
+        Collector<RestPayload> collector = createCollector();
+        collector.listenForResponses();
+
+        assertEquals(responsesRemaining, collector.getResponsesRemaining());
+
+        notifyMessagesConsumed(collector, 1);
+
+        //send first response
+        collector.handleMessage(responseMessage1, null);
+        verify(onEnd, times(1)).call(any());
+    }
+
 
     @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -601,9 +766,67 @@ public class CollectorTest {
         Collector<RestPayload> collector = createCollector();
         collector.listenForResponses();
 
+        notifyMessagesConsumed(collector, 1);
         Acknowledge ack = new Acknowledge.Builder().withResponderId(responderId).withResponsesRemaining(1).withTimeoutMs(timeoutMsInAck)
                 .build();
         Message responseMessageWithAck = TestUtils.createMsbResponseMessageWithAckNoPayload(ack, TOPIC_RESPONSE, originalMessage.getCorrelationId());
+        collector.handleMessage(responseMessageWithAck, null);
+
+        //simulate responder response
+        notifyMessagesConsumed(collector, 1);
+        Acknowledge responseAck = new Acknowledge.Builder().withResponderId(responderId).withResponsesRemaining(-1).build();
+        ObjectMapper payloadMapper = TestUtils.createMessageMapper();
+        JsonNode payloadNode = payloadMapper.readValue(String.format("{\"body\": \"%s\" }", "test response payload body"), JsonNode.class);
+
+        Message responderMessage = TestUtils.createMsbResponseMessage(responseAck, payloadNode, TOPIC_RESPONSE, "someCorrelationId");
+
+        //send message
+        collector.handleMessage(responderMessage, null);
+
+        verify(onEnd, after(1500).times(1)).call(any());
+    }
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testTimeoutFiredWhileMessagesExpected() throws InterruptedException, IOException {
+        int timeoutMs = 300;
+        int timeoutMsInAck = 600;
+        String responderId = "b";
+
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
+
+        this.msbContext = TestUtils.createMsbContextBuilder()
+                .withMsbConfigurations(msbConfigurationsMock)
+                .withMessageFactory(messageFactoryMock)
+                .withChannelManager(channelManagerMock)
+                .withClock(Clock.systemDefaultZone())
+                .withTimeoutManager(new TimeoutManager(1))
+                .withCollectorManagerFactory(collectorManagerFactoryMock)
+                .build();
+
+        Callback<Void> onEnd = mock(Callback.class);
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        @SuppressWarnings("unchecked")
+        BiConsumer<RestPayload, MessageContext> onResponse = (restPayload, messageContext) -> {
+            try {
+                Thread.sleep(900);
+            } catch (InterruptedException e) {
+                fail("Interrupted");
+            }
+        };
+
+        when(eventHandlers.onResponse()).thenReturn(onResponse);
+
+        Collector<RestPayload> collector = createCollector();
+        collector.listenForResponses();
+
+        Acknowledge ack = new Acknowledge.Builder().withResponderId(responderId).withResponsesRemaining(99).withTimeoutMs(timeoutMsInAck)
+                .build();
+        Message responseMessageWithAck = TestUtils.createMsbResponseMessageWithAckNoPayload(ack, TOPIC_RESPONSE, originalMessage.getCorrelationId());
+        notifyMessagesConsumed(collector, 1);
         collector.handleMessage(responseMessageWithAck, null);
 
         //simulate responder response
@@ -614,9 +837,133 @@ public class CollectorTest {
         Message responderMessage = TestUtils.createMsbResponseMessage(responseAck, payloadNode, TOPIC_RESPONSE, "someCorrelationId");
 
         //send message
+        notifyMessagesConsumed(collector, 1);
         collector.handleMessage(responderMessage, null);
 
-        verify(onEnd, timeout(1500)).call(any());
+        verify(onEnd, after(1500).times(1)).call(any());
+    }
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testTimeoutFiredDuringMessageHandling() throws Exception {
+        int timeoutMs = 300;
+        int timeoutMsInAck = 600;
+        String responderId = "b";
+
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
+
+        this.msbContext = TestUtils.createMsbContextBuilder()
+                .withMsbConfigurations(msbConfigurationsMock)
+                .withMessageFactory(messageFactoryMock)
+                .withChannelManager(channelManagerMock)
+                .withClock(Clock.systemDefaultZone())
+                .withTimeoutManager(new TimeoutManager(1))
+                .withCollectorManagerFactory(collectorManagerFactoryMock)
+                .build();
+
+        CompletableFuture<Long> timeOnEnd = new CompletableFuture<>();
+        CompletableFuture<Long>  timeAfterHandler = new CompletableFuture<>();
+        LongAdder onEndCounter = new LongAdder();
+
+        Callback<Void> onEnd = (Void in) -> {
+            System.out.println("onEnd invoked");
+            onEndCounter.increment();
+            timeOnEnd.complete(System.currentTimeMillis());
+        };
+
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        @SuppressWarnings("unchecked")
+        BiConsumer<RestPayload, MessageContext> onResponse = (restPayload, messageContext) -> {
+            try {
+                System.out.println("slow onResponse start");
+                Thread.sleep(1500);
+                timeAfterHandler.complete(System.currentTimeMillis());
+                System.out.println("slow onResponse finish");
+            } catch (InterruptedException e) {
+                fail("Interrupted");
+            }
+        };
+
+        when(eventHandlers.onResponse()).thenReturn(onResponse);
+
+        Collector<RestPayload> collector = createCollector();
+        collector.listenForResponses();
+
+        Acknowledge ack = new Acknowledge.Builder().withResponderId(responderId).withResponsesRemaining(1).withTimeoutMs(timeoutMsInAck)
+                .build();
+        Message responseMessageWithAck = TestUtils.createMsbResponseMessageWithAckNoPayload(ack, TOPIC_RESPONSE, originalMessage.getCorrelationId());
+        notifyMessagesConsumed(collector, 1);
+        collector.handleMessage(responseMessageWithAck, null);
+
+        //simulate responder response
+        Acknowledge responseAck = new Acknowledge.Builder().withResponderId(responderId).withResponsesRemaining(-1).build();
+        ObjectMapper payloadMapper = TestUtils.createMessageMapper();
+        JsonNode payloadNode = payloadMapper.readValue(String.format("{\"body\": \"%s\" }", "test response payload body"), JsonNode.class);
+
+        Message responderMessage = TestUtils.createMsbResponseMessage(responseAck, payloadNode, TOPIC_RESPONSE, "someCorrelationId");
+
+        //send message
+        notifyMessagesConsumed(collector, 1);
+        collector.handleMessage(responderMessage, null);
+        long timeAfterHandlerValue = timeAfterHandler.get(2000, TimeUnit.MILLISECONDS);
+        long timeOnEndValue = timeOnEnd.get(2000, TimeUnit.MILLISECONDS);
+
+        assertTrue("onEnd should not be invoked by timer: it should be invoked after the last message handling instead: "
+                + "handler complete:" + timeAfterHandlerValue + ", onEnd invoked:" + timeOnEndValue,
+                timeAfterHandlerValue <= timeOnEndValue);
+        assertEquals(1, onEndCounter.intValue());
+    }
+
+    @Test
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public void testHandleResponseReceivedAckWithUpdatedTimeoutAndOneResponseLost() throws InterruptedException, IOException {
+        int timeoutMs = 200;
+        int timeoutMsInAck = 500;
+        String responderId = "b";
+
+        when(requestOptionsMock.getAckTimeout()).thenReturn(0);
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(timeoutMs);
+        when(requestOptionsMock.getWaitForResponses()).thenReturn(0);
+
+        this.msbContext = TestUtils.createMsbContextBuilder()
+                .withMsbConfigurations(msbConfigurationsMock)
+                .withMessageFactory(messageFactoryMock)
+                .withChannelManager(channelManagerMock)
+                .withClock(Clock.systemDefaultZone())
+                .withTimeoutManager(new TimeoutManager(1))
+                .withCollectorManagerFactory(collectorManagerFactoryMock)
+                .build();
+
+        Callback<Void> onEnd = mock(Callback.class);
+        when(eventHandlers.onEnd()).thenReturn(onEnd);
+
+        Collector<RestPayload> collector = createCollector();
+        collector.listenForResponses();
+
+        Acknowledge ack = new Acknowledge.Builder().withResponderId(responderId).withResponsesRemaining(3).withTimeoutMs(timeoutMsInAck)
+                .build();
+        Message responseMessageWithAck = TestUtils.createMsbResponseMessageWithAckNoPayload(ack, TOPIC_RESPONSE, originalMessage.getCorrelationId());
+        notifyMessagesConsumed(collector, 1);
+        collector.handleMessage(responseMessageWithAck, null);
+
+        //simulate responder response
+        Acknowledge responseAck = new Acknowledge.Builder().withResponderId(responderId).withResponsesRemaining(-1).build();
+        ObjectMapper payloadMapper = TestUtils.createMessageMapper();
+        JsonNode payloadNode = payloadMapper.readValue(String.format("{\"body\": \"%s\" }", "test response payload body"), JsonNode.class);
+
+        Message responderMessage = TestUtils.createMsbResponseMessage(responseAck, payloadNode, TOPIC_RESPONSE, "someCorrelationId");
+        notifyMessagesConsumed(collector, 1);
+        notifyMessagesLost(collector, 1);
+        verify(onEnd, never()).call(any());
+
+        //send message
+        notifyMessagesConsumed(collector, 1);
+        collector.handleMessage(responderMessage, null);
+
+        verify(onEnd, after(1500).times(1)).call(any());
     }
 
     @Test
@@ -648,6 +995,7 @@ public class CollectorTest {
         Acknowledge ack = new Acknowledge.Builder().withResponderId(responderId).withResponsesRemaining(2).withTimeoutMs(timeoutMsInAck)
                 .build();
         Message responseMessageWithAck = TestUtils.createMsbResponseMessageWithAckNoPayload(ack, TOPIC_RESPONSE, originalMessage.getCorrelationId());
+        notifyMessagesConsumed(collector, 1);
         collector.handleMessage(responseMessageWithAck, null);
 
         //simulate responder response
@@ -655,14 +1003,17 @@ public class CollectorTest {
         ObjectMapper payloadMapper = TestUtils.createMessageMapper();
         JsonNode payloadNode = payloadMapper.readValue(String.format("{\"body\": \"%s\" }", "test response payload body"), JsonNode.class);
 
-        Message responderMessage = TestUtils.createMsbResponseMessage(responseAck, payloadNode, TOPIC_RESPONSE,  "someCorrelationId");
+        Message responderMessage1 = TestUtils.createMsbResponseMessage(responseAck, payloadNode, TOPIC_RESPONSE,  "someCorrelationId");
+        Message responderMessage2 = TestUtils.createMsbResponseMessage(responseAck, payloadNode, TOPIC_RESPONSE,  "someCorrelationId");
+
+        notifyMessagesConsumed(collector, 2);
 
         //send first message
-        collector.handleMessage(responderMessage, null);
+        collector.handleMessage(responderMessage1, null);
 
         //send second message after initial response
         Thread.sleep(200);
-        collector.handleMessage(responderMessage, null);
+        collector.handleMessage(responderMessage2, null);
 
         verify(onEnd, timeout(1500)).call(any());
     }
@@ -806,6 +1157,18 @@ public class CollectorTest {
             }
            
         };
+    }
+
+    private void notifyMessagesConsumed(Collector collector, int messagesCount) {
+        for(int i = 0; i < messagesCount; i++) {
+            ((ConsumedMessagesAwareMessageHandler)collector).notifyMessageConsumed();
+        }
+    }
+
+    private void notifyMessagesLost(Collector collector, int messagesCount) {
+        for(int i = 0; i < messagesCount; i++) {
+            ((ConsumedMessagesAwareMessageHandler)collector).notifyConsumedMessageIsLost();
+        }
     }
     
 
