@@ -89,6 +89,7 @@ public interface Requester<T> {
     
     /**
      * Registers a callback to be called when all expected responses for request message are processes or awaiting timeout for responses occurred.
+     * Will be invoked only after all incoming responses will be processed.
      *
      * @param endHandler callback to be called
      * @return requester
