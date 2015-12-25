@@ -27,7 +27,7 @@ public class AmqpProducerAdapter implements ProducerAdapter {
         this.amqpAutoRecoveringChannel = new AmqpAutoRecoveringChannel(connectionManager);
 
         try {
-            amqpAutoRecoveringChannel.exchangeDeclare(exchangeName, "fanout", false /* durable */, true /* auto-delete */, null);
+            amqpAutoRecoveringChannel.exchangeDeclare(exchangeName, "fanout", false /* durable */, false /* auto-delete */, null);
         } catch (IOException e) {
             throw new ChannelException("Failed to setup channel from ActiveMQ connection", e);
         }
