@@ -13,32 +13,35 @@ public class MsbSteps {
 
     private final static String DEFAULT_PACKAGE = "io.github.tcdl.msb.examples.";
 
-    MsbTestHelper helper = MsbTestHelper.getInstance();
-    private Map<String, Object> microserviceMap = new HashMap<>();
+    protected final MsbTestHelper helper = MsbTestHelper.getInstance();
+    private final Map<String, Object> microserviceMap = new HashMap<>();
 
     @Given("microservice $microservice")
-    public void startMicroservice(String microservice) throws Throwable {
-        Class<?> microserviceClass = getClass().getClassLoader().loadClass(resolveClass(microservice));
-        Method startMethod = microserviceClass.getMethod("start", MsbContext.class);
-        startMethod.invoke(microserviceClass.newInstance(), helper.getDefaultContext());
+    public synchronized void startMicroservice(String microservice) throws Throwable {
+        startMicroserviceInternal(microservice, helper.getDefaultContext());
     }
 
     @Given("start microservice $microservice with context $contextName")
-    public void startMicroserviceWithContext(String microservice, String contextName) throws Throwable {
+    public synchronized void startMicroserviceWithContext(String microservice, String contextName) throws Throwable {
+        startMicroserviceInternal(microservice, helper.getContext(contextName));
+    }
+
+    private void startMicroserviceInternal(String microservice, MsbContext context) throws Exception {
         Class<?> microserviceClass = getClass().getClassLoader().loadClass(resolveClass(microservice));
         Method startMethod = microserviceClass.getMethod("start", MsbContext.class);
         Object microserviceInstance = microserviceClass.newInstance();
-        startMethod.invoke(microserviceInstance, helper.getContext(contextName));
+        startMethod.invoke(microserviceInstance, context);
         microserviceMap.putIfAbsent(microservice, microserviceInstance);
     }
 
     @Then("stop microservice $microservice")
-    public void stopMicroservice(String microservice) throws Throwable {
+    public synchronized void stopMicroservice(String microservice) throws Throwable {
         if (microserviceMap.containsKey(microservice)) {
             Object microserviceInstance = microserviceMap.get(microservice);
             Class<?> microserviceClass = getClass().getClassLoader().loadClass(resolveClass(microservice));
             Method stopMethod = microserviceClass.getMethod("stop");
             stopMethod.invoke(microserviceInstance);
+            microserviceMap.remove(microservice);
         }
     }
 
