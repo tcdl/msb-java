@@ -44,7 +44,7 @@ public class AmqpProducerAdapterTest {
 
         new AmqpProducerAdapter(topicName, mockAmqpBrokerConfig, mockAmqpConnectionManager);
 
-        verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
+        verify(mockChannel).exchangeDeclare(topicName, "fanout", false, false, null);
     }
 
     @Test(expected = RuntimeException.class)
