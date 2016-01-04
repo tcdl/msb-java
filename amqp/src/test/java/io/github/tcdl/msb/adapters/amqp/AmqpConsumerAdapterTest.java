@@ -49,7 +49,7 @@ public class AmqpConsumerAdapterTest {
         adapter.subscribe((jsonMessage, ackHandler) -> {
         });
 
-        verify(mockChannel).exchangeDeclare(topicName, "fanout", false, false, null);
+        verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
     }
 
     @Test(expected = RuntimeException.class)

@@ -18,6 +18,10 @@ And response equals
 |result|
 |hello jbehave|
 
+When shutdown context contextResponder
+And requester from contextRequester sends a request
+Then log contains 'Shutdown is NOT initiated by application. Resetting the channel.'
+
 When init MSB context contextResponder
 And responder server from contextResponder listens on namespace test:jbehave
 And responder server responds with '{"result": "hello jbehave"}'
