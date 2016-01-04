@@ -1,41 +1,29 @@
 package io.github.tcdl.msb.acceptance.bdd.util;
 
-import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.spi.LoggingEvent;
-import org.junit.Assert;
-
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class ListAppender extends AppenderSkeleton {
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.AppenderBase;
+import org.junit.Assert;
 
-    private ConcurrentLinkedQueue<String> logEntries = new ConcurrentLinkedQueue<>();
-    private static ListAppender instance;
+public class ListAppender extends AppenderBase<ILoggingEvent> {
 
-    public ListAppender() {
-        instance = this;
-    }
+    private volatile ConcurrentLinkedQueue<String> logEntries = new ConcurrentLinkedQueue<>();
+    private volatile static ListAppender instance = new ListAppender();
 
     public static ListAppender getInstance() {
-        Assert.assertNotNull("ListAppender has not yet been initialized. Did you include it in you log4j config?");
+        Assert.assertNotNull("ListAppender has not yet been initialized. Did you include it in you logback config?");
         return instance;
     }
 
     @Override
-    protected void append(LoggingEvent event) {
-        logEntries.add(event.getMessage().toString());
-    }
-
-    public void close() {
-        logEntries.clear();
-    }
-
-    public boolean requiresLayout() {
-        return false;
+    protected void append(ILoggingEvent event) {
+        instance.logEntries.add(event.toString());
     }
 
     public void reset() {
-        logEntries.clear();
+        instance.logEntries.clear();
     }
 
     public String findLine(String string, int retries, long pollIntervalMs) throws Exception {
@@ -44,7 +32,7 @@ public class ListAppender extends AppenderSkeleton {
 
         do {
             Thread.sleep(pollIntervalMs);
-            line = logEntries.stream().filter(logEntry -> logEntry.contains(string)).distinct().findFirst();
+            line = instance.logEntries.stream().filter(logEntry -> logEntry.contains(string)).distinct().findFirst();
         } while (!line.isPresent() && numberOfRetries-- > 0);
 
         return line.orElse(null);
