@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.tcdl.msb</groupId>
     <artifactId>msb-java</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.4.0-WEB-16935-SNAPSHOT</version>
     <name>msb java</name>
     <description>msb java</description>
     <packaging>pom</packaging>
@@ -160,7 +160,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <scope>runtime</scope>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
