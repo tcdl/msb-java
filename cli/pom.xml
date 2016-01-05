@@ -3,7 +3,7 @@
     <parent>
         <groupId>io.github.tcdl.msb</groupId>
         <artifactId>msb-java</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.0-WEB-16935-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -29,6 +29,11 @@
         <dependency>
             <groupId>io.github.tcdl.msb</groupId>
             <artifactId>msb-java-amqp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
     <build>
