@@ -2,7 +2,7 @@ Lifecycle:
 Before:
 Given init MSB context contextResponder
 And init MSB context contextRequester
-And logger scanner reset
+And clear log
 After:
 Outcome: ANY
 Then shutdown context contextRequester
