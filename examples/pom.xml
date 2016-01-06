@@ -17,6 +17,7 @@
         <url>https://github.com/tcdl/msb-java</url>
         <tag>HEAD</tag>
     </scm>
+
     <organization>
         <name>tcdl</name>
         <url>https://github.com/tcdl</url>

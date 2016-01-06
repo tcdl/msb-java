@@ -1,6 +1,6 @@
 # MSB-Java CLI
 
-Microservice bus - Java CLI
+Microservice bus - Java CLI 
 
 ## Build:
 ```
