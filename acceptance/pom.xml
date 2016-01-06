@@ -21,7 +21,6 @@
         <name>tcdl</name>
         <url>https://github.com/tcdl</url>
     </organization>
-
     <dependencies>
         <dependency>
             <groupId>io.github.tcdl.msb</groupId>
@@ -42,7 +41,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
