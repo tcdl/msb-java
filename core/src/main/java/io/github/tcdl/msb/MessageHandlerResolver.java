@@ -15,4 +15,11 @@ public interface MessageHandlerResolver {
      * @return
      */
     Optional<MessageHandler> resolveMessageHandler(Message message);
+
+    /**
+     * Get an arbitrary text name of the MessageHandlerResolver instance that
+     * will be used used in log messages.
+     * @return
+     */
+    String getLoggingName();
 }

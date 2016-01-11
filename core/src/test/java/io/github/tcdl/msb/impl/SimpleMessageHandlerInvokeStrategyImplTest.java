@@ -22,11 +22,11 @@ public class SimpleMessageHandlerInvokeStrategyImplTest {
     Message message;
 
     @InjectMocks
-    SimpleMessageHandlerInvokeStrategyImpl adapter;
+    SimpleMessageHandlerInvokeStrategyImpl strategy;
 
     @Test
     public void testDirectInvoke() {
-        adapter.execute(messageHandler, message, acknowledgeHandler);
+        strategy.execute(messageHandler, message, acknowledgeHandler);
         verify(messageHandler, times(1)).handleMessage(message, acknowledgeHandler);
         verify(acknowledgeHandler, times(1)).autoConfirm();
     }

@@ -3,7 +3,6 @@ package io.github.tcdl.msb.collector;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.MessageHandlerResolver;
-import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.exception.ConsumerSubscriptionException;
 import io.github.tcdl.msb.api.message.Message;
 
@@ -20,6 +19,7 @@ import org.slf4j.LoggerFactory;
 public class CollectorManager implements MessageHandlerResolver {
 
     private static final Logger LOG = LoggerFactory.getLogger(CollectorManager.class);
+    private static final String LOGGING_NAME = "Collector manager";
 
     private volatile boolean isSubscribed = false;
 
@@ -73,5 +73,10 @@ public class CollectorManager implements MessageHandlerResolver {
                 isSubscribed = false;
             }
         }
+    }
+
+    @Override
+    public String getLoggingName() {
+        return LOGGING_NAME;
     }
 }

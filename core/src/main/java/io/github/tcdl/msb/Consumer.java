@@ -32,12 +32,13 @@ public class Consumer {
     private final ConsumerAdapter rawAdapter;
     private final MessageHandlerInvokeStrategy messageHandlerInvokeStrategy;
     private final String topic;
-    private MsbConfig msbConfig;
-    private ChannelMonitorAgent channelMonitorAgent;
-    private Clock clock;
-    private MessageHandlerResolver messageHandlerResolver;
-    private JsonValidator validator;
-    private ObjectMapper messageMapper;
+    private final MsbConfig msbConfig;
+    private final ChannelMonitorAgent channelMonitorAgent;
+    private final Clock clock;
+    private final MessageHandlerResolver messageHandlerResolver;
+    private final JsonValidator validator;
+    private final ObjectMapper messageMapper;
+    private final String loggingTag;
 
     /**
      * @param rawAdapter instance of {@link ConsumerAdapter} that allows to receive messages from message bus
@@ -75,13 +76,15 @@ public class Consumer {
         this.messageMapper = messageMapper;
 
         this.rawAdapter.subscribe(this::handleRawMessage);
+
+        this.loggingTag = String.format("[Consumer for: '%s' on topic: '%s']", messageHandlerResolver.getLoggingName(), topic);
     }
 
     /**
      * Stop consuming messages for specified topic.
      */
     public void end() {
-        LOG.debug("Shutting down consumer for topic {}", topic);
+        LOG.debug("{} Shutting down consumer for topic {}", loggingTag, topic);
         rawAdapter.unsubscribe();
     }
 
@@ -92,7 +95,8 @@ public class Consumer {
      * @param jsonMessage message to process
      */
     protected void handleRawMessage(String jsonMessage, AcknowledgementHandlerInternal acknowledgeHandler) {
-        LOG.debug("Topic [{}] message received [{}]", this.topic, jsonMessage);
+        LOG.debug("{} message received [{}]", loggingTag, jsonMessage);
+
         channelMonitorAgent.consumerMessageReceived(topic);
 
         Message message;
@@ -100,13 +104,13 @@ public class Consumer {
         try {
             message = parseMessage(jsonMessage);
         } catch (Exception e) {
-            LOG.error("Unable to process consumed message {}", jsonMessage, e);
+            LOG.error("{} Unable to process consumed message {}", loggingTag, jsonMessage, e);
             acknowledgeHandler.autoReject();
             return;
         }
 
         if (isMessageExpired(message)) {
-            LOG.warn("Expired message: {}", jsonMessage);
+            LOG.warn("{} Expired message: {}", loggingTag, jsonMessage);
             acknowledgeHandler.autoReject();
             return;
         }
@@ -122,11 +126,11 @@ public class Consumer {
                 }
                 messageHandlerInvokeStrategy.execute(messageHandler, message, acknowledgeHandler);
             } else {
-                LOG.warn("Cant't resolve message handler for a message: {}", jsonMessage);
+                LOG.warn("{} Cant't resolve message handler for a message: {}", loggingTag, jsonMessage);
                 acknowledgeHandler.autoReject();
             }
         } catch (Exception e) {
-            LOG.warn("Error while trying to handle a message: {}", jsonMessage, e);
+            LOG.warn("{} Error while trying to handle a message: {}", loggingTag, jsonMessage, e);
             acknowledgeHandler.autoRetry();
             if(consumedMessagesAwareMessageHandler != null) {
                 consumedMessagesAwareMessageHandler.notifyConsumedMessageIsLost();
@@ -136,12 +140,12 @@ public class Consumer {
 
     private Message parseMessage(String jsonMessage) {
         if (msbConfig.getSchema() != null && !Utils.isServiceTopic(topic) && msbConfig.isValidateMessage()) {
-            LOG.debug("Validating schema for {}", jsonMessage);
+            LOG.debug("{} Validating schema for {}", loggingTag, jsonMessage);
             validator.validate(jsonMessage, msbConfig.getSchema());
         }
-        LOG.debug("Parsing message {}", jsonMessage);
+        LOG.debug("{} Parsing message {}", loggingTag, jsonMessage);
         Message result = Utils.fromJson(jsonMessage, Message.class, messageMapper);
-        LOG.debug("Message has been successfully parsed {}", jsonMessage);
+        LOG.debug("{} Message has been successfully parsed {}", loggingTag, jsonMessage);
         return result;
     }
 

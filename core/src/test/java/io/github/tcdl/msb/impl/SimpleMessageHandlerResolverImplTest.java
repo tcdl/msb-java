@@ -9,10 +9,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.UUID;
+
 import static org.junit.Assert.assertEquals;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleMessageHandlerResolverImplTest {
+
+    private final static String LOGGING_NAME = UUID.randomUUID().toString();
 
     @Mock
     MessageHandler messageHandler;
@@ -24,12 +28,13 @@ public class SimpleMessageHandlerResolverImplTest {
     @Before
     public void setUp() {
         message = TestUtils.createSimpleResponseMessage("any");
-        resolver = new SimpleMessageHandlerResolverImpl(messageHandler);
+        resolver = new SimpleMessageHandlerResolverImpl(messageHandler, LOGGING_NAME);
     }
 
     @Test
     public void testMessageHandlerResolutionByAnyMessage() {
         assertEquals(messageHandler, resolver.resolveMessageHandler(message).get());
+        assertEquals(LOGGING_NAME, resolver.getLoggingName());
     }
 
 }

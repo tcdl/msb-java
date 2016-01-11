@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 public class ChannelManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ChannelManager.class);
+    private static final String RESPONDER_LOGGING_NAME = "Responder server";
 
     private MsbConfig msbConfig;
     private Clock clock;
@@ -74,7 +75,7 @@ public class ChannelManager {
         if (consumersByTopic.get(topic) != null) {
             throw new ConsumerSubscriptionException("Subscriber for this topic: " + topic + " already exist");
         } else {
-            Consumer newConsumer = createConsumer(topic, false, new SimpleMessageHandlerResolverImpl(messageHandler));
+            Consumer newConsumer = createConsumer(topic, false, new SimpleMessageHandlerResolverImpl(messageHandler, RESPONDER_LOGGING_NAME));
             channelMonitorAgent.consumerTopicCreated(topic);
             consumersByTopic.put(topic, newConsumer);
             return false;
