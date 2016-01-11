@@ -28,9 +28,7 @@ public final class Message {
     private final Topics topics;
     @JsonInclude(ALWAYS)
     private final MetaMessage meta; // To be filled with createMeta() ->completeMeta() sequence
-    @JsonInclude(ALWAYS)
     private final Acknowledge ack; // To be filled on ack or response
-    @JsonInclude(ALWAYS)
     @JsonProperty("payload")
     private final JsonNode rawPayload;
 
