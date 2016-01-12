@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.api;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.message.Acknowledge;
@@ -58,6 +59,25 @@ public class RequesterResponderIT {
         .listen();
 
         requester.publish(sentPayload);
+
+        assertTrue("Message was not received", requestReceived.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    public void testResponderServerReceiveNullPayloadMessageSendByRequester() throws Exception {
+        String namespace = "test:requester-responder-test-null-request-received";
+        RequestOptions requestOptions = TestUtils.createSimpleRequestOptions();
+        CountDownLatch requestReceived = new CountDownLatch(1);
+
+        //Create and send request message
+        Requester<?> requester = msbContext.getObjectFactory().createRequester(namespace, requestOptions);
+
+        msbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), (request, response) -> {
+            requestReceived.countDown();
+            assertNull(request);
+        }, String.class).listen();
+
+        requester.publish(null);
 
         assertTrue("Message was not received", requestReceived.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
     }
