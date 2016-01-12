@@ -3,16 +3,11 @@
     <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <charset>UTF-8</charset>
-            <Pattern>%d{HH:mm:ss.SSS} %-5level %logger [%t] %c{1} - %m%n</Pattern>
+            <Pattern>%yellow(%d{HH:mm:ss.SSS})  %highlight(%-5level) %blue(%logger) %yellow([%t]) %blue(%c{1}) - %m%n</Pattern>
         </encoder>
     </appender>
 
-    <appender name="listAppender" class="io.github.tcdl.msb.acceptance.bdd.util.ListAppender">
-        <encoder>
-            <charset>UTF-8</charset>
-            <pattern>%d{HH:mm:ss.SSS} %-5level %logger [%t] %c{1} - %m%n</pattern>
-        </encoder>
-    </appender>
+    <appender name="listAppender" class="io.github.tcdl.msb.acceptance.bdd.util.ListAppender"/>
 
     <root>
         <level value="DEBUG"/>
