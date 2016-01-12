@@ -14,11 +14,20 @@ public class SimpleMessageHandlerResolverImpl implements MessageHandlerResolver 
 
     private final MessageHandler messageHandler;
 
-    public SimpleMessageHandlerResolverImpl(MessageHandler messageHandler) {
+    private final String loggingName;
+
+    public SimpleMessageHandlerResolverImpl(MessageHandler messageHandler, String loggingName) {
         this.messageHandler = messageHandler;
+        this.loggingName = loggingName;
     }
 
-    @Override public Optional<MessageHandler> resolveMessageHandler(Message message) {
+    @Override
+    public Optional<MessageHandler> resolveMessageHandler(Message message) {
         return Optional.of(messageHandler);
+    }
+
+    @Override
+    public String getLoggingName() {
+        return loggingName;
     }
 }
