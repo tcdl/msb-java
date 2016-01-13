@@ -13,11 +13,12 @@
 ------------------------------------------------------------------------------------
 
 Features of MSB-Java version 1.4.0:
-   - Added prefetch count for AMQP adapter;
-     (for details see https://www.rabbitmq.com/consumer-prefetch.html)
+   - Added prefetch count for AMQP adapter
+     (for details see https://www.rabbitmq.com/consumer-prefetch.html);
    - Implemented explicit confirm/reject delivered messages;
    - Fixed an issue when `onEnd` callback could be invoked by timeout while not all incoming responses are processed yet;
-   - Fixed an issue when time-consuming `onResponse` callbacks could block incoming responses processing.
+   - Fixed an issue when time-consuming `onResponse` callbacks could block incoming responses processing;
+   - Acceptance testing is enabled by default during a build.
 
 Features of MSB-Java version 1.3.0:
    - Removed REST-style payload constraint on parameters type;
