@@ -4,7 +4,7 @@
         <withJansi>true</withJansi>
         <encoder>
             <charset>UTF-8</charset>
-            <Pattern>%yellow(%d{HH:mm:ss.SSS})  %highlight(%-5level) %blue(%logger) %yellow([%t]) %blue(%c{1}) - %m%n</Pattern>
+            <pattern>%yellow(%d{HH:mm:ss.SSS})  %highlight(%-5level) %blue(%logger) %yellow([%t]) %blue(%c{1}) - %m%n</pattern>
         </encoder>
     </appender>
 

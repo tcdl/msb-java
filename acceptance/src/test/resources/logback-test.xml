@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration scan="true">
+<configuration scan="false" debug="true">
     <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
         <withJansi>true</withJansi>
         <encoder>
             <charset>UTF-8</charset>
-            <Pattern>%yellow(%d{HH:mm:ss.SSS})  %highlight(%-5level) %blue(%logger) %yellow([%t]) %blue(%c{1}) - %m%n</Pattern>
+            <pattern>%yellow(%d{HH:mm:ss.SSS})  %highlight(%-5level) %blue(%logger) %yellow([%t]) %blue(%c{1}) - %m%n</pattern>
         </encoder>
     </appender>
 
-    <appender name="listAppender" class="io.github.tcdl.msb.acceptance.bdd.util.ListAppender"/>
+    <appender name="streamAppender" class="io.github.tcdl.msb.acceptance.bdd.util.TestOutputStreamAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <Pattern>%-5level %m%n</Pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.springframework" level="INFO" />
+    <logger name="org.hibernate" level="INFO" />
 
     <root>
         <level value="DEBUG"/>
+        <appender-ref ref="streamAppender"/>
         <appender-ref ref="consoleAppender"/>
-        <appender-ref ref="listAppender"/>
     </root>
-
 </configuration>
