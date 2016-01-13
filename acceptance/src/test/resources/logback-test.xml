@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration scan="false" debug="true">
+<configuration debug="true">
     <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
-        <withJansi>true</withJansi>
         <encoder>
             <charset>UTF-8</charset>
-            <pattern>%yellow(%d{HH:mm:ss.SSS})  %highlight(%-5level) %blue(%logger) %yellow([%t]) %blue(%c{1}) - %m%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger [%t] %c{1} - %m%n</pattern>
         </encoder>
     </appender>
 
@@ -14,9 +13,6 @@
             <Pattern>%-5level %m%n</Pattern>
         </encoder>
     </appender>
-
-    <logger name="org.springframework" level="INFO" />
-    <logger name="org.hibernate" level="INFO" />
 
     <root>
         <level value="DEBUG"/>
