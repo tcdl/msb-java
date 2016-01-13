@@ -30,6 +30,11 @@
             <groupId>io.github.tcdl.msb</groupId>
             <artifactId>msb-java-amqp</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

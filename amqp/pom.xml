@@ -30,6 +30,7 @@
             <groupId>io.github.tcdl.msb</groupId>
             <artifactId>msb-java-core</artifactId>
             <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.rabbitmq</groupId>
