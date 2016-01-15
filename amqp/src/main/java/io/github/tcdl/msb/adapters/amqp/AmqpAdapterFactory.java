@@ -20,12 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * AmqpAdapterFactory is an implementation of {@link AdapterFactory}
@@ -138,7 +133,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
             }
             LOG.info("AMQP connection opened.");
             return connection;
-        } catch (IOException e) {
+        } catch (IOException | TimeoutException e) {
             throw new ChannelException("Failed to obtain connection to AMQP broker", e);
         }
     }
