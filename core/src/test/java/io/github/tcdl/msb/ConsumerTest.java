@@ -1,5 +1,7 @@
 package io.github.tcdl.msb;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -20,8 +22,10 @@ import io.github.tcdl.msb.support.Utils;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,11 +34,18 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.ConfigFactory;
+import org.slf4j.MDC;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConsumerTest {
 
     private static final String TOPIC = "test:consumer";
+
+    private static final String MDC_KEY_TAGS = "msbTags";
+
+    private static final String MDC_KEY_CORR_ID = "msbCorrelationId";
+
+    private static final String CORRELATION_ID = "34223432423423";
 
     @Mock
     private ConsumerAdapter adapterMock;
@@ -76,6 +87,10 @@ public class ConsumerTest {
 
         when(consumedMessagesAwareMessageHandlerResolverMock.resolveMessageHandler(any()))
                 .thenReturn(Optional.of(consumedMessagesAwareMessageHandlerMock));
+
+        when(msbConfMock.getMdcLoggingKeyCorrelationId()).thenReturn(MDC_KEY_CORR_ID);
+        when(msbConfMock.getMdcLoggingKeyMessageTags()).thenReturn(MDC_KEY_TAGS);
+        when(msbConfMock.isMdcLogging()).thenReturn(true);
     }
 
     @Test(expected = NullPointerException.class)
@@ -247,6 +262,37 @@ public class ConsumerTest {
 
         consumer.handleRawMessage(Utils.toJson(expiredMessage, messageMapper), acknowledgementHandlerMock);
         verifyMessageNotHandled();
+    }
+
+    @Test
+    public void testSaveMdcSuccess() throws JsonConversionException {
+        verifyMdc(true);
+    }
+
+    @Test
+    public void testSaveMdcDisabled() throws JsonConversionException {
+        when(msbConfMock.isMdcLogging()).thenReturn(false);
+        verifyMdc(false);
+    }
+
+    private void verifyMdc(boolean isMdcExpected) {
+        Message originalMessage = TestUtils.createMsbRequestMessage(TOPIC, null, CORRELATION_ID, TestUtils.createSimpleRequestPayload(), "tag1", "tag2", "tag3");
+
+        MessageHandlerInvokeStrategy testInvokeStrategy = (messageHandler, message, acknowledgeHandler) -> {
+            if(isMdcExpected) {
+                assertEquals(MDC.get(MDC_KEY_TAGS), "tag1,tag2,tag3");
+                assertEquals(MDC.get(MDC_KEY_CORR_ID), CORRELATION_ID);
+            } else {
+                assertTrue(StringUtils.isEmpty(MDC.get(MDC_KEY_TAGS)));
+                assertTrue(StringUtils.isEmpty(MDC.get(MDC_KEY_CORR_ID)));
+            }
+        };
+
+        Consumer consumer = new Consumer(adapterMock, testInvokeStrategy, TOPIC, messageHandlerResolverMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
+
+        consumer.handleRawMessage(Utils.toJson(originalMessage, messageMapper), acknowledgementHandlerMock);
+        Map<String, String> map = MDC.getCopyOfContextMap();
+        assertTrue("MDC cleanup was expected but was not performed", map == null || map.isEmpty());
     }
 
     private  Message createExpiredMsbRequestMessageWithTopicTo(String topicTo) {

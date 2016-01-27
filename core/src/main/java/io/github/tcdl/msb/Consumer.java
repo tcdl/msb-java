@@ -114,7 +114,7 @@ public class Consumer {
         ConsumedMessagesAwareMessageHandler consumedMessagesAwareMessageHandler = null;
 
         try {
-            if(msbConfig.isMdcLoggingEnabled()) {
+            if(msbConfig.isMdcLogging()) {
                 saveMdc(message);
             }
 
@@ -143,7 +143,7 @@ public class Consumer {
                 consumedMessagesAwareMessageHandler.notifyConsumedMessageIsLost();
             }
         } finally {
-            if(msbConfig.isMdcLoggingEnabled()) {
+            if(msbConfig.isMdcLogging()) {
                 clearMdc();
             }
         }

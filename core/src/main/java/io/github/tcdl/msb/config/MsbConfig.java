@@ -31,7 +31,7 @@ public class MsbConfig {
 
     private final int timerThreadPoolSize;
 
-    private final boolean mdcLoggingEnabled;
+    private final boolean mdcLogging;
 
     private final String mdcLoggingKeyMessageTags;
 
@@ -47,7 +47,7 @@ public class MsbConfig {
         this.brokerConfig = config.hasPath("brokerConfig") ? config.getConfig("brokerConfig") : ConfigFactory.empty();
         this.timerThreadPoolSize = getInt(config, "timerThreadPoolSize");
         this.validateMessage = getBoolean(config, "validateMessage");
-        this.mdcLoggingEnabled = getOptionalBoolean(config, "mdcLoggingEnabled").orElse(true);
+        this.mdcLogging = getOptionalBoolean(config, "mdcLogging").orElse(true);
         this.mdcLoggingKeyMessageTags = getOptionalString(config, "mdcLoggingKeyMessageTags").orElse("msbTags");
         this.mdcLoggingKeyCorrelationId = getOptionalString(config, "mdcLoggingKeyCorrelationId").orElse("msbCorrelationId");
         LOG.debug("Loaded {}", this);
@@ -90,8 +90,8 @@ public class MsbConfig {
         return timerThreadPoolSize;
     }
 
-    public boolean isMdcLoggingEnabled() {
-        return mdcLoggingEnabled;
+    public boolean isMdcLogging() {
+        return mdcLogging;
     }
 
     public String getMdcLoggingKeyMessageTags() {
@@ -110,7 +110,7 @@ public class MsbConfig {
                 ", schema='" + schema + '\'' +
                 ", validateMessage=" + validateMessage +
                 ", timerThreadPoolSize=" + timerThreadPoolSize +
-                ", mdcLoggingEnabled=" + mdcLoggingEnabled +
+                ", mdcLogging=" + mdcLogging +
                 ", mdcLoggingKeyMessageTags='" + mdcLoggingKeyMessageTags + '\'' +
                 ", mdcLoggingKeyCorrelationId='" + mdcLoggingKeyCorrelationId + '\'' +
                 '}';

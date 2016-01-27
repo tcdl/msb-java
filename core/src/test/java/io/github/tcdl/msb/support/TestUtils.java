@@ -136,9 +136,13 @@ public class TestUtils {
     }
 
     public static Message createMsbRequestMessage(String topicTo, String instanceId, RestPayload payload, String... tags) {
+        return createMsbRequestMessage(topicTo, instanceId, null, payload, tags);
+    }
+
+    public static Message createMsbRequestMessage(String topicTo, String instanceId, String correlationId, RestPayload payload, String... tags) {
         ObjectMapper payloadMapper = createMessageMapper();
         JsonNode payloadNode = Utils.convert(payload, JsonNode.class, payloadMapper);
-        return createMsbRequestMessage(topicTo, instanceId, null, payloadNode, tags);
+        return createMsbRequestMessage(topicTo, instanceId, correlationId, payloadNode, tags);
     }
 
     private static Message createMsbRequestMessage(String topicTo, String instanceId, String correlationId, JsonNode payloadNode, String... tags) {
