@@ -2,6 +2,7 @@ Lifecycle:
 Before:
 Given MSB configuration with consumer prefetch count 20
 And start MSB
+And clear log
 After:
 Outcome: ANY
 Then shutdown MSB
@@ -18,6 +19,18 @@ And response equals
 |result|
 |hello jbehave|
 
+Scenario: Sends a request to a responder server with a custom tag
+
+Given responder server responds with '{"result": "hello jbehave"}'
+And responder server listens on namespace test:jbehave
+And requester sends requests to namespace test:jbehave
+When requester sends a request with tag 'MY_CUSTOM_TAG'
+Then requester gets response in 5000 ms
+And responder requests received count equals 1
+And response equals
+|result|
+|hello jbehave|
+And log contains 'MY_CUSTOM_TAG'
 
 Scenario: Responder ask to retry a first message delivery so it will be redelivered
 

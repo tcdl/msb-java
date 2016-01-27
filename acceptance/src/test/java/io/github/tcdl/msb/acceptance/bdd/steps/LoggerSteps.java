@@ -10,7 +10,7 @@ public class LoggerSteps {
 
     @Then("log contains '$substring'")
     public void logContains(String substring) throws Exception {
-        Assert.assertNotNull("String not found '" + substring + "'", TestOutputStreamAppender.isPresent(substring, 5, 500));
+        Assert.assertTrue("String not found '" + substring + "'", TestOutputStreamAppender.isPresent(substring, 5, 500));
     }
 
     @Given("clear log")

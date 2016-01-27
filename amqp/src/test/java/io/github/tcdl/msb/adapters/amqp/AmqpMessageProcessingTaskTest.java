@@ -1,31 +1,32 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
+
 import io.github.tcdl.msb.support.TestUtils;
 
 import io.github.tcdl.msb.MessageHandler;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.*;
 
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerImpl;
 import io.github.tcdl.msb.api.message.Message;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.rabbitmq.client.Channel;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.slf4j.MDC;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AmqpMessageProcessingTaskTest {
-
-    private String messageStr = "some message";
+    private final String MDC_KEY = "key";
+    private final String MDC_VALUE = "any";
 
     private Message message;
     @Mock
@@ -67,5 +68,36 @@ public class AmqpMessageProcessingTaskTest {
         } catch (Exception e) {
             fail();
         }
+    }
+
+    @Test
+    public void testMdcProvided() throws Exception {
+        try(Closeable mdcCloseable = MDC.putCloseable(MDC_KEY, MDC_VALUE)) {
+            assertTrue("MDC data is missing in a thread while was provided", isMdcPresentInThread());
+        }
+    }
+
+    @Test
+    public void testMdcNotProvided() throws Exception {
+        assertFalse("MDC data is present in a thread while was not provided", isMdcPresentInThread());
+    }
+
+    private boolean isMdcPresentInThread() throws Exception{
+        CompletableFuture<Boolean> isMdcPresentInTaskRun = new CompletableFuture<>();
+        CompletableFuture<Boolean> isMdcPresentInOtherRun = new CompletableFuture<>();
+        MessageHandler mdcMessageHandler = (message, acknowledgeHandler) -> {
+            isMdcPresentInTaskRun.complete(isMdcPresent());
+        };
+        AmqpMessageProcessingTask mdcTask =
+                new AmqpMessageProcessingTask(mdcMessageHandler, message, mockAcknowledgementHandler);
+        ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+        singleThreadExecutor.execute(mdcTask);
+        singleThreadExecutor.execute(() -> isMdcPresentInOtherRun.complete(isMdcPresent()));
+        assertFalse("MDC data cleanup was not performed", isMdcPresentInOtherRun.get());
+        return isMdcPresentInTaskRun.get();
+    }
+
+    private boolean isMdcPresent() {
+        return MDC_VALUE.equals(MDC.get(MDC_KEY));
     }
 }

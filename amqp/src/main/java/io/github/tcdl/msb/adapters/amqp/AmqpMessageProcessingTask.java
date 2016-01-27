@@ -1,11 +1,13 @@
 package io.github.tcdl.msb.adapters.amqp;
 
 import io.github.tcdl.msb.MessageHandler;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
 import io.github.tcdl.msb.api.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
+import java.util.Map;
 
 /**
  * {@link AmqpMessageProcessingTask} wraps incoming message. This task is put into message processing thread pool (see {@link AmqpMessageConsumer}).
@@ -16,12 +18,16 @@ public class AmqpMessageProcessingTask implements Runnable {
     final Message message;
     final MessageHandler messageHandler;
     final AcknowledgementHandlerInternal ackHandler;
+    final Map<String, String> mdcLogContextMap;
+    final boolean mdcLogCopy;
 
     public AmqpMessageProcessingTask( MessageHandler messageHandler, Message message,
                                      AcknowledgementHandlerInternal ackHandler) {
         this.message = message;
         this.messageHandler = messageHandler;
         this.ackHandler = ackHandler;
+        this.mdcLogContextMap = MDC.getCopyOfContextMap();
+        this.mdcLogCopy = mdcLogContextMap != null && !mdcLogContextMap.isEmpty();
     }
 
     /**
@@ -31,6 +37,9 @@ public class AmqpMessageProcessingTask implements Runnable {
      */
     @Override
     public void run() {
+        if(mdcLogCopy) {
+            MDC.setContextMap(mdcLogContextMap);
+        }
         try {
             LOG.debug(String.format("[correlation id: %s] Starting message processing", message.getCorrelationId()));
             messageHandler.handleMessage(message, ackHandler);
@@ -39,7 +48,10 @@ public class AmqpMessageProcessingTask implements Runnable {
         } catch (Exception e) {
             LOG.error(String.format("[correlation id: %s] Failed to process message", message.getCorrelationId()), e);
             ackHandler.autoRetry();
+        } finally {
+            if(mdcLogCopy) {
+                MDC.clear();
+            }
         }
     }
-    
 }

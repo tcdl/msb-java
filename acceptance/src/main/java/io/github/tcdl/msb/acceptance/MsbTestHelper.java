@@ -95,6 +95,10 @@ public class MsbTestHelper {
         sendRequest(requester, payload, true, waitForResponses, null, responseCallback, null);
     }
 
+    public <T> void sendRequest(Requester<T> requester, Object payload, Integer waitForResponses, Callback<T> responseCallback, Callback<Void> endCallback, String tag) throws Exception {
+        sendRequest(requester, payload, true, waitForResponses, null, responseCallback, endCallback, tag);
+    }
+
     public <T> void sendRequest(Requester<T> requester, Object payload, Integer waitForResponses, Callback<T> responseCallback, Callback<Void> endCallback) throws Exception {
         sendRequest(requester, payload, true, waitForResponses, null, responseCallback, endCallback);
     }
@@ -107,6 +111,11 @@ public class MsbTestHelper {
 
     public <T> void sendRequest(Requester<T> requester, Object payload, boolean waitForAck, Integer waitForResponses,
             Callback<Acknowledge> ackCallback, Callback<T> responseCallback, Callback<Void> endCallback) throws Exception {
+        sendRequest(requester, payload, waitForAck, waitForResponses, ackCallback, responseCallback, endCallback, null);
+    }
+
+    public <T> void sendRequest(Requester<T> requester, Object payload, boolean waitForAck, Integer waitForResponses,
+            Callback<Acknowledge> ackCallback, Callback<T> responseCallback, Callback<Void> endCallback, String tag) throws Exception {
 
         requester.onAcknowledge((acknowledge, ackHandler) -> {
             System.out.println(">>> ACKNOWLEDGE: " + acknowledge);
@@ -128,7 +137,7 @@ public class MsbTestHelper {
             }
         });
 
-        requester.publish(payload);
+        requester.publish(payload, tag);
     }
 
     public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler<RestPayload> requestHandler) {
