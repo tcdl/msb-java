@@ -73,8 +73,8 @@ public class RequesterImpl<T> implements Requester<T> {
      * {@inheritDoc}
      */
     @Override
-    public void publish(Object requestPayload, String tag) {
-        publish(requestPayload, null, tag);
+    public void publish(Object requestPayload, String... tags) {
+        publish(requestPayload, null, tags);
     }
 
     /**
@@ -89,10 +89,14 @@ public class RequesterImpl<T> implements Requester<T> {
      * {@inheritDoc}
      */
     @Override
-    public void publish(Object requestPayload, Message originalMessage, String tag) {
+    public void publish(Object requestPayload, Message originalMessage, String... tags) {
         MessageTemplate messageTemplate = MessageTemplate.copyOf(requestOptions.getMessageTemplate());
-        if (tag != null) {
-            messageTemplate.addTag(tag);
+        if (tags != null) {
+            for(String tag: tags) {
+                if(tag != null) {
+                    messageTemplate.addTag(tag);
+                }
+            }
         }
         Message.Builder messageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageTemplate, originalMessage);
         Message message = messageFactory.createRequestMessage(messageBuilder, requestPayload);

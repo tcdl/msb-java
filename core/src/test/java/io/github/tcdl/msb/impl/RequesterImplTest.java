@@ -206,16 +206,18 @@ public class RequesterImplTest {
                 .build();
 
         String tag = "requester-tag";
-        String dynamicTag = "dynamic-tag";
+        String dynamicTag1 = "dynamic-tag1";
+        String dynamicTag2 = "dynamic-tag2";
+        String nullTag = null;
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
         RequestOptions requestOptions = TestUtils.createSimpleRequestOptionsWithTags(tag);
 
         Requester<RestPayload> requester = RequesterImpl.create(NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>() {});
-        requester.publish(requestPayload, dynamicTag);
+        requester.publish(requestPayload, dynamicTag1, dynamicTag2, nullTag);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
         Message requestMessage = messageArgumentCaptor.getValue();
-        assertArrayEquals(new String[]{tag, dynamicTag}, requestMessage.getTags().toArray());
+        assertArrayEquals(new String[]{tag, dynamicTag1, dynamicTag2}, requestMessage.getTags().toArray());
     }
 
     private RequesterImpl<RestPayload> initRequesterForResponsesWith(Integer numberOfResponses, Integer respTimeout,  Integer ackTimeout , Callback<Void> endHandler) throws Exception {

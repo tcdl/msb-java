@@ -33,11 +33,11 @@ public interface Requester<T> {
      * In case Requester created with expectation for responses then process them.
      *
      * @param requestPayload payload which will be sent to bus
-     * @param tag to add to the message
+     * @param tags to add to the message
      * @throws ChannelException if an error is encountered during publishing to bus
      * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
-    void publish(Object requestPayload, String tag);
+    void publish(Object requestPayload, String... tags);
 
     /**
      * Wraps a payload with protocol information, preserves original message and sends to bus.
@@ -45,11 +45,11 @@ public interface Requester<T> {
      *
      * @param requestPayload payload which will be sent to bus
      * @param originalMessage
-     * @param tag to add to the message
+     * @param tags to add to the message
      * @throws ChannelException if an error is encountered during publishing to bus
      * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
-    void publish(Object requestPayload, Message originalMessage, String tag);
+    void publish(Object requestPayload, Message originalMessage, String... tags);
 
     /**
      * Wraps a payload with protocol information, preserves original message and sends to bus.
