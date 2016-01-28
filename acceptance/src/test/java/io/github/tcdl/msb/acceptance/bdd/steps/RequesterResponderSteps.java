@@ -177,6 +177,13 @@ public class RequesterResponderSteps extends MsbSteps {
         helper.sendRequest(requester, payload, responsesToExpectCount, this::onResponse, this::onEnd);
     }
 
+    @When("requester sends a request with tag '$tag'")
+    public void sendRequestWithTag(String tag) throws Exception {
+        onBeforeRequest();
+        RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload("QUERY", null);
+        helper.sendRequest(requester, payload, responsesToExpectCount, this::onResponse, this::onEnd, tag);
+    }
+
     @When("requester sends a request with query '$query'")
     public void sendRequestWithQuery(String query) throws Exception {
         onBeforeRequest();

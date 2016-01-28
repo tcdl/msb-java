@@ -33,6 +33,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AmqpAdapterFactoryTest {
+
+    private static final Config CONFIG = ConfigFactory.load("reference.conf");
+
     final Charset charset = Charset.forName("UTF-8");
     final String host = "127.0.0.1";
     final int port = 5672;
@@ -66,18 +69,8 @@ public class AmqpAdapterFactoryTest {
     
     @Before
     public void setUp() {
-        String configStr = "msbConfig {"
-                + "  timerThreadPoolSize = 1\n"
-                + "  brokerAdapterFactory = \"AmqpAdapterFactory\" \n"
-                + "  validateMessage = true\n"
-                + "  serviceDetails = {"
-                + "     name = \"test_msb\" \n"
-                + "     version = \"1.0.1\" \n"
-                + "     instanceId = \"msbd06a-ed59-4a39-9f95-811c5fb6ab87\" \n"
-                + "  } \n"
-                + "}";
-        Config msbConfig = ConfigFactory.parseString(configStr);
-        msbConfigurations = new MsbConfig(msbConfig); 
+
+        msbConfigurations = new MsbConfig(CONFIG);
 
         //Define conditions for ExecutorService termination
         try {

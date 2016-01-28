@@ -16,11 +16,13 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.MDC;
 
 /**
  * {@link Consumer} is a component responsible for consuming messages from the bus.
@@ -109,14 +111,19 @@ public class Consumer {
             return;
         }
 
-        if (isMessageExpired(message)) {
-            LOG.warn("{} Expired message: {}", loggingTag, jsonMessage);
-            acknowledgeHandler.autoReject();
-            return;
-        }
-
         ConsumedMessagesAwareMessageHandler consumedMessagesAwareMessageHandler = null;
+
         try {
+            if(msbConfig.isMdcLogging()) {
+                saveMdc(message);
+            }
+
+            if (isMessageExpired(message)) {
+                LOG.warn("{} Expired message: {}", loggingTag, jsonMessage);
+                acknowledgeHandler.autoReject();
+                return;
+            }
+
             Optional<MessageHandler> optionalMessageHandler = messageHandlerResolver.resolveMessageHandler(message);
             if(optionalMessageHandler.isPresent()) {
                 MessageHandler messageHandler = optionalMessageHandler.get();
@@ -134,6 +141,10 @@ public class Consumer {
             acknowledgeHandler.autoRetry();
             if(consumedMessagesAwareMessageHandler != null) {
                 consumedMessagesAwareMessageHandler.notifyConsumedMessageIsLost();
+            }
+        } finally {
+            if(msbConfig.isMdcLogging()) {
+                clearMdc();
             }
         }
     }
@@ -160,5 +171,15 @@ public class Consumer {
         Instant now = clock.instant();
 
         return expiryTime.isBefore(now);
+    }
+
+    private void saveMdc(Message message) {
+        String tags = StringUtils.join(message.getTags(), ",");
+        MDC.put(msbConfig.getMdcLoggingKeyMessageTags(), tags);
+        MDC.put(msbConfig.getMdcLoggingKeyCorrelationId(), message.getCorrelationId());
+    }
+
+    private void clearMdc() {
+        MDC.clear();
     }
 }

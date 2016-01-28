@@ -8,9 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import static io.github.tcdl.msb.config.ConfigurationUtil.getBoolean;
-import static io.github.tcdl.msb.config.ConfigurationUtil.getInt;
-import static io.github.tcdl.msb.config.ConfigurationUtil.getString;
+import static io.github.tcdl.msb.config.ConfigurationUtil.*;
 
 /**
  * {@link MsbConfig} class provides access to configuration properties.
@@ -20,18 +18,24 @@ public class MsbConfig {
     public final Logger LOG = LoggerFactory.getLogger(getClass());
 
     //Broker Adapter Factory class. Represented with brokerAdapterFactory property from config 
-    private String brokerAdapterFactoryClass;
+    private final String brokerAdapterFactoryClass;
 
     //Broker specific configuration.
-    private Config brokerConfig;
+    private final Config brokerConfig;
 
     private final ServiceDetails serviceDetails;
 
-    private String schema;
+    private final String schema;
 
-    private boolean validateMessage;
+    private final boolean validateMessage;
 
-    private int timerThreadPoolSize;
+    private final int timerThreadPoolSize;
+
+    private final boolean mdcLogging;
+
+    private final String mdcLoggingKeyMessageTags;
+
+    private final String mdcLoggingKeyCorrelationId;
 
     public MsbConfig(Config loadedConfig) {
         Config config = loadedConfig.getConfig("msbConfig");
@@ -44,6 +48,12 @@ public class MsbConfig {
         this.timerThreadPoolSize = getInt(config, "timerThreadPoolSize");
         this.validateMessage = getBoolean(config, "validateMessage");
 
+        Config mdcLogging = config.getConfig("mdcLogging");
+        Config mdcLoggingMessageKeys= mdcLogging.getConfig("messageKeys");
+
+        this.mdcLogging = getBoolean(mdcLogging, "enabled");
+        this.mdcLoggingKeyMessageTags = getString(mdcLoggingMessageKeys, "messageTags");
+        this.mdcLoggingKeyCorrelationId = getString(mdcLoggingMessageKeys, "correlationId");
         LOG.debug("Loaded {}", this);
     }
 
@@ -84,9 +94,31 @@ public class MsbConfig {
         return timerThreadPoolSize;
     }
 
-    @Override
-    public String toString() {
-        return String.format("MsbConfig [serviceDetails=%s, schema=%s, validateMessage=%b, timerThreadPoolSize=%d, brokerAdapterFactory=%s, brokerConfig=%s]", serviceDetails, schema, validateMessage, timerThreadPoolSize, brokerAdapterFactoryClass, brokerConfig.root().render());
+    public boolean isMdcLogging() {
+        return mdcLogging;
     }
 
+    public String getMdcLoggingKeyMessageTags() {
+        return mdcLoggingKeyMessageTags;
+    }
+
+    public String getMdcLoggingKeyCorrelationId() {
+        return mdcLoggingKeyCorrelationId;
+    }
+
+    @Override public String toString() {
+        //please keep custom "brokerConfig" data
+        return "MsbConfig{" +
+                "brokerAdapterFactoryClass='" + brokerAdapterFactoryClass + '\'' +
+                ", brokerConfig=" + brokerConfig +
+                ", serviceDetails=" + serviceDetails +
+                ", schema='" + schema + '\'' +
+                ", validateMessage=" + validateMessage +
+                ", timerThreadPoolSize=" + timerThreadPoolSize +
+                ", mdcLogging=" + mdcLogging +
+                ", mdcLoggingKeyMessageTags='" + mdcLoggingKeyMessageTags + '\'' +
+                ", mdcLoggingKeyCorrelationId='" + mdcLoggingKeyCorrelationId + '\'' +
+                ", brokerConfig='" + brokerConfig.root().render() + '\'' +
+                '}';
+    }
 }
