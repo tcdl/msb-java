@@ -313,11 +313,17 @@ Here, the override field `name = ${?MSB_SERVICE_NAME}` simply vanishes if there'
 
 `brokerAdapterFactory` – message broker class. Defaults to `"io.github.tcdl.adapters.amqp.AmqpAdapterFactory"`.
 
-`mdcLogging` - automatic Mapped Diagnostic Context logging toggle, true/false. Defaults to true.
+### Mapped Diagnostic Context settings
+This section provides settings for Mapped Diagnostic Context logging that gives a possibility to save some parameters of the incoming messages into a thread-local storage so it would be easier to track message processing.
+The section `mdcLogging`:
 
-`mdcLoggingKeyMessageTags` - Mapped Diagnostic Context key for message tags. Defaults to `msbTags`.
+`enabled` -  automatic Mapped Diagnostic Context logging toggle, true/false. Defaults to true.
 
-`mdcLoggingKeyCorrelationId` - Mapped Diagnostic Context key for message correlationId. Defaults to `msbCorrelationId`.
+The nested section `messageKeys`:
+
+`messageTags` - Mapped Diagnostic Context key for message tags. Defaults to `msbTags`.
+
+`correlationId` - Mapped Diagnostic Context key for message correlationId. Defaults to `msbCorrelationId`.
 
 ### Description of AMQP connection configuration fields
 The _key values pairs_ described in this section are specific for the chosen Broker.

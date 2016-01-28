@@ -47,9 +47,13 @@ public class MsbConfig {
         this.brokerConfig = config.hasPath("brokerConfig") ? config.getConfig("brokerConfig") : ConfigFactory.empty();
         this.timerThreadPoolSize = getInt(config, "timerThreadPoolSize");
         this.validateMessage = getBoolean(config, "validateMessage");
-        this.mdcLogging = getOptionalBoolean(config, "mdcLogging").orElse(true);
-        this.mdcLoggingKeyMessageTags = getOptionalString(config, "mdcLoggingKeyMessageTags").orElse("msbTags");
-        this.mdcLoggingKeyCorrelationId = getOptionalString(config, "mdcLoggingKeyCorrelationId").orElse("msbCorrelationId");
+
+        Config mdcLogging = config.getConfig("mdcLogging");
+        Config mdcLoggingMessageKeys= mdcLogging.getConfig("messageKeys");
+
+        this.mdcLogging = getBoolean(mdcLogging, "enabled");
+        this.mdcLoggingKeyMessageTags = getString(mdcLoggingMessageKeys, "messageTags");
+        this.mdcLoggingKeyCorrelationId = getString(mdcLoggingMessageKeys, "correlationId");
         LOG.debug("Loaded {}", this);
     }
 
@@ -103,6 +107,7 @@ public class MsbConfig {
     }
 
     @Override public String toString() {
+        //please keep custom "brokerConfig" data
         return "MsbConfig{" +
                 "brokerAdapterFactoryClass='" + brokerAdapterFactoryClass + '\'' +
                 ", brokerConfig=" + brokerConfig +
@@ -113,6 +118,7 @@ public class MsbConfig {
                 ", mdcLogging=" + mdcLogging +
                 ", mdcLoggingKeyMessageTags='" + mdcLoggingKeyMessageTags + '\'' +
                 ", mdcLoggingKeyCorrelationId='" + mdcLoggingKeyCorrelationId + '\'' +
+                ", brokerConfig='" + brokerConfig.root().render() + '\'' +
                 '}';
     }
 }

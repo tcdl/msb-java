@@ -3,8 +3,8 @@ package io.github.tcdl.msb.adapters.amqp;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.withSettings;
+import static org.mockito.Mockito.*;
+
 import io.github.tcdl.msb.config.MsbConfig;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -12,28 +12,21 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-
 import org.junit.Test;
-
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Recoverable;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 
+@RunWith(MockitoJUnitRunner.class)
 public class AmqpAdapterFactoryExecutorTest {
+    private static final Config CONFIG = ConfigFactory.load("reference.conf");
 
-    String basicConfig = "msbConfig {"
-            + "  timerThreadPoolSize = 1\n"
-            + "  validateMessage = true\n"
-            + "  brokerAdapterFactory = \"AmqpAdapterFactory\" \n"
-            + "  serviceDetails = {"
-            + "     name = \"test_msb\" \n"
-            + "     version = \"1.0.1\" \n"
-            + "     instanceId = \"msbd06a-ed59-4a39-9f95-811c5fb6ab87\" \n"
-            + "  } \n"
-            + "  %s"
-            + "}";
+    private static final Config CONFIG_BOUNDED = CONFIG.withFallback(ConfigFactory.load("broker_bounded_queue.conf"));
+    private static final Config CONFIG_UNBOUNDED = CONFIG.withFallback(ConfigFactory.load( "broker_unbounded_queue.conf"));
 
     private static class MockAdapterFactory extends AmqpAdapterFactory {
         @Override
@@ -44,15 +37,7 @@ public class AmqpAdapterFactoryExecutorTest {
 
     @Test
     public void testCreateConsumerThreadPoolBoundedQueue() {
-        String brokerConf =
-                " brokerConfig = { "
-                        + "    charsetName = \"UTF-8\"\n"
-                        + "    consumerThreadPoolSize = 5\n"
-                        + "    consumerThreadPoolQueueCapacity = 20\n"
-                        + "  }";
-
-        Config msbConfig = ConfigFactory.parseString(String.format(basicConfig, brokerConf));
-        MsbConfig msbConfigurations = new MsbConfig(msbConfig);
+        MsbConfig msbConfigurations = new MsbConfig(CONFIG_BOUNDED);
 
         AmqpAdapterFactory adapterFactory = new MockAdapterFactory();
         adapterFactory.init(msbConfigurations);
@@ -70,14 +55,7 @@ public class AmqpAdapterFactoryExecutorTest {
 
     @Test
     public void testCreateConsumerThreadPoolUnboundedQueue() {
-        String brokerConf =
-                " brokerConfig = { "
-                        + "    charsetName = \"UTF-8\"\n"
-                        + "    consumerThreadPoolSize = 5\n"
-                        + "    consumerThreadPoolQueueCapacity = -1\n"
-                        + "  }";
-        Config msbConfig = ConfigFactory.parseString(String.format(basicConfig, brokerConf));
-        MsbConfig msbConfigurations = new MsbConfig(msbConfig);
+        MsbConfig msbConfigurations = new MsbConfig(CONFIG_UNBOUNDED);
 
         AmqpAdapterFactory adapterFactory = new MockAdapterFactory();
         adapterFactory.init(msbConfigurations);
