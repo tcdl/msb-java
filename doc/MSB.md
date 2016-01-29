@@ -319,6 +319,8 @@ The section `mdcLogging`:
 
 `enabled` -  automatic Mapped Diagnostic Context logging toggle, true/false. Defaults to true.
 
+`splitTagsBy` - if a separator like ":" is provided and is not empty, then for tags like "myTag:myTagValue" the tag value "myTagValue" will be available by a key "myTag" in a Mapped Diagnostic Context. Defaults to ":".
+
 The nested section `messageKeys`:
 
 `messageTags` - Mapped Diagnostic Context key for message tags. Defaults to `msbTags`.

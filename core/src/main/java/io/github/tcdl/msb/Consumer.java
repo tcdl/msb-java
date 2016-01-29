@@ -41,6 +41,7 @@ public class Consumer {
     private final JsonValidator validator;
     private final ObjectMapper messageMapper;
     private final String loggingTag;
+    private final boolean isSplitTagsForMdcLogging;
 
     /**
      * @param rawAdapter instance of {@link ConsumerAdapter} that allows to receive messages from message bus
@@ -80,6 +81,7 @@ public class Consumer {
         this.rawAdapter.subscribe(this::handleRawMessage);
 
         this.loggingTag = String.format("[Consumer for: '%s' on topic: '%s']", messageHandlerResolver.getLoggingName(), topic);
+        this.isSplitTagsForMdcLogging = !StringUtils.isEmpty(msbConfig.getMdcLoggingSplitTagsBy());
     }
 
     /**
@@ -177,6 +179,14 @@ public class Consumer {
         String tags = StringUtils.join(message.getTags(), ",");
         MDC.put(msbConfig.getMdcLoggingKeyMessageTags(), tags);
         MDC.put(msbConfig.getMdcLoggingKeyCorrelationId(), message.getCorrelationId());
+        if(isSplitTagsForMdcLogging) {
+            for(String tag: message.getTags()) {
+                String[] parts = StringUtils.split(tag, msbConfig.getMdcLoggingSplitTagsBy(), 2);
+                if(parts.length == 2) {
+                    MDC.put(parts[0], parts[1]);
+                }
+            }
+        }
     }
 
     private void clearMdc() {
