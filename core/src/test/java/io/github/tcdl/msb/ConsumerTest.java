@@ -45,6 +45,10 @@ public class ConsumerTest {
 
     private static final String MDC_KEY_CORR_ID = "msbCorrelationId";
 
+    private static final String MDC_SPLIT_KEY = "tagkey";
+
+    private static final String MDC_SPLIT_BY = ":";
+
     private static final String CORRELATION_ID = "34223432423423";
 
     @Mock
@@ -91,6 +95,7 @@ public class ConsumerTest {
         when(msbConfMock.getMdcLoggingKeyCorrelationId()).thenReturn(MDC_KEY_CORR_ID);
         when(msbConfMock.getMdcLoggingKeyMessageTags()).thenReturn(MDC_KEY_TAGS);
         when(msbConfMock.isMdcLogging()).thenReturn(true);
+        when(msbConfMock.getMdcLoggingSplitTagsBy()).thenReturn(MDC_SPLIT_BY);
     }
 
     @Test(expected = NullPointerException.class)
@@ -265,26 +270,46 @@ public class ConsumerTest {
     }
 
     @Test
-    public void testSaveMdcSuccess() throws JsonConversionException {
-        verifyMdc(true);
+    public void testSaveMdcSuccessWithTagsSplit() throws JsonConversionException {
+        verifyMdc(true, true);
+    }
+
+    @Test
+    public void testSaveMdcSuccessNoTagsSplit() throws JsonConversionException {
+        when(msbConfMock.getMdcLoggingSplitTagsBy()).thenReturn("");
+        verifyMdc(true, false);
+
+        when(msbConfMock.getMdcLoggingSplitTagsBy()).thenReturn(null);
+        verifyMdc(true, false);
     }
 
     @Test
     public void testSaveMdcDisabled() throws JsonConversionException {
         when(msbConfMock.isMdcLogging()).thenReturn(false);
-        verifyMdc(false);
+        verifyMdc(false, false);
     }
 
-    private void verifyMdc(boolean isMdcExpected) {
-        Message originalMessage = TestUtils.createMsbRequestMessage(TOPIC, null, CORRELATION_ID, TestUtils.createSimpleRequestPayload(), "tag1", "tag2", "tag3");
+    private void verifyMdc(boolean isMdcExpected, boolean isSplitExpected) {
+        String splitTagVal = "tag2" + MDC_SPLIT_BY + "tag2!$#.$#$$#&&**";
+        String splitTag = MDC_SPLIT_KEY + MDC_SPLIT_BY + splitTagVal;
+        Message originalMessage = TestUtils.createMsbRequestMessage(
+                TOPIC, null, CORRELATION_ID, TestUtils.createSimpleRequestPayload(), "tag1", splitTag, "tag3");
 
         MessageHandlerInvokeStrategy testInvokeStrategy = (messageHandler, message, acknowledgeHandler) -> {
             if(isMdcExpected) {
-                assertEquals(MDC.get(MDC_KEY_TAGS), "tag1,tag2,tag3");
-                assertEquals(MDC.get(MDC_KEY_CORR_ID), CORRELATION_ID);
+                assertEquals("tag1,"+splitTag+",tag3", MDC.get(MDC_KEY_TAGS));
+                assertEquals(CORRELATION_ID, MDC.get(MDC_KEY_CORR_ID));
+
             } else {
                 assertTrue(StringUtils.isEmpty(MDC.get(MDC_KEY_TAGS)));
                 assertTrue(StringUtils.isEmpty(MDC.get(MDC_KEY_CORR_ID)));
+
+            }
+
+            if(isSplitExpected) {
+                assertEquals(splitTagVal, MDC.get(MDC_SPLIT_KEY));
+            } else {
+                assertTrue(StringUtils.isEmpty(MDC.get(MDC_SPLIT_KEY)));
             }
         };
 

@@ -37,6 +37,8 @@ public class MsbConfig {
 
     private final String mdcLoggingKeyCorrelationId;
 
+    private final String mdcLoggingSplitTagsBy;
+
     public MsbConfig(Config loadedConfig) {
         Config config = loadedConfig.getConfig("msbConfig");
 
@@ -52,6 +54,7 @@ public class MsbConfig {
         Config mdcLoggingMessageKeys= mdcLogging.getConfig("messageKeys");
 
         this.mdcLogging = getBoolean(mdcLogging, "enabled");
+        this.mdcLoggingSplitTagsBy = getOptionalString(mdcLogging, "splitTagsBy").orElse(null);
         this.mdcLoggingKeyMessageTags = getString(mdcLoggingMessageKeys, "messageTags");
         this.mdcLoggingKeyCorrelationId = getString(mdcLoggingMessageKeys, "correlationId");
         LOG.debug("Loaded {}", this);
@@ -106,6 +109,10 @@ public class MsbConfig {
         return mdcLoggingKeyCorrelationId;
     }
 
+    public String getMdcLoggingSplitTagsBy() {
+        return mdcLoggingSplitTagsBy;
+    }
+
     @Override public String toString() {
         //please keep custom "brokerConfig" data
         return "MsbConfig{" +
@@ -118,6 +125,7 @@ public class MsbConfig {
                 ", mdcLogging=" + mdcLogging +
                 ", mdcLoggingKeyMessageTags='" + mdcLoggingKeyMessageTags + '\'' +
                 ", mdcLoggingKeyCorrelationId='" + mdcLoggingKeyCorrelationId + '\'' +
+                ", mdcLoggingSplitTagsBy='" + mdcLoggingSplitTagsBy + '\'' +
                 ", brokerConfig='" + brokerConfig.root().render() + '\'' +
                 '}';
     }

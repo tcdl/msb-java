@@ -24,13 +24,14 @@ Scenario: Sends a request to a responder server with a custom tag
 Given responder server responds with '{"result": "hello jbehave"}'
 And responder server listens on namespace test:jbehave
 And requester sends requests to namespace test:jbehave
-When requester sends a request with tag 'MY_CUSTOM_TAG'
+When requester sends a request with tag 'customTagKey:MY_CUSTOM_TAG'
 Then requester gets response in 5000 ms
 And responder requests received count equals 1
 And response equals
 |result|
 |hello jbehave|
-And log contains 'MY_CUSTOM_TAG'
+And log contains 'tags[customTagKey:MY_CUSTOM_TAG]'
+And log contains 'customTagKey[MY_CUSTOM_TAG]'
 
 Scenario: Responder ask to retry a first message delivery so it will be redelivered
 
