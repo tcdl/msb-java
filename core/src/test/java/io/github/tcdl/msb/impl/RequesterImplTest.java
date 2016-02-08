@@ -2,10 +2,7 @@ package io.github.tcdl.msb.impl;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -218,6 +215,32 @@ public class RequesterImplTest {
 
         Message requestMessage = messageArgumentCaptor.getValue();
         assertArrayEquals(new String[]{tag, dynamicTag1, dynamicTag2}, requestMessage.getTags().toArray());
+    }
+
+    @Test
+    public void testRequestMessageWithForward() throws Exception {
+        String forwardNamespace = "test:forward";
+        ChannelManager channelManagerMock = mock(ChannelManager.class);
+        Producer producerMock = mock(Producer.class);
+        when(channelManagerMock.findOrCreateProducer(NAMESPACE)).thenReturn(producerMock);
+        ArgumentCaptor<Message> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
+
+        MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
+                .withChannelManager(channelManagerMock)
+                .withClock(Clock.systemDefaultZone())
+                .build();
+
+        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
+        RequestOptions requestOptions = new RequestOptions
+                .Builder()
+                .withForwardNamespace(forwardNamespace).build();
+
+        Requester<RestPayload> requester = RequesterImpl.create(NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>() {});
+        requester.publish(requestPayload);
+        verify(producerMock).publish(messageArgumentCaptor.capture());
+
+        Message requestMessage = messageArgumentCaptor.getValue();
+        assertEquals(forwardNamespace, requestMessage.getTopics().getForward());
     }
 
     private RequesterImpl<RestPayload> initRequesterForResponsesWith(Integer numberOfResponses, Integer respTimeout,  Integer ackTimeout , Callback<Void> endHandler) throws Exception {

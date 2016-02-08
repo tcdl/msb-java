@@ -10,13 +10,13 @@ public class RequestOptions {
     /**
      * Min time (in milliseconds) to wait for acknowledgements.
      */
-    private Integer ackTimeout;
+    private final Integer ackTimeout;
 
     /**
      * Max time (in milliseconds) to wait for responses and acknowledgements. Once this timeout is reached we stop waiting for responses even if
      * {@link #waitForResponses} has not been reached. Beware that acks may adjust this timeout.
      */
-    private Integer responseTimeout;
+    private final Integer responseTimeout;
 
     /**
      * Number of responses to wait for. Once this number is reached (and {@link #ackTimeout} passed) we stop waiting for responses even if
@@ -25,15 +25,21 @@ public class RequestOptions {
      * 0 means not to wait for responses at all.
      * -1 means to wait until {@link #responseTimeout} is reached.
      */
-    private Integer waitForResponses;
+    private final Integer waitForResponses;
 
-    private MessageTemplate messageTemplate;
+    /**
+     * A namespace for messages forwarding performed by a consumer.
+     */
+    private final String forwardNamespace;
 
-    private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, MessageTemplate messageTemplate) {
+    private final MessageTemplate messageTemplate;
+
+    private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, MessageTemplate messageTemplate, String forwardNamespace) {
         this.ackTimeout = ackTimeout;
         this.responseTimeout = responseTimeout;
         this.waitForResponses = waitForResponses;
         this.messageTemplate = messageTemplate;
+        this.forwardNamespace = forwardNamespace;
     }
 
     public Integer getAckTimeout() {
@@ -57,11 +63,16 @@ public class RequestOptions {
         return messageTemplate;
     }
 
+    public String getForwardNamespace() {
+        return forwardNamespace;
+    }
+
     @Override
     public String toString() {
         return "RequestOptions [ackTimeout=" + ackTimeout
                 + ", responseTimeout=" + responseTimeout
                 + ", waitForResponses=" + waitForResponses
+                + ", forwardNamespace=" + forwardNamespace
                 + (messageTemplate != null ? messageTemplate : "")
                 + "]";
     }
@@ -72,6 +83,7 @@ public class RequestOptions {
         private Integer responseTimeout;
         private Integer waitForResponses;
         private MessageTemplate messageTemplate;
+        private String forwardNamespace;
 
         public Builder withAckTimeout(Integer ackTimeout) {
             this.ackTimeout = ackTimeout;
@@ -93,8 +105,13 @@ public class RequestOptions {
             return this;
         }
 
+        public Builder withForwardNamespace(String forward) {
+            this.forwardNamespace = forward;
+            return this;
+        }
+
         public RequestOptions build() {
-            return new RequestOptions(ackTimeout, responseTimeout, waitForResponses, messageTemplate);
+            return new RequestOptions(ackTimeout, responseTimeout, waitForResponses, messageTemplate, forwardNamespace);
         }
     }
 }

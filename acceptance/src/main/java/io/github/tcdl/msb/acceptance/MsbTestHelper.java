@@ -71,20 +71,21 @@ public class MsbTestHelper {
     }
 
     public <T> Requester<T> createRequester(String namespace, Integer numberOfResponses, Class<T> responsePayloadClass) {
-        return createRequester(DEFAULT_CONTEXT_NAME, namespace, numberOfResponses, null, null, responsePayloadClass);
+        return createRequester(DEFAULT_CONTEXT_NAME, namespace, null, numberOfResponses, null, null, responsePayloadClass);
     }
 
-    public <T> Requester<T> createRequester(String contextName, String namespace, Integer numberOfResponses, Class<T> responsePayloadClass) {
-        return createRequester(contextName, namespace, numberOfResponses, null, null, responsePayloadClass);
+    public <T> Requester<T> createRequester(String contextName, String namespace, String forwardNamespace, Integer numberOfResponses, Class<T> responsePayloadClass) {
+        return createRequester(contextName, namespace, forwardNamespace, numberOfResponses, null, null, responsePayloadClass);
     }
 
     public <T> Requester<T> createRequester(String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout, Class<T> responsePayloadClass) {
-        return createRequester(DEFAULT_CONTEXT_NAME, namespace, numberOfResponses, ackTimeout, responseTimeout, responsePayloadClass);
+        return createRequester(DEFAULT_CONTEXT_NAME, namespace, null, numberOfResponses, ackTimeout, responseTimeout, responsePayloadClass);
     }
 
-    public <T> Requester<T> createRequester(String contextName, String namespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout, Class<T> responsePayloadClass) {
+    public <T> Requester<T> createRequester(String contextName, String namespace, String forwardNamespace, Integer numberOfResponses, Integer ackTimeout, Integer responseTimeout, Class<T> responsePayloadClass) {
         RequestOptions options = new RequestOptions.Builder()
                 .withWaitForResponses(numberOfResponses)
+                .withForwardNamespace(forwardNamespace)
                 .withAckTimeout(Utils.ifNull(ackTimeout, 5000))
                 .withResponseTimeout(Utils.ifNull(responseTimeout, 15000))
                 .build();

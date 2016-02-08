@@ -41,6 +41,7 @@ public class RequesterResponderSteps extends MsbSteps {
     private volatile int responseProcessingDelay;
     private volatile int responsesToSendCount;
     private volatile int responsesToExpectCount;
+    private volatile String latestForwardNamespace = null;
 
     public Optional<String> getDefaultRequestsAckType() {
         return defaultRequestsAckType;
@@ -82,7 +83,7 @@ public class RequesterResponderSteps extends MsbSteps {
                     }
 
                     nextRequestAckType = Optional.empty();
-
+                    latestForwardNamespace = responderContext.getOriginalMessage().getTopics().getForward();
                     if (isSendResponse) {
                         RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map>()
                                 .withBody(Utils.fromJson(responseBody, Map.class, mapper))
@@ -153,16 +154,22 @@ public class RequesterResponderSteps extends MsbSteps {
     }
 
     // requester steps
+    @Given("requester sets forwarding to $forwardNamespace and sends requests to namespace $namespace")
+    public void createRequesterWithForwarding(String forwardNamespace, String namespace) {
+        requester = helper.createRequester(DEFAULT_CONTEXT_NAME, namespace, forwardNamespace, 0, RestPayload.class);
+    }
+
+    // requester steps
     @Given("requester (with $requestTimeout ms request timeout to receive $responseCount responses) sends requests to namespace $namespace")
     public void createRequester(int requestTimeout, int responseCount, String namespace) {
         responseCountDown = new CountDownLatch(responseCount);
         responsesToExpectCount = responseCount;
-        requester = helper.createRequester(DEFAULT_CONTEXT_NAME, namespace, responsesToExpectCount, 100, requestTimeout, RestPayload.class);
+        requester = helper.createRequester(DEFAULT_CONTEXT_NAME, namespace, null, responsesToExpectCount, 100, requestTimeout, RestPayload.class);
     }
 
     @Given("requester from $contextName sends requests to namespace $namespace")
     public void createRequester(String contextName, String namespace) {
-        requester = helper.createRequester(contextName, namespace, 1, RestPayload.class);
+        requester = helper.createRequester(contextName, namespace, null, 1, RestPayload.class);
     }
 
     @When("requester sends a request")
@@ -263,6 +270,11 @@ public class RequesterResponderSteps extends MsbSteps {
         }
 
         outcomes.verify();
+    }
+
+    @Then("request forward namespace equals $forwardNamespace")
+    public void responseEquals(String forwardNamespace) throws Exception {
+        Assert.assertEquals(forwardNamespace, latestForwardNamespace);
     }
 
     @Then("responder requests received count equals $expectedRequestsReceivedCount")

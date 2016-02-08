@@ -108,7 +108,7 @@ public class ProducerTest {
         Clock clock = Clock.systemDefaultZone();
         ObjectMapper payloadMapper = TestUtils.createMessageMapper();
 
-        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
+        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId(), null);
         Map<String, String> body = new HashMap<>();
         body.put("body", "{\\\"x\\\" : 3} garbage");
         RestPayload<?, ?, ?, Map<String, String>> payload = new RestPayload.Builder<Object, Object, Object, Map<String, String>>()

@@ -97,7 +97,7 @@ public class TestUtils {
         MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
-        Topics topic = new Topics(namespace, replyTopic);
+        Topics topic = new Topics(namespace, replyTopic, null);
 
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
         return new Message.Builder()
@@ -149,7 +149,7 @@ public class TestUtils {
         MsbConfig msbConf = createMsbConfigurations(instanceId);
         Clock clock = Clock.systemDefaultZone();
 
-        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
+        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId(), null);
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
 
         Message.Builder builder = new Message.Builder()
@@ -181,7 +181,7 @@ public class TestUtils {
         MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
-        Topics topic = new Topics(topicTo, null);
+        Topics topic = new Topics(topicTo, null, null);
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
         return new Message.Builder()
                 .withCorrelationId(Utils.ifNull(correlationId, Utils.generateId()))
@@ -197,7 +197,7 @@ public class TestUtils {
         MsbConfig msbConf = createMsbConfigurations();
         Clock clock = Clock.systemDefaultZone();
 
-        Topics topic = new Topics(topicTo, null);
+        Topics topic = new Topics(topicTo, null, null);
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
         return new Message.Builder()
                 .withCorrelationId(Utils.ifNull(correlationId, Utils.generateId()))
@@ -212,7 +212,7 @@ public class TestUtils {
     public static Message.Builder createMessageBuilder(Clock clock) {
         MsbConfig msbConf = createMsbConfigurations();
 
-        Topics topic = new Topics("", "");
+        Topics topic = new Topics("", "", null);
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
         return new Message.Builder()
                 .withCorrelationId(Utils.generateId())
