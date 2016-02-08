@@ -98,7 +98,12 @@ public class RequesterImpl<T> implements Requester<T> {
                 }
             }
         }
-        Message.Builder messageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageTemplate, originalMessage);
+        Message.Builder messageBuilder = messageFactory.createRequestMessageBuilder(
+                namespace,
+                requestOptions.getForwardNamespace(),
+                messageTemplate,
+                originalMessage);
+
         Message message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
 
         //use Collector instance to handle expected responses/acks

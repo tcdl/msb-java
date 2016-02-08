@@ -34,4 +34,14 @@ public class RequestOptionsTest {
         assertEquals(responsesRemaining, requestOptions.getWaitForResponses());
     }
 
+    @Test
+    public void testForwardNamespace() {
+        String forwardNamespace = "test:forward";
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withForwardNamespace(forwardNamespace)
+                .build();
+
+        assertEquals(forwardNamespace, requestOptions.getForwardNamespace());
+    }
+
 }

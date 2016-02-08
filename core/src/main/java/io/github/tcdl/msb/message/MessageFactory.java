@@ -49,19 +49,19 @@ public class MessageFactory {
         return createRequestMessage(messageBuilder, payload);
     }
 
-    public Message.Builder createRequestMessageBuilder(String namespace, MessageTemplate messageTemplate, Message originalMessage) {
+    public Message.Builder createRequestMessageBuilder(String namespace, String forwardNamespace, MessageTemplate messageTemplate, Message originalMessage) {
         Topics topic = new Topics(namespace, namespace + ":response:" +
-                this.serviceDetails.getInstanceId());
+                this.serviceDetails.getInstanceId(), forwardNamespace);
         return createMessageBuilder(topic, messageTemplate, originalMessage, false);
     }
 
     public Message.Builder createResponseMessageBuilder(MessageTemplate messageTemplate, Message originalMessage) {
-        Topics topic = new Topics(originalMessage.getTopics().getResponse(), null);
+        Topics topic = new Topics(originalMessage.getTopics().getResponse(), null, null);
         return createMessageBuilder(topic, messageTemplate, originalMessage, true);
     }
 
     public Message.Builder createBroadcastMessageBuilder(String namespace, MessageTemplate messageTemplate) {
-        Topics topic = new Topics(namespace, null);
+        Topics topic = new Topics(namespace, null, null);
         return createMessageBuilder(topic, messageTemplate, null, false);
     }
 

@@ -326,7 +326,7 @@ public class ConsumerTest {
         MsbConfig msbConf = new MsbConfig(ConfigFactory.load());
         Clock clock = Clock.fixed(MOMENT_IN_PAST, ZoneId.systemDefault());
 
-        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId());
+        Topics topic = new Topics(topicTo, topicTo + ":response:" + msbConf.getServiceDetails().getInstanceId(), null);
         MetaMessage.Builder metaBuilder = new MetaMessage.Builder(0, clock.instant(), msbConf.getServiceDetails(), clock);
         return new Message.Builder().withCorrelationId(Utils.generateId()).withId(Utils.generateId()).withTopics(topic).withMetaBuilder(metaBuilder)
                 .build();

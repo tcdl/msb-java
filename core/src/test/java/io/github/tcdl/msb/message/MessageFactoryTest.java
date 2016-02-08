@@ -61,6 +61,7 @@ public class MessageFactoryTest {
 
         TestUtils.assertRawPayloadContainsBodyText(bodyText, message);
         assertNull(message.getAck());
+        assertNull(message.getTopics().getForward());
     }
 
     @Test
@@ -71,6 +72,7 @@ public class MessageFactoryTest {
 
         assertNull(message.getRawPayload());
         assertNull(message.getAck());
+        assertNull(message.getTopics().getForward());
     }
 
     @Test
@@ -88,6 +90,7 @@ public class MessageFactoryTest {
 
         TestUtils.assertRawPayloadContainsBodyText(bodyText, message);
         assertEquals(ack, message.getAck());
+        assertNull(message.getTopics().getForward());
     }
 
     @Test
@@ -98,6 +101,7 @@ public class MessageFactoryTest {
 
         assertNull(message.getRawPayload());
         assertNull(message.getAck());
+        assertNull(message.getTopics().getForward());
     }
 
     @Test
@@ -110,18 +114,35 @@ public class MessageFactoryTest {
 
         TestUtils.assertRawPayloadContainsBodyText(bodyText, message);
         assertNull(message.getAck());
+        assertNull(message.getTopics().getForward());
     }
 
     @Test
     public void testCreateRequestMessageBuilder() {
         String namespace = "test:request-builder";
 
-        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageOptions, null);
+        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, null, messageOptions, null);
         Message message = requestMessageBuilder.build();
 
         assertNotNull(message.getCorrelationId());
         assertThat(message.getTopics().getTo(), is(namespace));
         assertThat(message.getTopics().getResponse(), notNullValue());
+        assertNull(message.getTopics().getForward());
+    }
+
+    @Test
+    public void testCreateRequestMessageBuilderWithForward() {
+        String namespace = "test:request-builder";
+
+        String forwardNamespace = "test:forward";
+
+        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, forwardNamespace, messageOptions, null);
+        Message message = requestMessageBuilder.build();
+
+        assertNotNull(message.getCorrelationId());
+        assertThat(message.getTopics().getTo(), is(namespace));
+        assertThat(message.getTopics().getResponse(), notNullValue());
+        assertThat(message.getTopics().getForward(), is(forwardNamespace));
     }
 
     @Test
@@ -130,7 +151,7 @@ public class MessageFactoryTest {
         String[] tags = new String[] {"tag1", "tag2"};
         MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate(tags);
 
-        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageTemplate, null);
+        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, null, messageTemplate, null);
         Message message = requestMessageBuilder.build();
 
         assertArrayEquals(tags, message.getTags().toArray());
@@ -143,7 +164,7 @@ public class MessageFactoryTest {
 
         MessageTemplate messageTemplate = TestUtils.createSimpleMessageTemplate(tags);
 
-        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageTemplate, null);
+        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, null, messageTemplate, null);
         Message message = requestMessageBuilder.build();
 
         String[] uniqueTags = Stream.of(tags).distinct().collect(Collectors.toList()).toArray(new String[] {});
@@ -155,12 +176,13 @@ public class MessageFactoryTest {
         String namespace = "test:request-builder";
         Message originalMessage = TestUtils.createMsbRequestMessageNoPayload(namespace);
 
-        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, messageOptions, originalMessage);
+        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, null, messageOptions, originalMessage);
         Message message = requestMessageBuilder.build();
 
         assertNotEquals(originalMessage.getCorrelationId(), message.getCorrelationId());
         assertThat(message.getTopics().getTo(), is(namespace));
         assertThat(message.getTopics().getResponse(), notNullValue());
+        assertNull(message.getTopics().getForward());
     }
 
     @Test
@@ -176,6 +198,7 @@ public class MessageFactoryTest {
         assertThat(message.getTopics().getTo(), not(originalMessage.getTopics().getTo()));
         assertThat(message.getTopics().getTo(), is(originalMessage.getTopics().getResponse()));
         assertThat(message.getTopics().getResponse(), nullValue());
+        assertNull(message.getTopics().getForward());
     }
 
     @Test
@@ -189,6 +212,7 @@ public class MessageFactoryTest {
         Message message = requestMessageBuilder.build();
 
         assertArrayEquals(tags, message.getTags().toArray());
+        assertNull(message.getTopics().getForward());
     }
 
     @Test
@@ -215,6 +239,7 @@ public class MessageFactoryTest {
         assertNotNull(message.getCorrelationId());
         assertEquals(topic, message.getTopics().getTo());
         assertThat(message.getTopics().getResponse(), nullValue());
+        assertNull(message.getTopics().getForward());
     }
 
     @Test
