@@ -7,7 +7,6 @@ import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,15 +17,8 @@ import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 
 /**
- * Special consumer that allows to process messages coming from single AMQP channel in parallel.
- *
- * REASON:
- *
- * AMQP library is implemented in such way that messages that arrive into a single channel are dispatched in a synchronous loop to the consumers and hence
- * will not be processed in parallel.
- *
- * To address this issue {@link AmqpMessageConsumer} just takes incoming message, wraps it in a task and puts into a thread pool. So the actual
- * processing is happening in the separate thread from that thread pool.
+ * Consumer that converts message body to a String before passing it to handler.
+ * Also rejects message in case of any exception during its processing to prevent AMQP channel from being closed.
  */
 public class AmqpMessageConsumer extends DefaultConsumer {
 
