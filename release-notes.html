@@ -11,6 +11,14 @@
 <pre>MSB-Java version 1.4.2 contains logging infrastructure changes and dependencies updates.
 
 ------------------------------------------------------------------------------------
+Features of MSB-Java version 1.4.3:
+   - Added logging support: all message tags concatenated into one string can be added to consumers thread
+     MDC (see http://www.slf4j.org/api/org/slf4j/MDC.html) in 'msbTags' field. Message tags that have key-value format
+     (e.g. 'requestId:123456' or 'requestId-123456') can be added to consumers thread MDC as separate properties where
+     part before delimiter is a key and part after delimiter is a value. Delimiter is configurable. MDC is cleared
+     after message handler invocation return;
+   - Requester api now allows to publish message with multiple tags.
+
 Features of MSB-Java version 1.4.2:
    - the library uses only slf4j API for logging
      so log4j dependency is no longer included;
