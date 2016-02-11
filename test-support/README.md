@@ -5,8 +5,9 @@ The library is based on Mockito.
 
 ## ObjectFactory-based approach
 **Related package:** _io.github.tcdl.msb.testsupport.objectfactory_
+
 This type of test support is used to test client's code. For example, it gives an ability
-to invoke incoming handlers directly ()with a custom test payload as an argument).
+to invoke incoming handlers directly (with a custom test payload as an argument).
 So MSB internal code is not involved in the testing.
 
 Typical usage:
@@ -57,6 +58,7 @@ Typical usage:
 
 ## AdapterFactory-based approach
 **Related package:** _io.github.tcdl.msb.testsupport.adapterfactory_
+
 This type of test support is used to test the flow of an incoming message through all MSB layers.
 Using this option makes it possible both submit a raw message JSON into a namespace, and capture outgoing messages raw JSON.
 
