@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger [%t] tags[%X{msbTags}] corrId[%X{msbCorrelationId}] customTagKey[%X{customTagKey}] - %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="streamAppender" class="io.github.tcdl.msb.acceptance.bdd.util.TestOutputStreamAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <Pattern>%-5level tags[%X{msbTags}] corrId[%X{msbCorrelationId}] customTagKey[%X{customTagKey}] %m%n</Pattern>
+        </encoder>
+    </appender>
+
+    <root>
+        <level value="DEBUG"/>
+        <appender-ref ref="streamAppender"/>
+        <appender-ref ref="consoleAppender"/>
+    </root>
+</configuration>
