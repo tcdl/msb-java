@@ -3,11 +3,12 @@ package io.github.tcdl.msb.api;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.Base64;
-import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.support.TestUtils;
+import io.github.tcdl.msb.mock.adapterfactory.TestMsbStorageForAdapterFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,11 +22,13 @@ public class RequesterIT {
 
     private RequestOptions requestOptions;
     private MsbContextImpl msbContext;
+    private TestMsbStorageForAdapterFactory storage;
 
     @Before
     public void setUp() throws Exception {
         this.requestOptions = TestUtils.createSimpleRequestOptionsWithTags(STATIC_TAG);
         this.msbContext = TestUtils.createSimpleMsbContext();
+        storage = TestMsbStorageForAdapterFactory.extract(msbContext);
     }
 
     @Test
@@ -34,7 +37,7 @@ public class RequesterIT {
         Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload);
 
-        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
+        String adapterJsonMessage = storage.getOutgoingMessage(NAMESPACE);
         TestUtils.assertRequestMessagePayload(adapterJsonMessage, requestPayload, NAMESPACE);
     }
 
@@ -45,7 +48,7 @@ public class RequesterIT {
         Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload);
 
-        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
+        String adapterJsonMessage = storage.getOutgoingMessage(NAMESPACE);
         JsonNode jsonObject = msbContext.getPayloadMapper().readTree(adapterJsonMessage);
         
         String base64Encoded = Base64.getEncoder().encodeToString(bytesToSend);
@@ -59,7 +62,7 @@ public class RequesterIT {
         Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload, dynamicTag);
 
-        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
+        String adapterJsonMessage = storage.getOutgoingMessage(NAMESPACE);
         TestUtils.assertRequestMessagePayload(adapterJsonMessage, requestPayload, NAMESPACE);
         TestUtils.assertMessageTags(adapterJsonMessage, STATIC_TAG, dynamicTag);
     }
@@ -73,7 +76,7 @@ public class RequesterIT {
         Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload, originalMessage, dynamicTag);
 
-        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
+        String adapterJsonMessage = storage.getOutgoingMessage(NAMESPACE);
         TestUtils.assertRequestMessagePayload(adapterJsonMessage, requestPayload, NAMESPACE);
         TestUtils.assertMessageTags(adapterJsonMessage, dynamicTagOriginal, STATIC_TAG, dynamicTag);
     }
@@ -87,7 +90,7 @@ public class RequesterIT {
         Requester<JsonNode> requester = msbContext.getObjectFactory().createRequester(NAMESPACE, requestOptions);
         requester.publish(requestPayload, originalMessage, dynamicTag);
 
-        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(NAMESPACE);
+        String adapterJsonMessage = storage.getOutgoingMessage(NAMESPACE);
         TestUtils.assertRequestMessagePayload(adapterJsonMessage, requestPayload, NAMESPACE);
         TestUtils.assertMessageTags(adapterJsonMessage, dynamicTagOriginal, STATIC_TAG, dynamicTag);
     }

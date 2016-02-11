@@ -3,7 +3,6 @@ package io.github.tcdl.msb.api;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
@@ -23,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import io.github.tcdl.msb.mock.adapterfactory.TestMsbStorageForAdapterFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,9 +37,12 @@ public class ChannelMonitorIT {
     MsbContextImpl msbContext;
     ChannelMonitorAggregator channelMonitorAggregator;
 
+    private TestMsbStorageForAdapterFactory storage;
+
     @Before
     public void setUp() {
         msbContext = TestUtils.createSimpleMsbContext();
+        storage = TestMsbStorageForAdapterFactory.extract(msbContext);
     }
 
     @After
@@ -64,7 +67,7 @@ public class ChannelMonitorIT {
         CountDownLatch announcementReceived = monitorPrepareAwaitOnAnnouncement(TOPIC_NAME);
 
         //simulate broken announcement in broker
-        MockAdapter.pushRequestMessage(Utils.TOPIC_ANNOUNCE,
+        storage.publishIncomingMessage(Utils.TOPIC_ANNOUNCE,
                 Utils.toJson(TestUtils.createSimpleRequestMessage(Utils.TOPIC_ANNOUNCE), msbContext.getPayloadMapper()));
 
         assertFalse("Broken announcement was handled", announcementReceived.await(RequesterResponderIT.MESSAGE_TRANSMISSION_TIME / 2, TimeUnit.MILLISECONDS));
@@ -117,7 +120,7 @@ public class ChannelMonitorIT {
         Message responseMessage = TestUtils.createMsbRequestMessageWithCorrelationId(requestMessage.getTopics().getResponse(),
                 requestMessage.getCorrelationId(),
                 payload);
-        MockAdapter.pushRequestMessage(requestMessage.getTopics().getResponse(), Utils.toJson(responseMessage, msbContext.getPayloadMapper()));
+        storage.publishIncomingMessage(requestMessage.getTopics().getResponse(), Utils.toJson(responseMessage, msbContext.getPayloadMapper()));
 
         assertTrue("Heartbeat response was not received",
                 heartBeatResponseReceived.await(HEARTBEAT_TIMEOUT_MS * 2, TimeUnit.MILLISECONDS));
@@ -156,9 +159,9 @@ public class ChannelMonitorIT {
                 .createMsbRequestMessageWithCorrelationId(requestMessage.getTopics().getResponse(), requestMessage.getCorrelationId(),
                         payload);
         //simulate 3 heartbeatResponses: 1 valid and 2 broken
-        MockAdapter.pushRequestMessage(requestMessage.getTopics().getResponse(), Utils.toJson(brokenResponseMessage1, msbContext.getPayloadMapper()));
-        MockAdapter.pushRequestMessage(requestMessage.getTopics().getResponse(), Utils.toJson(responseMessage, msbContext.getPayloadMapper()));
-        MockAdapter.pushRequestMessage(requestMessage.getTopics().getResponse(), Utils.toJson(brokenResponseMessage2, msbContext.getPayloadMapper()));
+        storage.publishIncomingMessage(requestMessage.getTopics().getResponse(), Utils.toJson(brokenResponseMessage1, msbContext.getPayloadMapper()));
+        storage.publishIncomingMessage(requestMessage.getTopics().getResponse(), Utils.toJson(responseMessage, msbContext.getPayloadMapper()));
+        storage.publishIncomingMessage(requestMessage.getTopics().getResponse(), Utils.toJson(brokenResponseMessage2, msbContext.getPayloadMapper()));
 
         assertTrue("Heartbeat response was not received",
                 heartBeatResponseReceived.await(HEARTBEAT_TIMEOUT_MS * 2, TimeUnit.MILLISECONDS));
