@@ -32,6 +32,7 @@
         <module>core</module>
         <module>amqp</module>
         <module>cli</module>
+        <module>test-support</module>
         <module>acceptance</module>
         <module>examples</module>
     </modules>
