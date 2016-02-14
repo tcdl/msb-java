@@ -61,8 +61,8 @@ public class TestMsbStorageForAdapterFactory {
         if (publishedMessages == null) {
             publishedMessages = new ArrayList<>();
             this.publishedMessages.put(namespace, publishedMessages);
-            publishedMessages.add(jsonMessage);
         }
+        publishedMessages.add(jsonMessage);
     }
 
 

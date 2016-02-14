@@ -268,15 +268,20 @@ public class RequesterResponderIT {
                 .withWaitForResponses(1)
                 .build();
 
+        final CountDownLatch daemonListens = new CountDownLatch(1);
+
         Thread serverListenThread = new Thread(() -> {
             msbContext.getObjectFactory().createResponderServer(namespace, requestOptionsWaitResponse.getMessageTemplate(),
                     (request, responderContext) -> 
             responderContext.getResponder().send("payload from test : testRequestMessageCollectorUnsubscribeAfterResponsesAndSubscribeAgain")
             )
             .listen();
+            daemonListens.countDown();
         });
         serverListenThread.setDaemon(true);
         serverListenThread.start();
+
+        daemonListens.await(5000, TimeUnit.MILLISECONDS);
 
         CountDownLatch endConversation1 = new CountDownLatch(1);
         CountDownLatch endConversation2 = new CountDownLatch(1);
