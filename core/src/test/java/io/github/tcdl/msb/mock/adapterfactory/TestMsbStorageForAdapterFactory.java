@@ -48,15 +48,15 @@ public class TestMsbStorageForAdapterFactory {
         }
     }
 
-    void addProducerAdapter(String namespace, TestMsbProducerAdapter adapter) {
+    synchronized void addProducerAdapter(String namespace, TestMsbProducerAdapter adapter) {
         producers.put(namespace, adapter);
     }
 
-    void addConsumerAdapter(String namespace, TestMsbConsumerAdapter adapter) {
+    synchronized void addConsumerAdapter(String namespace, TestMsbConsumerAdapter adapter) {
         consumers.put(namespace, adapter);
     }
 
-    void addPublishedTestMessage(String namespace, String jsonMessage) {
+    synchronized void addPublishedTestMessage(String namespace, String jsonMessage) {
         List<String> publishedMessages = this.publishedMessages.get(namespace);
         if (publishedMessages == null) {
             publishedMessages = new ArrayList<>();
@@ -69,7 +69,7 @@ public class TestMsbStorageForAdapterFactory {
     /**
      * Reset the storage.
      */
-    public void cleanup() {
+    public synchronized void cleanup() {
         consumers.clear();
         producers.clear();
         publishedMessages.clear();
@@ -80,7 +80,7 @@ public class TestMsbStorageForAdapterFactory {
      * @param namespace
      * @param jsonMessage
      */
-    public void publishIncomingMessage(String namespace, String jsonMessage) {
+    public synchronized void publishIncomingMessage(String namespace, String jsonMessage) {
         TestMsbConsumerAdapter consumerAdapter = consumers.get(namespace);
         if(consumerAdapter != null) {
             consumerAdapter.pushTestMessage(jsonMessage);
@@ -92,7 +92,7 @@ public class TestMsbStorageForAdapterFactory {
      * @param namespace
      * @return
      */
-    public List<String> getOutgoingMessages(String namespace) {
+    public synchronized List<String> getOutgoingMessages(String namespace) {
         List<String> publishedMessages = this.publishedMessages.get(namespace);
         if (publishedMessages == null) {
             publishedMessages = Collections.emptyList();
@@ -105,7 +105,7 @@ public class TestMsbStorageForAdapterFactory {
      * @param namespace
      * @return
      */
-    public String getOutgoingMessage(String namespace) {
+    public synchronized String getOutgoingMessage(String namespace) {
         List<String> publishedMessages = this.publishedMessages.get(namespace);
         if (publishedMessages == null || publishedMessages.size() != 1) {
             throw new RuntimeException("A single outgoing message is expected");

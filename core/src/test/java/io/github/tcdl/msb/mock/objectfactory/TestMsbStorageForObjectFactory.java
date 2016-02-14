@@ -16,11 +16,11 @@ public class TestMsbStorageForObjectFactory {
         return ((TestMsbObjectFactory)msbContext.getObjectFactory()).getStorage();
     }
 
-    <T> void addCapture(RequesterCapture<T> requesterCapture) {
+    synchronized <T> void addCapture(RequesterCapture<T> requesterCapture) {
         requesters.put(requesterCapture.getNamespace(), requesterCapture);
     }
 
-    <T> void addCapture(ResponderCapture<T> responderCapture) {
+    synchronized <T> void addCapture(ResponderCapture<T> responderCapture) {
         responders.put(responderCapture.getNamespace(), responderCapture);
     }
 
@@ -28,7 +28,7 @@ public class TestMsbStorageForObjectFactory {
     /**
      * Reset the storage.
      */
-    public void cleanup() {
+    public synchronized void cleanup() {
         requesters.clear();
         responders.clear();
     }
@@ -39,7 +39,7 @@ public class TestMsbStorageForObjectFactory {
      * @param <T>
      * @return
      */
-    public <T> RequesterCapture<T> getRequesterCapture(String namespace) {
+    public synchronized <T> RequesterCapture<T> getRequesterCapture(String namespace) {
         return (RequesterCapture<T>) requesters.get(namespace);
     }
 
@@ -49,7 +49,7 @@ public class TestMsbStorageForObjectFactory {
      * @param <T>
      * @return
      */
-    public <T> ResponderCapture<T> getResponderCapture(String namespace) {
+    public synchronized <T> ResponderCapture<T> getResponderCapture(String namespace) {
         return (ResponderCapture<T>) responders.get(namespace);
     }
 }
