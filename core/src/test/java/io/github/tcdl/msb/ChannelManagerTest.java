@@ -86,12 +86,13 @@ public class ChannelManagerTest {
         final Holder<Message> messageEvent = new Holder<>();
 
         Message message = TestUtils.createSimpleRequestMessage(topic);
-        channelManager.findOrCreateProducer(topic).publish(message);
+
         channelManager.subscribe(topic,
                 (msg, acknowledgeHandler) ->  {
                     messageEvent.value = msg;
                     awaitReceiveEvents.countDown();
                 });
+        channelManager.findOrCreateProducer(topic).publish(message);
 
         assertTrue(awaitReceiveEvents.await(4000, TimeUnit.MILLISECONDS));
         verify(mockChannelMonitorAgent).consumerMessageReceived(topic);

@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import io.github.tcdl.msb.adapters.mock.MockAdapter;
 import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
@@ -16,6 +15,8 @@ import io.github.tcdl.msb.support.TestUtils;
 
 import java.io.IOException;
 
+import io.github.tcdl.msb.mock.adapterfactory.TestMsbStorageForAdapterFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -33,13 +34,17 @@ public class ResponderIT {
     private MsbContextImpl msbContext;
     private JsonValidator validator;
     private ObjectMapper payloadMapper;
+    private TestMsbStorageForAdapterFactory storage;
 
     @Before
     public void setUp() throws Exception {
         msbContext = (MsbContextImpl) new MsbContextBuilder().build();
+        storage = TestMsbStorageForAdapterFactory.extract(msbContext);
         validator = new JsonValidator();
         payloadMapper = msbContext.getPayloadMapper();
     }
+
+
 
     @Test
     public void testCreateAckMessage() throws Exception {
@@ -53,7 +58,7 @@ public class ResponderIT {
 
         responder.sendAck(ackTimeout, responsesRemaining);
 
-        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());
+        String adapterJsonMessage = storage.getOutgoingMessage(originalMessage.getTopics().getResponse());
 
         assertNotNull("Ack message shouldn't be null", adapterJsonMessage);
         assertAckMessage(adapterJsonMessage, ackTimeout, responsesRemaining, originalMessage.getTopics().getResponse());
@@ -94,7 +99,7 @@ public class ResponderIT {
         RestPayload responsePayload = TestUtils.createSimpleResponsePayload();
         responder.send(responsePayload);
 
-        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());
+        String adapterJsonMessage = storage.getOutgoingMessage(originalMessage.getTopics().getResponse());
 
         assertNotNull("Response message shouldn't be null", adapterJsonMessage);
         TestUtils.assertResponseMessagePayload(adapterJsonMessage, responsePayload, originalMessage.getTopics().getResponse());
@@ -111,7 +116,7 @@ public class ResponderIT {
         RestPayload responsePayload = TestUtils.createSimpleResponsePayload();
         responder.send(responsePayload);
 
-        String adapterJsonMessage = MockAdapter.pollJsonMessageForTopic(originalMessage.getTopics().getResponse());
+        String adapterJsonMessage = storage.getOutgoingMessage(originalMessage.getTopics().getResponse());
 
         assertNotNull("Response message shouldn't be null", adapterJsonMessage);
         TestUtils.assertResponseMessagePayload(adapterJsonMessage, responsePayload, originalMessage.getTopics().getResponse());

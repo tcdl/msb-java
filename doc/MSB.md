@@ -250,6 +250,11 @@ Another caveat is that the business logic of `PongService` (passed as lambda in 
 
 See [Readme for CLI tool](/cli/README.md).
 
+
+## Test support - mocking approaches.
+
+See [MSB-Java mocking support](MSB-TEST-MOCKING.md)
+
 # Appendix
 
 ## Configuration

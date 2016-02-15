@@ -7,9 +7,9 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import io.github.tcdl.msb.adapters.mock.MockAdapterFactory;
 import io.github.tcdl.msb.config.MsbConfig;
 
+import io.github.tcdl.msb.mock.adapterfactory.TestMsbAdapterFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,10 +32,10 @@ public class AdapterFactoryLoaderTest {
 
     @Test
     public void testCreatedMockAdapterByFactoryClassName(){
-        when(msbConfigSpy.getBrokerAdapterFactory()).thenReturn("io.github.tcdl.msb.adapters.mock.MockAdapterFactory");
+        when(msbConfigSpy.getBrokerAdapterFactory()).thenReturn("io.github.tcdl.msb.mock.adapterfactory.TestMsbAdapterFactory");
         AdapterFactoryLoader loader = new AdapterFactoryLoader(msbConfigSpy);
         AdapterFactory adapterFactory = loader.getAdapterFactory();
-        assertThat(adapterFactory, instanceOf(MockAdapterFactory.class));
+        assertThat(adapterFactory, instanceOf(TestMsbAdapterFactory.class));
     }
 
     @Test 
