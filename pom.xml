@@ -243,6 +243,9 @@
                 <configuration>
                     <excludes>
                         <exclude>**/examples/*</exclude>
+                        <exclude>**/acceptance/*</exclude>
+                        <exclude>**/doc/*</exclude>
+                        <exclude>**/jmeter/*</exclude>
                     </excludes>
                 </configuration>
                 <executions>
