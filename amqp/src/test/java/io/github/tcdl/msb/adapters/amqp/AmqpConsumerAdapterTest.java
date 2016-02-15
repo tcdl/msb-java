@@ -6,16 +6,15 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -110,6 +109,15 @@ public class AmqpConsumerAdapterTest {
         verify(mockChannel).queueBind("myTopic.myGroupId.d", "myTopic", "");
     }
 
+
+    @Test(expected = ChannelException.class)
+    public void testSubscribeException() throws IOException {
+        AmqpConsumerAdapter adapter = createAdapterWithDurableConf("myTopic", "myGroupId", false);
+        when(mockChannel.basicConsume(anyString(), anyBoolean(), any(AmqpMessageConsumer.class)))
+                .thenThrow(IOException.class);
+        adapter.subscribe((jsonMessage, ackHandler) -> {});
+    }
+
     @Test
     public void testRegisteredHandlerInvoked() throws IOException {
         AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf("myTopic", "myGroupId", false);
@@ -137,6 +145,17 @@ public class AmqpConsumerAdapterTest {
         adapter.unsubscribe();
 
         verify(mockChannel).basicCancel(consumerTag);
+    }
+
+
+    @Test(expected = ChannelException.class)
+    public void testUnsubscribeException() throws IOException {
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf("myTopic", "myGroupId", false);
+        String consumerTag = "my consumer tag";
+        when(mockChannel.basicConsume(anyString(), anyBoolean(), any(Consumer.class)))
+                .thenThrow(IOException.class);
+        adapter.subscribe((jsonMessage, ackHandler) -> {});
+        adapter.unsubscribe();
     }
 
     @Test

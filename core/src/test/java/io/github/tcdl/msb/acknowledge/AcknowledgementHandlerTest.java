@@ -1,13 +1,8 @@
-package io.github.tcdl.msb.adapters.amqp;
+package io.github.tcdl.msb.acknowledge;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-
-
 import java.util.stream.IntStream;
-
-import io.github.tcdl.msb.acknowledge.AcknowledgementAdapter;
-import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,15 +11,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class AmqpAcknowledgementHandlerTest {
+public class AcknowledgementHandlerTest {
 
     private AcknowledgementHandlerImpl handler;
 
     @Mock
     private AcknowledgementAdapter acknowledgementAdapter;
-
-    private long deliveryTag = 123123123;
-
 
     @Before
     public void setUp() {

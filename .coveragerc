@@ -1,0 +1,4 @@
+[run]
+omit = acceptance/*
+       doc/*
+       jmeter/*
