@@ -32,6 +32,6 @@ public final class Topics {
 
     @Override
     public String toString() {
-        return "Topics [to=" + to + ", response=" + response + ", forward=" + response + "]";
+        return "Topics [to=" + to + ", response=" + response + ", forward=" + forward + "]";
     }
 }
