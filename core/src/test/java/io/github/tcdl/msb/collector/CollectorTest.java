@@ -31,6 +31,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BiConsumer;
+import java.util.stream.IntStream;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1135,6 +1137,32 @@ public class CollectorTest {
     }
 
     @Test
+    public void testMultipleAckTimeouts() throws InterruptedException {
+        Collector<RestPayload> collector = createCollector();
+
+        int numAckSequenceRepeats = 5;
+        int numAckTimeouts = 4;
+        int numAskTimeoutRepeats = 3;
+
+        IntStream.range(0, numAckSequenceRepeats).forEach((i)->{
+            IntStream.range(0, numAckTimeouts).forEach((j)->{
+                Acknowledge ack = new Acknowledge
+                        .Builder()
+                        .withResponderId("tc")
+                        .withTimeoutMs(1000 + j * 700)
+                        .build();
+                IntStream.range(0, numAskTimeoutRepeats).forEach((k)->{
+                    collector.processAck(ack);
+                });
+            });
+        });
+
+        collector.waitForResponses();
+        // call enableResponseTimeout() on waitForResponses() call and on each timeout change
+        verify(timeoutManagerMock, times(numAckTimeouts * numAckSequenceRepeats + 1)).enableResponseTimeout(anyInt(), any());
+    }
+
+    @Test
     public void testWaitForAcks() {
         int timeoutMs = 1000;
         ArgumentCaptor<Integer> timeoutCaptor = ArgumentCaptor.forClass(Integer.class);
@@ -1147,6 +1175,23 @@ public class CollectorTest {
 
         verify(timeoutManagerMock).enableAckTimeout(timeoutCaptor.capture(), any());
         assertThat(timeoutCaptor.getValue()).isBetween(500, timeoutMs);
+    }
+
+    @Test
+    public void testWaitForAcksMultipleInvocations() {
+        int timeoutMs = 1000;
+
+        when(requestOptionsMock.getAckTimeout()).thenReturn(timeoutMs);
+        Collector<RestPayload> collector = createCollector();
+
+        when(timeoutManagerMock.enableAckTimeout(anyInt(), any())).thenReturn(mock(ScheduledFuture.class));
+
+        collector.listenForResponses();
+        collector.waitForAcks();
+        collector.waitForAcks();
+        collector.waitForAcks();
+
+        verify(timeoutManagerMock, times(1)).enableAckTimeout(anyInt(), any());
     }
 
     private Collector<RestPayload> createCollector() {

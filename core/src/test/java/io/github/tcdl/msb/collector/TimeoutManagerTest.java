@@ -30,6 +30,14 @@ public class TimeoutManagerTest {
     }
 
     @Test
+    public void testEnableResponseTimeoutRejected() {
+        TimeoutManager timeoutManager = new TimeoutManager(1);
+        timeoutManager.shutdown();
+        timeoutManager.enableResponseTimeout(10, mockCollector);
+        verify(mockCollector, never()).end();
+    }
+
+    @Test
     public void testEnableResponseTimeoutMultipleTimesLastWin() {
         TimeoutManager timeoutManager = new TimeoutManager(2);
         timeoutManager.enableResponseTimeout(1000, mockCollector);
@@ -44,6 +52,14 @@ public class TimeoutManagerTest {
         TimeoutManager timeoutManager = new TimeoutManager(1);
         timeoutManager.enableAckTimeout(10, mockCollector);
         verify(mockCollector, timeout(50)).end();
+    }
+
+    @Test
+    public void testEnableAckTimeoutRejected() {
+        TimeoutManager timeoutManager = new TimeoutManager(1);
+        timeoutManager.shutdown();
+        timeoutManager.enableAckTimeout(10, mockCollector);
+        verify(mockCollector, never()).end();
     }
 
     @Test

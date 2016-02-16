@@ -2,17 +2,19 @@ package io.github.tcdl.msb.support;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static io.github.tcdl.msb.support.Utils.TOPIC_ANNOUNCE;
 import static io.github.tcdl.msb.support.Utils.TOPIC_HEARTBEAT;
 import static io.github.tcdl.msb.support.Utils.isServiceTopic;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class UtilsTest {
     @Test
@@ -55,6 +57,20 @@ public class UtilsTest {
     }
 
     @Test
+    public void testJsonDeserializationFromNull() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        SimpleBean bean = Utils.fromJson(null, SimpleBean.class, objectMapper);
+        assertNull(bean);
+    }
+
+    @Test
+    public void testJsonDeserializationFromEmptyString() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        SimpleBean bean = Utils.fromJson("", SimpleBean.class, objectMapper);
+        assertNull(bean);
+    }
+
+    @Test
     public void testConvert() {
         int VALUE = 10;
 
@@ -74,6 +90,29 @@ public class UtilsTest {
         pojo.field = 10;
 
         Utils.convert(pojo, Integer.class, objectMapper);
+    }
+
+    @Test
+    public void testGracefulShutdown() throws Exception {
+        ExecutorService executorService = mock(ExecutorService.class);
+        when(executorService.awaitTermination(anyInt(), eq(TimeUnit.SECONDS)))
+            .thenReturn(false, false, true);
+        Utils.gracefulShutdown(executorService, "any");
+        verify(executorService, times(1)).shutdown();
+        verify(executorService, times(3)).awaitTermination(anyInt(), eq(TimeUnit.SECONDS));
+
+    }
+
+    @Test
+    @Ignore
+    public void testGracefulShutdownInterrupted() throws Exception {
+        ExecutorService executorService = mock(ExecutorService.class);
+        doThrow(InterruptedException.class)
+                .when(executorService)
+                .awaitTermination(anyInt(), eq(TimeUnit.SECONDS));
+        Utils.gracefulShutdown(executorService, "any");
+        verify(executorService, times(1)).shutdown();
+        verify(executorService, times(1)).awaitTermination(anyInt(), eq(TimeUnit.SECONDS));
     }
 
 }
