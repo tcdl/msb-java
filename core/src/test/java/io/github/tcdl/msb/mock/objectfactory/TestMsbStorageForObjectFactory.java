@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class provides statics-based storage and accessors for {@link TestMsbObjectFactory}-based
+ * This class provides storage and accessors for {@link TestMsbObjectFactory}-based
  * testing.
  */
 public class TestMsbStorageForObjectFactory {

@@ -6,15 +6,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class RunOnShutdownScheduledExecutorDecoratorTest {
 
@@ -56,18 +54,36 @@ public class RunOnShutdownScheduledExecutorDecoratorTest {
     }
 
     @Test(timeout = 20000)
-    public void testShutdownWithCompletedTask() {
+    public void testShutdownWithCompletedTask() throws Exception {
         Runnable mockCompletedRunnable = mock(Runnable.class);
-        executorDecorator.schedule(mockCompletedRunnable, TIME_IMMEDIATE, TimeUnit.SECONDS);
+        ScheduledFuture scheduleCompleted = executorDecorator.schedule(mockCompletedRunnable, TIME_IMMEDIATE, TimeUnit.SECONDS);
         verify(mockCompletedRunnable, timeout(1000).times(1)).run();
 
         Runnable mockRunnable = mock(Runnable.class);
-        executorDecorator.schedule(mockRunnable, TIME_FAR_FUTURE, TimeUnit.SECONDS);
+        ScheduledFuture scheduleFuture =executorDecorator.schedule(mockRunnable, TIME_FAR_FUTURE, TimeUnit.SECONDS);
+
+        assertFalse(scheduleCompleted.isCancelled());
+        assertTrue(scheduleCompleted.isDone());
+
+        assertFalse(scheduleFuture.isCancelled());
+        assertFalse(scheduleFuture.isDone());
+
+        assertNull(scheduleCompleted.get());
 
         executorDecorator.shutdown();
 
         verify(mockRunnable, times(1)).run();
         verify(mockCompletedRunnable, times(1)).run(); // verify the task is not invoked again
+
+        assertTrue(scheduleFuture.isCancelled());
+        assertTrue(scheduleFuture.isDone());
+
+        try {
+            scheduleFuture.get();
+            fail("CancellationException is expected");
+        } catch (CancellationException ex) {
+            //ok
+        }
     }
 
     @Test(timeout = 20000)

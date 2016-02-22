@@ -126,17 +126,11 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler {
 
         this.payloadTypeReference = payloadTypeReference;
 
-        if (eventHandlers != null) {
-            onRawResponse = Optional.ofNullable(eventHandlers.onRawResponse());
-            onResponse = Optional.ofNullable(eventHandlers.onResponse());
-            onAcknowledge = Optional.ofNullable(eventHandlers.onAcknowledge());
-            onEnd = Optional.ofNullable(eventHandlers.onEnd());
-        } else {
-            onRawResponse = Optional.empty();
-            onResponse = Optional.empty();
-            onAcknowledge = Optional.empty();
-            onEnd = Optional.empty();
-        }
+        onRawResponse = Optional.ofNullable(eventHandlers.onRawResponse());
+        onResponse = Optional.ofNullable(eventHandlers.onResponse());
+        onAcknowledge = Optional.ofNullable(eventHandlers.onAcknowledge());
+        onEnd = Optional.ofNullable(eventHandlers.onEnd());
+
     }
 
     @Override

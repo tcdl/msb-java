@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +75,7 @@ public class Utils {
     }
 
     public static <T> T fromJson(String json, TypeReference<T> typeReference, ObjectMapper objectMapper) {
-        if (json == null)
+        if (StringUtils.isEmpty(json))
             return null;
         try {
             return objectMapper.readValue(json, typeReference);

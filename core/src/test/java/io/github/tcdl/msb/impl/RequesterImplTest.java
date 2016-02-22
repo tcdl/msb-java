@@ -5,12 +5,8 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Consumer;
 import io.github.tcdl.msb.Producer;
@@ -58,7 +54,7 @@ public class RequesterImplTest {
     public void testPublishNoWaitForResponses() throws Exception {
         RequesterImpl<RestPayload> requester = initRequesterForResponsesWith(0, 0, 0, null);
 
-        requester.publish(TestUtils.createSimpleRequestPayload());
+        publishByAllMethods(requester);
 
         verify(collectorMock, never()).listenForResponses();
         verify(collectorMock, never()).waitForResponses();
@@ -68,10 +64,18 @@ public class RequesterImplTest {
     public void testPublishWaitForResponses() throws Exception {
         RequesterImpl<RestPayload> requester = initRequesterForResponsesWith(1, 0, 0, null);
 
-        requester.publish(TestUtils.createSimpleRequestPayload());
+        publishByAllMethods(requester);
 
-        verify(collectorMock).listenForResponses();
-        verify(collectorMock).waitForResponses();
+        verify(collectorMock, times(4)).listenForResponses();
+        verify(collectorMock, times(4)).waitForResponses();
+    }
+
+    private void publishByAllMethods(RequesterImpl<RestPayload> requester) {
+        Message originalMessage = TestUtils.createMsbRequestMessage("some:topic", "body text");
+        requester.publish(TestUtils.createSimpleRequestPayload());
+        requester.publish(TestUtils.createSimpleRequestPayload(), "tag", "anotherTag");
+        requester.publish(TestUtils.createSimpleRequestPayload(), originalMessage);
+        requester.publish(TestUtils.createSimpleRequestPayload(), originalMessage, "tag", "anotherTag");
     }
 
     @Test

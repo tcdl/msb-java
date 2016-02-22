@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * This class provides statics-based storage and accessors for {@link TestMsbAdapterFactory}-based
+ * This class provides storage and accessors for {@link TestMsbAdapterFactory}-based
  * testing.
  */
 public class TestMsbStorageForAdapterFactory {

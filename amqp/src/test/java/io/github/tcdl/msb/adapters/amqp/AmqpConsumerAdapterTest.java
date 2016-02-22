@@ -147,7 +147,6 @@ public class AmqpConsumerAdapterTest {
         verify(mockChannel).basicCancel(consumerTag);
     }
 
-
     @Test(expected = ChannelException.class)
     public void testUnsubscribeException() throws IOException {
         AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf("myTopic", "myGroupId", false);
