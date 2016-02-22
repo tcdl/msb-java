@@ -104,7 +104,6 @@ public class UtilsTest {
     }
 
     @Test
-    @Ignore
     public void testGracefulShutdownInterrupted() throws Exception {
         ExecutorService executorService = mock(ExecutorService.class);
         doThrow(InterruptedException.class)
