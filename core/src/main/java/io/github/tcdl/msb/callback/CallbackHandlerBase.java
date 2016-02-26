@@ -17,7 +17,7 @@ public abstract class CallbackHandlerBase implements CallbackHandler {
             try {
                 callback.run();
             } catch (Exception ex) {
-                LOG.warn("Exception while trying to invoke callback", ex);
+                LOG.warn("Exception while trying to invoke a callback", ex);
             }
         }
     }
