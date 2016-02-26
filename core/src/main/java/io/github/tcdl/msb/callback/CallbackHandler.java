@@ -6,7 +6,7 @@ package io.github.tcdl.msb.callback;
 public interface CallbackHandler {
 
     /**
-     * Run call callbacks within the container, catch and log expections if any.
+     * Run all callbacks within the container, catch and log exceptions if any.
      */
     void runCallbacks();
 
