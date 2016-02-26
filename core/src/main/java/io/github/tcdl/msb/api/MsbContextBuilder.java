@@ -9,6 +9,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.exception.MsbException;
+import io.github.tcdl.msb.callback.MutableCallbackHandler;
 import io.github.tcdl.msb.collector.CollectorManagerFactory;
 import io.github.tcdl.msb.collector.TimeoutManager;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -104,7 +105,10 @@ public class MsbContextBuilder {
         TimeoutManager timeoutManager = new TimeoutManager(msbConfig.getTimerThreadPoolSize());
         CollectorManagerFactory collectorManagerFactory = new CollectorManagerFactory(channelManager);
 
-        MsbContextImpl msbContext = new MsbContextImpl(msbConfig, messageFactory, channelManager, clock, timeoutManager, payloadMapper, collectorManagerFactory);
+        MsbContextImpl msbContext = new MsbContextImpl(msbConfig, messageFactory, channelManager,
+                clock, timeoutManager,
+                payloadMapper, collectorManagerFactory,
+                new MutableCallbackHandler());
 
         if (enableChannelMonitorAgent) {
             DefaultChannelMonitorAgent.start(msbContext);

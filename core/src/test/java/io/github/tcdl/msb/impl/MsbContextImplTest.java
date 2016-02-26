@@ -1,27 +1,24 @@
 package io.github.tcdl.msb.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.ObjectFactory;
+import io.github.tcdl.msb.callback.MutableCallbackHandler;
 import io.github.tcdl.msb.collector.CollectorManagerFactory;
 import io.github.tcdl.msb.collector.TimeoutManager;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.message.MessageFactory;
-import io.github.tcdl.msb.support.TestUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.time.Clock;
-
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MsbContextImplTest {
-
-    private Clock clock = Clock.systemDefaultZone();
 
     @Mock
     private MsbConfig msbConfigurationsMock;
@@ -41,23 +38,41 @@ public class MsbContextImplTest {
     @Mock
     private ObjectFactory objectFactoryMock;
 
-    private ObjectMapper messageMapper = TestUtils.createMessageMapper();
+    @Mock
+    private MutableCallbackHandler shutdownCallbackHandlerMock;
+
+    @Mock
+    private Runnable callbackMock;
+
+    @InjectMocks
+    private MsbContextImpl msbContext;
 
     @Test
     public void testShutdown() {
-        MsbContextImpl msbContext = new MsbContextImpl(msbConfigurationsMock, messageFactoryMock, channelManagerMock, clock,
-                timeoutManagerMock, messageMapper, collectorManagerFactoryMock);
         msbContext.setObjectFactory(objectFactoryMock);
         msbContext.shutdown();
-        verify(objectFactoryMock).shutdown();
-        verify(timeoutManagerMock).shutdown();
-        verify(channelManagerMock).shutdown();
+        verifyShutdownOnce();
+
+        msbContext.shutdown();
+        msbContext.shutdown();
+        verifyShutdownOnce();
+    }
+
+    private void verifyShutdownOnce() {
+        verify(shutdownCallbackHandlerMock, times(1)).runCallbacks();
+        verify(objectFactoryMock, times(1)).shutdown();
+        verify(timeoutManagerMock, times(1)).shutdown();
+        verify(channelManagerMock, times(1)).shutdown();
+    }
+
+    @Test
+    public void testAddShutdownCallback() {
+        msbContext.addShutdownCallback(callbackMock);
+        verify(shutdownCallbackHandlerMock).add(callbackMock);
     }
 
     @Test
     public void testSetObjectFactory() {
-        MsbContextImpl msbContext = new MsbContextImpl(msbConfigurationsMock, messageFactoryMock, channelManagerMock, clock,
-                timeoutManagerMock, messageMapper, collectorManagerFactoryMock);
         msbContext.setObjectFactory(objectFactoryMock);
         assertEquals(objectFactoryMock, msbContext.getObjectFactory());
     }
