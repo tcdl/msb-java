@@ -23,6 +23,9 @@ public class MutableCallbackHandlerTest {
     @Mock
     private Runnable callback3;
 
+    @Mock
+    private Runnable callback4;
+
     @InjectMocks
     private MutableCallbackHandler handler;
 
@@ -35,6 +38,10 @@ public class MutableCallbackHandlerTest {
         handler.add(callback2);
         handler.add(callback3);
 
+        for(int i=0; i < 11; i++) {
+            handler.add(callback4);
+        }
+
         handler.runCallbacks();
 
         handler.remove(callback2);
@@ -44,6 +51,7 @@ public class MutableCallbackHandlerTest {
         verify(callback1, times(2)).run();
         verify(callback2, times(1)).run();
         verify(callback3, times(2)).run();
+        verify(callback4, times(2)).run();
     }
 
 }
