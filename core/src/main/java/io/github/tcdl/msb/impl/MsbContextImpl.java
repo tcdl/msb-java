@@ -30,7 +30,7 @@ public class MsbContextImpl implements MsbContext {
     private final ObjectMapper payloadMapper;
     private final CollectorManagerFactory collectorManagerFactory;
     private final MutableCallbackHandler shutdownCallbackHandler;
-    private volatile boolean isShutdown = false;
+    private volatile boolean isShutdownComplete = false;
 
     public MsbContextImpl(MsbConfig msbConfig, MessageFactory messageFactory, ChannelManager channelManager,
             Clock clock,
@@ -53,8 +53,8 @@ public class MsbContextImpl implements MsbContext {
      */
     @Override
     public synchronized void shutdown() {
-        if(!isShutdown) {
-            isShutdown = true;
+        if(!isShutdownComplete) {
+            isShutdownComplete = true;
             LOG.info("Shutting down MSB context...");
             shutdownCallbackHandler.runCallbacks();
             objectFactory.shutdown();
