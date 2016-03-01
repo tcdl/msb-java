@@ -16,6 +16,7 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
+import io.github.tcdl.msb.callback.MutableCallbackHandler;
 import io.github.tcdl.msb.collector.CollectorManagerFactory;
 import io.github.tcdl.msb.collector.TimeoutManager;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -430,7 +431,7 @@ public class TestUtils {
         private static class TestMsbContext extends MsbContextImpl {
             TestMsbContext(MsbConfig msbConfig, MessageFactory messageFactory,
                     ChannelManager channelManager, Clock clock, TimeoutManager timeoutManager, CollectorManagerFactory collectorManagerFactory) {
-                super(msbConfig, messageFactory, channelManager, clock, timeoutManager, createMessageMapper(), collectorManagerFactory);
+                super(msbConfig, messageFactory, channelManager, clock, timeoutManager, createMessageMapper(), collectorManagerFactory, new MutableCallbackHandler());
             }
 
             public void setFactory(ObjectFactory objectFactory) {
