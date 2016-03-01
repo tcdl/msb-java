@@ -4,13 +4,20 @@
 </head>
 
 <body lang="en">
-<h2>Welcome to MSB-Java version 1.4.3</h2>
+<h2>Welcome to MSB-Java version 1.4.4</h2>
 
 <h3>February 09, 2016</h3>
 
-<pre>MSB-Java version 1.4.3 contains minor improvements.
+<pre>
 
 ------------------------------------------------------------------------------------
+Features of MSB-Java version 1.4.4:
+   - MsbContext shutdown callbacks support;
+   - incoming messages schema validation is disabled by default;
+   - AMQP default heartbeat interval increased to 30s;
+   - performance improvements;
+   - MSB mocking support included, see MSB-TEST-MOCKING.md for details.
+
 Features of MSB-Java version 1.4.3:
    - Added logging support: all message tags concatenated into one string can be added to consumers thread
      MDC (see http://www.slf4j.org/api/org/slf4j/MDC.html) in 'msbTags' field. Message tags that have key-value format
