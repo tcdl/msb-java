@@ -27,7 +27,7 @@ public class RunOnShutdownScheduledExecutorDecorator {
     private String name;
 
     public RunOnShutdownScheduledExecutorDecorator(String name, int corePoolSize, ThreadFactory threadFactory) {
-        LOG.info(String.format("[scheduled thread pool decorator '%s'] Starting with %d threads ", name, corePoolSize));
+        LOG.info("[scheduled thread pool decorator '{}'] Starting with {} threads ", name, corePoolSize);
         this.name = name;
         scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(corePoolSize, threadFactory);
 
@@ -57,10 +57,10 @@ public class RunOnShutdownScheduledExecutorDecorator {
 
             So we we can assume that {@link #tasks} cannot be modified at this point
          */
-        LOG.info(String.format("[scheduled thread pool decorator '%s'] Executing pending tasks...", name));
+        LOG.info("[scheduled thread pool decorator '{}'] Executing pending tasks...", name);
         tasks.values().forEach(java.lang.Runnable::run);
         tasks.clear();
-        LOG.info(String.format("[scheduled thread pool decorator '%s'] Completed pending tasks execution.", name));
+        LOG.info("[scheduled thread pool decorator '{}'] Completed pending tasks execution.", name);
     }
 
     /**

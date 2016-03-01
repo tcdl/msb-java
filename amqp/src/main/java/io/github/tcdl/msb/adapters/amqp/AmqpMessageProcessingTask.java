@@ -41,12 +41,12 @@ public class AmqpMessageProcessingTask implements Runnable {
             MDC.setContextMap(mdcLogContextMap);
         }
         try {
-            LOG.debug(String.format("[correlation id: %s] Starting message processing", message.getCorrelationId()));
+            LOG.debug("[correlation id: {}] Starting message processing", message.getCorrelationId());
             messageHandler.handleMessage(message, ackHandler);
-            LOG.debug(String.format("[correlation id: %s] Message has been processed", message.getCorrelationId()));
+            LOG.debug("[correlation id: {}] Message has been processed", message.getCorrelationId());
             ackHandler.autoConfirm();
         } catch (Exception e) {
-            LOG.error(String.format("[correlation id: %s] Failed to process message", message.getCorrelationId()), e);
+            LOG.error("[correlation id: {}] Failed to process message", message.getCorrelationId(), e);
             ackHandler.autoRetry();
         } finally {
             if(mdcLogCopy) {

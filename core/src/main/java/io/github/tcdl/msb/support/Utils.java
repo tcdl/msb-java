@@ -119,15 +119,15 @@ public class Utils {
     public static void gracefulShutdown(ExecutorService executorService, String executorServiceName) {
         int pollingTimeout = 10;
 
-        LOG.info(String.format("[thread pool '%s'] Shutting down...", executorServiceName));
+        LOG.info("[thread pool '{}'] Shutting down...", executorServiceName);
         executorService.shutdown();
         try {
             while (!executorService.awaitTermination(pollingTimeout, TimeUnit.SECONDS)) {
-                LOG.info(String.format("[thread pool '%s'] Still has some tasks to complete. Waiting...", executorServiceName));
+                LOG.info("[thread pool '{}'] Still has some tasks to complete. Waiting...", executorServiceName);
             }
         } catch (InterruptedException e) {
-            LOG.warn(String.format("[thread pool '%s'] Interrupted while waiting for termination", executorServiceName), e);
+            LOG.warn("[thread pool '{}'] Interrupted while waiting for termination", executorServiceName, e);
         }
-        LOG.info(String.format("[thread pool '%s'] Shut down complete.", executorServiceName));
+        LOG.info("[thread pool '{}'] Shut down complete.", executorServiceName);
     }
 }

@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInternal {
 
-    private static final String ACK_WAS_ALREADY_SENT = "[%s] Acknowledgement was already sent during message processing.";
+    private static final String ACK_WAS_ALREADY_SENT = "[{}] Acknowledgement was already sent during message processing.";
 
     private static final Logger LOG = LoggerFactory.getLogger(AcknowledgementHandlerImpl.class);
 
@@ -44,7 +44,7 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
     public void confirmMessage() {
         executeAck("confirm", () -> {
             acknowledgementAdapter.confirm();
-            LOG.debug(String.format("[%s] A message was confirmed", messageTextIdentifier));
+            LOG.debug("[{}] A message was confirmed", messageTextIdentifier);
         });
     }
 
@@ -53,10 +53,10 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
         executeAck("requeue", () -> {
             if(!isMessageRedelivered) {
                 acknowledgementAdapter.retry();
-                LOG.debug(String.format("[%s] A message was rejected with requeue", messageTextIdentifier));
+                LOG.debug("[{}] A message was rejected with requeue", messageTextIdentifier);
             } else {
                 acknowledgementAdapter.reject();
-                LOG.warn(String.format("[%s] Can't requeue message because it already was redelivered once, discarding it instead", messageTextIdentifier));
+                LOG.warn("[{}] Can't requeue message because it already was redelivered once, discarding it instead", messageTextIdentifier);
             }
         });
     }
@@ -65,7 +65,7 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
     public void rejectMessage() {
         executeAck("reject", () -> {
             acknowledgementAdapter.reject();
-            LOG.debug(String.format("[%s] A message was discarded", messageTextIdentifier));
+            LOG.debug("[{}] A message was discarded", messageTextIdentifier);
         });
     }
 
@@ -74,31 +74,31 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
             try {
                 ackAction.perform();
             } catch (Exception e) {
-                LOG.error(String.format("[%s] Got exception when trying to %s a message:", messageTextIdentifier, actionName), e);
+                LOG.error("[{}] Got exception when trying to {} a message:", messageTextIdentifier, actionName, e);
             }
         } else {
-            LOG.error(String.format(ACK_WAS_ALREADY_SENT, messageTextIdentifier));
+            LOG.error(ACK_WAS_ALREADY_SENT, messageTextIdentifier);
         }
     }
     
     public void autoConfirm() {
         executeAutoAck(() -> {
             confirmMessage();
-            LOG.debug(String.format("[%s] A message was automatically confirmed after message processing", messageTextIdentifier));
+            LOG.debug("[{}] A message was automatically confirmed after message processing", messageTextIdentifier);
         });
     }
 
     public void autoReject() {
         executeAutoAck(() -> {
             rejectMessage();
-            LOG.debug(String.format("[%s] A message was automatically rejected due to error during message processing", messageTextIdentifier));
+            LOG.debug("[{}] A message was automatically rejected due to error during message processing", messageTextIdentifier);
         });
     }
 
     public void autoRetry() {
         executeAutoAck(() -> {
             retryMessage();
-            LOG.debug(String.format("[%s] A message was automatically rejected (with a requeue attempt) due to error during message processing", messageTextIdentifier));
+            LOG.debug("[{}] A message was automatically rejected (with a requeue attempt) due to error during message processing", messageTextIdentifier);
         });
     }
 

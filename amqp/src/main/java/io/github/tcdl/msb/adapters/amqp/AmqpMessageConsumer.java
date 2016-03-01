@@ -43,27 +43,27 @@ public class AmqpMessageConsumer extends DefaultConsumer {
 
             String bodyStr = new String(body, charset);
 
-            LOG.debug(String.format("[consumer tag: %s] Message consumed from broker: %s", consumerTag, bodyStr));
+            LOG.debug("[consumer tag: {}] Message consumed from broker: {}", consumerTag, bodyStr);
 
             try {
                 msgHandler.onMessage(bodyStr, ackHandler);
-                LOG.debug(String.format("[consumer tag: %s] Raw message has been handled: %s.",
-                        consumerTag, bodyStr));
+                LOG.debug("[consumer tag: {}] Raw message has been handled: {}.",
+                        consumerTag, bodyStr);
             } catch (Exception e) {
-                LOG.error(String.format("[consumer tag: %s] Can't handle a raw message: %s.",
-                        consumerTag, bodyStr), e);
+                LOG.error("[consumer tag: {}] Can't handle a raw message: {}.",
+                        consumerTag, bodyStr, e);
                 throw e;
             }
         } catch (Exception e) {
             // Catch all exceptions to prevent AMQP channel to be closed
-            LOG.error(String.format("[consumer tag: %s] Got exception while processing incoming message. About to send AMQP reject...", consumerTag), e);
+            LOG.error("[consumer tag: {}] Got exception while processing incoming message. About to send AMQP reject...", consumerTag, e);
             ackHandler.autoReject();
         }
     }
 
     AcknowledgementHandlerInternal createAcknowledgementHandler(Channel channel, String consumerTag, long deliveryTag, boolean isRequeueRejectedMessages) {
         AmqpAcknowledgementAdapter adapter = new AmqpAcknowledgementAdapter(channel, consumerTag, deliveryTag);
-        String messageTextIdentifier = String.format("consumer tag: %s", consumerTag);
+        String messageTextIdentifier = "consumer tag: " + consumerTag;
         return new AcknowledgementHandlerImpl(adapter, isRequeueRejectedMessages, messageTextIdentifier);
     }
     

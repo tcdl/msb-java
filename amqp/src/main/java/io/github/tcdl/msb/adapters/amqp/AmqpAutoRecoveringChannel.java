@@ -58,12 +58,12 @@ public class AmqpAutoRecoveringChannel {
         channel.addConfirmListener(new ConfirmListener() {
             @Override
             public void handleAck(long deliveryTag, boolean multiple) throws IOException {
-                LOG.debug(String.format("Processing publisher ack (deliveryTag = %s, multiple = %b)", deliveryTag, multiple));
+                LOG.debug("Processing publisher ack (deliveryTag = {}, multiple = {})", deliveryTag, multiple);
             }
 
             @Override
             public void handleNack(long deliveryTag, boolean multiple) throws IOException {
-                LOG.debug(String.format("Processing publisher nack (deliveryTag = %s, multiple = %b)", deliveryTag, multiple));
+                LOG.debug("Processing publisher nack (deliveryTag = {}, multiple = {})", deliveryTag, multiple);
             }
         });
 
