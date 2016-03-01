@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.ObjectFactory;
+import io.github.tcdl.msb.callback.MutableCallbackHandler;
 import io.github.tcdl.msb.collector.CollectorManager;
 import io.github.tcdl.msb.collector.CollectorManagerFactory;
 import io.github.tcdl.msb.collector.TimeoutManager;
@@ -11,7 +12,6 @@ import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.message.MessageFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.Clock;
 
 /**
@@ -21,20 +21,23 @@ public class MsbContextImpl implements MsbContext {
 
     private static final Logger LOG = LoggerFactory.getLogger(MsbContextImpl.class);
 
-    private MsbConfig msbConfig;
-    private ObjectFactory objectFactory;
-    private MessageFactory messageFactory;
-    private ChannelManager channelManager;
-    private Clock clock;
-    private TimeoutManager timeoutManager;
-    private ObjectMapper payloadMapper;
-    private CollectorManagerFactory collectorManagerFactory;
+    private final MsbConfig msbConfig;
+    private volatile ObjectFactory objectFactory;
+    private final MessageFactory messageFactory;
+    private final ChannelManager channelManager;
+    private final Clock clock;
+    private final TimeoutManager timeoutManager;
+    private final ObjectMapper payloadMapper;
+    private final CollectorManagerFactory collectorManagerFactory;
+    private final MutableCallbackHandler shutdownCallbackHandler;
+    private volatile boolean isShutdownComplete = false;
 
     public MsbContextImpl(MsbConfig msbConfig, MessageFactory messageFactory, ChannelManager channelManager,
             Clock clock,
             TimeoutManager timeoutManager,
             ObjectMapper payloadMapper,
-            CollectorManagerFactory collectorManagerFactory) {
+            CollectorManagerFactory collectorManagerFactory,
+            MutableCallbackHandler shutdownCallbackHandler) {
         this.msbConfig = msbConfig;
         this.messageFactory = messageFactory;
         this.channelManager = channelManager;
@@ -42,18 +45,25 @@ public class MsbContextImpl implements MsbContext {
         this.timeoutManager = timeoutManager;
         this.payloadMapper = payloadMapper;
         this.collectorManagerFactory = collectorManagerFactory;
+        this.shutdownCallbackHandler = shutdownCallbackHandler;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void shutdown() {
-        LOG.info("Shutting down MSB context...");
-        objectFactory.shutdown();
-        timeoutManager.shutdown();
-        channelManager.shutdown();
-        LOG.info("MSB context has been shut down.");
+    public synchronized void shutdown() {
+        if(!isShutdownComplete) {
+            isShutdownComplete = true;
+            LOG.info("Shutting down MSB context...");
+            shutdownCallbackHandler.runCallbacks();
+            objectFactory.shutdown();
+            timeoutManager.shutdown();
+            channelManager.shutdown();
+            LOG.info("MSB context has been shut down.");
+        } else {
+            LOG.warn("Trying to shutdown MsbContext several times");
+        }
     }
 
     /**
@@ -117,4 +127,8 @@ public class MsbContextImpl implements MsbContext {
         this.objectFactory = objectFactory;
     }
 
+    @Override
+    public void addShutdownCallback(Runnable shutdownCallback) {
+        shutdownCallbackHandler.add(shutdownCallback);
+    }
 }

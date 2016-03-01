@@ -116,7 +116,7 @@ public class CollectorManagerTest {
         verify(channelManagerMock, never()).unsubscribe(TOPIC);
 
         collectorManager.unregisterCollector(secondCollectorMock);
-        verify(channelManagerMock).unsubscribe(TOPIC);
+        verify(channelManagerMock, never()).unsubscribe(TOPIC);
     }
 
     @Test
@@ -131,7 +131,7 @@ public class CollectorManagerTest {
         collectorManager.unregisterCollector(collectorMock);
         collectorManager.unregisterCollector(secondCollectorMock);
 
-        verify(channelManagerMock).unsubscribe(TOPIC);
+        verify(channelManagerMock, never()).unsubscribe(TOPIC);
     }
 
     @Test
@@ -140,9 +140,6 @@ public class CollectorManagerTest {
         collectorManager.registerCollector(collectorMock);
 
         collectorManager.unregisterCollector(collectorMock);
-        verify(channelManagerMock, times(1)).unsubscribe(TOPIC);
-
-        reset(channelManagerMock);
         collectorManager.unregisterCollector(collectorMock);
         verify(channelManagerMock, never()).unsubscribe(TOPIC);
     }
@@ -153,11 +150,11 @@ public class CollectorManagerTest {
         collectorManager.registerCollector(collectorMock);
 
         collectorManager.unregisterCollector(collectorMock);
-        verify(channelManagerMock, times(1)).unsubscribe(TOPIC);
+        verify(channelManagerMock, never()).unsubscribe(TOPIC);
 
         reset(channelManagerMock);
         collectorManager.registerCollector(collectorMock);
-        verify(channelManagerMock, times(1)).subscribeForResponses(TOPIC, collectorManager);
+        verify(channelManagerMock, never()).subscribeForResponses(TOPIC, collectorManager);
     }
 
 }

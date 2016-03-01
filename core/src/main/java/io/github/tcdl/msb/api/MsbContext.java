@@ -16,4 +16,9 @@ public interface MsbContext {
      */
     void shutdown();
 
+    /**
+     * Add a callback that will be invoked before MsbContext shutdown.
+     * @param shutdownCallback
+     */
+    void addShutdownCallback(Runnable shutdownCallback);
 }
