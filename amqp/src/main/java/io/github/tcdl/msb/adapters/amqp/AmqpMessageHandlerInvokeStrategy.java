@@ -29,7 +29,7 @@ public class AmqpMessageHandlerInvokeStrategy implements MessageHandlerInvokeStr
     @Override
     public void execute(MessageHandler messageHandler, Message message, AcknowledgementHandlerInternal acknowledgeHandler) {
         consumerThreadPool.submit(new AmqpMessageProcessingTask(messageHandler, message, acknowledgeHandler));
-        LOG.debug(String.format("[correlation id: %s] Message has been put in the processing queue.",
-                message.getCorrelationId()));
+        LOG.debug("[correlation id: {}] Message has been put in the processing queue.",
+                message.getCorrelationId());
     }
 }

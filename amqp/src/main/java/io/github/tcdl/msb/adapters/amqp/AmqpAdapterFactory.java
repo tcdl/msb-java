@@ -124,8 +124,8 @@ public class AmqpAdapterFactory implements AdapterFactory {
      */
     protected Connection createConnection(ConnectionFactory connectionFactory) {
         try {
-            LOG.info(String.format("Opening AMQP connection to host = %s, port = %s, username = %s, password = xxx, virtualHost = %s...",
-                    connectionFactory.getHost(), connectionFactory.getPort(), connectionFactory.getUsername(), connectionFactory.getVirtualHost()));
+            LOG.info("Opening AMQP connection to host = {}, port = {}, username = {}, password = xxx, virtualHost = {}...",
+                    connectionFactory.getHost(), connectionFactory.getPort(), connectionFactory.getUsername(), connectionFactory.getVirtualHost());
             Connection connection = connectionFactory.newConnection();
             if (connection instanceof Recoverable) {
                 // This cast is possible for connections created by a factory that supports auto-recovery
