@@ -53,7 +53,7 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
     @Override
     public void start(boolean activateHeartbeats, long heartbeatIntervalMs, int heartbeatTimeoutMs) {
         channelManager.subscribe(TOPIC_ANNOUNCE, this::onAnnounce);
-        LOG.debug(String.format("Subscribed to %s", TOPIC_ANNOUNCE));
+        LOG.debug("Subscribed to {}", TOPIC_ANNOUNCE);
 
         if (activateHeartbeats) {
             Runnable heartbeatTask = new HeartbeatTask(heartbeatTimeoutMs, objectFactory, this::onHeartbeatResponses);
@@ -72,7 +72,7 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
     }
 
     void onHeartbeatResponses(List<Message> heartbeatResponses) {
-        LOG.debug(String.format("Handling heartbeat responses %s...", heartbeatResponses));
+        LOG.debug("Handling heartbeat responses {}...", heartbeatResponses);
         AggregatorStats aggregatorStats = new AggregatorStats();
         boolean successfullyAggregatedAtLeastOne = false;
         for (Message msg : heartbeatResponses) {
@@ -81,10 +81,10 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
             }
         }
         if (successfullyAggregatedAtLeastOne) {
-            LOG.debug(String.format("Calling registered handler for heartbeat statistics %s...", masterAggregatorStats));
+            LOG.debug("Calling registered handler for heartbeat statistics {}...", masterAggregatorStats);
             handler.call(aggregatorStats);
             masterAggregatorStats = aggregatorStats;
-            LOG.debug(String.format("Heartbeat responses processed"));
+            LOG.debug("Heartbeat responses processed");
         }
     }
 
@@ -94,9 +94,9 @@ public class DefaultChannelMonitorAggregator implements ChannelMonitorAggregator
         boolean successfullyAggregated = aggregateInfo(masterAggregatorStats, announcementMessage);
 
         if (successfullyAggregated) {
-            LOG.debug(String.format("Calling registered handler for announcement statistics %s...", masterAggregatorStats));
+            LOG.debug("Calling registered handler for announcement statistics {}...", masterAggregatorStats);
             handler.call(masterAggregatorStats);
-            LOG.debug(String.format("Announcement message processed"));
+            LOG.debug("Announcement message processed");
         }
     }
 

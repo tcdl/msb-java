@@ -53,26 +53,21 @@ public class CollectorManager implements MessageHandlerResolver {
         String correlationId = collector.getRequestMessage().getCorrelationId();
         collectorsByCorrelationId.putIfAbsent(correlationId, collector);
 
-        synchronized (this) {
-            if (!isSubscribed) {
-                channelManager.subscribeForResponses(topic, this);
-                isSubscribed = true;
+        if(!isSubscribed) {
+            synchronized (this) {
+                if (!isSubscribed) {
+                    channelManager.subscribeForResponses(topic, this);
+                    isSubscribed = true;
+                }
             }
         }
     }
 
     /**
-     * Remove this collector from collector's map, if it is present. If map is empty (no more collectors await on consumer topic) unsubscribe from consumer.
+     * Remove this collector from collector's map, if it is present.
      */
     public void unregisterCollector(Collector collector) {
         collectorsByCorrelationId.remove(collector.getRequestMessage().getCorrelationId());
-
-        synchronized (this) {
-            if (collectorsByCorrelationId.isEmpty() && isSubscribed) {
-                channelManager.unsubscribe(topic);
-                isSubscribed = false;
-            }
-        }
     }
 
     @Override

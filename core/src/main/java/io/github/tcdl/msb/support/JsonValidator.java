@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class JsonValidator {
 
-    private Map<String, JsonNode> schemaCache = new ConcurrentHashMap<>();
+    private Map<String, JsonSchema> schemaCache = new ConcurrentHashMap<>();
     private JsonReader jsonReader;
 
     public JsonValidator() {
@@ -40,16 +40,16 @@ public class JsonValidator {
 
         try {
             JsonNode jsonNode = jsonReader.read(json);
-            JsonNode jsonSchemaNode = schemaCache.computeIfAbsent(schema, s -> {
+
+            JsonSchema jsonSchema = schemaCache.computeIfAbsent(schema, s -> {
                 try {
-                    return jsonReader.read(s);
-                } catch (IOException e) {
-                    throw new JsonSchemaValidationException(String.format("Failed reading schema"), e);
+                    JsonNode jsonSchemaNode = jsonReader.read(s);
+                    JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
+                    return factory.getJsonSchema(jsonSchemaNode);
+                } catch (Exception e) {
+                    throw new JsonSchemaValidationException("Failed reading schema", e);
                 }
             });
-
-            JsonSchemaFactory factory = JsonSchemaFactory.byDefault();
-            JsonSchema jsonSchema = factory.getJsonSchema(jsonSchemaNode);
 
             ProcessingReport validationReport = jsonSchema.validate(jsonNode);
 
