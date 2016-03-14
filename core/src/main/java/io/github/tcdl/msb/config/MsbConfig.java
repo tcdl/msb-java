@@ -62,7 +62,7 @@ public class MsbConfig {
 
     private String readJsonSchema() {
         try {
-            return IOUtils.toString(getClass().getResourceAsStream("/schema.js"));
+            return IOUtils.toString(getClass().getResourceAsStream("/schema.json"));
         } catch (IOException e) {
             LOG.error("Failed to load Json validation schema", this);
             return null;
