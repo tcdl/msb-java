@@ -14,7 +14,8 @@
       "type": ["object", "null"],
       "properties": {
         "to": { "$ref": "#/definitions/topic" },       
-        "response": { "$ref": "#/definitions/topic" }
+        "response": { "$ref": "#/definitions/topic" },
+        "forward": { "$ref": "#/definitions/topic" }
       },
       "required": ["to"]
     },
