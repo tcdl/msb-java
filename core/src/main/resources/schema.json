@@ -5,15 +5,15 @@
     "id": { "type": "string" },
     "correlationId": { "type": "string" },
     "tags": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        }
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "topics": {
       "type": ["object", "null"],
       "properties": {
-        "to": { "$ref": "#/definitions/topic" },       
+        "to": { "$ref": "#/definitions/topic" },
         "response": { "$ref": "#/definitions/topic" },
         "forward": { "$ref": "#/definitions/topic" }
       },
@@ -29,7 +29,17 @@
         "serviceDetails": { "$ref": "#/definitions/serviceDetails" }
       },
       "required": ["createdAt"]
-    }
+    },
+    "ack": {
+      "type": ["object", "null"],
+      "properties": {
+        "responderId": { "type": "string" },
+        "responsesRemaining": { "type": "number"},
+        "timeoutMs": { "type": ["number", "null"] }
+      },
+      "required": ["responderId", "responsesRemaining"]
+    },
+    "payload": {}
   },
   "required": ["id", "correlationId", "meta"],
   "definitions": {
