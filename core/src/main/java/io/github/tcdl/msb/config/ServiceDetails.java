@@ -1,19 +1,19 @@
 package io.github.tcdl.msb.config;
 
-import static io.github.tcdl.msb.config.ConfigurationUtil.getString;
 import static io.github.tcdl.msb.config.ConfigurationUtil.getOptionalString;
+import static io.github.tcdl.msb.config.ConfigurationUtil.getString;
 import io.github.tcdl.msb.support.Utils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.typesafe.config.Config;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class contains configuration data related to service instance.
@@ -52,11 +52,13 @@ public final class ServiceDetails {
         public Builder(Config config) {
             name = getString(config, "name");
             version = getString(config, "version");
-            Optional<String> optionalInstanceId = getOptionalString(config, "instanceId");  
+            Optional<String> optionalInstanceId = getOptionalString(config, "instanceId");
             instanceId = optionalInstanceId.isPresent() ? optionalInstanceId.get() : Utils.generateId(); 
 
-            hostname = getHostInfo().getHostName();
-            ip = getHostInfo().getHostAddress();
+            InetAddress hostInfo = getHostInfo();
+            hostname = hostInfo != null ? hostInfo.getHostName() : "unknown";
+            ip = hostInfo != null ? hostInfo.getHostAddress() : null;
+            
             pid = getPID();
         }
 
@@ -67,19 +69,27 @@ public final class ServiceDetails {
             return new ServiceDetails(name, version, instanceId, hostname, ip, pid);
         }
 
-        private static InetAddress getHostInfo() {
-            InetAddress hostInfo = null;
+        protected InetAddress getHostInfo() {
+            InetAddress hostInfo;
             try {
                 hostInfo = InetAddress.getLocalHost();
             } catch (UnknownHostException ex) {
-                LOG.error("Fail to retrieve host info", ex);
+                LOG.warn("Fail to retrieve host info", ex);
+                hostInfo = null;
             }
             return hostInfo;
         }
 
-        private static long getPID() {
+        protected long getPID() {
             String processName = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
-            return Long.parseLong(processName.split("@")[0]);
+            long pid;
+            try {
+                pid = Long.parseLong(processName.split("@")[0]);
+            } catch (NumberFormatException ex) {
+                LOG.warn("Fail to get Process ID", ex);
+                pid = 0;
+            }
+            return pid;
         }
     }
 
@@ -110,7 +120,7 @@ public final class ServiceDetails {
     @Override
     public String toString() {
         return "ServiceDetails [name=" + name + ", version=" + version + ", instanceId=" + instanceId + ", hostname="
-                + hostname + ", ip=" + ip + ", pid=" + pid + "]";
+                + hostname + String.valueOf(ip != null ? ", ip=" + ip : "") + ", pid=" + pid + "]";
     }
 
 }
