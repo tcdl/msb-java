@@ -52,12 +52,13 @@ public final class ServiceDetails {
         public Builder(Config config) {
             name = getString(config, "name");
             version = getString(config, "version");
+            
             Optional<String> optionalInstanceId = getOptionalString(config, "instanceId");
             instanceId = optionalInstanceId.isPresent() ? optionalInstanceId.get() : Utils.generateId(); 
 
-            InetAddress hostInfo = getHostInfo();
-            hostname = hostInfo != null ? hostInfo.getHostName() : "unknown";
-            ip = hostInfo != null ? hostInfo.getHostAddress() : null;
+            Optional<InetAddress> optionalHostInfo = getHostInfo();
+            hostname = optionalHostInfo.isPresent() ? optionalHostInfo.get().getHostName() : "unknown";
+            ip = optionalHostInfo.isPresent() ? optionalHostInfo.get().getHostAddress() : null;
             
             pid = getPID();
         }
@@ -69,15 +70,15 @@ public final class ServiceDetails {
             return new ServiceDetails(name, version, instanceId, hostname, ip, pid);
         }
 
-        protected InetAddress getHostInfo() {
-            InetAddress hostInfo;
+        protected Optional<InetAddress> getHostInfo() {
+            Optional<InetAddress> optionalHostInfo;
             try {
-                hostInfo = InetAddress.getLocalHost();
+                optionalHostInfo = Optional.of(InetAddress.getLocalHost());
             } catch (UnknownHostException ex) {
                 LOG.warn("Fail to retrieve host info", ex);
-                hostInfo = null;
+                optionalHostInfo = Optional.empty();
             }
-            return hostInfo;
+            return optionalHostInfo;
         }
 
         protected long getPID() {
