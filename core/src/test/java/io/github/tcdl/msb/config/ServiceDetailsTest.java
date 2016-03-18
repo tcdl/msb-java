@@ -14,6 +14,7 @@ import io.github.tcdl.msb.support.Utils;
 
 import java.net.InetAddress;
 import java.time.Clock;
+import java.util.Optional;
 
 import org.junit.Test;
 
@@ -48,8 +49,8 @@ public class ServiceDetailsTest {
         ServiceDetails serviceDetails  = new ServiceDetails.Builder(config.getConfig("serviceDetails")) {
 
             @Override
-            protected InetAddress getHostInfo() {
-                return null;
+            protected Optional<InetAddress> getHostInfo() {
+                return Optional.empty();
             }
             
         }.build();
