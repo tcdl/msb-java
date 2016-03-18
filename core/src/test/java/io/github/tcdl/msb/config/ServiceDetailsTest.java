@@ -3,7 +3,17 @@ package io.github.tcdl.msb.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import io.github.tcdl.msb.api.exception.ConfigurationException;
+import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.api.message.MetaMessage;
+import io.github.tcdl.msb.api.message.Topics;
+import io.github.tcdl.msb.support.TestUtils;
+import io.github.tcdl.msb.support.Utils;
+
+import java.net.InetAddress;
+import java.time.Clock;
 
 import org.junit.Test;
 
@@ -28,6 +38,47 @@ public class ServiceDetailsTest {
         assertNotNull("expect Hostname is not null", serviceDetails.getHostname());
         assertNotNull("expect Ip is not null", serviceDetails.getIp());
         assertNotNull("expect Pid is not null", serviceDetails.getPid());
+    }
+
+    @Test
+    public void testServiceDetailsWithUnresolvedHostInfo() {
+        
+        String serviceDetailsConfigStr = String.format("serviceDetails = {name = \"%s\", version = \"%s\", instanceId = \"%s\"}", name, version, instanceId);
+        Config config = ConfigFactory.parseString(serviceDetailsConfigStr);
+        ServiceDetails serviceDetails  = new ServiceDetails.Builder(config.getConfig("serviceDetails")) {
+
+            @Override
+            protected InetAddress getHostInfo() {
+                return null;
+            }
+            
+        }.build();
+        
+        //Verify object methods
+        assertTrue("expect Hostname is \"unknown\"", "unknown".equals(serviceDetails.getHostname()));
+        assertNull("expect Ip is null", serviceDetails.getIp());
+        
+        //Verify toString()
+        assertTrue("expect to find \"hostname=unknown\" substring", 
+                serviceDetails.toString().indexOf("hostname=unknown") > 0);
+        assertTrue("expect not to find \"ip=\" substring", 
+                serviceDetails.toString().indexOf("ip=") < 0);
+
+        //Verify Json serialization 
+        Clock clock = Clock.systemDefaultZone();
+        Message message = new Message.Builder()
+                .withMetaBuilder(new MetaMessage.Builder(null, clock.instant(), serviceDetails, clock))
+                .withId("1111")
+                .withCorrelationId("2222")
+                .withTopics(new Topics("TopicTo", null, null))
+                .build();
+
+        String jsonString = Utils.toJson(message, TestUtils.createMessageMapper());
+        assertTrue("expect to find \"\"hostname\":\"unknown\"\" substring",
+                jsonString.indexOf("\"hostname\":\"unknown\"") > 0);
+        assertTrue("expect not to find \"ip\" substring",
+                jsonString.indexOf("ip") < 0);
+
     }
 
     @Test(expected = ConfigurationException.class)
@@ -73,5 +124,4 @@ public class ServiceDetailsTest {
         
         assertNotEquals("expect different InstanceId values", instanceId1, instanceId2);
     }
-
 }
