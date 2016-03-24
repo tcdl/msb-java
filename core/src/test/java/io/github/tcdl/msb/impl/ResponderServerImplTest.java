@@ -1,16 +1,6 @@
 package io.github.tcdl.msb.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.Producer;
@@ -23,14 +13,23 @@ import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.TestUtils;
-
-import java.util.Map;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 public class ResponderServerImplTest {
 
@@ -61,7 +60,7 @@ public class ResponderServerImplTest {
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 
         ResponderServerImpl<RestPayload<Object, Map<String, String>, Object, Map<String, String>>> responderServer = ResponderServerImpl
-                .create(TOPIC, requestOptions.getMessageTemplate(), spyMsbContext, handler, 
+                .create(TOPIC, requestOptions.getMessageTemplate(), spyMsbContext, handler, null,
                         new TypeReference<RestPayload<Object, Map<String, String>, Object, Map<String, String>>>() {});
 
         ResponderServerImpl spyResponderServer = (ResponderServerImpl) spy(responderServer).listen();
@@ -90,7 +89,7 @@ public class ResponderServerImplTest {
         Message incomingMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
 
         ResponderServerImpl<Integer> responderServer = ResponderServerImpl
-                .create(TOPIC, messageTemplate, msbContext, handler, new TypeReference<Integer>() {});
+                .create(TOPIC, messageTemplate, msbContext, handler, null, new TypeReference<Integer>() {});
         responderServer.listen();
 
         // simulate incoming request
@@ -116,7 +115,7 @@ public class ResponderServerImplTest {
         };
 
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, messageTemplate, msbContext, handler, new TypeReference<String>() {});
+                .create(TOPIC, messageTemplate, msbContext, handler, null, new TypeReference<String>() {});
         responderServer.listen();
 
         // simulate incoming request
@@ -149,7 +148,7 @@ public class ResponderServerImplTest {
                 .build();
 
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, messageTemplate, msbContext1, handler, new TypeReference<String>() {});
+                .create(TOPIC, messageTemplate, msbContext1, handler, null, new TypeReference<String>() {});
 
         Message incomingMessage = TestUtils.createMsbRequestMessageNoPayload(TOPIC);
         Responder responder = responderServer.createResponder(incomingMessage);
@@ -174,7 +173,7 @@ public class ResponderServerImplTest {
                 .build();
 
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, messageTemplate, msbContext, handler, new TypeReference<String>() {});
+                .create(TOPIC, messageTemplate, msbContext, handler, null, new TypeReference<String>() {});
 
         Message incomingMessage = TestUtils.createMsbBroadcastMessageNoPayload(TOPIC);
         Responder responder = responderServer.createResponder(incomingMessage);

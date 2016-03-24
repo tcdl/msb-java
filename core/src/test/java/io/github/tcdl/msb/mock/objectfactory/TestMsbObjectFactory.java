@@ -2,7 +2,13 @@ package io.github.tcdl.msb.mock.objectfactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.github.tcdl.msb.api.*;
+import io.github.tcdl.msb.api.Callback;
+import io.github.tcdl.msb.api.MessageTemplate;
+import io.github.tcdl.msb.api.ObjectFactory;
+import io.github.tcdl.msb.api.PayloadConverter;
+import io.github.tcdl.msb.api.RequestOptions;
+import io.github.tcdl.msb.api.Requester;
+import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 
@@ -42,7 +48,15 @@ public class TestMsbObjectFactory implements ObjectFactory {
     @Override
     public <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
-        ResponderCapture<T> capture = new ResponderCapture<>(namespace, messageTemplate, requestHandler,  payloadTypeReference, null);
+        ResponderCapture<T> capture = new ResponderCapture<>(namespace, messageTemplate, requestHandler, null, payloadTypeReference, null);
+        storage.addCapture(capture);
+        return capture.getResponderServerMock();
+    }
+
+    @Override
+    public <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler, TypeReference<T> payloadTypeReference) {
+        ResponderCapture<T> capture = new ResponderCapture<>(namespace, messageTemplate, requestHandler, errorHandler, payloadTypeReference, null);
         storage.addCapture(capture);
         return capture.getResponderServerMock();
     }
@@ -50,7 +64,7 @@ public class TestMsbObjectFactory implements ObjectFactory {
     @Override
     public ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<JsonNode> requestHandler) {
-        ResponderCapture<JsonNode> capture = new ResponderCapture<>(namespace, messageTemplate, requestHandler, null, null);
+        ResponderCapture<JsonNode> capture = new ResponderCapture<>(namespace, messageTemplate, requestHandler, null, null, null);
         storage.addCapture(capture);
         return capture.getResponderServerMock();
     }
@@ -58,7 +72,14 @@ public class TestMsbObjectFactory implements ObjectFactory {
     @Override
     public <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {
-        ResponderCapture<T> capture = new ResponderCapture<>(namespace, messageTemplate, requestHandler, null, payloadClass);
+        ResponderCapture<T> capture = new ResponderCapture<>(namespace, messageTemplate, requestHandler, null, null, payloadClass);
+        storage.addCapture(capture);
+        return capture.getResponderServerMock();
+    }
+
+    @Override public <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler, Class<T> payloadClass) {
+        ResponderCapture<T> capture = new ResponderCapture<>(namespace, messageTemplate, requestHandler, errorHandler, null, payloadClass);
         storage.addCapture(capture);
         return capture.getResponderServerMock();
     }

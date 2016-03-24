@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageContext;
@@ -11,12 +12,9 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.message.MessageFactory;
-
-import java.util.function.BiConsumer;
-
 import org.apache.commons.lang3.Validate;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of {@link Requester}
@@ -163,6 +161,15 @@ public class RequesterImpl<T> implements Requester<T> {
     @Override
     public Requester<T> onEnd(Callback<Void> endHandler) {
         eventHandlers.onEnd(endHandler);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Requester<T> onError(BiConsumer<Exception, Message> errorHandler) {
+        eventHandlers.onError(errorHandler);
         return this;
     }
 

@@ -95,4 +95,14 @@ public interface Requester<T> {
      * @return requester
      */
     Requester<T> onEnd(Callback<Void> endHandler);
+
+    /**
+     * Registers a callback to be called if an error is encountered during receiving a response from the bus
+     * Will be invoked only after all incoming responses will be processed.
+     *
+     * @param errorHandler callback to be called
+     * @return requester
+     */
+    Requester<T> onError(BiConsumer<Exception, Message> errorHandler);
+
 }

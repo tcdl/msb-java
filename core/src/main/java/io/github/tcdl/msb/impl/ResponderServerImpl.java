@@ -1,5 +1,7 @@
 package io.github.tcdl.msb.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.MessageTemplate;
@@ -10,13 +12,11 @@ import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
-
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
 
 public class ResponderServerImpl<T> implements ResponderServer {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServerImpl.class);
@@ -25,25 +25,32 @@ public class ResponderServerImpl<T> implements ResponderServer {
     private MsbContextImpl msbContext;
     private MessageTemplate messageTemplate;
     private RequestHandler<T> requestHandler;
+    private Optional<ErrorHandler> errorHandler;
     private ObjectMapper payloadMapper;
     private TypeReference<T> payloadTypeReference;
 
-    private ResponderServerImpl(String namespace, MessageTemplate messageTemplate, MsbContextImpl msbContext, RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
+    private ResponderServerImpl(String namespace,
+            MessageTemplate messageTemplate,
+            MsbContextImpl msbContext,
+            RequestHandler<T> requestHandler,
+            ErrorHandler errorHandler,
+            TypeReference<T> payloadTypeReference) {
         this.namespace = namespace;
         this.messageTemplate = messageTemplate;
         this.msbContext = msbContext;
         this.requestHandler = requestHandler;
+        this.errorHandler = Optional.ofNullable(errorHandler);
         this.payloadMapper = msbContext.getPayloadMapper();
         this.payloadTypeReference = payloadTypeReference;
         Validate.notNull(requestHandler, "requestHandler must not be null");
     }
 
     /**
-     * {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(String, MessageTemplate, RequestHandler, Class)}
+     * {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(String, MessageTemplate, RequestHandler, ErrorHandler, Class)}
      */
     static <T> ResponderServerImpl<T> create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext,
-            RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
-        return new ResponderServerImpl<>(namespace, messageTemplate, msbContext, requestHandler, payloadTypeReference);
+            RequestHandler<T> requestHandler,  ErrorHandler errorHandler, TypeReference<T> payloadTypeReference) {
+        return new ResponderServerImpl<>(namespace, messageTemplate, msbContext, requestHandler, errorHandler, payloadTypeReference);
     }
 
     /**
@@ -90,8 +97,14 @@ public class ResponderServerImpl<T> implements ResponderServer {
             requestHandler.process(request, responderContext);
         } catch (JsonConversionException conversionEx) {
             errorHandler(responderContext, conversionEx, PAYLOAD_CONVERSION_ERROR_CODE);
+            if (errorHandler.isPresent()) {
+                errorHandler.get().handle(conversionEx, originalMessage);
+            }
         } catch (Exception internalEx) {
             errorHandler(responderContext, internalEx, INTERNAL_SERVER_ERROR_CODE);
+            if (errorHandler.isPresent()) {
+                errorHandler.get().handle(internalEx, originalMessage);
+            }
         }
     }
 
