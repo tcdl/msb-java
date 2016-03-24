@@ -1,8 +1,8 @@
 package io.github.tcdl.msb.collector;
 
-import static io.github.tcdl.msb.support.Utils.ifNull;
-import static java.lang.Math.toIntExact;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.Callback;
 import io.github.tcdl.msb.api.MessageContext;
@@ -13,21 +13,25 @@ import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.impl.MessageContextImpl;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.support.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BiConsumer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static io.github.tcdl.msb.support.Utils.ifNull;
+import static java.lang.Math.toIntExact;
 
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
@@ -64,6 +68,7 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler {
     private final Optional<BiConsumer<T, MessageContext>> onResponse;
     private final Optional<BiConsumer<Acknowledge, MessageContext>> onAcknowledge;
     private final Optional<Callback<Void>> onEnd;
+    private final Optional<BiConsumer<Exception, Message>> onError;
 
     private ScheduledFuture ackTimeoutFuture;
     private ScheduledFuture responseTimeoutFuture;
@@ -130,7 +135,7 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler {
         onResponse = Optional.ofNullable(eventHandlers.onResponse());
         onAcknowledge = Optional.ofNullable(eventHandlers.onAcknowledge());
         onEnd = Optional.ofNullable(eventHandlers.onEnd());
-
+        onError = Optional.ofNullable(eventHandlers.onError());
     }
 
     @Override
@@ -182,6 +187,7 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler {
             } catch (Exception e) {
                 //do not propagate exception outside of this method in order to prevent autoRetry for responses
                 LOG.warn("Unexpected exception during response handler invocation", e);
+                onError.ifPresent(handler -> handler.accept(e, incomingMessage));
             }
         } else {
             LOG.debug("[correlation ids: {}-{}] Received {}",
