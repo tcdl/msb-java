@@ -17,7 +17,8 @@ public class EventHandlers<T> {
     private BiConsumer<T, MessageContext> onResponse = (acknowledge, msgContext) -> {};
     private BiConsumer<Message, MessageContext> onRawResponse = (acknowledge, msgContext) -> {};
     private Callback<Void> onEnd = messages -> {};
-    
+    private BiConsumer<Exception, Message> onError;
+
     /**
      * Return callback registered for Acknowledge event.
      *
@@ -99,4 +100,25 @@ public class EventHandlers<T> {
         this.onEnd = onEnd;
         return this;
     }
+
+    /**
+     * Registered callback for Error event.
+     *
+     * @param onError callback
+     * @return EventHandlers
+     */
+    public EventHandlers onError(BiConsumer<Exception, Message>  onError) {
+        this.onError = onError;
+        return this;
+    }
+
+    /**
+     * Return callback registered for Error event.
+     *
+     * @return error callback
+     */
+    public BiConsumer<Exception, Message> onError() {
+        return onError;
+    }
+
 }
