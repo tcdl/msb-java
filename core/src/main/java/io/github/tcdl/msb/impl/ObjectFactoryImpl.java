@@ -46,7 +46,16 @@ public class ObjectFactoryImpl implements ObjectFactory {
     @Override
     public <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
-        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, payloadTypeReference);
+        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, null, payloadTypeReference);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler, TypeReference<T> payloadTypeReference) {
+        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, errorHandler, payloadTypeReference);
     }
 
     /**

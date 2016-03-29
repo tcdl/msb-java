@@ -1,5 +1,7 @@
 package io.github.tcdl.msb.api;
 
+import io.github.tcdl.msb.api.message.Message;
+
 /**
  * {@link ResponderServer} enable user to listen on messages from the bus and executing microservice business logic.
  * Call to {@link #listen()} method will start listening on incoming messages from the bus.
@@ -32,4 +34,16 @@ public interface ResponderServer {
         void process(T request, ResponderContext responderContext) throws Exception;
     }
 
+    /**
+     * Implementation of this interface contains custom error handler
+     */
+    interface ErrorHandler {
+        /**
+         * Executes user defined error handler
+         *
+         * @param exception error cause
+         * @param originalMessage original message
+         */
+        void handle(Exception exception, Message originalMessage);
+    }
 }

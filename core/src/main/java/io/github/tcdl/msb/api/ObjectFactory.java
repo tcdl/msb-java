@@ -68,6 +68,16 @@ public interface ObjectFactory {
         });
     }
 
+    default <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler, Class<T> payloadClass) {
+        return createResponderServer(namespace, messageTemplate, requestHandler, errorHandler, new TypeReference<T>() {
+            @Override
+            public Type getType() {
+                return payloadClass;
+            }
+        });
+    }
+
     /**
      * @param namespace                 topic on a bus for listening on incoming requests
      * @param messageTemplate           template used for creating response messages
@@ -77,6 +87,17 @@ public interface ObjectFactory {
      */
     <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference);
+
+    /**
+     * @param namespace                 topic on a bus for listening on incoming requests
+     * @param messageTemplate           template used for creating response messages
+     * @param requestHandler            handler for processing the request
+     * @param errorHandler              handler for errors to be called after default
+     * @param payloadTypeReference      expected payload type of incoming messages
+     * @return new instance of a {@link ResponderServer} that unmarshals payload into specified payload type
+     */
+    <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+            ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler, TypeReference<T> payloadTypeReference);
 
     /**
      * @return instance of converter to convert any objects
