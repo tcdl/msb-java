@@ -8,9 +8,7 @@ import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.ResponderContext;
 import io.github.tcdl.msb.api.ResponderServer;
-import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -95,17 +93,11 @@ public class ResponderServerImpl<T> implements ResponderServer {
             T request = Utils.convert(rawPayload, payloadTypeReference, payloadMapper);
             LOG.debug("[{}] Process message with id: [{}]", namespace, originalMessage.getId());
             requestHandler.process(request, responderContext);
-        } catch (JsonConversionException conversionEx) {
+        } catch (Exception e) {
             if (errorHandler.isPresent()) {
-                errorHandler.get().handle(conversionEx, originalMessage);
+                errorHandler.get().handle(e, originalMessage);
             } else {
-                errorHandler(responderContext, conversionEx, PAYLOAD_CONVERSION_ERROR_CODE);
-            }
-        } catch (Exception internalEx) {
-            if (errorHandler.isPresent()) {
-                errorHandler.get().handle(internalEx, originalMessage);
-            } else {
-                errorHandler(responderContext, internalEx, INTERNAL_SERVER_ERROR_CODE);
+                errorHandler(responderContext, e);
             }
         }
     }
@@ -114,14 +106,10 @@ public class ResponderServerImpl<T> implements ResponderServer {
         return incomingMessage.getTopics().getResponse() != null;
     }
 
-    private void errorHandler(ResponderContext responderContext, Exception exception, int errorStatusCode) {
+    private void errorHandler(ResponderContext responderContext, Exception exception) {
         Message originalMessage = responderContext.getOriginalMessage();
         LOG.error("[{}] Error while processing message with id: [{}]", namespace, originalMessage.getId(), exception);
-        RestPayload responsePayload = new RestPayload.Builder()
-                .withStatusCode(errorStatusCode)
-                .withStatusMessage(exception.getMessage())
-                .build();
-        responderContext.getResponder().send(responsePayload);
+        responderContext.getResponder().sendAck(0, 0);
         //Confirm message for prevention requeue message with incorrect structure
         responderContext.getAcknowledgementHandler().confirmMessage();
     }

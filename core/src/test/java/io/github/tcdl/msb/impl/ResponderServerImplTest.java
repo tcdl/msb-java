@@ -20,7 +20,6 @@ import org.mockito.ArgumentCaptor;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -83,8 +82,7 @@ public class ResponderServerImplTest {
 
     @Test
     public void testResponderServerProcessUnexpectedPayload() throws Exception {
-        ResponderServer.RequestHandler<Integer> handler = (request, responderContext) -> {
-        };
+        ResponderServer.RequestHandler<Integer> handler = (request, responderContext) -> {};
 
         String bodyText = "some body";
         Message incomingMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
@@ -94,26 +92,21 @@ public class ResponderServerImplTest {
         responderServer.listen();
 
         // simulate incoming request
-        ArgumentCaptor<RestPayload> responseCaptor = ArgumentCaptor.forClass(RestPayload.class);
-        ResponderImpl responder = spy(
-                new ResponderImpl(messageTemplate, incomingMessage, msbContext));
-        
+        ResponderImpl responder = spy(new ResponderImpl(messageTemplate, incomingMessage, msbContext));
+
         AcknowledgementHandler acknowledgeHandler = mock(AcknowledgementHandler.class);
         ResponderContext responderContext = responderServer.createResponderContext(responder, acknowledgeHandler, incomingMessage);
         
         responderServer.onResponder(responderContext);
-        verify(responder).send(responseCaptor.capture());
-        assertEquals(ResponderServer.PAYLOAD_CONVERSION_ERROR_CODE, responseCaptor.getValue().getStatusCode().intValue());
-        assertNotNull(responseCaptor.getValue().getStatusMessage());
+        verify(responder).sendAck(0, 0);
+        verify(acknowledgeHandler).confirmMessage();
     }
 
     @Test
     public void testResponderServerProcessHandlerThrowException() throws Exception {
         String exceptionMessage = "Test exception message";
         Exception error = new Exception(exceptionMessage);
-        ResponderServer.RequestHandler<String> handler = (request, responderContext) -> {
-            throw error;
-        };
+        ResponderServer.RequestHandler<String> handler = (request, responderContext) -> { throw error; };
 
         ResponderServerImpl<String> responderServer = ResponderServerImpl
                 .create(TOPIC, messageTemplate, msbContext, handler, null, new TypeReference<String>() {});
@@ -126,14 +119,10 @@ public class ResponderServerImplTest {
                 new ResponderImpl(messageTemplate, originalMessage, msbContext));
         AcknowledgementHandler acknowledgeHandler = mock(AcknowledgementHandler.class);
         ResponderContext responderContext = responderServer.createResponderContext(responder, acknowledgeHandler, originalMessage);
-        
-        responderServer.onResponder(responderContext);
 
-        verify(responder).send(responseCaptor.capture());
+        responderServer.onResponder(responderContext);
+        verify(responder).sendAck(0, 0);
         verify(acknowledgeHandler).confirmMessage();
-        
-        assertEquals(ResponderServer.INTERNAL_SERVER_ERROR_CODE, responseCaptor.getValue().getStatusCode().intValue());
-        assertEquals(exceptionMessage, responseCaptor.getValue().getStatusMessage());
     }
 
     @Test
