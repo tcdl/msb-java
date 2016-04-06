@@ -3,11 +3,7 @@ package io.github.tcdl.msb.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.api.AcknowledgementHandler;
-import io.github.tcdl.msb.api.MessageTemplate;
-import io.github.tcdl.msb.api.Responder;
-import io.github.tcdl.msb.api.ResponderContext;
-import io.github.tcdl.msb.api.ResponderServer;
+import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
@@ -90,6 +86,7 @@ public class ResponderServerImpl<T> implements ResponderServer {
         Message originalMessage = responderContext.getOriginalMessage();
         Object rawPayload = originalMessage.getRawPayload();
         try {
+            MsbThreadContext.setMessageContext(responderContext);
             T request = Utils.convert(rawPayload, payloadTypeReference, payloadMapper);
             LOG.debug("[{}] Process message with id: [{}]", namespace, originalMessage.getId());
             requestHandler.process(request, responderContext);
@@ -99,6 +96,8 @@ public class ResponderServerImpl<T> implements ResponderServer {
             } else {
                 errorHandler(responderContext, e);
             }
+        } finally {
+            MsbThreadContext.clear();
         }
     }
 
