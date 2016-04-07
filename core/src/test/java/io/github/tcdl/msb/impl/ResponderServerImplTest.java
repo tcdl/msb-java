@@ -20,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -49,9 +50,11 @@ public class ResponderServerImplTest {
 
     @Test
     public void testResponderServerProcessPayloadSuccess() throws Exception {
-        ResponderServer.RequestHandler<RestPayload<Object, Map<String, String>, Object, Map<String, String>>> 
-            handler = (request, responderContext) -> {
-            };
+        Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
+
+        ResponderServer.RequestHandler<RestPayload<Object, Map<String, String>, Object, Map<String, String>>> handler =
+                (request, responderContext) -> assertEquals("MessageContext must contain original message during message handler execution", originalMessage,
+                MsbThreadContext.getMessageContext().getOriginalMessage());
 
         ArgumentCaptor<MessageHandler> subscriberCaptor = ArgumentCaptor.forClass(MessageHandler.class);
         ChannelManager spyChannelManager = spy(msbContext.getChannelManager());
@@ -67,10 +70,9 @@ public class ResponderServerImplTest {
 
         verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
 
-        Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
-        AcknowledgementHandler mockAcknowledgeHandler = mock(AcknowledgementHandler.class);
-        
+        assertNull("MessageContext must be absent outside message handler execution", MsbThreadContext.getMessageContext());
         subscriberCaptor.getValue().handleMessage(originalMessage, null);
+        assertNull("MessageContext must be absent outside message handler execution", MsbThreadContext.getMessageContext());
 
         verify(spyResponderServer).onResponder(anyObject());
     }
