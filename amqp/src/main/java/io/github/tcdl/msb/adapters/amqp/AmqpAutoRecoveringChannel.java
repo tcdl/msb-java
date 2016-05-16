@@ -52,7 +52,13 @@ public class AmqpAutoRecoveringChannel {
     }
 
     private void createChannelForPublisherConfirms(AmqpConnectionManager connectionManager) throws IOException {
-        channel = connectionManager.obtainConnection().createChannel();
+
+        if (channel != null) {
+            channel = connectionManager.obtainConnection().createChannel(channel.getChannelNumber());
+        } else {
+            channel = connectionManager.obtainConnection().createChannel();
+        }
+
         channel.confirmSelect();
 
         channel.addConfirmListener(new ConfirmListener() {
@@ -79,9 +85,18 @@ public class AmqpAutoRecoveringChannel {
                 so the call to createChannel causes a deadlock since it blocks waiting for a response (whilst the connection's thread
                 is stuck executing the listener).
                  */
+                    closeChannel(channel);
                     channel = null;
                 }
             }
         });
+    }
+
+    private void closeChannel(Channel channel) {
+        try {
+            channel.abort();
+        } catch (IOException e) {
+            LOG.info("Error closing AMQP channel", e.getCause());
+        }
     }
 }
