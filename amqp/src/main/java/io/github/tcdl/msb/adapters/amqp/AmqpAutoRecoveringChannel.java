@@ -16,7 +16,7 @@ public class AmqpAutoRecoveringChannel {
     private static final Logger LOG = LoggerFactory.getLogger(AmqpAutoRecoveringChannel.class);
 
     private AmqpConnectionManager connectionManager;
-    private Channel channel;
+    private volatile Channel channel;
 
     /**
      * Lock object used for 2 purposes:
@@ -44,7 +44,7 @@ public class AmqpAutoRecoveringChannel {
 
     private Channel obtainChannelForPublisherConfirms() throws IOException {
         synchronized (lock) {
-            if (channel == null) {
+            if (channel == null || !channel.isOpen()) {
                 createChannelForPublisherConfirms(connectionManager);
             }
             return channel;
@@ -52,6 +52,11 @@ public class AmqpAutoRecoveringChannel {
     }
 
     private void createChannelForPublisherConfirms(AmqpConnectionManager connectionManager) throws IOException {
+
+        if (channel != null) {
+            closeChannel(channel);
+        }
+
         channel = connectionManager.obtainConnection().createChannel();
         channel.confirmSelect();
 
@@ -79,9 +84,18 @@ public class AmqpAutoRecoveringChannel {
                 so the call to createChannel causes a deadlock since it blocks waiting for a response (whilst the connection's thread
                 is stuck executing the listener).
                  */
+                    closeChannel(channel);
                     channel = null;
                 }
             }
         });
+    }
+
+    private void closeChannel(Channel channel) {
+        try {
+            channel.abort();
+        } catch (IOException e) {
+            LOG.info("Error closing AMQP channel", e.getCause());
+        }
     }
 }
