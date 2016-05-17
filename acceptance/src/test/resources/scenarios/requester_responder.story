@@ -3,10 +3,11 @@ Before:
 Given MSB configuration with consumer prefetch count 20
 And start MSB
 And clear log
+And reset mock responses
 After:
 Outcome: ANY
 Then shutdown MSB
-Then reset mock responses
+
 
 Scenario: Sends a request to a responder server and waits for response
 

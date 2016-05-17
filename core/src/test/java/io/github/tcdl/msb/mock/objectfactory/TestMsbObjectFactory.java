@@ -31,8 +31,8 @@ public class TestMsbObjectFactory implements ObjectFactory {
     public <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass) {
         RequestOptions requestOptions = new RequestOptions.Builder()
                 .withWaitForResponses(1)
-                .withResponseTimeout(5000)
-                .withAckTimeout(5000)
+                .withResponseTimeout(100)
+                .withAckTimeout(100)
                 .build();
 
         return createRequester(namespace, requestOptions, toTypeReference(payloadClass));
