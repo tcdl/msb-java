@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.api;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 
@@ -44,4 +45,31 @@ public class RequestOptionsTest {
         assertEquals(forwardNamespace, requestOptions.getForwardNamespace());
     }
 
+    @Test
+    public void testBuilderFromExistingRequestOptions() throws Exception {
+
+        MessageTemplate sourceMessageTemplate = new MessageTemplate();
+
+        Integer ackTimeout = 1;
+        Integer responseTimeout = 2;
+        String forwardNamespace = "forward:namespace";
+        int waitForResponses = 3;
+
+        RequestOptions source = new RequestOptions.Builder()
+                .withAckTimeout(ackTimeout)
+                .withResponseTimeout(responseTimeout)
+                .withForwardNamespace(forwardNamespace)
+                .withWaitForResponses(waitForResponses)
+                .withMessageTemplate(sourceMessageTemplate)
+                .build();
+
+        RequestOptions.Builder builder = new RequestOptions.Builder().from(source);
+        RequestOptions result = builder.build();
+
+        assertEquals(ackTimeout, result.getAckTimeout());
+        assertEquals(responseTimeout, result.getResponseTimeout());
+        assertEquals(waitForResponses, result.getWaitForResponses());
+        assertEquals(forwardNamespace, result.getForwardNamespace());
+        assertSame(sourceMessageTemplate, result.getMessageTemplate());
+    }
 }

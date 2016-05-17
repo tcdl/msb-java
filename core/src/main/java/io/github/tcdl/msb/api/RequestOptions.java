@@ -110,6 +110,19 @@ public class RequestOptions {
             return this;
         }
 
+        /**
+         * Convenience method to prepare Builder with properties equal to {@literal source} properties.
+         * Is useful for cases when almost same RequestOptions except one or two properties are needed.
+         */
+        public Builder from(RequestOptions source) {
+            this.ackTimeout = source.ackTimeout;
+            this.responseTimeout = source.responseTimeout;
+            this.waitForResponses = source.waitForResponses;
+            this.messageTemplate = source.messageTemplate;
+            this.forwardNamespace = source.forwardNamespace;
+            return this;
+        }
+
         public RequestOptions build() {
             return new RequestOptions(ackTimeout, responseTimeout, waitForResponses, messageTemplate, forwardNamespace);
         }
