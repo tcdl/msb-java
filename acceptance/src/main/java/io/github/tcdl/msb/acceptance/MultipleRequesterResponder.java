@@ -2,11 +2,11 @@ package io.github.tcdl.msb.acceptance;
 
 import io.github.tcdl.msb.api.Requester;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 public class MultipleRequesterResponder {
@@ -19,6 +19,9 @@ public class MultipleRequesterResponder {
     private String requesterNamespace1;
     private String requesterNamespace2;
 
+    private final AtomicInteger responseCounter = new AtomicInteger();
+    private final List<String> responseBodies = new CopyOnWriteArrayList<>();
+
     MultipleRequesterResponder(String responderNamespace, String requesterNamespace1, String requesterNamespace2) {
         this.responderNamespace = responderNamespace;
         this.requesterNamespace1 = requesterNamespace1;
@@ -26,26 +29,13 @@ public class MultipleRequesterResponder {
     }
 
     public void runMultipleRequesterResponder() {
-        BasicThreadFactory threadFactory = new BasicThreadFactory.Builder()
-                .namingPattern("MultipleRequesterResponder-%d")
-                .build();
-
-        ExecutorService executor = Executors.newFixedThreadPool(2, threadFactory);
-
         util.createResponderServer(responderNamespace, (request, responderContext) -> {
             System.out.print(">>> REQUEST: " + request);
-
-            Future<String> futureRequester1 = createAndRunRequester(executor, requesterNamespace1);
-            Future<String> futureRequester2 = createAndRunRequester(executor, requesterNamespace2);
-
-            Thread.sleep(500);
-
-            String result1 = futureRequester1.get();
-            String result2 = futureRequester2.get();
-
-            executor.shutdownNow();
-
-            responderContext.getResponder().send("response from MultipleRequesterResponder:" + (result1 + result2));
+            Runnable onFinalResponse = () -> {
+                responderContext.getResponder().send("response from MultipleRequesterResponder:" + StringUtils.join(responseBodies));
+            };
+            createAndRunRequester(requesterNamespace1, onFinalResponse);
+            createAndRunRequester(requesterNamespace2, onFinalResponse);
         }, String.class)
         .listen();
     }
@@ -54,29 +44,18 @@ public class MultipleRequesterResponder {
         util.shutdown();
     }
 
-    private Future<String> createAndRunRequester(ExecutorService executor, String namespace) {
+    private void createAndRunRequester(String namespace, Runnable onFinalResponse) {
         Requester<String> requester = util.createRequester(namespace, NUMBER_OF_RESPONSES, null, 5000, String.class);
-        Future<String> future = executor.submit(new Callable<String>() {
-            String result = null;
-
-            @Override
-            public String call() throws Exception {
-                util.sendRequest(requester, "PING", NUMBER_OF_RESPONSES, response -> {
-                    System.out.println(">>> RESPONSE body: " + response);
-                    result = response;
-                    synchronized (this) {
-                        notify();
-                    }
-
-                });
-
-                synchronized (this) {
-                    wait();
+        try {
+            util.sendRequest(requester, "PING", NUMBER_OF_RESPONSES, response -> {
+                System.out.println(">>> RESPONSE body: " + response);
+                responseBodies.add(response);
+                if(responseCounter.incrementAndGet() == 2) {
+                    onFinalResponse.run();
                 }
-
-                return result;
-            }
-        });
-        return future;
+            });
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }

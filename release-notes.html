@@ -4,13 +4,18 @@
 </head>
 
 <body lang="en">
-<h2>Welcome to MSB-Java version 1.4.6</h2>
+<h2>Welcome to MSB-Java version 1.4.7</h2>
 
 <h3>April 12, 2016</h3>
 
 <pre>
 
-------------------------------------------------------------------------------------
+Features of MSB-Java version 1.4.7:
+   - Multithreading settings parameters consumerThreadPoolSize, consumerThreadPoolQueueCapacity moved
+    from "brokerConfig" to "threadingConfig" config section.
+   - Now it is possible to process a group of messages in a single-threaded mode using
+    MsbContextBuilder.withMessageGroupStrategy().
+
 Features of MSB-Java version 1.4.6:
    - Updated messages schema validation;
    - Fixed issue with unresolved host name;

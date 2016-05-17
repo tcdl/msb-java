@@ -8,6 +8,8 @@ import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.adapters.AdapterFactory;
+import io.github.tcdl.msb.adapters.AdapterFactoryLoader;
 import io.github.tcdl.msb.api.exception.MsbException;
 import io.github.tcdl.msb.callback.MutableCallbackHandler;
 import io.github.tcdl.msb.collector.CollectorManagerFactory;
@@ -18,6 +20,7 @@ import io.github.tcdl.msb.impl.ObjectFactoryImpl;
 import io.github.tcdl.msb.message.MessageFactory;
 import io.github.tcdl.msb.monitor.agent.DefaultChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
+import io.github.tcdl.msb.threading.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +38,7 @@ public class MsbContextBuilder {
     private boolean enableShutdownHook;
     private boolean enableChannelMonitorAgent;
     private ObjectMapper payloadMapper = createMessageEnvelopeMapper();
+    private MessageGroupStrategy messageGroupStrategy;
 
     public MsbContextBuilder() {
         super();
@@ -47,6 +51,18 @@ public class MsbContextBuilder {
      */
     public MsbContextBuilder withConfig(Config config) {
         this.config = config;
+        return this;
+    }
+
+    /**
+     * Provide a custom {@link MessageGroupStrategy} instance in order to process messages with the same groupId
+     * in a single-threaded mode.
+     * @param messageGroupStrategy
+     * @return
+     */
+
+    public MsbContextBuilder withMessageGroupStrategy(MessageGroupStrategy messageGroupStrategy) {
+        this.messageGroupStrategy = messageGroupStrategy;
         return this;
     }
 
@@ -100,7 +116,9 @@ public class MsbContextBuilder {
         MsbConfig msbConfig = new MsbConfig(config);
         ObjectMapper messageEnvelopeMapper = createMessageEnvelopeMapper();
 
-        ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator, messageEnvelopeMapper);
+        AdapterFactory adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
+        MessageHandlerInvoker messageHandlerInvoker = createMessageHandlerInvoker(adapterFactory, msbConfig);
+        ChannelManager channelManager = new ChannelManager(msbConfig, clock, validator, messageEnvelopeMapper, adapterFactory, messageHandlerInvoker);
         MessageFactory messageFactory = new MessageFactory(msbConfig.getServiceDetails(), clock, payloadMapper);
         TimeoutManager timeoutManager = new TimeoutManager(msbConfig.getTimerThreadPoolSize());
         CollectorManagerFactory collectorManagerFactory = new CollectorManagerFactory(channelManager);
@@ -129,6 +147,23 @@ public class MsbContextBuilder {
         msbContext.setObjectFactory(objectFactory);
         
         return msbContext;
+    }
+
+    private MessageHandlerInvoker createMessageHandlerInvoker(AdapterFactory adapterFactory, MsbConfig msbConfig) {
+        ConsumerExecutorFactory consumerExecutorFactory = new ConsumerExecutorFactoryImpl();
+
+        if (adapterFactory.isUseMsbThreadingModel()) {
+            if(messageGroupStrategy == null) {
+                return new ThreadPoolMessageHandlerInvoker(msbConfig.getConsumerThreadPoolSize(), msbConfig.getConsumerThreadPoolQueueCapacity(),
+                            consumerExecutorFactory);
+            } else {
+                return new GroupedExecutorBasedMessageHandlerInvoker(msbConfig.getConsumerThreadPoolSize(), msbConfig.getConsumerThreadPoolQueueCapacity(),
+                        consumerExecutorFactory,
+                        messageGroupStrategy);
+            }
+        } else {
+            return new DirectMessageHandlerInvoker();
+        }
     }
 
     /**

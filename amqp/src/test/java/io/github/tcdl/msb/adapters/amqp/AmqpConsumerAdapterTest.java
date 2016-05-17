@@ -196,14 +196,14 @@ public class AmqpConsumerAdapterTest {
     private AmqpConsumerAdapter createAdapterWithNonDurableConf(String topic, String groupId, boolean isResponseTopic) {
         boolean isDurableConf = false;
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig(Charset.forName("UTF-8"), "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(),
-                false, Optional.of(groupId), isDurableConf, 5, 20, 1, 5000, 1);
+                false, Optional.of(groupId), isDurableConf, 1, 5000, 1);
         return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, isResponseTopic);
     }
 
     private AmqpConsumerAdapter createAdapterWithDurableConf(String topic, String groupId, boolean isResponseTopic) {
         boolean isDurableConf = true;
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig(Charset.forName("UTF-8"), "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(),
-                false, Optional.of(groupId), isDurableConf, 5, 20, 1, 5000, 1);
+                false, Optional.of(groupId), isDurableConf, 1, 5000, 1);
         return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, isResponseTopic);
     }
 }

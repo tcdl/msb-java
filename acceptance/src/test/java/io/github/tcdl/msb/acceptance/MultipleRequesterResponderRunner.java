@@ -29,6 +29,7 @@ public class MultipleRequesterResponderRunner {
         responderExample1.runSimpleResponderExample();
         responderExample2.runSimpleResponderExample();
         multipleRequesterResponder.runMultipleRequesterResponder();
+        Thread.sleep(500);
         requesterExample.runSimpleRequesterExample("test:simple-queue2", "test:simple-queue3");
 
         assertTrue(requesterExample.isPassed());

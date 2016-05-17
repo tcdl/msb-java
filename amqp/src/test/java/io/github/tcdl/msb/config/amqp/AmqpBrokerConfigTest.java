@@ -24,8 +24,6 @@ public class AmqpBrokerConfigTest {
     final boolean useSSL = false;
     final String groupId = "msb-java";
     final boolean durable = false;
-    final int consumerThreadPoolSize = 5;
-    final int consumerThreadPoolQueueCapacity = 20;
     final int heartbeatIntervalSec = 1;
     final long networkRecoveryIntervalMs = 5000;
     final int prefetchCount = 1;
@@ -42,8 +40,6 @@ public class AmqpBrokerConfigTest {
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -58,8 +54,6 @@ public class AmqpBrokerConfigTest {
         assertEquals(brokerConfig.getPort(), port);
         assertEquals(brokerConfig.getGroupId().get(), groupId);
         assertEquals(brokerConfig.isDurable(), durable);
-        assertEquals(brokerConfig.getConsumerThreadPoolSize(), consumerThreadPoolSize);
-        assertEquals(brokerConfig.getConsumerThreadPoolQueueCapacity(), consumerThreadPoolQueueCapacity);
 
         assertEquals(brokerConfig.getUsername().get(), username);
         assertEquals(brokerConfig.getPassword().get(), password);
@@ -81,8 +75,6 @@ public class AmqpBrokerConfigTest {
                 + " port = \"" + port + "\"\n"
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -111,8 +103,6 @@ public class AmqpBrokerConfigTest {
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -132,8 +122,6 @@ public class AmqpBrokerConfigTest {
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -153,56 +141,12 @@ public class AmqpBrokerConfigTest {
                 + " virtualHost = \"" + virtualHost + "\"\n"
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
                 + "}";
 
         testMandatoryConfigurationOption(configStr, "durable");
-    }
-
-    @Test
-    public void testConsumerThreadPoolSizeConfigurationOption() {
-        String configStr = "config.amqp {"
-                + " charsetName = \"" + charsetName + "\"\n"
-                + " host = \"" + host + "\"\n"
-                + " port = \"" + port + "\"\n"
-                + " username = \"" + username + "\"\n"
-                + " password = \"" + password + "\"\n"
-                + " virtualHost = \"" + virtualHost + "\"\n"
-                + " useSSL = \"" + useSSL + "\"\n"
-                + " groupId = \"" + groupId + "\"\n"
-                + " durable = " + durable + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
-                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
-                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
-                + " prefetchCount = " + prefetchCount + "\n"
-                + "}";
-
-        testMandatoryConfigurationOption(configStr, "consumerThreadPoolSize");
-    }
-
-    @Test
-    public void testConsumerThreadPoolQueueCapacityConfigurationOption() {
-        String configStr = "config.amqp {"
-                + " charsetName = \"" + charsetName + "\"\n"
-                + " host = \"" + host + "\"\n"
-                + " port = \"" + port + "\"\n"
-                + " username = \"" + username + "\"\n"
-                + " password = \"" + password + "\"\n"
-                + " virtualHost = \"" + virtualHost + "\"\n"
-                + " useSSL = \"" + useSSL + "\"\n"
-                + " groupId = \"" + groupId + "\"\n"
-                + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
-                + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
-                + " prefetchCount = " + prefetchCount + "\n"
-                + "}";
-
-        testMandatoryConfigurationOption(configStr, "consumerThreadPoolQueueCapacity");
     }
 
     @Test
@@ -216,8 +160,6 @@ public class AmqpBrokerConfigTest {
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -240,8 +182,6 @@ public class AmqpBrokerConfigTest {
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -262,8 +202,6 @@ public class AmqpBrokerConfigTest {
                 + " virtualHost = \"" + virtualHost + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -284,8 +222,6 @@ public class AmqpBrokerConfigTest {
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
                 + "}";
@@ -305,8 +241,6 @@ public class AmqpBrokerConfigTest {
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
                 + "}";
@@ -326,8 +260,6 @@ public class AmqpBrokerConfigTest {
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
-                + " consumerThreadPoolSize = " + consumerThreadPoolSize + "\n"
-                + " consumerThreadPoolQueueCapacity = " + consumerThreadPoolQueueCapacity + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";

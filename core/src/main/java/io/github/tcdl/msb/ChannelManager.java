@@ -14,6 +14,7 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.impl.SimpleMessageHandlerResolverImpl;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.monitor.agent.NoopChannelMonitorAgent;
+import io.github.tcdl.msb.threading.MessageHandlerInvoker;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
@@ -28,22 +29,24 @@ public class ChannelManager {
     private static final Logger LOG = LoggerFactory.getLogger(ChannelManager.class);
     private static final String RESPONDER_LOGGING_NAME = "Responder server";
 
-    private MsbConfig msbConfig;
-    private Clock clock;
-    private JsonValidator validator;
-    private ObjectMapper messageMapper;
-    private AdapterFactory adapterFactory;
+    private final MsbConfig msbConfig;
+    private final Clock clock;
+    private final JsonValidator validator;
+    private final ObjectMapper messageMapper;
+    private final AdapterFactory adapterFactory;
+    private final MessageHandlerInvoker messageHandlerInvoker;
     private ChannelMonitorAgent channelMonitorAgent;
 
-    private Map<String, Producer> producersByTopic;
-    private Map<String, Consumer> consumersByTopic;
+    private final Map<String, Producer> producersByTopic;
+    private final Map<String, Consumer> consumersByTopic;
 
-    public ChannelManager(MsbConfig msbConfig, Clock clock, JsonValidator validator, ObjectMapper messageMapper) {
+    public ChannelManager(MsbConfig msbConfig, Clock clock, JsonValidator validator, ObjectMapper messageMapper, AdapterFactory adapterFactory, MessageHandlerInvoker messageHandlerInvoker) {
         this.msbConfig = msbConfig;
         this.clock = clock;
         this.validator = validator;
         this.messageMapper = messageMapper;
-        this.adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
+        this.adapterFactory = adapterFactory;
+        this.messageHandlerInvoker = messageHandlerInvoker;
         this.producersByTopic = new ConcurrentHashMap<>();
         this.consumersByTopic = new ConcurrentHashMap<>();
 
@@ -129,19 +132,21 @@ public class ChannelManager {
         Utils.validateTopic(topic);
 
         ConsumerAdapter adapter = getAdapterFactory().createConsumerAdapter(topic, isResponseTopic );
-        MessageHandlerInvokeStrategy invokeAdapter = getAdapterFactory().createMessageHandlerInvokeStrategy(topic);
-        return new Consumer(adapter, invokeAdapter, topic, messageHandlerResolver, msbConfig, clock, channelMonitorAgent, validator, messageMapper);
+
+        return new Consumer(adapter, messageHandlerInvoker, topic, messageHandlerResolver, msbConfig, clock, channelMonitorAgent, validator, messageMapper);
     }
 
     public void shutdown() {
         LOG.info("Shutting down...");
         adapterFactory.shutdown();
+        messageHandlerInvoker.shutdown();
         LOG.info("Shutdown complete");
     }
 
     private AdapterFactory getAdapterFactory() {
         return this.adapterFactory;
     }
+
 
     public void setChannelMonitorAgent(ChannelMonitorAgent channelMonitorAgent) {
         this.channelMonitorAgent = channelMonitorAgent;

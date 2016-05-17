@@ -2,10 +2,8 @@ package io.github.tcdl.msb.mock.adapterfactory;
 
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.MessageHandlerInvokeStrategy;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.config.MsbConfig;
-import io.github.tcdl.msb.impl.SimpleMessageHandlerInvokeStrategyImpl;
 
 /**
  * This AdapterFactory implementation is used to capture/submit raw messages as JSON and could be used during testing.
@@ -42,8 +40,8 @@ public class TestMsbAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public MessageHandlerInvokeStrategy createMessageHandlerInvokeStrategy(String topic) {
-        return new SimpleMessageHandlerInvokeStrategyImpl();
+    public boolean isUseMsbThreadingModel() {
+        return false;
     }
 
     @Override

@@ -34,11 +34,10 @@ public interface AdapterFactory {
     ConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic);
 
     /**
-     * Create {@link MessageHandlerInvokeStrategy} instance.
-     * @param topic topic name
-     * @return {@link MessageHandlerInvokeStrategy} instance associated with a topic.
+     * @return true if custom MSB threading model should be used.
+     * @return false if {@link io.github.tcdl.msb.MessageHandler} should be invoked directly.
      */
-    MessageHandlerInvokeStrategy createMessageHandlerInvokeStrategy(String topic);
+    boolean isUseMsbThreadingModel();
 
     /**
      * Closes all resources used by amqp producers and consumers. Should be called for graceful shutdown.

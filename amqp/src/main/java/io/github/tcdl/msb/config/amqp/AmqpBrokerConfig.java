@@ -21,15 +21,13 @@ public class AmqpBrokerConfig {
 
     private Optional<String> groupId;
     private final boolean durable;
-    private final int consumerThreadPoolSize;
-    private final int consumerThreadPoolQueueCapacity;
     private final int heartbeatIntervalSec;
     private final long networkRecoveryIntervalMs;
     private final int prefetchCount;
 
     public AmqpBrokerConfig(Charset charset, String host, int port,
             Optional<String> username, Optional<String> password, Optional<String> virtualHost, boolean useSSL,
-            Optional<String> groupId, boolean durable, int consumerThreadPoolSize, int consumerThreadPoolQueueCapacity,
+            Optional<String> groupId, boolean durable,
             int heartbeatIntervalSec, long networkRecoveryIntervalMs, int prefetchCount) {
         this.charset = charset;
         this.port = port;
@@ -40,8 +38,6 @@ public class AmqpBrokerConfig {
         this.useSSL = useSSL;
         this.groupId = groupId;
         this.durable = durable;
-        this.consumerThreadPoolSize = consumerThreadPoolSize;
-        this.consumerThreadPoolQueueCapacity = consumerThreadPoolQueueCapacity;
         this.heartbeatIntervalSec = heartbeatIntervalSec;
         this.networkRecoveryIntervalMs = networkRecoveryIntervalMs;
         this.prefetchCount = prefetchCount;
@@ -57,8 +53,6 @@ public class AmqpBrokerConfig {
         private boolean useSSL;
         private Optional<String> groupId;
         private boolean durable;
-        private int consumerThreadPoolSize;
-        private int consumerThreadPoolQueueCapacity;
         private int heartbeatIntervalSec;
         private long networkRecoveryIntervalMs;
         private int prefetchCount;
@@ -86,8 +80,6 @@ public class AmqpBrokerConfig {
 
             this.groupId = ConfigurationUtil.getOptionalString(config, "groupId");
             this.durable = ConfigurationUtil.getBoolean(config, "durable");
-            this.consumerThreadPoolSize = ConfigurationUtil.getInt(config, "consumerThreadPoolSize");
-            this.consumerThreadPoolQueueCapacity = ConfigurationUtil.getInt(config, "consumerThreadPoolQueueCapacity");
             this.heartbeatIntervalSec = ConfigurationUtil.getInt(config, "heartbeatIntervalSec");
             this.networkRecoveryIntervalMs = ConfigurationUtil.getLong(config, "networkRecoveryIntervalMs");
             this.prefetchCount = ConfigurationUtil.getInt(config, "prefetchCount");
@@ -99,7 +91,7 @@ public class AmqpBrokerConfig {
          */
         public AmqpBrokerConfig build() {
             return new AmqpBrokerConfig(charset, host, port, username, password, virtualHost, useSSL,
-                    groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, 
+                    groupId, durable,
                     heartbeatIntervalSec, networkRecoveryIntervalMs, prefetchCount);
         }
     }
@@ -144,14 +136,6 @@ public class AmqpBrokerConfig {
         this.groupId = groupId;
     }
 
-    public int getConsumerThreadPoolSize() {
-        return consumerThreadPoolSize;
-    }
-
-    public int getConsumerThreadPoolQueueCapacity() {
-        return consumerThreadPoolQueueCapacity;
-    }
-
     public int getHeartbeatIntervalSec() {
         return heartbeatIntervalSec;
     }
@@ -167,9 +151,9 @@ public class AmqpBrokerConfig {
     @Override
     public String toString() {
         return String.format("AmqpBrokerConfig [charset=%s, host=%s, port=%d, username=%s, password=xxx, virtualHost=%s, useSSL=%s, groupId=%s, durable=%s, "
-                        + "consumerThreadPoolSize=%s, consumerThreadPoolQueueCapacity=%s, heartbeatIntervalSec=%s, "
+                        + "heartbeatIntervalSec=%s, "
                         + "networkRecoveryIntervalMs=%s, prefetchCount=%s]",
-                charset, host, port, username, virtualHost, useSSL, groupId, durable, consumerThreadPoolSize, consumerThreadPoolQueueCapacity, 
+                charset, host, port, username, virtualHost, useSSL, groupId, durable,
                 heartbeatIntervalSec, networkRecoveryIntervalMs, prefetchCount);
     }
 

@@ -1,4 +1,4 @@
-package io.github.tcdl.msb.adapters.amqp;
+package io.github.tcdl.msb.threading;
 
 import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
@@ -10,10 +10,10 @@ import org.slf4j.MDC;
 import java.util.Map;
 
 /**
- * {@link AmqpMessageProcessingTask} wraps incoming message. This task is put into message processing thread pool (see {@link AmqpMessageConsumer}).
+ * {@link MessageProcessingTask} wraps incoming message.
  */
-public class AmqpMessageProcessingTask implements Runnable {
-    private static final Logger LOG = LoggerFactory.getLogger(AmqpMessageProcessingTask.class);
+public class MessageProcessingTask implements Runnable {
+    private static final Logger LOG = LoggerFactory.getLogger(MessageProcessingTask.class);
 
     final Message message;
     final MessageHandler messageHandler;
@@ -21,7 +21,7 @@ public class AmqpMessageProcessingTask implements Runnable {
     final Map<String, String> mdcLogContextMap;
     final boolean mdcLogCopy;
 
-    public AmqpMessageProcessingTask( MessageHandler messageHandler, Message message,
+    public MessageProcessingTask( MessageHandler messageHandler, Message message,
                                      AcknowledgementHandlerInternal ackHandler) {
         this.message = message;
         this.messageHandler = messageHandler;
@@ -53,5 +53,17 @@ public class AmqpMessageProcessingTask implements Runnable {
                 MDC.clear();
             }
         }
+    }
+
+    public Message getMessage() {
+        return message;
+    }
+
+    public MessageHandler getMessageHandler() {
+        return messageHandler;
+    }
+
+    public AcknowledgementHandlerInternal getAckHandler() {
+        return ackHandler;
     }
 }

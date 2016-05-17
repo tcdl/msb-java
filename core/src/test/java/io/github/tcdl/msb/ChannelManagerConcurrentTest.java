@@ -6,6 +6,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
+import io.github.tcdl.msb.adapters.AdapterFactory;
+import io.github.tcdl.msb.adapters.AdapterFactoryLoader;
 import io.github.tcdl.msb.api.RequesterResponderIT;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.collector.CollectorManager;
@@ -18,6 +21,9 @@ import java.time.Clock;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import io.github.tcdl.msb.threading.ConsumerExecutorFactoryImpl;
+import io.github.tcdl.msb.threading.MessageHandlerInvoker;
+import io.github.tcdl.msb.threading.ThreadPoolMessageHandlerInvoker;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,7 +42,9 @@ public class ChannelManagerConcurrentTest {
         Clock clock = Clock.systemDefaultZone();
         JsonValidator validator = new JsonValidator();
         ObjectMapper messageMapper = TestUtils.createMessageMapper();
-        this.channelManager = new ChannelManager(msbConfig, clock, validator, messageMapper);
+        MessageHandlerInvoker messageHandlerInvoker = new ThreadPoolMessageHandlerInvoker(msbConfig.getConsumerThreadPoolSize(), msbConfig.getConsumerThreadPoolQueueCapacity(), new ConsumerExecutorFactoryImpl());
+        AdapterFactory adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
+        this.channelManager = new ChannelManager(msbConfig, clock, validator, messageMapper, adapterFactory, messageHandlerInvoker);
 
         mockChannelMonitorAgent = mock(ChannelMonitorAgent.class);
         channelManager.setChannelMonitorAgent(mockChannelMonitorAgent);

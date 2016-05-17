@@ -4,12 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.MessageHandlerInvokeStrategy;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
@@ -17,8 +15,6 @@ import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -45,8 +41,6 @@ public class AmqpAdapterFactoryTest {
     final boolean useSSL = false;
     final String groupId = "msb-java";
     final boolean durable = false;
-    final int consumerThreadPoolSize = 5;
-    final int consumerThreadPoolQueueCapacity = 20;
     final int heartbeatIntervalSec = 1;
     final long networkRecoveryIntervalMs = 5000;
     final int prefetchCount = 1;
@@ -60,9 +54,6 @@ public class AmqpAdapterFactoryTest {
     @Mock
     Connection mockConnection;
 
-    @Mock
-    ExecutorService mockConsumerThreadPool;
-
     AmqpBrokerConfig amqpConfig;
     AmqpAdapterFactory amqpAdapterFactory;
     MsbConfig msbConfigurations;
@@ -72,16 +63,8 @@ public class AmqpAdapterFactoryTest {
 
         msbConfigurations = new MsbConfig(CONFIG);
 
-        //Define conditions for ExecutorService termination
-        try {
-            when(mockConsumerThreadPool.awaitTermination(anyInt(), any(TimeUnit.class))).thenReturn(true);
-        } catch (InterruptedException e) {
-            fail("Can't create mockConsumerThreadPool");
-        }
-        
         amqpConfig = new AmqpBrokerConfig(charset, host, port,
                 Optional.of(username), Optional.of(password), Optional.of(virtualHost), useSSL, Optional.of(groupId), durable,
-                consumerThreadPoolSize, consumerThreadPoolQueueCapacity, 
                 heartbeatIntervalSec, networkRecoveryIntervalMs, prefetchCount);
         
         amqpAdapterFactory = new AmqpAdapterFactory() {
@@ -115,10 +98,6 @@ public class AmqpAdapterFactoryTest {
                 return mockConnection;
             }
 
-            @Override
-            protected ExecutorService createConsumerThreadPool(AmqpBrokerConfig amqpBrokerConfig) {
-                return mockConsumerThreadPool;
-            }
         };
     }
 
@@ -137,7 +116,6 @@ public class AmqpAdapterFactoryTest {
         amqpAdapterFactory.init(msbConfigurations);
         assertEquals(amqpAdapterFactory.getAmqpBrokerConfig(), amqpConfig);
         assertEquals(amqpAdapterFactory.getConnectionManager(), mockConnectionManager);
-        assertEquals(amqpAdapterFactory.getConsumerThreadPool(), mockConsumerThreadPool);
     }
 
     @Test
@@ -147,16 +125,9 @@ public class AmqpAdapterFactoryTest {
     }
 
     @Test
-    public void testCreateMessageHandlerInvokeAdapter() {
-        MessageHandlerInvokeStrategy adapter = amqpAdapterFactory.createMessageHandlerInvokeStrategy("any");
-        assertTrue(adapter instanceof AmqpMessageHandlerInvokeStrategy);
-    }
-
-    @Test
     public void testShutdown() {
         amqpAdapterFactory.init(msbConfigurations);
         amqpAdapterFactory.shutdown();
-        verify(mockConsumerThreadPool).shutdown();
         try {
             verify(mockConnectionManager).close();
         } catch (IOException e) {

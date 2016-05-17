@@ -15,8 +15,7 @@ public class SimpleResponder {
     public void runSimpleResponderExample() {
         helper.initDefault();
         helper.createResponderServer(namespace, (request, responderContext) -> {
-            System.out.print(">>> REQUEST: " + request);
-            Thread.sleep(500);
+            System.out.println(">>> REQUEST: " + request);
             responderContext.getResponder().send(namespace + ":" + "SimpleResponder");
         }, String.class)
         .listen();

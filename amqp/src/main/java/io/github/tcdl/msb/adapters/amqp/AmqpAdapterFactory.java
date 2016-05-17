@@ -7,14 +7,11 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.MessageHandlerInvokeStrategy;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.api.exception.ConfigurationException;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
-import io.github.tcdl.msb.support.Utils;
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,11 +26,8 @@ import java.util.concurrent.*;
 public class AmqpAdapterFactory implements AdapterFactory {
     private static final Logger LOG = LoggerFactory.getLogger(AmqpAdapterFactory.class);
 
-    private static final int QUEUE_SIZE_UNLIMITED = -1;
-
-    private AmqpBrokerConfig amqpBrokerConfig;
-    private AmqpConnectionManager connectionManager;
-    private ExecutorService consumerThreadPool;
+    private volatile AmqpBrokerConfig amqpBrokerConfig;
+    private volatile AmqpConnectionManager connectionManager;
 
     /**
      * @throws ChannelException if an error is encountered during connecting to broker
@@ -45,7 +39,6 @@ public class AmqpAdapterFactory implements AdapterFactory {
         ConnectionFactory connectionFactory = createConnectionFactory(amqpBrokerConfig);
         Connection connection = createConnection(connectionFactory);
         connectionManager = createConnectionManager(connection);
-        consumerThreadPool = createConsumerThreadPool(amqpBrokerConfig);
     }
 
     protected AmqpBrokerConfig createAmqpBrokerConfig(MsbConfig msbConfig) {
@@ -139,39 +132,17 @@ public class AmqpAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public void shutdown() {
-        Utils.gracefulShutdown(consumerThreadPool, "consumer");
+    public boolean isUseMsbThreadingModel() {
+        return true;
+    }
 
+    @Override
+    public void shutdown() {
         try {
             connectionManager.close();
         } catch (IOException e) {
             LOG.error("Error while closing AMQP connection", e);
         }
-    }
-
-    protected ExecutorService createConsumerThreadPool(AmqpBrokerConfig amqpBrokerConfig) {
-        BasicThreadFactory threadFactory = new BasicThreadFactory.Builder()
-                .namingPattern("amqp-consumer-thread-%d")
-                .build();
-        int numberOfThreads = amqpBrokerConfig.getConsumerThreadPoolSize();
-        int queueCapacity = amqpBrokerConfig.getConsumerThreadPoolQueueCapacity();
-
-        BlockingQueue<Runnable> queue;
-        if (queueCapacity == QUEUE_SIZE_UNLIMITED) {
-            queue = new LinkedBlockingQueue<>();
-        } else {
-            queue = new ArrayBlockingQueue<>(queueCapacity);
-        }
-
-        return new ThreadPoolExecutor(numberOfThreads, numberOfThreads,
-                0L, TimeUnit.MILLISECONDS,
-                queue,
-                threadFactory);
-    }
-
-    @Override
-    public MessageHandlerInvokeStrategy createMessageHandlerInvokeStrategy(String topic) {
-        return new AmqpMessageHandlerInvokeStrategy(consumerThreadPool);
     }
 
     AmqpBrokerConfig getAmqpBrokerConfig() {
@@ -180,10 +151,6 @@ public class AmqpAdapterFactory implements AdapterFactory {
 
     AmqpConnectionManager getConnectionManager() {
         return connectionManager;
-    }
-
-    ExecutorService getConsumerThreadPool() {
-        return consumerThreadPool;
     }
 
 }

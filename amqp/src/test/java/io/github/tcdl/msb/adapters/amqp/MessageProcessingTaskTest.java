@@ -14,6 +14,7 @@ import java.util.concurrent.*;
 
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerImpl;
 import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.threading.MessageProcessingTask;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,7 +25,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.MDC;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AmqpMessageProcessingTaskTest {
+public class MessageProcessingTaskTest {
     private final String MDC_KEY = "key";
     private final String MDC_VALUE = "any";
 
@@ -38,12 +39,12 @@ public class AmqpMessageProcessingTaskTest {
     @Mock
     private AcknowledgementHandlerImpl mockAcknowledgementHandler;
 
-    private AmqpMessageProcessingTask task;
+    private MessageProcessingTask task;
 
     @Before
     public void setUp() {
         message = TestUtils.createSimpleRequestMessage("any");
-        task = new AmqpMessageProcessingTask(mockMessageHandler, message, mockAcknowledgementHandler);
+        task = new MessageProcessingTask(mockMessageHandler, message, mockAcknowledgementHandler);
     }
 
     @Test
@@ -88,8 +89,8 @@ public class AmqpMessageProcessingTaskTest {
         MessageHandler mdcMessageHandler = (message, acknowledgeHandler) -> {
             isMdcPresentInTaskRun.complete(isMdcPresent());
         };
-        AmqpMessageProcessingTask mdcTask =
-                new AmqpMessageProcessingTask(mdcMessageHandler, message, mockAcknowledgementHandler);
+        MessageProcessingTask mdcTask =
+                new MessageProcessingTask(mdcMessageHandler, message, mockAcknowledgementHandler);
         ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
         singleThreadExecutor.execute(mdcTask);
         singleThreadExecutor.execute(() -> isMdcPresentInOtherRun.complete(isMdcPresent()));
