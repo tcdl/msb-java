@@ -44,6 +44,15 @@ public interface ObjectFactory {
     <T> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference);
 
     /**
+     * Creates requester for single response with default response and acknowledgment timeouts
+     *
+     * @param namespace             topic name to send a request to
+     * @param payloadClass  expected payload class of response messages
+     * @return new instance of a {@link Requester} with original message
+     */
+    <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass);
+
+    /**
      * Convenience method that specifies incoming payload type as {@link JsonNode}
      *
      * See {@link #createRequester(String, RequestOptions, TypeReference)}
@@ -77,6 +86,14 @@ public interface ObjectFactory {
             }
         });
     }
+
+    /**
+     * Creates requester that doesn't wait for any responses or acknowledgments
+     *
+     * @param namespace             topic name to send a request to
+     * @return new instance of a {@link Requester} with original message
+     */
+    <T> Requester<T> createRequesterForFireAndForget(String namespace);
 
     /**
      * @param namespace                 topic on a bus for listening on incoming requests

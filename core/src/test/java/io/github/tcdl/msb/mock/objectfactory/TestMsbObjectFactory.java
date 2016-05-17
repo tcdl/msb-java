@@ -2,15 +2,11 @@ package io.github.tcdl.msb.mock.objectfactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.github.tcdl.msb.api.Callback;
-import io.github.tcdl.msb.api.MessageTemplate;
-import io.github.tcdl.msb.api.ObjectFactory;
-import io.github.tcdl.msb.api.PayloadConverter;
-import io.github.tcdl.msb.api.RequestOptions;
-import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.ResponderServer;
+import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
+
+import java.lang.reflect.Type;
 
 /**
  * {@link ObjectFactory} implementation that captures all requesters/responders params and callbacks to be
@@ -29,6 +25,17 @@ public class TestMsbObjectFactory implements ObjectFactory {
         RequesterCapture<T> capture = new RequesterCapture<>(namespace, requestOptions, payloadTypeReference, null);
         storage.addCapture(capture);
         return capture.getRequesterMock();
+    }
+
+    @Override
+    public <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass) {
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withWaitForResponses(1)
+                .withResponseTimeout(5000)
+                .withAckTimeout(5000)
+                .build();
+
+        return createRequester(namespace, requestOptions, toTypeReference(payloadClass));
     }
 
     @Override
@@ -77,11 +84,20 @@ public class TestMsbObjectFactory implements ObjectFactory {
         return capture.getResponderServerMock();
     }
 
-    @Override public <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
+    @Override
+    public <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler, Class<T> payloadClass) {
         ResponderCapture<T> capture = new ResponderCapture<>(namespace, messageTemplate, requestHandler, errorHandler, null, payloadClass);
         storage.addCapture(capture);
         return capture.getResponderServerMock();
+    }
+
+    @Override
+    public <T> Requester<T> createRequesterForFireAndForget(String namespace) {
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withWaitForResponses(0)
+                .build();
+        return createRequester(namespace, requestOptions, (Class<T>)null);
     }
 
     @Override
@@ -97,6 +113,15 @@ public class TestMsbObjectFactory implements ObjectFactory {
     @Override
     public void shutdown() {
 
+    }
+
+    private static <U> TypeReference<U> toTypeReference(Class<U> clazz) {
+        return new TypeReference<U>() {
+            @Override
+            public Type getType() {
+                return clazz;
+            }
+        };
     }
 
 }

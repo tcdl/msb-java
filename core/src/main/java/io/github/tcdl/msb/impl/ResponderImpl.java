@@ -19,18 +19,14 @@ public class ResponderImpl implements Responder {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderImpl.class);
 
     private String responderId;
-    private Message originalMessage;
     private ChannelManager channelManager;
     private MessageFactory messageFactory;
     private Message.Builder messageBuilder;
-    private AcknowledgementHandler ackHandler;
 
     public ResponderImpl(MessageTemplate messageTemplate, Message originalMessage, 
             MsbContextImpl msbContext) {
         validateReceivedMessage(originalMessage);
         this.responderId = Utils.generateId();
-        this.originalMessage = originalMessage;
-        this.ackHandler = ackHandler;
         this.channelManager = msbContext.getChannelManager();
         this.messageFactory = msbContext.getMessageFactory();
         this.messageBuilder = messageFactory.createResponseMessageBuilder(messageTemplate, originalMessage);
