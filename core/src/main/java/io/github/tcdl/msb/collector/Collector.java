@@ -123,11 +123,9 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler {
         this.timeoutMs = getResponseTimeoutFromConfigs(requestOptions);
         this.currentTimeoutMs = timeoutMs;
 
-        int waitForResponses = requestOptions.getWaitForResponses();
+        this.responsesRemaining = requestOptions.getWaitForResponses();
 
-        this.responsesRemaining = waitForResponses;
-
-        shouldWaitUntilResponseTimeout = (waitForResponses == RequestOptions.WAIT_FOR_RESPONSES_UNTIL_TIMEOUT);
+        this.shouldWaitUntilResponseTimeout = (responsesRemaining == RequestOptions.WAIT_FOR_RESPONSES_UNTIL_TIMEOUT);
 
         this.payloadTypeReference = payloadTypeReference;
 

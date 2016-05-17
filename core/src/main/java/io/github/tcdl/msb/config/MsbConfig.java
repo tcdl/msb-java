@@ -39,6 +39,10 @@ public class MsbConfig {
 
     private final String mdcLoggingSplitTagsBy;
 
+    private final int defaultResponseTimeout;
+
+    private final int defaultAckTimeout;
+
     public MsbConfig(Config loadedConfig) {
         Config config = loadedConfig.getConfig("msbConfig");
 
@@ -57,6 +61,11 @@ public class MsbConfig {
         this.mdcLoggingSplitTagsBy = getOptionalString(mdcLogging, "splitTagsBy").orElse(null);
         this.mdcLoggingKeyMessageTags = getString(mdcLoggingMessageKeys, "messageTags");
         this.mdcLoggingKeyCorrelationId = getString(mdcLoggingMessageKeys, "correlationId");
+
+        Config requestOptionsConfig = config.getConfig("requestOptions");
+        this.defaultResponseTimeout = getInt(requestOptionsConfig, "responseTimeout");
+        this.defaultAckTimeout = getInt(requestOptionsConfig, "ackTimeout");
+
         LOG.debug("Loaded {}", this);
     }
 
@@ -111,6 +120,14 @@ public class MsbConfig {
 
     public String getMdcLoggingSplitTagsBy() {
         return mdcLoggingSplitTagsBy;
+    }
+
+    public int getDefaultResponseTimeout() {
+        return defaultResponseTimeout;
+    }
+
+    public int getDefaultAckTimeout() {
+        return defaultAckTimeout;
     }
 
     @Override public String toString() {

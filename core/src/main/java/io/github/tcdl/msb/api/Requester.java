@@ -5,6 +5,7 @@ import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 /**
@@ -61,6 +62,43 @@ public interface Requester<T> {
      * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
     void publish(Object requestPayload, Message originalMessage);
+
+    /**
+     * Similar to {@link Requester#publish(java.lang.Object)} but expects exactly one response.
+     * CompletableFuture response type adds a lot of flexibility to client implementation.
+     * @return {@link CompletableFuture} that will be completed when first response is received.
+     * CompletableFuture will be canceled if timeout occurs or acknowledge with different from 1 remaining responses
+     * is received.
+     */
+    CompletableFuture<T> request(Object requestPayload);
+
+     /**
+     * Similar to {@link Requester#publish(java.lang.Object, java.lang.String...)} but expects exactly one response.
+     * CompletableFuture response type adds a lot of flexibility to client implementation.
+     * @return {@link CompletableFuture} that will be completed when first response is received.
+     * CompletableFuture will be canceled if timeout occurs or acknowledge with different from 1 remaining responses
+     * is received.
+     */
+    CompletableFuture<T> request(Object requestPayload, String... tags);
+
+     /**
+     * Similar to {@link Requester#publish(java.lang.Object, io.github.tcdl.msb.api.message.Message)}
+     * but expects exactly one response. CompletableFuture response type adds a lot of flexibility to client implementation.
+     * @return {@link CompletableFuture} that will be completed when first response is received.
+     * CompletableFuture will be canceled if timeout occurs or acknowledge with different from 1 remaining responses
+     * is received.
+     */
+    CompletableFuture<T> request(Object requestPayload, Message originalMessage);
+
+    /**
+     * Similar to
+     * {@link io.github.tcdl.msb.api.Requester#publish(java.lang.Object, io.github.tcdl.msb.api.message.Message, java.lang.String...)}
+     * but expects exactly one response. CompletableFuture response type adds a lot of flexibility to client implementation.
+     * @return {@link CompletableFuture} that will be completed when first response is received.
+     * CompletableFuture will be canceled if timeout occurs or acknowledge with different from 1 remaining responses
+     * is received.
+     */
+    CompletableFuture<T> request(Object requestPayload, Message originalMessage, String... tags);
 
     /**
      * Registers a callback to be called when {@link Message} with {@link Acknowledge} part set is received.

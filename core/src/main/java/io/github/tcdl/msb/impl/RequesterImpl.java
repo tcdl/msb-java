@@ -2,18 +2,16 @@ package io.github.tcdl.msb.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.api.Callback;
-import io.github.tcdl.msb.api.MessageContext;
-import io.github.tcdl.msb.api.MessageTemplate;
-import io.github.tcdl.msb.api.RequestOptions;
-import io.github.tcdl.msb.api.Requester;
+import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.message.MessageFactory;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 /**
@@ -64,7 +62,7 @@ public class RequesterImpl<T> implements Requester<T> {
      */
     @Override
     public void publish(Object requestPayload) {
-        publish(requestPayload, null, null);
+        publish(requestPayload, null, ArrayUtils.EMPTY_STRING_ARRAY);
     }
 
     /**
@@ -80,7 +78,57 @@ public class RequesterImpl<T> implements Requester<T> {
      */
     @Override
     public void publish(Object requestPayload, Message originalMessage) {
-        publish(requestPayload, originalMessage, null);
+        publish(requestPayload, originalMessage, ArrayUtils.EMPTY_STRING_ARRAY);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CompletableFuture<T> request(Object requestPayload) {
+        return request(requestPayload, null, ArrayUtils.EMPTY_STRING_ARRAY);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CompletableFuture<T> request(Object requestPayload, String... tags) {
+        return request(requestPayload, null, tags);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CompletableFuture<T> request(Object requestPayload, Message originalMessage) {
+        return request(requestPayload, originalMessage, ArrayUtils.EMPTY_STRING_ARRAY);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CompletableFuture<T> request(Object requestPayload, Message originalMessage, String... tags) {
+        CompletableFuture<T> futureResult = new CompletableFuture<>();
+
+        this.onResponse((response, messageContext) -> futureResult.complete(response))
+                .onAcknowledge((acknowledge, messageContext) -> {
+                    boolean noResponse = !futureResult.isDone() && acknowledge.getResponsesRemaining() < 1;
+                    boolean tooManyResponses = acknowledge.getResponsesRemaining() > 1;
+                    if (noResponse || tooManyResponses) {
+                        futureResult.cancel(true);
+                    }
+                })
+                .onEnd(end -> {
+                    if (!futureResult.isDone()) {
+                        futureResult.cancel(true);
+                    }
+                })
+                .onError((exception, message) -> futureResult.cancel(true));
+
+        publish(requestOptions, requestPayload, originalMessage, tags);
+        return futureResult;
     }
 
     /**
@@ -88,6 +136,10 @@ public class RequesterImpl<T> implements Requester<T> {
      */
     @Override
     public void publish(Object requestPayload, Message originalMessage, String... tags) {
+        publish(requestOptions, requestPayload, originalMessage, tags);
+    }
+
+    private void publish(RequestOptions requestOptions, Object requestPayload, Message originalMessage, String... tags) {
         MessageTemplate messageTemplate = MessageTemplate.copyOf(requestOptions.getMessageTemplate());
         if (tags != null) {
             for(String tag: tags) {
