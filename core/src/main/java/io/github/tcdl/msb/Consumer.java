@@ -6,6 +6,7 @@ import io.github.tcdl.msb.adapters.MessageHandlerInvokeStrategy;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.collector.ConsumedMessagesAwareMessageHandler;
+import io.github.tcdl.msb.collector.ExecutionOptionsAwareMessageHandler;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
@@ -133,7 +134,11 @@ public class Consumer {
                     consumedMessagesAwareMessageHandler = ((ConsumedMessagesAwareMessageHandler) messageHandler);
                     consumedMessagesAwareMessageHandler.notifyMessageConsumed();
                 }
-                messageHandlerInvokeStrategy.execute(messageHandler, message, acknowledgeHandler);
+                if (messageHandler instanceof ExecutionOptionsAwareMessageHandler && ((ExecutionOptionsAwareMessageHandler) messageHandler).isDirectlyInvokable()) {
+                    messageHandler.handleMessage(message,acknowledgeHandler);
+                } else {
+                    messageHandlerInvokeStrategy.execute(messageHandler, message, acknowledgeHandler);
+                }
             } else {
                 LOG.warn("{} Cant't resolve message handler for a message: {}", loggingTag, jsonMessage);
                 acknowledgeHandler.autoReject();

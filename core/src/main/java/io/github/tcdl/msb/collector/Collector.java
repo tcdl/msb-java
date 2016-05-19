@@ -36,7 +36,7 @@ import static java.lang.Math.toIntExact;
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
  */
-public class Collector<T> implements ConsumedMessagesAwareMessageHandler {
+public class Collector<T> implements ConsumedMessagesAwareMessageHandler, ExecutionOptionsAwareMessageHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(Collector.class);
 
@@ -101,8 +101,15 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler {
      */
     private volatile boolean isOnEndInvoked = false;
 
+    private final boolean directlyInvokable;
+
     public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers<T> eventHandlers,
             TypeReference<T> payloadTypeReference) {
+        this(topic, requestMessage, requestOptions, msbContext, eventHandlers, payloadTypeReference, false);
+    }
+
+    public Collector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl msbContext, EventHandlers<T> eventHandlers,
+                     TypeReference<T> payloadTypeReference, boolean directlyInvokableCallbacks) {
         this.requestMessage = requestMessage;
 
         this.clock = msbContext.getClock();
@@ -134,6 +141,7 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler {
         onAcknowledge = Optional.ofNullable(eventHandlers.onAcknowledge());
         onEnd = Optional.ofNullable(eventHandlers.onEnd());
         onError = Optional.ofNullable(eventHandlers.onError());
+        this.directlyInvokable = directlyInvokableCallbacks;
     }
 
     @Override
@@ -406,5 +414,10 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler {
 
     Message getRequestMessage() {
         return requestMessage;
+    }
+
+    @Override
+    public boolean isDirectlyInvokable(){
+        return directlyInvokable;
     }
 }

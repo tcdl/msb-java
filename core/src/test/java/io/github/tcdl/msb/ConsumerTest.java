@@ -1,23 +1,28 @@
 package io.github.tcdl.msb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
-
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.MessageHandlerInvokeStrategy;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.api.message.Topics;
+import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.collector.ConsumedMessagesAwareMessageHandler;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.slf4j.MDC;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -25,16 +30,10 @@ import java.time.ZoneId;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.typesafe.config.ConfigFactory;
-import org.slf4j.MDC;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConsumerTest {
@@ -190,6 +189,23 @@ public class ConsumerTest {
 
         verifyMessageNotHandled();
         verify(acknowledgementHandlerMock, times(1)).autoReject();
+    }
+
+    @Test
+    public void testHandleResponse_directlyInvokableHandler() throws Exception {
+        Collector directlyInvokableHandler = mock(Collector.class);
+        when(directlyInvokableHandler.isDirectlyInvokable()).thenReturn(true);
+
+        messageHandlerMock = directlyInvokableHandler;
+        Message responseMessage = TestUtils.createSimpleResponseMessage(TOPIC);
+
+        when(messageHandlerResolverMock.resolveMessageHandler(any(Message.class))).thenReturn(Optional.of(directlyInvokableHandler));
+        Consumer consumer = new Consumer(adapterMock, messageHandlerInvokeStrategyMock, TOPIC, messageHandlerResolverMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
+
+        consumer.handleRawMessage(Utils.toJson(responseMessage, messageMapper), acknowledgementHandlerMock);
+
+        verify(directlyInvokableHandler).handleMessage(any(Message.class), eq(acknowledgementHandlerMock));
+        verifyZeroInteractions(messageHandlerInvokeStrategyMock);
     }
 
     @Test
