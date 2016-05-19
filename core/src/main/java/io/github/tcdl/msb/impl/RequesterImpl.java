@@ -110,6 +110,8 @@ public class RequesterImpl<T> implements Requester<T> {
      */
     @Override
     public CompletableFuture<T> request(Object requestPayload, Message originalMessage, String... tags) {
+        this.eventHandlers = new EventHandlers<>(); //discard all previously set handlers
+
         CompletableFuture<T> futureResult = new CompletableFuture<>();
 
         this.onResponse((response, messageContext) -> futureResult.complete(response))
@@ -127,7 +129,7 @@ public class RequesterImpl<T> implements Requester<T> {
                 })
                 .onError((exception, message) -> futureResult.cancel(true));
 
-        publish(requestOptions, requestPayload, originalMessage, tags);
+        publish(true, requestOptions, requestPayload, originalMessage, tags);
         return futureResult;
     }
 
@@ -136,10 +138,10 @@ public class RequesterImpl<T> implements Requester<T> {
      */
     @Override
     public void publish(Object requestPayload, Message originalMessage, String... tags) {
-        publish(requestOptions, requestPayload, originalMessage, tags);
+        publish(false, requestOptions, requestPayload, originalMessage, tags);
     }
 
-    private void publish(RequestOptions requestOptions, Object requestPayload, Message originalMessage, String... tags) {
+    private void publish(boolean invokeHandlersDirectly, RequestOptions requestOptions, Object requestPayload, Message originalMessage, String... tags) {
         MessageTemplate messageTemplate = MessageTemplate.copyOf(requestOptions.getMessageTemplate());
         if (tags != null) {
             for(String tag: tags) {
@@ -160,7 +162,7 @@ public class RequesterImpl<T> implements Requester<T> {
         if (isWaitForAckMs() || isWaitForResponses()) {
             String topic = message.getTopics().getResponse();
 
-            Collector collector = createCollector(topic, message, requestOptions, context, eventHandlers);
+            Collector collector = createCollector(topic, message, requestOptions, context, eventHandlers, invokeHandlersDirectly);
             collector.listenForResponses();
 
             getChannelManager().findOrCreateProducer(message.getTopics().getTo())
@@ -229,7 +231,7 @@ public class RequesterImpl<T> implements Requester<T> {
         return context.getChannelManager();
     }
 
-    Collector<T> createCollector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl context, EventHandlers<T> eventHandlers) {
-        return new Collector<>(topic, requestMessage, requestOptions, context, eventHandlers, payloadTypeReference);
+    Collector<T> createCollector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl context, EventHandlers<T> eventHandlers, boolean invokeHandlersDirectly) {
+        return new Collector<>(topic, requestMessage, requestOptions, context, eventHandlers, payloadTypeReference, invokeHandlersDirectly);
     }
 }
