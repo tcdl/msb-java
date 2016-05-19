@@ -344,7 +344,7 @@ public class RequesterImplTest {
                 .build();
 
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<RestPayload> requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), msbContext, new TypeReference<RestPayload>());
+        Requester<RestPayload> requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), msbContext, new TypeReference<RestPayload>(){});
         requester.publish(requestPayload);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
@@ -373,7 +373,7 @@ public class RequesterImplTest {
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
         RequestOptions requestOptions = TestUtils.createSimpleRequestOptionsWithTags(tag);
 
-        Requester<RestPayload> requester = RequesterImpl.create(NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>());
+        Requester<RestPayload> requester = RequesterImpl.create(NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>(){});
         requester.publish(requestPayload, dynamicTag1, dynamicTag2, nullTag);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
