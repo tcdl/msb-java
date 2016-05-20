@@ -48,13 +48,19 @@ public class ObjectFactoryImpl implements ObjectFactory {
     @Override
     public <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass) {
         MsbConfig msbConfig = msbContext.getMsbConfig();
+        return createRequesterForSingleResponse(namespace, payloadClass, msbConfig.getDefaultResponseTimeout());
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass, int timeout) {
         RequestOptions requestOptions = new RequestOptions.Builder()
                 .withWaitForResponses(1)
-                .withResponseTimeout(msbConfig.getDefaultResponseTimeout())
-                .withAckTimeout(msbConfig.getDefaultAckTimeout())
+                .withResponseTimeout(timeout)
+                .withAckTimeout(0)
                 .build();
-
         return RequesterImpl.create(namespace, requestOptions, msbContext, toTypeReference(payloadClass));
     }
 

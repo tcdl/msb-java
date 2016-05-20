@@ -45,8 +45,6 @@ public class MsbConfig {
 
     private final int defaultResponseTimeout;
 
-    private final int defaultAckTimeout;
-
     public MsbConfig(Config loadedConfig) {
         Config config = loadedConfig.getConfig("msbConfig");
 
@@ -72,7 +70,6 @@ public class MsbConfig {
 
         Config requestOptionsConfig = config.getConfig("requestOptions");
         this.defaultResponseTimeout = getInt(requestOptionsConfig, "responseTimeout");
-        this.defaultAckTimeout = getInt(requestOptionsConfig, "ackTimeout");
 
         LOG.debug("Loaded {}", this);
     }
@@ -132,10 +129,6 @@ public class MsbConfig {
 
     public int getDefaultResponseTimeout() {
         return defaultResponseTimeout;
-    }
-
-    public int getDefaultAckTimeout() {
-        return defaultAckTimeout;
     }
 
     @Override public String toString() {
