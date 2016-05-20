@@ -6,6 +6,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.adapters.AdapterFactory;
+import io.github.tcdl.msb.adapters.AdapterFactoryLoader;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContextBuilder;
 import io.github.tcdl.msb.api.ObjectFactory;
@@ -23,6 +25,10 @@ import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ObjectFactoryImpl;
 import io.github.tcdl.msb.message.MessageFactory;
+import io.github.tcdl.msb.threading.ConsumerExecutorFactoryImpl;
+import io.github.tcdl.msb.threading.DirectMessageHandlerInvoker;
+import io.github.tcdl.msb.threading.MessageHandlerInvoker;
+import io.github.tcdl.msb.threading.ThreadPoolMessageHandlerInvoker;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -99,6 +105,22 @@ public class TestUtils {
         Clock clock = Clock.systemDefaultZone();
 
         Topics topic = new Topics(namespace, replyTopic, null);
+
+        MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
+        return new Message.Builder()
+                .withCorrelationId(Utils.generateId())
+                .withId(Utils.generateId())
+                .withTopics(topic)
+                .withMetaBuilder(metaBuilder)
+                .withPayload(null)
+                .build();
+    }
+
+    public static Message createMsbForwardMessageNoPayload(String namespace, String forwardTopic) {
+        MsbConfig msbConf = createMsbConfigurations();
+        Clock clock = Clock.systemDefaultZone();
+
+        Topics topic = new Topics(namespace, null, forwardTopic);
 
         MetaMessage.Builder metaBuilder = createSimpleMetaBuilder(msbConf, clock);
         return new Message.Builder()
@@ -417,7 +439,8 @@ public class TestUtils {
             MsbConfig msbConfig = msbConfigOp.orElse(TestUtils.createMsbConfigurations());
             Clock clock = clockOp.orElse(Clock.systemDefaultZone());
             ObjectMapper messageMapper = createMessageMapper();
-            ChannelManager channelManager = channelManagerOp.orElseGet(() -> new ChannelManager(msbConfig, clock, new JsonValidator(), messageMapper));
+            ChannelManager channelManager = channelManagerOp.orElseGet(() -> new ChannelManager(
+                    msbConfig, clock, new JsonValidator(), messageMapper, new AdapterFactoryLoader(msbConfig).getAdapterFactory(), new DirectMessageHandlerInvoker()));
             MessageFactory messageFactory = messageFactoryOp.orElseGet(() -> new MessageFactory(msbConfig.getServiceDetails(), clock, messageMapper));
             TimeoutManager timeoutManager = timeoutManagerOp.orElseGet(() -> new TimeoutManager(1));
             CollectorManagerFactory collectorManagerFactory = collectorManagerFactoryOp.orElseGet(() -> new CollectorManagerFactory(channelManager));

@@ -333,6 +333,22 @@ The nested section `messageKeys`:
 
 `correlationId` - Mapped Diagnostic Context key for message correlationId. Defaults to `msbCorrelationId`.
 
+### Description of multithreading configuration
+The section `threadingConfig` from [reference.conf](/core/src/main/resources/reference.conf).
+
+`consumerThreadPoolSize` – number of consumer threads used to process incoming messages.
+Defines the level of parallelism. Default is 5.
+
+`consumerThreadPoolQueueCapacity` – maximum number of requests waiting in FIFO queue to be processed by consumer thread pool.
+Incoming messages will be discarded in case of the exceeded limit.
+Should be positive integer or -1. Value of -1 stands for unlimited. The default value is -1.
+
+Please take into an account, then when handling messages in multithreaded mode (with `consumerThreadPoolSize` other than 1),
+incoming messages could be processed out of incoming topic order. If the order of incoming messages matters:
+ - Use `consumerThreadPoolSize` = 1 - process all incoming messages in a single-threaded mode;
+ - Use MsbContextBuilder.withMessageGroupStrategy() - so messages with the same "groupId" will be processed
+ in a single-threaded mode while messages with different "groupId" could be processed in parallel.
+
 ### Description of AMQP connection configuration fields
 The _key values pairs_ described in this section are specific for the chosen Broker.
 The section `brokerConfig` from [reference.conf](/core/src/main/resources/reference.conf) file override values from [amqp.conf](/amqp/src/main/resources/amqp.conf).
@@ -354,10 +370,6 @@ Specifies types of the queue used for incomming messages (except for responses t
 `durable` = `false` – transient queue, not survives broker restart. Auto-delete is set to true.
 
 See for more [detail](https://www.rabbitmq.com/tutorials/amqp-concepts.html).
-
-`consumerThreadPoolSize` – number of consumer threads used to process incoming messages. Defines the level of parallelism. Default is 5.
-
-`consumerThreadPoolQueueCapacity` – maximum number of requests waiting in FIFO queue to be processed by consumer thread pool. Should be positive integer or -1. Value of -1 stands for unlimited. The default value is -1.
 
 The following fields are optional in case of broker running on local machine
 but are mandatory when using broker on remote computer. When there is a need to override the default values these fields are specified in application.conf file as additional `brokerConfig` parameters.

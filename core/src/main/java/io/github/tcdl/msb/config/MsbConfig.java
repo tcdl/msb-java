@@ -39,6 +39,10 @@ public class MsbConfig {
 
     private final String mdcLoggingSplitTagsBy;
 
+    private final int consumerThreadPoolSize;
+
+    private final int consumerThreadPoolQueueCapacity;
+
     public MsbConfig(Config loadedConfig) {
         Config config = loadedConfig.getConfig("msbConfig");
 
@@ -46,9 +50,13 @@ public class MsbConfig {
         this.serviceDetails = new ServiceDetails.Builder(serviceDetailsConfig).build();
         this.schema = readJsonSchema();
         this.brokerAdapterFactoryClass = getBrokerAdapterFactory(config);
+
         this.brokerConfig = config.hasPath("brokerConfig") ? config.getConfig("brokerConfig") : ConfigFactory.empty();
         this.timerThreadPoolSize = getInt(config, "timerThreadPoolSize");
         this.validateMessage = getBoolean(config, "validateMessage");
+
+        this.consumerThreadPoolSize = config.getInt("threadingConfig.consumerThreadPoolSize");
+        this.consumerThreadPoolQueueCapacity = config.getInt("threadingConfig.consumerThreadPoolQueueCapacity");
 
         Config mdcLogging = config.getConfig("mdcLogging");
         Config mdcLoggingMessageKeys= mdcLogging.getConfig("messageKeys");
@@ -114,10 +122,9 @@ public class MsbConfig {
     }
 
     @Override public String toString() {
-        //please keep custom "brokerConfig" data
+        //please keep custom "brokerConfig" when using auto-generation of this method
         return "MsbConfig{" +
                 "brokerAdapterFactoryClass='" + brokerAdapterFactoryClass + '\'' +
-                ", brokerConfig=" + brokerConfig +
                 ", serviceDetails=" + serviceDetails +
                 ", schema='" + schema + '\'' +
                 ", validateMessage=" + validateMessage +
@@ -126,7 +133,17 @@ public class MsbConfig {
                 ", mdcLoggingKeyMessageTags='" + mdcLoggingKeyMessageTags + '\'' +
                 ", mdcLoggingKeyCorrelationId='" + mdcLoggingKeyCorrelationId + '\'' +
                 ", mdcLoggingSplitTagsBy='" + mdcLoggingSplitTagsBy + '\'' +
+                ", consumerThreadPoolSize=" + consumerThreadPoolSize +
+                ", consumerThreadPoolQueueCapacity=" + consumerThreadPoolQueueCapacity +
                 ", brokerConfig='" + brokerConfig.root().render() + '\'' +
                 '}';
+    }
+
+    public int getConsumerThreadPoolSize() {
+        return consumerThreadPoolSize;
+    }
+
+    public int getConsumerThreadPoolQueueCapacity() {
+        return consumerThreadPoolQueueCapacity;
     }
 }

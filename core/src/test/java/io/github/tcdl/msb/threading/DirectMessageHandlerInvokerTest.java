@@ -1,4 +1,4 @@
-package io.github.tcdl.msb.impl;
+package io.github.tcdl.msb.threading;
 
 import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
@@ -8,10 +8,12 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import static org.mockito.Mockito.*;
+
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SimpleMessageHandlerInvokeStrategyImplTest {
+public class DirectMessageHandlerInvokerTest {
 
     @Mock
     MessageHandler messageHandler;
@@ -22,7 +24,7 @@ public class SimpleMessageHandlerInvokeStrategyImplTest {
     Message message;
 
     @InjectMocks
-    SimpleMessageHandlerInvokeStrategyImpl strategy;
+    DirectMessageHandlerInvoker strategy;
 
     @Test
     public void testDirectInvoke() {
