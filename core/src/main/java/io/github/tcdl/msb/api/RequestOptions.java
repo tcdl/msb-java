@@ -8,7 +8,7 @@ public class RequestOptions {
     public static final int WAIT_FOR_RESPONSES_UNTIL_TIMEOUT = -1;
 
     /**
-     * Min time (in milliseconds) to wait for acknowledgements.
+     * Max time (in milliseconds) to wait for acknowledgements.
      */
     private final Integer ackTimeout;
 

@@ -44,13 +44,21 @@ public interface ObjectFactory {
     <T> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference);
 
     /**
+     * Same as
+     * {@link io.github.tcdl.msb.api.ObjectFactory#createRequesterForSingleResponse(java.lang.String, java.lang.Class, int)}
+     * with default timeout
+     */
+    <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass);
+
+    /**
      * Creates requester for single response with default response and acknowledgment timeouts
      *
      * @param namespace             topic name to send a request to
      * @param payloadClass  expected payload class of response messages
+     * @param timeout response timeout (in milliseconds)
      * @return new instance of a {@link Requester} with original message
      */
-    <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass);
+    <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass, int timeout);
 
     /**
      * Convenience method that specifies incoming payload type as {@link JsonNode}
