@@ -15,7 +15,7 @@ public class MsbThreadContext {
         return messageContext.get();
     }
 
-    static void setMessageContext(MessageContext messageContext) {
+    public static void setMessageContext(MessageContext messageContext) {
         MsbThreadContext.messageContext.set(messageContext);
     }
 
