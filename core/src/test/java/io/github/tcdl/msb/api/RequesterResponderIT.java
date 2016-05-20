@@ -238,21 +238,21 @@ public class RequesterResponderIT {
             }
 
         });
-        publishingThread.setDaemon(true);
-        publishingThread.start();
 
         //listen for message and send ack
         MsbContextImpl serverMsbContext = TestUtils.createSimpleMsbContext();
         storage.connect(serverMsbContext);
 
         Random randomAckValue = new Random();
-        randomAckValue.ints();
+
         serverMsbContext.getObjectFactory().createResponderServer(namespace, requestOptions.getMessageTemplate(), 
                 (request, responderContext) -> {
                     responderContext.getResponder().sendAck(randomAckValue.nextInt(), randomAckValue.nextInt());
                     ackSend.countDown();
                 })
                 .listen();
+
+        publishingThread.start();
 
         assertTrue("Message ack was not send", ackSend.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
         assertTrue("Message ack response not received", ackResponseReceived.await(MESSAGE_ROUNDTRIP_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));
