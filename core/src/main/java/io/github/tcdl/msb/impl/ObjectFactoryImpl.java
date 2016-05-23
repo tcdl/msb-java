@@ -56,7 +56,16 @@ public class ObjectFactoryImpl implements ObjectFactory {
      */
     @Override
     public <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass, int timeout) {
+        return createRequesterForSingleResponse(namespace, null, payloadClass, timeout);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <T> Requester<T> createRequesterForSingleResponse(String namespace, MessageTemplate messageTemplate, Class<T> payloadClass, int timeout) {
         RequestOptions requestOptions = new RequestOptions.Builder()
+                .withMessageTemplate(messageTemplate)
                 .withWaitForResponses(1)
                 .withResponseTimeout(timeout)
                 .withAckTimeout(0)
@@ -69,7 +78,12 @@ public class ObjectFactoryImpl implements ObjectFactory {
      */
     @Override
     public <T> Requester<T> createRequesterForFireAndForget(String namespace) {
+        return createRequesterForFireAndForget(namespace, null);
+    }
+
+    public <T> Requester<T> createRequesterForFireAndForget(String namespace, MessageTemplate messageTemplate){
         RequestOptions requestOptions = new RequestOptions.Builder()
+                .withMessageTemplate(messageTemplate)
                 .withWaitForResponses(0)
                 .build();
 
