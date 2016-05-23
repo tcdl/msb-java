@@ -5,6 +5,7 @@ import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 /**
@@ -61,6 +62,45 @@ public interface Requester<T> {
      * @throws JsonConversionException if unable to parse message to JSON before sending to bus
      */
     void publish(Object requestPayload, Message originalMessage);
+
+    /**
+     * Overloaded version of
+     * {@link Requester#request(java.lang.Object, io.github.tcdl.msb.api.message.Message, java.lang.String...)}
+     */
+    CompletableFuture<T> request(Object requestPayload);
+
+    /**
+     * Overloaded version of
+     * {@link Requester#request(java.lang.Object, io.github.tcdl.msb.api.message.Message, java.lang.String...)}
+     */
+    CompletableFuture<T> request(Object requestPayload, String... tags);
+
+    /**
+     * Overloaded version of
+     * {@link Requester#request(java.lang.Object, io.github.tcdl.msb.api.message.Message, java.lang.String...)}
+     */
+    CompletableFuture<T> request(Object requestPayload, Message originalMessage);
+
+    /**
+     * Similar to
+     * {@link io.github.tcdl.msb.api.Requester#publish(java.lang.Object, io.github.tcdl.msb.api.message.Message, java.lang.String...)}
+     * but expects exactly one response. CompletableFuture response type adds a lot of flexibility to client implementation.
+
+     * All handlers passed to
+     * <ul>
+     *     <li>{@link Requester#onAcknowledge(java.util.function.BiConsumer)}</li>
+     *     <li>{@link Requester#onResponse(java.util.function.BiConsumer)}</li>
+     *     <li>{@link Requester#onRawResponse(java.util.function.BiConsumer)}</li>
+     *     <li>{@link Requester#onEnd(io.github.tcdl.msb.api.Callback)}</li>
+     *     <li>{@link Requester#onError(java.util.function.BiConsumer)}</li>
+     * </ul>
+     * are DISCARDED
+     *
+     * @return {@link CompletableFuture} that will be completed when first response is received.
+     * CompletableFuture will be canceled if timeout occurs or acknowledge with different from 1 remaining responses
+     * is received.
+     */
+    CompletableFuture<T> request(Object requestPayload, Message originalMessage, String... tags);
 
     /**
      * Registers a callback to be called when {@link Message} with {@link Acknowledge} part set is received.

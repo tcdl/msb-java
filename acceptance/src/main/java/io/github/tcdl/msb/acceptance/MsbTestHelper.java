@@ -1,12 +1,8 @@
 package io.github.tcdl.msb.acceptance;
 
-import io.github.tcdl.msb.api.Callback;
-import io.github.tcdl.msb.api.MessageTemplate;
-import io.github.tcdl.msb.api.MsbContext;
-import io.github.tcdl.msb.api.MsbContextBuilder;
-import io.github.tcdl.msb.api.RequestOptions;
-import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.ResponderServer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.typesafe.config.Config;
+import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.impl.MsbContextImpl;
@@ -14,9 +10,7 @@ import io.github.tcdl.msb.support.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.typesafe.config.Config;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Utility to simplify using requester and responder server
@@ -139,6 +133,10 @@ public class MsbTestHelper {
         });
 
         requester.publish(payload, tag);
+    }
+
+    public <T> CompletableFuture<T> sendForResult(Requester<T> requester, Object payload, String... tags){
+        return requester.request(payload, tags);
     }
 
     public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler<RestPayload> requestHandler) {

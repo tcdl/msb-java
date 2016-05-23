@@ -77,4 +77,11 @@ public class ObjectFactoryImplTest {
         PayloadConverter payloadConverter = objectFactory.getPayloadConverter();
         assertNotNull(payloadConverter);
     }
+
+    @Test
+    public void testCreateFireAndForgetRequester() throws Exception {
+        ObjectFactory objectFactory = new ObjectFactoryImpl(TestUtils.createMsbContextBuilder().build());
+        Requester expectedRequester = objectFactory.createRequesterForFireAndForget(NAMESPACE);
+        assertNotNull(expectedRequester);
+    }
 }

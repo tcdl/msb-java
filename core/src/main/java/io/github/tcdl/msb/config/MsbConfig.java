@@ -43,6 +43,8 @@ public class MsbConfig {
 
     private final int consumerThreadPoolQueueCapacity;
 
+    private final int defaultResponseTimeout;
+
     public MsbConfig(Config loadedConfig) {
         Config config = loadedConfig.getConfig("msbConfig");
 
@@ -65,6 +67,10 @@ public class MsbConfig {
         this.mdcLoggingSplitTagsBy = getOptionalString(mdcLogging, "splitTagsBy").orElse(null);
         this.mdcLoggingKeyMessageTags = getString(mdcLoggingMessageKeys, "messageTags");
         this.mdcLoggingKeyCorrelationId = getString(mdcLoggingMessageKeys, "correlationId");
+
+        Config requestOptionsConfig = config.getConfig("requestOptions");
+        this.defaultResponseTimeout = getInt(requestOptionsConfig, "responseTimeout");
+
         LOG.debug("Loaded {}", this);
     }
 
@@ -119,6 +125,10 @@ public class MsbConfig {
 
     public String getMdcLoggingSplitTagsBy() {
         return mdcLoggingSplitTagsBy;
+    }
+
+    public int getDefaultResponseTimeout() {
+        return defaultResponseTimeout;
     }
 
     @Override public String toString() {
