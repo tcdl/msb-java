@@ -12,5 +12,5 @@ public interface ExecutionOptionsAwareMessageHandler extends MessageHandler {
      * Indicates whether handler should be executed by main message handling thread (true if so) or by thread from
      * consumer thread pool.
      */
-    boolean isDirectlyInvokable();
+    boolean forceDirectInvocation();
 }

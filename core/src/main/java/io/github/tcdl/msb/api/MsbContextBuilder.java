@@ -165,7 +165,7 @@ public class MsbContextBuilder {
         } else {
             consumerMessageHandlerInvoker = new DirectMessageHandlerInvoker();
         }
-        return new DirectInvocationCapableInvoker(consumerMessageHandlerInvoker);
+        return new DirectInvocationCapableInvoker(consumerMessageHandlerInvoker, new DirectMessageHandlerInvoker());
     }
 
     /**

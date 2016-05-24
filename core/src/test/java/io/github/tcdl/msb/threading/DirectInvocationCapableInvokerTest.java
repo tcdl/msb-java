@@ -5,6 +5,7 @@ import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.collector.ExecutionOptionsAwareMessageHandler;
 import io.github.tcdl.msb.support.TestUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -17,47 +18,49 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class DirectInvocationCapableInvokerTest {
 
-    DirectInvocationCapableInvoker instance;
+
     final String namespace = "some:namespace";
 
     @Mock
     AcknowledgementHandlerInternal ackHandler;
+    @Mock
+    MessageHandlerInvoker clientMessageHandlerInvoker;
+    @Mock
+    DirectMessageHandlerInvoker directMessageHandlerInvoker;
+
+    DirectInvocationCapableInvoker instance;
+
+    @Before
+    public void setUp() throws Exception {
+        instance = new DirectInvocationCapableInvoker(clientMessageHandlerInvoker, directMessageHandlerInvoker);
+    }
 
     @Test
     public void execute_shouldUseInternalDirectInvoker() throws Exception {
-        MessageHandlerInvoker clientMessageHandlerInvoker = mock(MessageHandlerInvoker.class);
-        instance = new DirectInvocationCapableInvoker(clientMessageHandlerInvoker);
-
         ExecutionOptionsAwareMessageHandler messageHandler = mock(ExecutionOptionsAwareMessageHandler.class);
-        when(messageHandler.isDirectlyInvokable()).thenReturn(true);
+        when(messageHandler.forceDirectInvocation()).thenReturn(true);
 
         Message message = TestUtils.createSimpleRequestMessage(namespace);
         instance.execute(messageHandler, message, ackHandler);
 
-        verify(messageHandler).handleMessage(eq(message), eq(ackHandler));
+        verify(directMessageHandlerInvoker).execute(eq(messageHandler), eq(message), eq(ackHandler));
         verify(clientMessageHandlerInvoker, never()).execute(any(MessageHandler.class), any(Message.class), any(AcknowledgementHandlerInternal.class));
     }
 
     @Test
     public void execute_shouldUseClientInvoker_whenNoDirectInvocationNeeded() throws Exception {
-
-        MessageHandlerInvoker clientMessageHandlerInvoker = mock(MessageHandlerInvoker.class);
-        instance = new DirectInvocationCapableInvoker(clientMessageHandlerInvoker);
-
         ExecutionOptionsAwareMessageHandler messageHandler = mock(ExecutionOptionsAwareMessageHandler.class);
-        when(messageHandler.isDirectlyInvokable()).thenReturn(false);
+        when(messageHandler.forceDirectInvocation()).thenReturn(false);
 
         Message message = TestUtils.createSimpleRequestMessage(namespace);
         instance.execute(messageHandler, message, ackHandler);
 
         verify(clientMessageHandlerInvoker).execute(eq(messageHandler), eq(message), eq(ackHandler));
+        verify(directMessageHandlerInvoker, never()).execute(any(MessageHandler.class), any(Message.class), any(AcknowledgementHandlerInternal.class));
     }
 
     @Test
     public void execute_shouldUseClientInvoker_whenHandlerIsNotDirectlyInvokable() throws Exception {
-        MessageHandlerInvoker clientMessageHandlerInvoker = mock(MessageHandlerInvoker.class);
-        instance = new DirectInvocationCapableInvoker(clientMessageHandlerInvoker);
-
         MessageHandler messageHandler = mock(MessageHandler.class);
 
         Message message = TestUtils.createSimpleRequestMessage(namespace);
@@ -67,16 +70,9 @@ public class DirectInvocationCapableInvokerTest {
     }
 
     @Test
-    public void execute_shouldUseClientDirectInvoker() throws Exception {
-        DirectMessageHandlerInvoker clientMessageHandlerInvoker = mock(DirectMessageHandlerInvoker.class);
-        instance = new DirectInvocationCapableInvoker(clientMessageHandlerInvoker);
-
-        ExecutionOptionsAwareMessageHandler messageHandler = mock(ExecutionOptionsAwareMessageHandler.class);
-        when(messageHandler.isDirectlyInvokable()).thenReturn(true);
-
-        Message message = TestUtils.createSimpleRequestMessage(namespace);
-        instance.execute(messageHandler, message, ackHandler);
-
-        verify(clientMessageHandlerInvoker).execute(eq(messageHandler), eq(message), eq(ackHandler));
+    public void shutdown() throws Exception {
+        instance.shutdown();
+        verify(clientMessageHandlerInvoker).shutdown();
+        verify(directMessageHandlerInvoker).shutdown();
     }
 }

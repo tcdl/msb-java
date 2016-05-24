@@ -417,7 +417,7 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler, Execut
     }
 
     @Override
-    public boolean isDirectlyInvokable(){
+    public boolean forceDirectInvocation(){
         return directlyInvokable;
     }
 }

@@ -19,14 +19,11 @@ public class DirectInvocationCapableInvoker implements MessageHandlerInvoker {
      * Creates composite delegate that is guarantied to have an instance of {@link DirectMessageHandlerInvoker} in its disposal.
      * There is no need to instantiate it in client code. It is intended to be used only internally by the library.
      */
-    public DirectInvocationCapableInvoker(MessageHandlerInvoker clientMessageHandlerInvoker) {
+    public DirectInvocationCapableInvoker(MessageHandlerInvoker clientMessageHandlerInvoker, DirectMessageHandlerInvoker directMessageHandlerInvoker) {
         Validate.notNull(clientMessageHandlerInvoker);
+        Validate.notNull(directMessageHandlerInvoker);
         this.clientMessageHandlerInvoker = clientMessageHandlerInvoker;
-        if (clientMessageHandlerInvoker instanceof DirectMessageHandlerInvoker) {
-            this.directMessageHandlerInvoker = (DirectMessageHandlerInvoker) clientMessageHandlerInvoker;
-        } else {
-            this.directMessageHandlerInvoker = new DirectMessageHandlerInvoker();
-        }
+        this.directMessageHandlerInvoker = directMessageHandlerInvoker;
     }
 
     /**
@@ -34,7 +31,7 @@ public class DirectInvocationCapableInvoker implements MessageHandlerInvoker {
      */
     @Override
     public void execute(MessageHandler messageHandler, Message message, AcknowledgementHandlerInternal acknowledgeHandler) {
-        if (messageHandler instanceof ExecutionOptionsAwareMessageHandler && ((ExecutionOptionsAwareMessageHandler) messageHandler).isDirectlyInvokable()) {
+        if (messageHandler instanceof ExecutionOptionsAwareMessageHandler && ((ExecutionOptionsAwareMessageHandler) messageHandler).forceDirectInvocation()) {
             directMessageHandlerInvoker.execute(messageHandler, message, acknowledgeHandler);
         } else {
             clientMessageHandlerInvoker.execute(messageHandler, message, acknowledgeHandler);
