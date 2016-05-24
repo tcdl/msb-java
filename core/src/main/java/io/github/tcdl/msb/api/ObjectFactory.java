@@ -45,28 +45,21 @@ public interface ObjectFactory {
 
     /**
      * Same as
-     * {@link io.github.tcdl.msb.api.ObjectFactory#createRequesterForSingleResponse(java.lang.String, java.lang.Class, int)}
-     * with default timeout
+     * {@link ObjectFactory#createRequesterForSingleResponse(java.lang.String, java.lang.Class, io.github.tcdl.msb.api.RequestOptions)}
+     * with default request options
      */
     <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass);
 
     /**
-     * Same as
-     * {@link io.github.tcdl.msb.api.ObjectFactory#createRequesterForSingleResponse(java.lang.String, io.github.tcdl.msb.api.MessageTemplate, java.lang.Class, int)}
-     * with default messageTemplate
-     */
-    <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass, int timeout);
-
-    /**
      * Creates requester for single response with default response and acknowledgment timeouts
      *
-     * @param namespace       topic name to send a request to
-     * @param payloadClass    expected payload class of response messages
-     * @param messageTemplate {@link MessageTemplate} to be used
-     * @param timeout         response timeout (in milliseconds)
+     * @param namespace          topic name to send a request to
+     * @param payloadClass       expected payload class of response messages
+     * @param baseRequestOptions request options to be used as a source of response timeout and {@link MessageTemplate}.
+     *                           Response time however will be 1 even if {@code baseRequestOptions} define other value.
      * @return new instance of a {@link Requester} with original message
      */
-    <T> Requester<T> createRequesterForSingleResponse(String namespace, MessageTemplate messageTemplate, Class<T> payloadClass, int timeout);
+    <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass, RequestOptions baseRequestOptions);
 
     /**
      * Convenience method that specifies incoming payload type as {@link JsonNode}

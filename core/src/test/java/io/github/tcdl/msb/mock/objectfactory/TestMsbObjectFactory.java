@@ -29,20 +29,19 @@ public class TestMsbObjectFactory implements ObjectFactory {
 
     @Override
     public <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass) {
-        return createRequesterForSingleResponse(namespace, payloadClass, 100);
-    }
-
-    @Override
-    public <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass, int timeout) {
-        return createRequesterForSingleResponse(namespace, null, payloadClass, timeout);
-    }
-
-    @Override
-    public <T> Requester<T> createRequesterForSingleResponse(String namespace, MessageTemplate messageTemplate, Class<T> payloadClass, int timeout) {
         RequestOptions requestOptions = new RequestOptions.Builder()
-                .withMessageTemplate(messageTemplate)
+                .withMessageTemplate(new MessageTemplate())
+                .withResponseTimeout(100)
+                .build();
+
+        return createRequesterForSingleResponse(namespace, payloadClass, requestOptions);
+    }
+
+    @Override
+    public <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass, RequestOptions baseRequestOptions) {
+
+        RequestOptions requestOptions = new RequestOptions.Builder().from(baseRequestOptions)
                 .withWaitForResponses(1)
-                .withResponseTimeout(timeout)
                 .withAckTimeout(0)
                 .build();
 
