@@ -152,18 +152,20 @@ public class MsbContextBuilder {
     private MessageHandlerInvoker createMessageHandlerInvoker(AdapterFactory adapterFactory, MsbConfig msbConfig) {
         ConsumerExecutorFactory consumerExecutorFactory = new ConsumerExecutorFactoryImpl();
 
+        MessageHandlerInvoker consumerMessageHandlerInvoker;
         if (adapterFactory.isUseMsbThreadingModel()) {
-            if(messageGroupStrategy == null) {
-                return new ThreadPoolMessageHandlerInvoker(msbConfig.getConsumerThreadPoolSize(), msbConfig.getConsumerThreadPoolQueueCapacity(),
-                            consumerExecutorFactory);
+            if (messageGroupStrategy == null) {
+                consumerMessageHandlerInvoker = new ThreadPoolMessageHandlerInvoker(msbConfig.getConsumerThreadPoolSize(), msbConfig.getConsumerThreadPoolQueueCapacity(),
+                        consumerExecutorFactory);
             } else {
-                return new GroupedExecutorBasedMessageHandlerInvoker(msbConfig.getConsumerThreadPoolSize(), msbConfig.getConsumerThreadPoolQueueCapacity(),
+                consumerMessageHandlerInvoker = new GroupedExecutorBasedMessageHandlerInvoker(msbConfig.getConsumerThreadPoolSize(), msbConfig.getConsumerThreadPoolQueueCapacity(),
                         consumerExecutorFactory,
                         messageGroupStrategy);
             }
         } else {
-            return new DirectMessageHandlerInvoker();
+            consumerMessageHandlerInvoker = new DirectMessageHandlerInvoker();
         }
+        return new DirectInvocationCapableInvoker(consumerMessageHandlerInvoker, new DirectMessageHandlerInvoker());
     }
 
     /**

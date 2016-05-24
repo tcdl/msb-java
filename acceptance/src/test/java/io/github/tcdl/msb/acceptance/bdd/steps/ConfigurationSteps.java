@@ -17,7 +17,8 @@ public class ConfigurationSteps extends MsbSteps {
     private String TIME_THREAD_POOL_SIZE = MSB_CONFIG_ROOT + ".timerThreadPoolSize";
 
     private String MSB_BROKER_CONFIG_ROOT = "msbConfig.brokerConfig";
-    private String MSB_BROKER_CONSUMER_THREAD_POOL_SIZE = MSB_BROKER_CONFIG_ROOT + ".consumerThreadPoolSize";
+    private String MSB_THREADING_CONFIG_ROOT = "msbConfig.threadingConfig";
+    private String MSB_BROKER_CONSUMER_THREAD_POOL_SIZE = MSB_THREADING_CONFIG_ROOT + ".consumerThreadPoolSize";
     private String MSB_BROKER_CONSUMER_THREAD_POOL_QUEUE_CAPACITY = MSB_BROKER_CONFIG_ROOT + ".consumerThreadPoolQueueCapacity";
     private String MSB_BROKER_CONSUMER_THREAD_POOL_PREFETCH_COUNT = MSB_BROKER_CONFIG_ROOT + ".prefetchCount";
 

@@ -44,6 +44,24 @@ public interface ObjectFactory {
     <T> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference);
 
     /**
+     * Same as
+     * {@link ObjectFactory#createRequesterForSingleResponse(java.lang.String, java.lang.Class, io.github.tcdl.msb.api.RequestOptions)}
+     * with default request options
+     */
+    <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass);
+
+    /**
+     * Creates requester for single response with default response and acknowledgment timeouts
+     *
+     * @param namespace          topic name to send a request to
+     * @param payloadClass       expected payload class of response messages
+     * @param baseRequestOptions request options to be used as a source of response timeout and {@link MessageTemplate}.
+     *                           Response time however will be 1 even if {@code baseRequestOptions} define other value.
+     * @return new instance of a {@link Requester} with original message
+     */
+    <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass, RequestOptions baseRequestOptions);
+
+    /**
      * Convenience method that specifies incoming payload type as {@link JsonNode}
      *
      * See {@link #createRequester(String, RequestOptions, TypeReference)}
@@ -77,6 +95,22 @@ public interface ObjectFactory {
             }
         });
     }
+
+    /**
+     * Same as
+     * {@link ObjectFactory#createRequesterForFireAndForget(java.lang.String, io.github.tcdl.msb.api.MessageTemplate)}
+     * with default messageTemplate
+     */
+    <T> Requester<T> createRequesterForFireAndForget(String namespace);
+
+    /**
+     * Creates requester that doesn't wait for any responses or acknowledgments
+     *
+     * @param namespace       topic name to send a request to
+     * @param messageTemplate {@link MessageTemplate} to be used
+     * @return new instance of a {@link Requester} with original message
+     */
+    <T> Requester<T> createRequesterForFireAndForget(String namespace, MessageTemplate messageTemplate);
 
     /**
      * @param namespace                 topic on a bus for listening on incoming requests

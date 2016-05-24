@@ -3,9 +3,11 @@ Before:
 Given MSB configuration with consumer prefetch count 20
 And start MSB
 And clear log
+And reset mock responses
 After:
 Outcome: ANY
 Then shutdown MSB
+
 
 Scenario: Sends a request to a responder server and waits for response
 
@@ -131,4 +133,3 @@ When requester sends a request
 Then requester gets response in 5000 ms
 And responder requests received count equals 1
 And request forward namespace equals test:jbehave:forwarding
-

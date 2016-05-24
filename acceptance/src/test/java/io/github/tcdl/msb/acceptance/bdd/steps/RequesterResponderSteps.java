@@ -1,18 +1,9 @@
 package io.github.tcdl.msb.acceptance.bdd.steps;
 
-import static io.github.tcdl.msb.acceptance.MsbTestHelper.DEFAULT_CONTEXT_NAME;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
@@ -21,10 +12,18 @@ import org.jbehave.core.model.ExamplesTable;
 import org.jbehave.core.model.OutcomesTable;
 import org.junit.Assert;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static io.github.tcdl.msb.acceptance.MsbTestHelper.DEFAULT_CONTEXT_NAME;
+import static org.junit.Assert.fail;
 
 /**
- * Steps to send requests and respond with predifined responses
+ * Steps to send requests and respond with predefined responses
  */
 public class RequesterResponderSteps extends MsbSteps {
 
@@ -42,6 +41,12 @@ public class RequesterResponderSteps extends MsbSteps {
     private volatile int responsesToSendCount;
     private volatile int responsesToExpectCount;
     private volatile String latestForwardNamespace = null;
+    private CompletableFuture<RestPayload> lastFutureResult = null;
+    private RestPayload resolvedResponse = null;
+    private final LinkedList<Map<String, Object>> responses = new LinkedList<>();
+    private final String ACK = "ACK";
+    private final String PAYLOAD = "PAYLOAD";
+    private final int ACK_TIMEOUT = 500;
 
     public Optional<String> getDefaultRequestsAckType() {
         return defaultRequestsAckType;
@@ -53,53 +58,85 @@ public class RequesterResponderSteps extends MsbSteps {
         createResponderServer(DEFAULT_CONTEXT_NAME, namespace);
     }
 
+    @Given("responder server responds sequentially on namespace $namespace")
+    public void respondSequentially(String namespace) throws Exception {
+        ObjectMapper mapper = helper.getPayloadMapper(DEFAULT_CONTEXT_NAME);
+        helper.createResponderServer(DEFAULT_CONTEXT_NAME, namespace, (request, responderContext) -> {
+            if (responses.isEmpty()) {
+                return;
+            }
+
+            responses.forEach(nextResponse -> nextResponse.entrySet().stream().findFirst().ifPresent(entry -> {
+                switch (entry.getKey()) {
+                    case ACK:
+                        Integer responsesRemaining = (Integer) (entry.getValue());
+                        responderContext.getResponder().sendAck(ACK_TIMEOUT, responsesRemaining);
+                        try {
+                            TimeUnit.MILLISECONDS.sleep(ACK_TIMEOUT);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        break;
+                    case PAYLOAD:
+                        RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map>()
+                                .withBody(Utils.fromJson(responseBody, Map.class, mapper))
+                                .build();
+                        responderContext.getResponder().send(payload);
+                        break;
+                }
+            }));
+        }).listen();
+    }
+
     @Given("responder server from $contextName listens on namespace $namespace")
     @When("responder server from $contextName listens on namespace $namespace")
     public void createResponderServer(String contextName, String namespace) {
         beforeCreateResponder();
         ObjectMapper mapper = helper.getPayloadMapper(contextName);
         helper.createResponderServer(contextName, namespace, (request, responderContext) -> {
-            if (responseBody != null) {
-                countRequestsReceived.incrementAndGet();
+            if (responseBody == null) {
+                return;
+            }
 
-                Runnable responseActions = () -> {
-                    boolean isSendResponse = true;
-                    String ackType = nextRequestAckType.orElseGet(
-                            () -> defaultRequestsAckType.orElseGet(
-                                    () -> "auto"));
+            countRequestsReceived.incrementAndGet();
 
-                    switch (ackType) {
-                        case "confirm":
-                            responderContext.getAcknowledgementHandler().confirmMessage();
-                            break;
-                        case "reject":
-                            responderContext.getAcknowledgementHandler().rejectMessage();
-                            isSendResponse = false;
-                            break;
-                        case "retry":
-                            responderContext.getAcknowledgementHandler().retryMessage();
-                            isSendResponse = false;
-                            break;
-                    }
+            Runnable responseActions = () -> {
+                boolean isSendResponse = true;
+                String ackType = nextRequestAckType.orElseGet(
+                        () -> defaultRequestsAckType.orElseGet(
+                                () -> "auto"));
 
-                    nextRequestAckType = Optional.empty();
-                    latestForwardNamespace = responderContext.getOriginalMessage().getTopics().getForward();
-                    if (isSendResponse) {
-                        RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map>()
-                                .withBody(Utils.fromJson(responseBody, Map.class, mapper))
-                                .build();
-                        for(int i=0; i< responsesToSendCount; i++) {
-                            responderContext.getResponder().send(payload);
-                        }
-                    }
-                };
-
-                if(isResponseInNewThread) {
-                    responderContext.getAcknowledgementHandler().setAutoAcknowledgement(false);
-                    new Thread(responseActions).run();
-                } else {
-                    responseActions.run();
+                switch (ackType) {
+                    case "confirm":
+                        responderContext.getAcknowledgementHandler().confirmMessage();
+                        break;
+                    case "reject":
+                        responderContext.getAcknowledgementHandler().rejectMessage();
+                        isSendResponse = false;
+                        break;
+                    case "retry":
+                        responderContext.getAcknowledgementHandler().retryMessage();
+                        isSendResponse = false;
+                        break;
                 }
+
+                nextRequestAckType = Optional.empty();
+                latestForwardNamespace = responderContext.getOriginalMessage().getTopics().getForward();
+                if (isSendResponse) {
+                    RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map>()
+                            .withBody(Utils.fromJson(responseBody, Map.class, mapper))
+                            .build();
+                    for (int i = 0; i < responsesToSendCount; i++) {
+                        responderContext.getResponder().send(payload);
+                    }
+                }
+            };
+
+            if (isResponseInNewThread) {
+                responderContext.getAcknowledgementHandler().setAutoAcknowledgement(false);
+                new Thread(responseActions).run();
+            } else {
+                responseActions.run();
             }
         }).listen();
     }
@@ -211,7 +248,7 @@ public class RequesterResponderSteps extends MsbSteps {
     }
 
     private void onResponse(RestPayload<Object, Object, Object, Map<String, Object>> payload) {
-        if(responseProcessingDelay > 0) {
+        if (responseProcessingDelay > 0) {
             try {
                 Thread.sleep(responseProcessingDelay);
             } catch (InterruptedException e) {
@@ -219,7 +256,7 @@ public class RequesterResponderSteps extends MsbSteps {
             }
         }
 
-        if(responseCountDown != null) {
+        if (responseCountDown != null) {
             responseCountDown.countDown();
         }
 
@@ -228,8 +265,8 @@ public class RequesterResponderSteps extends MsbSteps {
     }
 
     private void onEnd(Void in) {
-        if(responseCountDown != null && responseCountDown.getCount() > 0) {
-            Assert.fail("onEnd has been executed while not all responses were received yet, pending responses count: " + responseCountDown.getCount());
+        if (responseCountDown != null && responseCountDown.getCount() > 0) {
+            fail("onEnd has been executed while not all responses were received yet, pending responses count: " + responseCountDown.getCount());
         }
     }
 
@@ -238,15 +275,15 @@ public class RequesterResponderSteps extends MsbSteps {
         try {
             receivedResponse = receivedResponseFuture.get(timeout, TimeUnit.MILLISECONDS);
         } catch (TimeoutException timeoutException) {
-            Assert.fail("Response has not been received during a timeout");
+            fail("Response has not been received during a timeout");
         }
         Assert.assertNotNull("Response received is null", receivedResponse);
     }
 
     @Then("requester will get all responses in $timeout ms")
     public void waitForAllResponses(long timeout) throws Exception {
-        if(!responseCountDown.await(timeout, TimeUnit.MILLISECONDS)) {
-            Assert.fail("All responses has not been received during a timeout, pending count: " + responseCountDown.getCount());
+        if (!responseCountDown.await(timeout, TimeUnit.MILLISECONDS)) {
+            fail("All responses has not been received during a timeout, pending count: " + responseCountDown.getCount());
         }
     }
 
@@ -297,5 +334,60 @@ public class RequesterResponderSteps extends MsbSteps {
         }
 
         outcomes.verify();
+    }
+
+    @When("requester sends a request for single result to namespace $namespace")
+    public void requestForSingleResult(String namespace) throws Exception {
+        String query = "QUERY";
+        String body = "body";
+        RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(query, body);
+        requester = helper.createRequester(namespace, 1, RestPayload.class);
+        lastFutureResult = helper.sendForResult(requester, payload);
+    }
+
+    @When("requester blocks waiting for response for $timeout ms")
+    public void blockUntilResponseReceived(int timeout) throws Exception {
+        resolvedResponse = lastFutureResult.get(timeout, TimeUnit.MILLISECONDS);
+    }
+
+    @Then("resolved response equals $table")
+    public void verifyFutureResult(ExamplesTable table) {
+        Map<String, String> expected = table.getRow(0);
+        OutcomesTable outcomes = new OutcomesTable();
+
+        for (String key : expected.keySet()) {
+            outcomes.addOutcome(key, resolvedResponse.getBody().toString(), Matchers.containsString(expected.get(key)));
+        }
+
+        outcomes.verify();
+    }
+
+    @Given("next response from responder contains acknowledge with $remaining remaining response")
+    public void addAckToResponsesQueue(int remainingResponses) {
+        Map<String, Object> request = new HashMap<>();
+        request.put(ACK, remainingResponses);
+        responses.add(request);
+    }
+
+    @Given("next response from responder contains body $responseBody")
+    public void addBodyToResponsesQueue(String responseBody) {
+        Map<String, Object> request = new HashMap<>();
+        request.put(PAYLOAD, responseBody);
+        responses.add(request);
+    }
+
+    @Then("requester gets exception when tries to obtain result")
+    public void assertExceptionOccured() throws Exception {
+        try {
+            resolvedResponse = lastFutureResult.get(5000, TimeUnit.MILLISECONDS);
+        } catch (CancellationException e) {
+            return;//ok
+        }
+        fail("Expected exception not thrown");
+    }
+
+    @Then("reset mock responses")
+    public void  resetMockResponses(){
+        responses.clear();
     }
 }

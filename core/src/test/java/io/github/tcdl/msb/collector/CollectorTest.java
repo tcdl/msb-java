@@ -186,6 +186,7 @@ public class CollectorTest {
         assertFalse(collector.getAckMessages().contains(responseMessage));
     }
 
+    @Test
     public void testHandleResponseConversionFailed() {
         String bodyText = "some body";
         Message responseMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);

@@ -10,11 +10,13 @@ import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.ResponderServer;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
+import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.aggregator.DefaultChannelMonitorAggregator;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Type;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -38,6 +40,51 @@ public class ObjectFactoryImpl implements ObjectFactory {
     @Override
     public <T> Requester<T> createRequester(String namespace, RequestOptions requestOptions, TypeReference<T> payloadTypeReference) {
         return RequesterImpl.create(namespace, requestOptions, msbContext, payloadTypeReference);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass) {
+        MsbConfig msbConfig = msbContext.getMsbConfig();
+
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withMessageTemplate(new MessageTemplate())
+                .withResponseTimeout(msbConfig.getDefaultResponseTimeout())
+                .build();
+
+        return createRequesterForSingleResponse(namespace, payloadClass, requestOptions);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <T> Requester<T> createRequesterForSingleResponse(String namespace, Class<T> payloadClass, RequestOptions baseRequestOptions) {
+
+        RequestOptions requestOptions = new RequestOptions.Builder().from(baseRequestOptions)
+                .withWaitForResponses(1)
+                .withAckTimeout(0)
+                .build();
+        return RequesterImpl.create(namespace, requestOptions, msbContext, toTypeReference(payloadClass));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <T> Requester<T> createRequesterForFireAndForget(String namespace) {
+        return createRequesterForFireAndForget(namespace, null);
+    }
+
+    public <T> Requester<T> createRequesterForFireAndForget(String namespace, MessageTemplate messageTemplate){
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withMessageTemplate(messageTemplate)
+                .withWaitForResponses(0)
+                .build();
+
+        return RequesterImpl.create(namespace, requestOptions, msbContext, null);
     }
 
     /**
@@ -95,5 +142,14 @@ public class ObjectFactoryImpl implements ObjectFactory {
 
     DefaultChannelMonitorAggregator createDefaultChannelMonitorAggregator(Callback<AggregatorStats> aggregatorStatsHandler, ScheduledExecutorService scheduledExecutorService) {
         return new DefaultChannelMonitorAggregator(msbContext, scheduledExecutorService, aggregatorStatsHandler);
+    }
+
+    private static <U> TypeReference<U> toTypeReference(Class<U> clazz) {
+        return new TypeReference<U>() {
+            @Override
+            public Type getType() {
+                return clazz;
+            }
+        };
     }
 }

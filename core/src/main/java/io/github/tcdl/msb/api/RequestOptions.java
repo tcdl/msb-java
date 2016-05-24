@@ -8,7 +8,7 @@ public class RequestOptions {
     public static final int WAIT_FOR_RESPONSES_UNTIL_TIMEOUT = -1;
 
     /**
-     * Min time (in milliseconds) to wait for acknowledgements.
+     * Max time (in milliseconds) to wait for acknowledgements.
      */
     private final Integer ackTimeout;
 
@@ -107,6 +107,19 @@ public class RequestOptions {
 
         public Builder withForwardNamespace(String forward) {
             this.forwardNamespace = forward;
+            return this;
+        }
+
+        /**
+         * Convenience method to prepare Builder with properties equal to {@literal source} properties.
+         * Is useful for cases when almost same RequestOptions except one or two properties are needed.
+         */
+        public Builder from(RequestOptions source) {
+            this.ackTimeout = source.ackTimeout;
+            this.responseTimeout = source.responseTimeout;
+            this.waitForResponses = source.waitForResponses;
+            this.messageTemplate = source.messageTemplate;
+            this.forwardNamespace = source.forwardNamespace;
             return this;
         }
 
