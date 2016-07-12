@@ -53,8 +53,12 @@ public class ResponderServerImplTest {
         Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
 
         ResponderServer.RequestHandler<RestPayload<Object, Map<String, String>, Object, Map<String, String>>> handler =
-                (request, responderContext) -> assertEquals("MessageContext must contain original message during message handler execution", originalMessage,
-                MsbThreadContext.getMessageContext().getOriginalMessage());
+                (request, responderContext) -> {
+                    assertEquals("MessageContext must contain original message during message handler execution",
+                            originalMessage, MsbThreadContext.getMessageContext().getOriginalMessage());
+                    assertEquals("MsbThreadContext must contain a Request during message handler execution",
+                            request, MsbThreadContext.getRequest());
+                };
 
         ArgumentCaptor<MessageHandler> subscriberCaptor = ArgumentCaptor.forClass(MessageHandler.class);
         ChannelManager spyChannelManager = spy(msbContext.getChannelManager());
@@ -71,8 +75,10 @@ public class ResponderServerImplTest {
         verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
 
         assertNull("MessageContext must be absent outside message handler execution", MsbThreadContext.getMessageContext());
+        assertNull("Request must be absent outside message handler execution", MsbThreadContext.getRequest());
         subscriberCaptor.getValue().handleMessage(originalMessage, null);
         assertNull("MessageContext must be absent outside message handler execution", MsbThreadContext.getMessageContext());
+        assertNull("Request must be absent outside message handler execution", MsbThreadContext.getRequest());
 
         verify(spyResponderServer).onResponder(anyObject());
     }
