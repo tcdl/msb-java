@@ -86,8 +86,10 @@ public class ResponderServerImpl<T> implements ResponderServer {
         Message originalMessage = responderContext.getOriginalMessage();
         Object rawPayload = originalMessage.getRawPayload();
         try {
-            MsbThreadContext.setMessageContext(responderContext);
             T request = Utils.convert(rawPayload, payloadTypeReference, payloadMapper);
+            MsbThreadContext.setMessageContext(responderContext);
+            MsbThreadContext.setRequest(request);
+
             LOG.debug("[{}] Process message with id: [{}]", namespace, originalMessage.getId());
             requestHandler.process(request, responderContext);
         } catch (Exception e) {
