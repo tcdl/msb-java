@@ -70,6 +70,13 @@ public class ResponderServerImpl<T> implements ResponderServer {
         return this;
     }
 
+    @Override
+    public ResponderServer stop(){
+        ChannelManager channelManager = msbContext.getChannelManager();
+        channelManager.unsubscribe(namespace);
+        return this;
+    }
+
     Responder createResponder(Message incomingMessage) {
         if (isResponseNeeded(incomingMessage)) {
             return new ResponderImpl(messageTemplate, incomingMessage, msbContext);

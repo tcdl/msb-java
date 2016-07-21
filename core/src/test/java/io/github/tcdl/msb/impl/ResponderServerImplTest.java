@@ -121,7 +121,6 @@ public class ResponderServerImplTest {
         responderServer.listen();
 
         // simulate incoming request
-        ArgumentCaptor<RestPayload> responseCaptor = ArgumentCaptor.forClass(RestPayload.class);
         Message originalMessage = TestUtils.createMsbRequestMessageNoPayload(TOPIC);
         ResponderImpl responder = spy(
                 new ResponderImpl(messageTemplate, originalMessage, msbContext));
@@ -205,5 +204,22 @@ public class ResponderServerImplTest {
 
         // Verify that no messages were published
         verifyZeroInteractions(mockChannelManager);
+    }
+
+    @Test
+    public void testStop() throws Exception {
+        ResponderServer.RequestHandler<String> doNothingHandler = (request, responderContext) -> {};
+
+        ChannelManager mockChannelManager = mock(ChannelManager.class);
+        MsbContextImpl msbContext = new TestUtils.TestMsbContextBuilder()
+                .withChannelManager(mockChannelManager)
+                .build();
+
+        ResponderServerImpl<String> responderServer = ResponderServerImpl.create(
+                TOPIC, messageTemplate, msbContext, doNothingHandler, null, new TypeReference<String>() {}
+        );
+
+        responderServer.stop();
+        verify(mockChannelManager).unsubscribe(TOPIC);
     }
 }
