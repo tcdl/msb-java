@@ -17,7 +17,12 @@ public interface ResponderServer {
     /**
      * Start listening for message on specified topic.
      */
-     ResponderServer listen();
+    ResponderServer listen();
+
+    /**
+     * Stop listening
+     */
+    ResponderServer stop();
 
     /**
      * Implementation of this interface contains business logic processed by microservice.
