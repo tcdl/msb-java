@@ -1,4 +1,3 @@
-
 package io.github.tcdl.msb.jmeter.sampler;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -34,6 +33,7 @@ public class MsbRequesterSampler extends AbstractSampler {
 
     private String MSB_BROKER_CONFIG_ROOT = "msbConfig.brokerConfig";
 
+    private RequesterConfig currentRequesterConfig;
     private MsbContext msbContext;
 
     private ObjectMapper objectMapper = new ObjectMapper()
@@ -68,7 +68,8 @@ public class MsbRequesterSampler extends AbstractSampler {
         trace("sample()");
 
         RequesterConfig requesterConfig = (RequesterConfig)getProperty(RequesterConfig.TEST_ELEMENT_CONFIG).getObjectValue();
-        if (msbContext == null) {
+        if (msbContext == null || !requesterConfig.equals(currentRequesterConfig)) {
+            currentRequesterConfig = requesterConfig;
             initMsb(requesterConfig);
         }
 
@@ -126,6 +127,8 @@ public class MsbRequesterSampler extends AbstractSampler {
             res.setResponseData(responsesAsJson, null);
         } else {
             res.setSuccessful(false);
+            res.setResponseCode("500");
+            res.setResponseMessage("No response(s)");
         }
 
         return res;

@@ -1,5 +1,7 @@
 package io.github.tcdl.msb.jmeter.sampler;
 
+import java.util.Objects;
+
 import static io.github.tcdl.msb.support.Utils.ifNull;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
@@ -125,5 +127,28 @@ public class RequesterConfig {
         this.numberOfResponses = ifNull(this.numberOfResponses, 1);
         this.timeout =  this.timeout == null || this.timeout <= 0 ? 3000 : this.timeout;
         this.requestPayload = defaultIfBlank(this.requestPayload, "{}");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RequesterConfig that = (RequesterConfig) o;
+        return Objects.equals(host, that.host) &&
+                Objects.equals(port, that.port) &&
+                Objects.equals(virtualHost, that.virtualHost) &&
+                Objects.equals(userName, that.userName) &&
+                Objects.equals(password, that.password) &&
+                Objects.equals(namespace, that.namespace) &&
+                Objects.equals(forwardNamespace, that.forwardNamespace) &&
+                Objects.equals(waitForResponses, that.waitForResponses) &&
+                Objects.equals(numberOfResponses, that.numberOfResponses) &&
+                Objects.equals(timeout, that.timeout) &&
+                Objects.equals(requestPayload, that.requestPayload);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(host, port, virtualHost, userName, password, namespace, forwardNamespace, waitForResponses, numberOfResponses, timeout, requestPayload);
     }
 }
