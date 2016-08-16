@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>io.github.tcdl.msb</groupId>
+        <artifactId>msb-java</artifactId>
+        <version>1.5.2-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>msb-java-camel</artifactId>
+    <name>msb java camel</name>
+    <description>msb java camel</description>
+    <packaging>jar</packaging>
+
+    <scm>
+        <connection>scm:git:https://github.com/tcdl/msb-java.git</connection>
+        <developerConnection>scm:git:git@github.com:tcdl/msb-java.git</developerConnection>
+        <url>https://github.com/tcdl/msb-java</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <organization>
+        <name>tcdl</name>
+        <url>https://github.com/tcdl</url>
+    </organization>
+
+    <properties>
+        <camel.version>2.9.0</camel.version>
+        <status-client.version>1.0.2</status-client.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <snapshots/>
+            <id>snapshots</id>
+            <name>libs-snapshot</name>
+            <url>https://mvn.devtools.thomascook.com/nexus/content/repositories/jfrog-libs/</url>
+        </repository>
+        <repository>
+            <snapshots/>
+            <id>java-microservice-release</id>
+            <name>libs-snapshot</name>
+            <url>https://mvn.devtools.thomascook.com/nexus/content/repositories/java-microservice-release</url>
+        </repository>
+        <repository>
+            <id>java-microservice-snapshot</id>
+            <name>maven repository</name>
+            <url>https://mvn.devtools.thomascook.com/nexus/content/repositories/java-microservice-snapshot/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-core</artifactId>
+            <version>${camel.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-test</artifactId>
+            <version>${camel.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.tcdl.msb</groupId>
+            <artifactId>msb-java-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.tcdl.msb</groupId>
+            <artifactId>msb-java-amqp</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.thomascook.status</groupId>
+            <artifactId>status-client</artifactId>
+            <version>${status-client.version}</version>
+        </dependency>
+
+    </dependencies>
+
+</project>
