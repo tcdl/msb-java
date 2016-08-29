@@ -57,11 +57,11 @@ public class TestMsbStorageForAdapterFactory {
     }
 
     synchronized void addConsumerAdapter(String namespace, Set<String> routingKeys, TestMsbConsumerAdapter adapter) {
-        multicastConsumers.computeIfAbsent(namespace, ns -> new HashMap<>()).replace(routingKeys, adapter);
+        multicastConsumers.computeIfAbsent(namespace, ns -> new HashMap<>()).put(routingKeys, adapter);
     }
 
     synchronized void addConsumerAdapter(String namespace, TestMsbConsumerAdapter adapter) {
-        broadcastConsumers.putIfAbsent(namespace, adapter);
+        broadcastConsumers.put(namespace, adapter);
     }
 
     synchronized void addPublishedTestMessage(String namespace, String routingKey, String jsonMessage) {
