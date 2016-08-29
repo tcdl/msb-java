@@ -1,16 +1,13 @@
 package io.github.tcdl.msb;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.AdapterFactoryLoader;
+import io.github.tcdl.msb.api.MessageDestination;
 import io.github.tcdl.msb.api.exception.ConsumerSubscriptionException;
+import io.github.tcdl.msb.api.exception.MsbException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
@@ -18,6 +15,7 @@ import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.TestUtils;
 
 import java.time.Clock;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -27,14 +25,19 @@ import io.github.tcdl.msb.threading.ConsumerExecutorFactoryImpl;
 import io.github.tcdl.msb.threading.MessageHandlerInvoker;
 import io.github.tcdl.msb.threading.ThreadPoolMessageHandlerInvoker;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.rules.ExpectedException;
 
 public class ChannelManagerTest {
 
     private ChannelManager channelManager;
     private ChannelMonitorAgent mockChannelMonitorAgent;
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Before
     public void setUp() {
@@ -78,6 +81,56 @@ public class ChannelManagerTest {
     }
 
     @Test
+    public void testSubscribeSameTopicDifferentRoutingKeys() throws Exception {
+        String topic = "interesting:topic";
+        String routingKey1 = "routing.key.one";
+        String routingKey2 = "routing.key.two";
+
+        channelManager.subscribe(topic, Collections.singleton(routingKey1), (message, acknowledgeHandler) -> {});
+        verify(mockChannelMonitorAgent).consumerTopicCreated(topic);
+        expectedException.expect(ConsumerSubscriptionException.class);
+        channelManager.subscribe(topic, Collections.singleton(routingKey2), (message, acknowledgeHandler) -> {});
+    }
+
+    @Test
+    public void testFindOrCreateProducerForDestination() throws Exception {
+
+        String topic = "interesting:topic";
+        String routingKey1 = "routing.key.one";
+        String routingKey2 = "routing.key.two";
+
+        MessageDestination destination1 = new MessageDestination(topic, routingKey1);
+        MessageDestination destination2 = new MessageDestination(topic, routingKey2);
+
+        Producer producer1 = channelManager.findOrCreateProducer(destination1);
+        Producer producer2 = channelManager.findOrCreateProducer(destination2);
+
+        assertEquals("Multicast producer must be the same for same topic", producer1, producer2);
+    }
+
+    @Test
+    public void testFindOrCreateProducer_broadcastProducerAlreadyExists() throws Exception {
+        String topic = "interesting:topic";
+        String routingKey = "routing.key";
+
+        MessageDestination destination = new MessageDestination(topic, routingKey);
+        channelManager.findOrCreateProducer(topic);
+        expectedException.expect(MsbException.class);
+        channelManager.findOrCreateProducer(destination);
+    }
+
+    @Test
+    public void testFindOrCreateProducer_multicastProducerAlreadyExists() throws Exception {
+        String topic = "interesting:topic";
+        String routingKey = "routing.key";
+
+        MessageDestination destination = new MessageDestination(topic, routingKey);
+        channelManager.findOrCreateProducer(destination);
+        expectedException.expect(MsbException.class);
+        channelManager.findOrCreateProducer(topic);
+    }
+
+    @Test
     public void testPublishMessageInvokesAgent() {
         String topic = "topic:test-agent-publish";
 
@@ -110,10 +163,20 @@ public class ChannelManagerTest {
     }
 
     @Test
-    public void testSubscribeUnsubscribe() {
+    public void testSubscribeUnsubscribeFromBroadcast() {
         String topic = "topic:test-unsubscribe-once";
 
         channelManager.subscribe(topic, (message, acknowledgeHandler) -> {});
+        channelManager.unsubscribe(topic);
+
+        verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);
+    }
+
+    @Test
+    public void testSubscribeUnsubscribeFromMulticast() {
+        String topic = "topic:test-unsubscribe-once";
+
+        channelManager.subscribe(topic, Collections.singleton("routing.key"), (message, acknowledgeHandler) -> {});
         channelManager.unsubscribe(topic);
 
         verify(mockChannelMonitorAgent).consumerTopicRemoved(topic);

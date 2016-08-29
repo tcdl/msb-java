@@ -6,6 +6,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.MessageProperties;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.AdditionalMatchers;
@@ -61,7 +62,18 @@ public class AmqpProducerAdapterTest {
 
         producerAdapter.publish(message);
 
-        verify(mockChannel).basicPublish(topicName, "" /* routing key */, MessageProperties.PERSISTENT_BASIC, message.getBytes());
+        verify(mockChannel).basicPublish(topicName, StringUtils.EMPTY, MessageProperties.PERSISTENT_BASIC, message.getBytes());
+    }
+
+    @Test
+    public void testPublishWithRoutingKey() throws Exception{
+        String topicName = "myTopic";
+        String message = "message";
+        String routingKey = "routingKey";
+        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter(topicName, mockAmqpBrokerConfig, mockAmqpConnectionManager);
+
+        producerAdapter.publish(message, routingKey);
+        verify(mockChannel).basicPublish(topicName, routingKey, MessageProperties.PERSISTENT_BASIC, message.getBytes());
     }
 
     @Test

@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.github.tcdl.msb.mock.adapterfactory.TestMsbStorageForAdapterFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -198,7 +199,7 @@ public class RequesterResponderIT {
                 })
                 .listen();
 
-        storage.publishIncomingMessage(namespace1,
+        storage.publishIncomingMessage(namespace1, StringUtils.EMPTY,
                 Utils.toJson(TestUtils.createSimpleRequestMessage(namespace1), msbContext.getPayloadMapper()));
 
         assertTrue("Message ack was not send", ackSent.await(MESSAGE_TRANSMISSION_TIME, TimeUnit.MILLISECONDS));

@@ -3,6 +3,7 @@ package io.github.tcdl.msb.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.support.Utils;
@@ -11,11 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
+import java.util.Set;
 
 public class ResponderServerImpl<T> implements ResponderServer {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServerImpl.class);
 
     private String namespace;
+    private Set<String> routingKeys;
     private MsbContextImpl msbContext;
     private MessageTemplate messageTemplate;
     private RequestHandler<T> requestHandler;
@@ -24,12 +27,14 @@ public class ResponderServerImpl<T> implements ResponderServer {
     private TypeReference<T> payloadTypeReference;
 
     private ResponderServerImpl(String namespace,
-            MessageTemplate messageTemplate,
-            MsbContextImpl msbContext,
-            RequestHandler<T> requestHandler,
-            ErrorHandler errorHandler,
-            TypeReference<T> payloadTypeReference) {
+                                Set<String> routingKeys,
+                                MessageTemplate messageTemplate,
+                                MsbContextImpl msbContext,
+                                RequestHandler<T> requestHandler,
+                                ErrorHandler errorHandler,
+                                TypeReference<T> payloadTypeReference) {
         this.namespace = namespace;
+        this.routingKeys = routingKeys;
         this.messageTemplate = messageTemplate;
         this.msbContext = msbContext;
         this.requestHandler = requestHandler;
@@ -42,9 +47,9 @@ public class ResponderServerImpl<T> implements ResponderServer {
     /**
      * {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(String, MessageTemplate, RequestHandler, ErrorHandler, Class)}
      */
-    static <T> ResponderServerImpl<T> create(String namespace,  MessageTemplate messageTemplate, MsbContextImpl msbContext,
+    static <T> ResponderServerImpl<T> create(String namespace, Set<String> routingKeys, MessageTemplate messageTemplate, MsbContextImpl msbContext,
             RequestHandler<T> requestHandler,  ErrorHandler errorHandler, TypeReference<T> payloadTypeReference) {
-        return new ResponderServerImpl<>(namespace, messageTemplate, msbContext, requestHandler, errorHandler, payloadTypeReference);
+        return new ResponderServerImpl<>(namespace, routingKeys, messageTemplate, msbContext, requestHandler, errorHandler, payloadTypeReference);
     }
 
     /**
@@ -59,13 +64,18 @@ public class ResponderServerImpl<T> implements ResponderServer {
     public ResponderServer listen() {
         ChannelManager channelManager = msbContext.getChannelManager();
 
-        channelManager.subscribe(namespace,
-                (incomingMessage, acknowledgeHandler) -> {
-                    LOG.debug("[{}] Received message with id: [{}]", namespace, incomingMessage.getId());
-                    Responder responder = createResponder(incomingMessage);
-                    ResponderContext responderContext = createResponderContext(responder, acknowledgeHandler, incomingMessage);
-                    onResponder(responderContext);
-                });
+        MessageHandler messageHandler = (incomingMessage, acknowledgeHandler) -> {
+            LOG.debug("[{}] Received message with id: [{}]", namespace, incomingMessage.getId());
+            Responder responder = createResponder(incomingMessage);
+            ResponderContext responderContext = createResponderContext(responder, acknowledgeHandler, incomingMessage);
+            onResponder(responderContext);
+        };
+
+        if (routingKeys == null || routingKeys.isEmpty()) {
+            channelManager.subscribe(namespace, messageHandler);
+        } else {
+            channelManager.subscribe(namespace, routingKeys, messageHandler);
+        }
 
         return this;
     }

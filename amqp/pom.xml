@@ -36,5 +36,10 @@
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

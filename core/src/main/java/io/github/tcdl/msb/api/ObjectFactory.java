@@ -6,6 +6,10 @@ import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 
 import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.Set;
+
+import static javafx.scene.input.KeyCode.T;
 
 /**
  * Provides methods for creation client-facing API classes.
@@ -86,6 +90,56 @@ public interface ObjectFactory {
         });
     }
 
+    /**
+     * See {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(java.lang.String, java.util.Set, io.github.tcdl.msb.api.MessageTemplate, io.github.tcdl.msb.api.ResponderServer.RequestHandler, io.github.tcdl.msb.api.ResponderServer.ErrorHandler, com.fasterxml.jackson.core.type.TypeReference)}
+     */
+    default ResponderServer createResponderServer(String namespace, Set<String> routingKeys, MessageTemplate messageTemplate,
+                                              ResponderServer.RequestHandler<JsonNode> requestHandler){
+        return createResponderServer(namespace, routingKeys, messageTemplate, requestHandler, JsonNode.class);
+    }
+
+    /**
+     * See {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(java.lang.String, java.util.Set, io.github.tcdl.msb.api.MessageTemplate, io.github.tcdl.msb.api.ResponderServer.RequestHandler, io.github.tcdl.msb.api.ResponderServer.ErrorHandler, com.fasterxml.jackson.core.type.TypeReference)}
+     */
+    default <T> ResponderServer createResponderServer(String namespace, Set<String> routingKeys, MessageTemplate messageTemplate,
+                                              ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {
+        return createResponderServer(namespace, routingKeys, messageTemplate, requestHandler, null, payloadClass);
+    }
+
+    /**
+     * See {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(java.lang.String, java.util.Set, io.github.tcdl.msb.api.MessageTemplate, io.github.tcdl.msb.api.ResponderServer.RequestHandler, io.github.tcdl.msb.api.ResponderServer.ErrorHandler, com.fasterxml.jackson.core.type.TypeReference)}
+     */
+    default <T> ResponderServer createResponderServer(String namespace, Set<String> routingKeys, MessageTemplate messageTemplate,
+                                              ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler, Class<T> payloadClass) {
+        return createResponderServer(namespace, routingKeys, messageTemplate, requestHandler, errorHandler, new TypeReference<T>() {
+            @Override
+            public Type getType() {
+                return payloadClass;
+            }
+        });
+    }
+
+    /**
+     * See {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(java.lang.String, java.util.Set, io.github.tcdl.msb.api.MessageTemplate, io.github.tcdl.msb.api.ResponderServer.RequestHandler, io.github.tcdl.msb.api.ResponderServer.ErrorHandler, com.fasterxml.jackson.core.type.TypeReference)}
+     */
+    default <T> ResponderServer createResponderServer(String namespace, Set<String> routingKeys, MessageTemplate messageTemplate,
+                                                      ResponderServer.RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
+        return createResponderServer(namespace, routingKeys, messageTemplate, requestHandler, null, payloadTypeReference);
+    }
+
+    /**
+     * @param namespace                 topic on a bus for listening on incoming requests
+     * @param routingKeys               routing keys
+     * @param messageTemplate           template of response message
+     * @param requestHandler            handler for processing the request
+     * @param errorHandler              handler for errors to be called after default
+     * @param payloadTypeReference      expected payload type of incoming messages
+     * @return new instance of a {@link ResponderServer} that unmarshals payload into specified payload type
+     */
+    <T> ResponderServer createResponderServer(String namespace, Set<String> routingKeys, MessageTemplate messageTemplate,
+                                              ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler, TypeReference<T> payloadTypeReference);
+
+
     default <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler, Class<T> payloadClass) {
         return createResponderServer(namespace, messageTemplate, requestHandler, errorHandler, new TypeReference<T>() {
@@ -111,6 +165,15 @@ public interface ObjectFactory {
      * @return new instance of a {@link Requester} with original message
      */
     <T> Requester<T> createRequesterForFireAndForget(String namespace, MessageTemplate messageTemplate);
+
+    /**
+     * Creates requester that doesn't wait for any responses or acknowledgments
+     *
+     * @param messageDestination {@link MessageDestination} to be used
+     * @param messageTemplate {@link MessageTemplate} to be used
+     * @return new instance of a {@link Requester} with original message
+     */
+    <T> Requester<T> createRequesterForFireAndForget(MessageDestination messageDestination, MessageTemplate messageTemplate);
 
     /**
      * @param namespace                 topic on a bus for listening on incoming requests

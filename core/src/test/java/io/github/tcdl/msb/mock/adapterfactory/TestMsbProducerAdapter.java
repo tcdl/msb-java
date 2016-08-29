@@ -1,6 +1,9 @@
 package io.github.tcdl.msb.mock.adapterfactory;
 
 import io.github.tcdl.msb.adapters.ProducerAdapter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Set;
 
 public class TestMsbProducerAdapter implements ProducerAdapter {
 
@@ -15,7 +18,13 @@ public class TestMsbProducerAdapter implements ProducerAdapter {
 
     @Override
     public void publish(String jsonMessage) {
-        storage.addPublishedTestMessage(namespace, jsonMessage);
-        storage.publishIncomingMessage(namespace, jsonMessage);
+        storage.addPublishedTestMessage(namespace, StringUtils.EMPTY, jsonMessage);
+        storage.publishIncomingMessage(namespace, StringUtils.EMPTY, jsonMessage);
+    }
+
+    @Override
+    public void publish(String jsonMessage, String routingKey) {
+        storage.addPublishedTestMessage(namespace, routingKey, jsonMessage);
+        storage.publishIncomingMessage(namespace, routingKey, jsonMessage);
     }
 }

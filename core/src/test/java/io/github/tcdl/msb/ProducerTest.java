@@ -14,6 +14,7 @@ import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.support.TestUtils;
 import io.github.tcdl.msb.support.Utils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +28,7 @@ import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -77,12 +79,20 @@ public class ProducerTest {
         verify(handlerMock).call(any(Message.class));
     }
 
+    @Test
+    public void testPublishWithDefaultRoutingKey() throws Exception {
+        Message originaMessage = TestUtils.createSimpleRequestMessage(TOPIC);
+        Producer producer = new Producer(adapterMock, TOPIC, handlerMock, messageMapper);
+        producer.publish(originaMessage, null);
+        verify(adapterMock).publish(anyString(), eq(StringUtils.EMPTY));
+    }
+
     @Test(expected = ChannelException.class)
     @SuppressWarnings("unchecked")
     public void testPublishRawAdapterThrowChannelException() throws ChannelException {
         Message originaMessage = TestUtils.createSimpleRequestMessage(TOPIC);
 
-        Mockito.doThrow(ChannelException.class).when(adapterMock).publish(anyString());
+        Mockito.doThrow(ChannelException.class).when(adapterMock).publish(anyString(), anyString());
 
         Producer producer = new Producer(adapterMock, TOPIC, handlerMock, messageMapper);
         producer.publish(originaMessage);

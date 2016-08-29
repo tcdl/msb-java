@@ -7,6 +7,7 @@ import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 
 import java.lang.reflect.Type;
+import java.util.Set;
 
 /**
  * {@link ObjectFactory} implementation that captures all requesters/responders params and callbacks to be
@@ -95,6 +96,16 @@ public class TestMsbObjectFactory implements ObjectFactory {
     }
 
     @Override
+    public <T> ResponderServer createResponderServer(String namespace, Set<String> routingKeys, MessageTemplate messageTemplate,
+                                                     ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler,
+                                                     TypeReference<T> payloadTypeReference) {
+
+        ResponderCapture<T> capture = new ResponderCapture<>(namespace, routingKeys, messageTemplate, requestHandler, null, payloadTypeReference, null);
+        storage.addCapture(capture);
+        return capture.getResponderServerMock();
+    }
+
+    @Override
     public <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler, Class<T> payloadClass) {
         ResponderCapture<T> capture = new ResponderCapture<>(namespace, messageTemplate, requestHandler, errorHandler, null, payloadClass);
@@ -113,6 +124,15 @@ public class TestMsbObjectFactory implements ObjectFactory {
                 .withWaitForResponses(0)
                 .build();
         return createRequester(namespace, requestOptions, (Class<T>)null);
+    }
+
+    @Override
+    public <T> Requester<T> createRequesterForFireAndForget(MessageDestination destination, MessageTemplate messageTemplate) {
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withWaitForResponses(0)
+                .withRoutingKey(destination.getRoutingKey())
+                .build();
+        return createRequester(destination.getTopic(), requestOptions, (Class<T>)null);
     }
 
     @Override

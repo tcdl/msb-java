@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.Sets;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.Producer;
@@ -17,7 +18,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -67,7 +70,7 @@ public class ResponderServerImplTest {
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 
         ResponderServerImpl<RestPayload<Object, Map<String, String>, Object, Map<String, String>>> responderServer = ResponderServerImpl
-                .create(TOPIC, requestOptions.getMessageTemplate(), spyMsbContext, handler, null,
+                .create(TOPIC, Collections.emptySet(), requestOptions.getMessageTemplate(), spyMsbContext, handler, null,
                         new TypeReference<RestPayload<Object, Map<String, String>, Object, Map<String, String>>>() {});
 
         ResponderServerImpl spyResponderServer = (ResponderServerImpl) spy(responderServer).listen();
@@ -96,7 +99,7 @@ public class ResponderServerImplTest {
         Message incomingMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
 
         ResponderServerImpl<Integer> responderServer = ResponderServerImpl
-                .create(TOPIC, messageTemplate, msbContext, handler, null, new TypeReference<Integer>() {});
+                .create(TOPIC, null, messageTemplate, msbContext, handler, null, new TypeReference<Integer>() {});
         responderServer.listen();
 
         // simulate incoming request
@@ -117,7 +120,7 @@ public class ResponderServerImplTest {
         ResponderServer.RequestHandler<String> handler = (request, responderContext) -> { throw error; };
 
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, messageTemplate, msbContext, handler, null, new TypeReference<String>() {});
+                .create(TOPIC, null, messageTemplate, msbContext, handler, null, new TypeReference<String>() {});
         responderServer.listen();
 
         // simulate incoming request
@@ -142,7 +145,7 @@ public class ResponderServerImplTest {
 
         ResponderServer.ErrorHandler errorHandlerMock = mock(ResponderServer.ErrorHandler.class);
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, messageTemplate, msbContext, handler, errorHandlerMock, new TypeReference<String>() {});
+                .create(TOPIC, null, messageTemplate, msbContext, handler, errorHandlerMock, new TypeReference<String>() {});
         responderServer.listen();
 
         // simulate incoming request
@@ -169,7 +172,7 @@ public class ResponderServerImplTest {
                 .build();
 
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, messageTemplate, msbContext1, handler, null, new TypeReference<String>() {});
+                .create(TOPIC, null, messageTemplate, msbContext1, handler, null, new TypeReference<String>() {});
 
         Message incomingMessage = TestUtils.createMsbRequestMessageNoPayload(TOPIC);
         Responder responder = responderServer.createResponder(incomingMessage);
@@ -184,6 +187,40 @@ public class ResponderServerImplTest {
     }
 
     @Test
+    public void testCreateResponderWithRoutingKeys() throws Exception {
+
+        ChannelManager mockChannelManager = mock(ChannelManager.class);
+        MsbContextImpl msbContext = new TestUtils.TestMsbContextBuilder()
+                .withChannelManager(mockChannelManager)
+                .build();
+
+        Set<String> routingKeys = Sets.newHashSet("routing.key.one", "routing.key.two");
+
+        ResponderServer.RequestHandler<String> requestHandler = (request, responderContext) -> {};
+        ResponderServerImpl<String> responderServer = ResponderServerImpl
+                .create(TOPIC, routingKeys, messageTemplate, msbContext, requestHandler, null, new TypeReference<String>() {});
+
+        responderServer.listen();
+        verify(mockChannelManager).subscribe(eq(TOPIC), eq(routingKeys), any(MessageHandler.class));
+    }
+
+    @Test
+    public void testCreateResponderWithoutRoutingKeys() throws Exception {
+
+        ChannelManager mockChannelManager = mock(ChannelManager.class);
+        MsbContextImpl msbContext = new TestUtils.TestMsbContextBuilder()
+                .withChannelManager(mockChannelManager)
+                .build();
+
+        ResponderServer.RequestHandler<String> requestHandler = (request, responderContext) -> {};
+        ResponderServerImpl<String> responderServer = ResponderServerImpl
+                .create(TOPIC, Collections.emptySet(), messageTemplate, msbContext, requestHandler, null, new TypeReference<String>() {});
+
+        responderServer.listen();
+        verify(mockChannelManager).subscribe(eq(TOPIC), any(MessageHandler.class));
+    }
+
+    @Test
     public void testCreateResponderNoResponseTopic() {
         ResponderServer.RequestHandler<String> handler = (request, responderContext) -> {
         };
@@ -194,7 +231,7 @@ public class ResponderServerImplTest {
                 .build();
 
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, messageTemplate, msbContext, handler, null, new TypeReference<String>() {});
+                .create(TOPIC, null, messageTemplate, msbContext, handler, null, new TypeReference<String>() {});
 
         Message incomingMessage = TestUtils.createMsbBroadcastMessageNoPayload(TOPIC);
         Responder responder = responderServer.createResponder(incomingMessage);
@@ -216,7 +253,7 @@ public class ResponderServerImplTest {
                 .build();
 
         ResponderServerImpl<String> responderServer = ResponderServerImpl.create(
-                TOPIC, messageTemplate, msbContext, doNothingHandler, null, new TypeReference<String>() {}
+                TOPIC, null, messageTemplate, msbContext, doNothingHandler, null, new TypeReference<String>() {}
         );
 
         responderServer.stop();

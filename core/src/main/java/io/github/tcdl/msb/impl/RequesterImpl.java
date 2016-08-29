@@ -2,6 +2,7 @@ package io.github.tcdl.msb.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
+import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
@@ -143,6 +144,8 @@ public class RequesterImpl<T> implements Requester<T> {
 
     private void publish(boolean invokeHandlersDirectly, RequestOptions requestOptions, Object requestPayload, Message originalMessage, String... tags) {
         MessageTemplate messageTemplate = MessageTemplate.copyOf(requestOptions.getMessageTemplate());
+
+
         if (tags != null) {
             for(String tag: tags) {
                 if(tag != null) {
@@ -157,21 +160,24 @@ public class RequesterImpl<T> implements Requester<T> {
                 originalMessage);
 
         Message message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
+        String topic = message.getTopics().getTo();
 
         //use Collector instance to handle expected responses/acks
         if (isWaitForAckMs() || isWaitForResponses()) {
-            String topic = message.getTopics().getResponse();
 
-            Collector collector = createCollector(topic, message, requestOptions, context, eventHandlers, invokeHandlersDirectly);
+            Collector collector = createCollector(message.getTopics().getResponse(), message, requestOptions, context, eventHandlers, invokeHandlersDirectly);
             collector.listenForResponses();
 
-            getChannelManager().findOrCreateProducer(message.getTopics().getTo())
-                    .publish(message);
+            getChannelManager().findOrCreateProducer(topic).publish(message);
 
             collector.waitForResponses();
         } else {
-            getChannelManager().findOrCreateProducer(message.getTopics().getTo())
-                    .publish(message);
+            if(requestOptions.hasRoutingKey()){
+                MessageDestination destination = new MessageDestination(topic, requestOptions.getRoutingKey());
+                getChannelManager().findOrCreateProducer(destination).publish(message, requestOptions.getRoutingKey());
+            } else {
+                getChannelManager().findOrCreateProducer(topic).publish(message);
+            }
         }
     }
 

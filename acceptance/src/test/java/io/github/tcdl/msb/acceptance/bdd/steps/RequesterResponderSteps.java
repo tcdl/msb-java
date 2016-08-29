@@ -1,9 +1,16 @@
 package io.github.tcdl.msb.acceptance.bdd.steps;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
+import io.github.tcdl.msb.api.MessageDestination;
+import io.github.tcdl.msb.api.MessageTemplate;
+import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.Requester;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
+import org.apache.commons.collections.CollectionUtils;
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
@@ -12,14 +19,13 @@ import org.jbehave.core.model.ExamplesTable;
 import org.jbehave.core.model.OutcomesTable;
 import org.junit.Assert;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static io.github.tcdl.msb.acceptance.MsbTestHelper.DEFAULT_CONTEXT_NAME;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -47,6 +53,8 @@ public class RequesterResponderSteps extends MsbSteps {
     private final String ACK = "ACK";
     private final String PAYLOAD = "PAYLOAD";
     private final int ACK_TIMEOUT = 500;
+    private final Map<String, List<String>> receivedMessagesByConsumer = new ConcurrentHashMap<>();
+
 
     public Optional<String> getDefaultRequestsAckType() {
         return defaultRequestsAckType;
@@ -235,11 +243,36 @@ public class RequesterResponderSteps extends MsbSteps {
         helper.sendRequest(requester, payload, true, responsesToExpectCount, null, this::onResponse, this::onEnd);
     }
 
-    @When("requester sends a request with body '$body'")
+    @When("^requester sends a request with body '$body'$")
     public void sendRequestWithBody(String body) throws Exception {
         onBeforeRequest();
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(null, body);
         helper.sendRequest(requester, payload, true, responsesToExpectCount, null, this::onResponse, this::onEnd);
+    }
+
+    @Given("$responderId responder server listens on namespace $namespace with routing keys $routingKeys")
+    public void subscribeResponder(String responderId, String namespace, List<String> routingKeys) {
+        //modify name to make library generate different queue names for different consumers (responders)
+        Config config = ConfigFactory.load()
+                .withValue("msbConfig.serviceDetails.name", ConfigValueFactory.fromAnyRef("msb_java_" + responderId));
+
+        helper.initWithConfig(responderId, config);
+        MsbContext context = helper.getContext(responderId);
+        context.getObjectFactory().createResponderServer(namespace, new HashSet<>(routingKeys), new MessageTemplate(),
+                (request, responderContext) -> {
+                    receivedMessagesByConsumer.computeIfAbsent(responderId, key -> new LinkedList<>()).add(request);
+                }, String.class).listen();
+    }
+
+    @Then("$responderId responder receives only messages $messages")
+    public void assertReceivedMessages(String responderId, List<String> expectedMessagesRaw) throws InterruptedException {
+
+        List<String> expectedMessages = expectedMessagesRaw.stream()
+                .map(message -> message.substring(1, message.length() - 1)) //remove surrounding ' symbols
+                .collect(Collectors.toList());
+        TimeUnit.SECONDS.sleep(1); //wait until messages will be delivered
+        List<String> capturedMessages = receivedMessagesByConsumer.get(responderId);
+        assertTrue(CollectionUtils.isEqualCollection(expectedMessages, capturedMessages));
     }
 
     private void onBeforeRequest() {
@@ -343,6 +376,14 @@ public class RequesterResponderSteps extends MsbSteps {
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(query, body);
         requester = helper.createRequester(namespace, 1, RestPayload.class);
         lastFutureResult = helper.sendForResult(requester, payload);
+    }
+
+    @When("requester sends to $namespace a request with body '$body' and routing key $routingKey")
+    public void requestForSingleResult(String namespace, String body, String routingKey) throws Exception {
+        helper.initDefault();
+        helper.getContext(DEFAULT_CONTEXT_NAME).getObjectFactory()
+                .createRequesterForFireAndForget(new MessageDestination(namespace, routingKey), new MessageTemplate())
+                .publish(body);
     }
 
     @When("requester blocks waiting for response for $timeout ms")

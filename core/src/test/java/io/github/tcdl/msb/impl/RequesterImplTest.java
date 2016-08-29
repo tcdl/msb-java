@@ -14,6 +14,7 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.support.TestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;

@@ -1,22 +1,20 @@
 package io.github.tcdl.msb.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import io.github.tcdl.msb.api.Callback;
-import io.github.tcdl.msb.api.MessageTemplate;
-import io.github.tcdl.msb.api.ObjectFactory;
-import io.github.tcdl.msb.api.PayloadConverter;
-import io.github.tcdl.msb.api.RequestOptions;
-import io.github.tcdl.msb.api.Requester;
-import io.github.tcdl.msb.api.ResponderServer;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.aggregator.DefaultChannelMonitorAggregator;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -74,17 +72,39 @@ public class ObjectFactoryImpl implements ObjectFactory {
      * {@inheritDoc}
      */
     @Override
+    public <T> ResponderServer createResponderServer(String namespace, Set<String> routingKeys, MessageTemplate messageTemplate,
+                                                     ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler, TypeReference<T> payloadTypeReference) {
+        return ResponderServerImpl.create(namespace, routingKeys, messageTemplate, msbContext, requestHandler, errorHandler, payloadTypeReference);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public <T> Requester<T> createRequesterForFireAndForget(String namespace) {
         return createRequesterForFireAndForget(namespace, null);
     }
 
+    @Override
     public <T> Requester<T> createRequesterForFireAndForget(String namespace, MessageTemplate messageTemplate){
-        RequestOptions requestOptions = new RequestOptions.Builder()
+        RequestOptions.Builder optionsBuilder = new RequestOptions.Builder()
                 .withMessageTemplate(messageTemplate)
-                .withWaitForResponses(0)
-                .build();
+                .withWaitForResponses(0);
 
-        return RequesterImpl.create(namespace, requestOptions, msbContext, null);
+        return RequesterImpl.create(namespace, optionsBuilder.build(), msbContext, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <T> Requester<T> createRequesterForFireAndForget(MessageDestination destination, MessageTemplate messageTemplate) {
+        RequestOptions.Builder optionsBuilder = new RequestOptions.Builder()
+                .withMessageTemplate(messageTemplate)
+                .withRoutingKey(destination.getRoutingKey())
+                .withWaitForResponses(0);
+
+        return RequesterImpl.create(destination.getTopic(), optionsBuilder.build(), msbContext, null);
     }
 
     /**
@@ -93,7 +113,7 @@ public class ObjectFactoryImpl implements ObjectFactory {
     @Override
     public <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, TypeReference<T> payloadTypeReference) {
-        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, null, payloadTypeReference);
+        return createResponderServer(namespace, messageTemplate, requestHandler, null, payloadTypeReference);
     }
 
     /**
@@ -102,7 +122,7 @@ public class ObjectFactoryImpl implements ObjectFactory {
     @Override
     public <T> ResponderServer createResponderServer(String namespace, MessageTemplate messageTemplate,
             ResponderServer.RequestHandler<T> requestHandler, ResponderServer.ErrorHandler errorHandler, TypeReference<T> payloadTypeReference) {
-        return ResponderServerImpl.create(namespace, messageTemplate, msbContext, requestHandler, errorHandler, payloadTypeReference);
+        return ResponderServerImpl.create(namespace, Collections.emptySet(), messageTemplate, msbContext, requestHandler, errorHandler, payloadTypeReference);
     }
 
     /**
