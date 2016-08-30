@@ -4,11 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Consumer;
 import io.github.tcdl.msb.Producer;
-import io.github.tcdl.msb.api.Callback;
-import io.github.tcdl.msb.api.MessageContext;
-import io.github.tcdl.msb.api.MessageTemplate;
-import io.github.tcdl.msb.api.RequestOptions;
-import io.github.tcdl.msb.api.Requester;
+import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
@@ -68,8 +64,29 @@ public class RequesterImplTest {
     }
 
     @Test
+    public void testPublishWithRoutingKeyNoWaitForResponses() throws Exception {
+        RequesterImpl<RestPayload> requester = initRequesterForResponsesWith("UK", 0, 0, 0, null, null, null, null);
+
+        publishByAllMethods(requester);
+
+        verify(collectorMock, never()).listenForResponses();
+        verify(collectorMock, never()).waitForResponses();
+    }
+
+    @Test
     public void testPublishWaitForResponses() throws Exception {
         RequesterImpl<RestPayload> requester = initRequesterForResponsesWith(1, 0, 0, null, null, null, null);
+
+        publishByAllMethods(requester);
+
+        verify(collectorMock, times(4)).listenForResponses();
+        verify(collectorMock, times(4)).waitForResponses();
+    }
+
+
+    @Test
+    public void testPublishWithRoutingKeyWaitForResponses() throws Exception {
+        RequesterImpl<RestPayload> requester = initRequesterForResponsesWith("UK", 1, 0, 0, null, null, null, null);
 
         publishByAllMethods(requester);
 
@@ -413,10 +430,8 @@ public class RequesterImplTest {
                                                                      BiConsumer<Exception, Message> onError,
                                                                      Callback<Void> endHandler) throws Exception {
 
-        MessageTemplate messageTemplateMock = mock(MessageTemplate.class);
-
-        RequestOptions requestOptionsMock = new RequestOptions.Builder()
-                .withMessageTemplate(messageTemplateMock)
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withMessageTemplate(mock(MessageTemplate.class))
                 .withWaitForResponses(numberOfResponses)
                 .withResponseTimeout(respTimeout)
                 .withAckTimeout(ackTimeout)
@@ -424,26 +439,46 @@ public class RequesterImplTest {
 
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
 
+        return setUpRequester(onResponse, onAcknowledge, onError, endHandler, requestOptions);
+    }
+
+    private RequesterImpl<RestPayload> initRequesterForResponsesWith(String routingKey, Integer numberOfResponses, Integer respTimeout, Integer ackTimeout,
+                                                                     BiConsumer<RestPayload, MessageContext> onResponse, BiConsumer<Acknowledge, MessageContext> onAcknowledge,
+                                                                     BiConsumer<Exception, Message> onError,
+                                                                     Callback<Void> endHandler) throws Exception {
+
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withMessageTemplate(mock(MessageTemplate.class))
+                .withWaitForResponses(numberOfResponses)
+                .withResponseTimeout(respTimeout)
+                .withRoutingKey(routingKey)
+                .withAckTimeout(ackTimeout)
+                .build();
+
+        when(channelManagerMock.findOrCreateProducer(any(MessageDestination.class))).thenReturn(producerMock);
+
+        return setUpRequester(onResponse, onAcknowledge, onError, endHandler, requestOptions);
+    }
+
+    private RequesterImpl<RestPayload> setUpRequester(BiConsumer<RestPayload, MessageContext> onResponse, BiConsumer<Acknowledge, MessageContext> onAcknowledge, BiConsumer<Exception, Message> onError, Callback<Void> endHandler, RequestOptions requestOptions) {
         MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
                 .withChannelManager(channelManagerMock)
                 .build();
 
-        RequesterImpl<RestPayload> requester = spy(RequesterImpl.create(NAMESPACE, requestOptionsMock, msbContext, new TypeReference<RestPayload>() {
+        RequesterImpl<RestPayload> requester = spy(RequesterImpl.create(NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>() {
         }));
         requester.onResponse(onResponse)
                 .onError(onError)
                 .onAcknowledge(onAcknowledge)
                 .onEnd(endHandler);
 
-        collectorMock = spy(new Collector<>(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptionsMock, msbContext, requester.eventHandlers,
+        collectorMock = spy(new Collector<>(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptions, msbContext, requester.eventHandlers,
                 new TypeReference<RestPayload>() {
                 }));
 
         doReturn(collectorMock)
                 .when(requester)
                 .createCollector(anyString(), any(Message.class), any(RequestOptions.class), any(MsbContextImpl.class), any(), anyBoolean());
-
         return requester;
     }
-
 }

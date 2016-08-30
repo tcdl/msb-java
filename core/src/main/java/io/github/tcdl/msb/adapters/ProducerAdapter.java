@@ -16,4 +16,12 @@ public interface ProducerAdapter {
      * @throws ChannelException if some problems during publishing message to Broker were occurred
      */
     void publish(String jsonMessage);
+
+    /**
+     * Publishes the message to the associated topic with specified routing key
+     *
+     * @param jsonMessage message to publish in JSON format
+     * @param routingKey non null String of max length 255 bytes to be used for message routing
+     */
+    void publish(String jsonMessage, String routingKey);
 }

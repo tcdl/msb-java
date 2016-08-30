@@ -7,6 +7,7 @@ import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.api.exception.JsonConversionException;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.support.Utils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,10 +36,14 @@ public class Producer {
     }
 
     public void publish(Message message) {
+        publish(message, null);
+    }
+
+    public void publish(Message message, String routingKey) {
         try {
             String jsonMessage = Utils.toJson(message, messageMapper);
             LOG.debug("Publishing message to adapter : {}", jsonMessage);
-            rawAdapter.publish(jsonMessage);
+            rawAdapter.publish(jsonMessage, routingKey != null ? routingKey : StringUtils.EMPTY);
             messageHandler.call(message);
         } catch (ChannelException | JsonConversionException e) {
             LOG.error("Exception while message publish to adapter", e);

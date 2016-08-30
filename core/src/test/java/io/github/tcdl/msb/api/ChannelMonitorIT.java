@@ -23,6 +23,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.github.tcdl.msb.mock.adapterfactory.TestMsbStorageForAdapterFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,7 +68,7 @@ public class ChannelMonitorIT {
         CountDownLatch announcementReceived = monitorPrepareAwaitOnAnnouncement(TOPIC_NAME);
 
         //simulate broken announcement in broker
-        storage.publishIncomingMessage(Utils.TOPIC_ANNOUNCE,
+        storage.publishIncomingMessage(Utils.TOPIC_ANNOUNCE, StringUtils.EMPTY,
                 Utils.toJson(TestUtils.createSimpleRequestMessage(Utils.TOPIC_ANNOUNCE), msbContext.getPayloadMapper()));
 
         assertFalse("Broken announcement was handled", announcementReceived.await(RequesterResponderIT.MESSAGE_TRANSMISSION_TIME / 2, TimeUnit.MILLISECONDS));
@@ -120,7 +121,7 @@ public class ChannelMonitorIT {
         Message responseMessage = TestUtils.createMsbRequestMessageWithCorrelationId(requestMessage.getTopics().getResponse(),
                 requestMessage.getCorrelationId(),
                 payload);
-        storage.publishIncomingMessage(requestMessage.getTopics().getResponse(), Utils.toJson(responseMessage, msbContext.getPayloadMapper()));
+        storage.publishIncomingMessage(requestMessage.getTopics().getResponse(), StringUtils.EMPTY, Utils.toJson(responseMessage, msbContext.getPayloadMapper()));
 
         assertTrue("Heartbeat response was not received",
                 heartBeatResponseReceived.await(HEARTBEAT_TIMEOUT_MS * 2, TimeUnit.MILLISECONDS));
@@ -159,9 +160,9 @@ public class ChannelMonitorIT {
                 .createMsbRequestMessageWithCorrelationId(requestMessage.getTopics().getResponse(), requestMessage.getCorrelationId(),
                         payload);
         //simulate 3 heartbeatResponses: 1 valid and 2 broken
-        storage.publishIncomingMessage(requestMessage.getTopics().getResponse(), Utils.toJson(brokenResponseMessage1, msbContext.getPayloadMapper()));
-        storage.publishIncomingMessage(requestMessage.getTopics().getResponse(), Utils.toJson(responseMessage, msbContext.getPayloadMapper()));
-        storage.publishIncomingMessage(requestMessage.getTopics().getResponse(), Utils.toJson(brokenResponseMessage2, msbContext.getPayloadMapper()));
+        storage.publishIncomingMessage(requestMessage.getTopics().getResponse(), StringUtils.EMPTY, Utils.toJson(brokenResponseMessage1, msbContext.getPayloadMapper()));
+        storage.publishIncomingMessage(requestMessage.getTopics().getResponse(), StringUtils.EMPTY, Utils.toJson(responseMessage, msbContext.getPayloadMapper()));
+        storage.publishIncomingMessage(requestMessage.getTopics().getResponse(), StringUtils.EMPTY, Utils.toJson(brokenResponseMessage2, msbContext.getPayloadMapper()));
 
         assertTrue("Heartbeat response was not received",
                 heartBeatResponseReceived.await(HEARTBEAT_TIMEOUT_MS * 2, TimeUnit.MILLISECONDS));

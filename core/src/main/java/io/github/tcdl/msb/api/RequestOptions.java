@@ -1,5 +1,12 @@
 package io.github.tcdl.msb.api;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Specifies waiting policy (for acknowledgements and responses) for requests sent using {@link Requester}.
  */
@@ -34,12 +41,15 @@ public class RequestOptions {
 
     private final MessageTemplate messageTemplate;
 
-    private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, MessageTemplate messageTemplate, String forwardNamespace) {
+    private final String routingKey;
+
+    private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, MessageTemplate messageTemplate, String forwardNamespace, String routingKey) {
         this.ackTimeout = ackTimeout;
         this.responseTimeout = responseTimeout;
         this.waitForResponses = waitForResponses;
         this.messageTemplate = messageTemplate;
         this.forwardNamespace = forwardNamespace;
+        this.routingKey = routingKey;
     }
 
     public Integer getAckTimeout() {
@@ -50,7 +60,7 @@ public class RequestOptions {
         return responseTimeout;
     }
 
-   public int getWaitForResponses() {
+    public int getWaitForResponses() {
         if (waitForResponses == null || waitForResponses == -1) {
             // use for Infinity number or expected responses
             return WAIT_FOR_RESPONSES_UNTIL_TIMEOUT;
@@ -67,6 +77,14 @@ public class RequestOptions {
         return forwardNamespace;
     }
 
+    public String getRoutingKey() {
+        return routingKey;
+    }
+
+    public boolean hasRoutingKey(){
+        return StringUtils.isNotBlank(routingKey);
+    }
+
     @Override
     public String toString() {
         return "RequestOptions [ackTimeout=" + ackTimeout
@@ -79,11 +97,17 @@ public class RequestOptions {
 
     public static class Builder {
 
+        private String routingKey;
         private Integer ackTimeout;
         private Integer responseTimeout;
         private Integer waitForResponses;
         private MessageTemplate messageTemplate;
         private String forwardNamespace;
+
+        public Builder withRoutingKey(String routingKey) {
+            this.routingKey = routingKey;
+            return this;
+        }
 
         public Builder withAckTimeout(Integer ackTimeout) {
             this.ackTimeout = ackTimeout;
@@ -120,11 +144,13 @@ public class RequestOptions {
             this.waitForResponses = source.waitForResponses;
             this.messageTemplate = source.messageTemplate;
             this.forwardNamespace = source.forwardNamespace;
+            this.routingKey = source.routingKey;
             return this;
         }
 
         public RequestOptions build() {
-            return new RequestOptions(ackTimeout, responseTimeout, waitForResponses, messageTemplate, forwardNamespace);
+            return new RequestOptions(ackTimeout, responseTimeout, waitForResponses, messageTemplate, forwardNamespace,
+                    routingKey != null ? routingKey : StringUtils.EMPTY);
         }
     }
 }

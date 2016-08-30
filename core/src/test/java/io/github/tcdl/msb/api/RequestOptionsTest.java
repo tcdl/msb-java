@@ -54,6 +54,7 @@ public class RequestOptionsTest {
         Integer responseTimeout = 2;
         String forwardNamespace = "forward:namespace";
         int waitForResponses = 3;
+        String routingKey = "routing.key";
 
         RequestOptions source = new RequestOptions.Builder()
                 .withAckTimeout(ackTimeout)
@@ -61,6 +62,7 @@ public class RequestOptionsTest {
                 .withForwardNamespace(forwardNamespace)
                 .withWaitForResponses(waitForResponses)
                 .withMessageTemplate(sourceMessageTemplate)
+                .withRoutingKey(routingKey)
                 .build();
 
         RequestOptions.Builder builder = new RequestOptions.Builder().from(source);
@@ -71,5 +73,6 @@ public class RequestOptionsTest {
         assertEquals(waitForResponses, result.getWaitForResponses());
         assertEquals(forwardNamespace, result.getForwardNamespace());
         assertSame(sourceMessageTemplate, result.getMessageTemplate());
+        assertEquals(routingKey, result.getRoutingKey());
     }
 }

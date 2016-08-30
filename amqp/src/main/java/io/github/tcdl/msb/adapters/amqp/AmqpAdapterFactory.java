@@ -8,6 +8,7 @@ import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
+import io.github.tcdl.msb.api.MessageDestination;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.api.exception.ConfigurationException;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -16,7 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.*;
 
 /**
@@ -62,8 +66,18 @@ public class AmqpAdapterFactory implements AdapterFactory {
     }
 
     @Override
+    public ProducerAdapter createProducerAdapter(MessageDestination destination) {
+        return new AmqpProducerAdapter(destination, amqpBrokerConfig, connectionManager);
+    }
+
+    @Override
     public ConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic) {
         return new AmqpConsumerAdapter(topic, amqpBrokerConfig, connectionManager, isResponseTopic);
+    }
+
+    @Override
+    public ConsumerAdapter createConsumerAdapter(String topic, Set<String> routingKeys) {
+        return new AmqpConsumerAdapter(topic, routingKeys, amqpBrokerConfig, connectionManager);
     }
 
     protected ConnectionFactory createConnectionFactory(AmqpBrokerConfig adapterConfig) {
