@@ -168,16 +168,20 @@ public class RequesterImpl<T> implements Requester<T> {
             Collector collector = createCollector(message.getTopics().getResponse(), message, requestOptions, context, eventHandlers, invokeHandlersDirectly);
             collector.listenForResponses();
 
-            getChannelManager().findOrCreateProducer(topic).publish(message);
+            publishMessage(topic, requestOptions, message);
 
             collector.waitForResponses();
         } else {
-            if(requestOptions.hasRoutingKey()){
-                MessageDestination destination = new MessageDestination(topic, requestOptions.getRoutingKey());
-                getChannelManager().findOrCreateProducer(destination).publish(message, requestOptions.getRoutingKey());
-            } else {
-                getChannelManager().findOrCreateProducer(topic).publish(message);
-            }
+            publishMessage(topic, requestOptions, message);
+        }
+    }
+
+    private void publishMessage(String topic, RequestOptions requestOptions, Message message) {
+        if (requestOptions.hasRoutingKey()) {
+            MessageDestination destination = new MessageDestination(topic, requestOptions.getRoutingKey());
+            getChannelManager().findOrCreateProducer(destination).publish(message, requestOptions.getRoutingKey());
+        } else {
+            getChannelManager().findOrCreateProducer(topic).publish(message);
         }
     }
 
