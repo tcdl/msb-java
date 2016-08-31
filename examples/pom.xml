@@ -23,6 +23,16 @@
         <url>https://github.com/tcdl</url>
     </organization>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.1.7</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>io.github.tcdl.msb</groupId>
@@ -32,6 +42,12 @@
             <groupId>io.github.tcdl.msb</groupId>
             <artifactId>msb-java-amqp</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>
