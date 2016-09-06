@@ -83,7 +83,7 @@ public class ProducerTest {
     public void testPublishWithDefaultRoutingKey() throws Exception {
         Message originaMessage = TestUtils.createSimpleRequestMessage(TOPIC);
         Producer producer = new Producer(adapterMock, TOPIC, handlerMock, messageMapper);
-        producer.publish(originaMessage, null);
+        producer.publish(originaMessage);
         verify(adapterMock).publish(anyString(), eq(StringUtils.EMPTY));
     }
 

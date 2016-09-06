@@ -1,11 +1,6 @@
 package io.github.tcdl.msb.api;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Specifies waiting policy (for acknowledgements and responses) for requests sent using {@link Requester}.
@@ -81,9 +76,6 @@ public class RequestOptions {
         return routingKey;
     }
 
-    public boolean hasRoutingKey(){
-        return StringUtils.isNotBlank(routingKey);
-    }
 
     @Override
     public String toString() {

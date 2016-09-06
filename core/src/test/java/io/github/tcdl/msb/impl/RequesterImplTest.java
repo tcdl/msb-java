@@ -39,7 +39,8 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class RequesterImplTest {
 
-    private static final String NAMESPACE = "test:requester";
+    private static final String BROADCAST_NAMESPACE = "test:hello:all";
+    private static final String MULTICAST_NAMESPACE = "test:hello:everyone";
 
     @Mock
     private ChannelManager channelManagerMock;
@@ -82,7 +83,6 @@ public class RequesterImplTest {
         verify(collectorMock, times(4)).listenForResponses();
         verify(collectorMock, times(4)).waitForResponses();
     }
-
 
     @Test
     public void testPublishWithRoutingKeyWaitForResponses() throws Exception {
@@ -352,7 +352,7 @@ public class RequesterImplTest {
     public void testRequestMessage() throws Exception {
         ChannelManager channelManagerMock = mock(ChannelManager.class);
         Producer producerMock = mock(Producer.class);
-        when(channelManagerMock.findOrCreateProducer(NAMESPACE)).thenReturn(producerMock);
+        when(channelManagerMock.findOrCreateProducer(BROADCAST_NAMESPACE)).thenReturn(producerMock);
         ArgumentCaptor<Message> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
 
         MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
@@ -361,7 +361,7 @@ public class RequesterImplTest {
                 .build();
 
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<RestPayload> requester = RequesterImpl.create(NAMESPACE, TestUtils.createSimpleRequestOptions(), msbContext, new TypeReference<RestPayload>(){});
+        Requester<RestPayload> requester = RequesterImpl.create(BROADCAST_NAMESPACE, TestUtils.createSimpleRequestOptions(), msbContext, new TypeReference<RestPayload>(){});
         requester.publish(requestPayload);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
@@ -375,7 +375,7 @@ public class RequesterImplTest {
     public void testRequestMessageWithTags() throws Exception {
         ChannelManager channelManagerMock = mock(ChannelManager.class);
         Producer producerMock = mock(Producer.class);
-        when(channelManagerMock.findOrCreateProducer(NAMESPACE)).thenReturn(producerMock);
+        when(channelManagerMock.findOrCreateProducer(BROADCAST_NAMESPACE)).thenReturn(producerMock);
         ArgumentCaptor<Message> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
 
         MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
@@ -390,7 +390,7 @@ public class RequesterImplTest {
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
         RequestOptions requestOptions = TestUtils.createSimpleRequestOptionsWithTags(tag);
 
-        Requester<RestPayload> requester = RequesterImpl.create(NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>(){});
+        Requester<RestPayload> requester = RequesterImpl.create(BROADCAST_NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>(){});
         requester.publish(requestPayload, dynamicTag1, dynamicTag2, nullTag);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
@@ -399,11 +399,12 @@ public class RequesterImplTest {
     }
 
     @Test
-    public void testRequestMessageWithForward() throws Exception {
-        String forwardNamespace = "test:forward";
+    public void testRequestMessageWithForward_shouldNotWaitForResponsesOrAcks() throws Exception {
+        String routingKey = "to.santa";
+
         ChannelManager channelManagerMock = mock(ChannelManager.class);
         Producer producerMock = mock(Producer.class);
-        when(channelManagerMock.findOrCreateProducer(NAMESPACE)).thenReturn(producerMock);
+        when(channelManagerMock.findOrCreateProducer(BROADCAST_NAMESPACE)).thenReturn(producerMock);
         ArgumentCaptor<Message> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
 
         MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
@@ -414,15 +415,24 @@ public class RequesterImplTest {
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
         RequestOptions requestOptions = new RequestOptions
                 .Builder()
-                .withForwardNamespace(forwardNamespace).build();
+                .withRoutingKey(routingKey)
+                .withWaitForResponses(3)
+                .withAckTimeout(1)
+                .withForwardNamespace(MULTICAST_NAMESPACE).build();
 
-        Requester<RestPayload> requester = RequesterImpl.create(NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>() {
-        });
-        requester.publish(requestPayload);
+        RequesterImpl<RestPayload> requesterSpy = spy(RequesterImpl.create(BROADCAST_NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>() {}));
+        requesterSpy.publish(requestPayload);
+
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
+        //check collector wasn't set up
+        verify(requesterSpy, never()).createCollector(any(), any(), any(), any(), anyBoolean());
+        verify(channelManagerMock, never()).findOrCreateProducer(any(MessageDestination.class));
+
+        //check message fields
         Message requestMessage = messageArgumentCaptor.getValue();
-        assertEquals(forwardNamespace, requestMessage.getTopics().getForward());
+        assertEquals(MULTICAST_NAMESPACE, requestMessage.getTopics().getForward());
+        assertEquals(routingKey, requestMessage.getTopics().getRoutingKey());
     }
 
     private RequesterImpl<RestPayload> initRequesterForResponsesWith(Integer numberOfResponses, Integer respTimeout, Integer ackTimeout,
@@ -439,7 +449,7 @@ public class RequesterImplTest {
 
         when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
 
-        return setUpRequester(onResponse, onAcknowledge, onError, endHandler, requestOptions);
+        return setUpRequester(BROADCAST_NAMESPACE, onResponse, onAcknowledge, onError, endHandler, requestOptions);
     }
 
     private RequesterImpl<RestPayload> initRequesterForResponsesWith(String routingKey, Integer numberOfResponses, Integer respTimeout, Integer ackTimeout,
@@ -457,28 +467,28 @@ public class RequesterImplTest {
 
         when(channelManagerMock.findOrCreateProducer(any(MessageDestination.class))).thenReturn(producerMock);
 
-        return setUpRequester(onResponse, onAcknowledge, onError, endHandler, requestOptions);
+        return setUpRequester(MULTICAST_NAMESPACE, onResponse, onAcknowledge, onError, endHandler, requestOptions);
     }
 
-    private RequesterImpl<RestPayload> setUpRequester(BiConsumer<RestPayload, MessageContext> onResponse, BiConsumer<Acknowledge, MessageContext> onAcknowledge, BiConsumer<Exception, Message> onError, Callback<Void> endHandler, RequestOptions requestOptions) {
+    private RequesterImpl<RestPayload> setUpRequester(String namespace, BiConsumer<RestPayload, MessageContext> onResponse, BiConsumer<Acknowledge, MessageContext> onAcknowledge, BiConsumer<Exception, Message> onError, Callback<Void> endHandler, RequestOptions requestOptions) {
         MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
                 .withChannelManager(channelManagerMock)
                 .build();
 
-        RequesterImpl<RestPayload> requester = spy(RequesterImpl.create(NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>() {
+        RequesterImpl<RestPayload> requester = spy(RequesterImpl.create(namespace, requestOptions, msbContext, new TypeReference<RestPayload>() {
         }));
         requester.onResponse(onResponse)
                 .onError(onError)
                 .onAcknowledge(onAcknowledge)
                 .onEnd(endHandler);
 
-        collectorMock = spy(new Collector<>(NAMESPACE, TestUtils.createMsbRequestMessageNoPayload(NAMESPACE), requestOptions, msbContext, requester.eventHandlers,
+        collectorMock = spy(new Collector<>(namespace, TestUtils.createMsbRequestMessageNoPayload(namespace), requestOptions, msbContext, requester.eventHandlers,
                 new TypeReference<RestPayload>() {
                 }));
 
         doReturn(collectorMock)
                 .when(requester)
-                .createCollector(anyString(), any(Message.class), any(RequestOptions.class), any(MsbContextImpl.class), any(), anyBoolean());
+                .createCollector(any(Message.class), any(RequestOptions.class), any(MsbContextImpl.class), any(), anyBoolean());
         return requester;
     }
 }

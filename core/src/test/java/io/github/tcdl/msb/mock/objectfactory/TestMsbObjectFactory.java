@@ -136,6 +136,16 @@ public class TestMsbObjectFactory implements ObjectFactory {
     }
 
     @Override
+    public <T> Requester<T> createRequesterForFireAndForget(String namespace, MessageDestination forwardTo, MessageTemplate messageTemplate) {
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withWaitForResponses(0)
+                .withForwardNamespace(forwardTo.getTopic())
+                .withRoutingKey(forwardTo.getRoutingKey())
+                .build();
+        return createRequester(namespace, requestOptions, (Class<T>)null);
+    }
+
+    @Override
     public PayloadConverter getPayloadConverter() {
         return null;
     }
