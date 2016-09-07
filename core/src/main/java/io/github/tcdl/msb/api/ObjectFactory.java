@@ -166,6 +166,16 @@ public interface ObjectFactory {
     /**
      * Creates requester that doesn't wait for any responses or acknowledgments
      *
+     * @param namespace topic to send a request to
+     * @param forwardTo topic to be used for forwarding
+     * @param messageTemplate {@link MessageTemplate} to be used
+     * @return new instance of a {@link Requester} with original message
+     */
+    <T> Requester<T> createRequesterForFireAndForget(String namespace, String forwardTo, MessageTemplate messageTemplate);
+
+    /**
+     * Creates requester that doesn't wait for any responses or acknowledgments
+     *
      * @param messageDestination {@link MessageDestination} to be used
      * @param messageTemplate {@link MessageTemplate} to be used
      * @return new instance of a {@link Requester} with original message

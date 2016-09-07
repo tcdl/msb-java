@@ -92,6 +92,16 @@ public class ObjectFactoryImpl implements ObjectFactory {
         return RequesterImpl.create(namespace, optionsBuilder.build(), msbContext, null);
     }
 
+    @Override
+    public <T> Requester<T> createRequesterForFireAndForget(String namespace, String forwardTo, MessageTemplate messageTemplate) {
+        RequestOptions.Builder optionsBuilder = new RequestOptions.Builder()
+                .withForwardNamespace(forwardTo)
+                .withMessageTemplate(messageTemplate)
+                .withWaitForResponses(0);
+
+        return RequesterImpl.create(namespace, optionsBuilder.build(), msbContext, null);
+    }
+
     /**
      * {@inheritDoc}
      */
