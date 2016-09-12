@@ -10,6 +10,7 @@ import io.github.tcdl.msb.api.message.MetaMessage.Builder;
 import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.config.ServiceDetails;
 import io.github.tcdl.msb.support.Utils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.time.Clock;
@@ -49,10 +50,17 @@ public class MessageFactory {
         return createRequestMessage(messageBuilder, payload);
     }
 
-    public Message.Builder createRequestMessageBuilder(String namespace, String forwardNamespace, MessageTemplate messageTemplate, Message originalMessage) {
-        Topics topic = new Topics(namespace, namespace + ":response:" +
-                this.serviceDetails.getInstanceId(), forwardNamespace);
+    public Message.Builder createRequestMessageBuilder(String namespace, String forwardNamespace, String routingKey, MessageTemplate messageTemplate, Message originalMessage) {
+        String responseNamespace = StringUtils.isBlank(forwardNamespace)
+                ? namespace + ":response:" + this.serviceDetails.getInstanceId()
+                : null;
+
+        Topics topic = new Topics(namespace, responseNamespace, forwardNamespace, routingKey);
         return createMessageBuilder(topic, messageTemplate, originalMessage, false);
+    }
+
+    public Message.Builder createRequestMessageBuilder(String namespace, String forwardNamespace, MessageTemplate messageTemplate, Message originalMessage) {
+        return createRequestMessageBuilder(namespace, forwardNamespace, null, messageTemplate, originalMessage);
     }
 
     public Message.Builder createResponseMessageBuilder(MessageTemplate messageTemplate, Message originalMessage) {

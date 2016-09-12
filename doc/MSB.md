@@ -59,7 +59,9 @@ Here's an example of a message:
   "correlationId": "3c19407acf3218000003598f",
   "topics": {
     "to": "test:aggregator",
-    "response": "test:aggregator:response:3c19407acf32180000016402"
+    "response": "test:aggregator:response:3c19407acf32180000016402",
+    "forward": "test:proxy",
+    "routingKey": "to.santa.claus"
   },
   "meta": {
     "ttl": null,
@@ -100,6 +102,7 @@ topics                  | section for routing information
   to                    | name of the topic this message is sent to
   response              | name of the topic where response to this message is expected
   forward               | name of the topic for a message forwarding
+  routingKey            | routing key that was used when message was published or should be used for forwarding
 meta                    | section for message meta information
   ttl                   | time to live of a message. If ttl is exceeded an incoming message is ignored
   createdAt             | timezone-aware date/time when message was created

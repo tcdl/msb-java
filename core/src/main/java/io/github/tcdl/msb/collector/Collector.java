@@ -273,9 +273,9 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler, Execut
     }
 
     void processAck(Acknowledge acknowledge) {
-        if (acknowledge == null)
+        if (acknowledge == null) {
             return;
-
+        }
         if (acknowledge.getResponsesRemaining() != null) {
             LOG.debug("[correlation id: {}] Responses remaining for responderId [{}] is set to {}",
                     requestMessage.getCorrelationId(), acknowledge.getResponderId(),

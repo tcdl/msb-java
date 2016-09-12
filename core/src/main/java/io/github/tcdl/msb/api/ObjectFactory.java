@@ -6,10 +6,7 @@ import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 
 import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.Set;
-
-import static javafx.scene.input.KeyCode.T;
 
 /**
  * Provides methods for creation client-facing API classes.
@@ -169,11 +166,31 @@ public interface ObjectFactory {
     /**
      * Creates requester that doesn't wait for any responses or acknowledgments
      *
+     * @param namespace topic to send a request to
+     * @param forwardTo topic to be used for forwarding
+     * @param messageTemplate {@link MessageTemplate} to be used
+     * @return new instance of a {@link Requester} with original message
+     */
+    <T> Requester<T> createRequesterForFireAndForget(String namespace, String forwardTo, MessageTemplate messageTemplate);
+
+    /**
+     * Creates requester that doesn't wait for any responses or acknowledgments
+     *
      * @param messageDestination {@link MessageDestination} to be used
      * @param messageTemplate {@link MessageTemplate} to be used
      * @return new instance of a {@link Requester} with original message
      */
     <T> Requester<T> createRequesterForFireAndForget(MessageDestination messageDestination, MessageTemplate messageTemplate);
+
+    /**
+     * Creates requester that doesn't wait for any responses or acknowledgments.
+     *
+     * @param namespace topic name to send a request to (where consumer with forwarding capabilities is expected)
+     * @param forwardTo {@link MessageDestination} to be used for forwarding
+     * @param messageTemplate {@link MessageTemplate} to be used
+     * @return new instance of a {@link Requester} with original message
+     */
+    <T> Requester<T> createRequesterForFireAndForget(String namespace, MessageDestination forwardTo, MessageTemplate messageTemplate);
 
     /**
      * @param namespace                 topic on a bus for listening on incoming requests

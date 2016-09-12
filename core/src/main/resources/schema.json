@@ -15,7 +15,8 @@
       "properties": {
         "to": { "$ref": "#/definitions/topic" },
         "response": { "$ref": "#/definitions/topic" },
-        "forward": { "$ref": "#/definitions/topic" }
+        "forward": { "$ref": "#/definitions/topic" },
+        "routingKey": {"type": "string"}
       },
       "required": ["to"]
     },

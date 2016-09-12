@@ -8,7 +8,6 @@ After:
 Outcome: ANY
 Then shutdown MSB
 
-
 Scenario: Sends a request to a responder server and waits for response
 
 Given responder server responds with '{"result": "hello jbehave"}'
@@ -128,7 +127,7 @@ Scenario: Message forwarding
 
 Given responder server responds with '{"result": "hello jbehave - forwarding"}'
 And responder server listens on namespace test:jbehave
-And requester sets forwarding to test:jbehave:forwarding and sends requests to namespace test:jbehave
+And requester sets forwarding to test:jbehave:forwarding and target namespace to test:jbehave
 When requester sends a request
 Then requester gets response in 5000 ms
 And responder requests received count equals 1

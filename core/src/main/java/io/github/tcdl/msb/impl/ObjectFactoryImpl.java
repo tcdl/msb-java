@@ -1,13 +1,11 @@
 package io.github.tcdl.msb.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.monitor.aggregator.DefaultChannelMonitorAggregator;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +92,16 @@ public class ObjectFactoryImpl implements ObjectFactory {
         return RequesterImpl.create(namespace, optionsBuilder.build(), msbContext, null);
     }
 
+    @Override
+    public <T> Requester<T> createRequesterForFireAndForget(String namespace, String forwardTo, MessageTemplate messageTemplate) {
+        RequestOptions.Builder optionsBuilder = new RequestOptions.Builder()
+                .withForwardNamespace(forwardTo)
+                .withMessageTemplate(messageTemplate)
+                .withWaitForResponses(0);
+
+        return RequesterImpl.create(namespace, optionsBuilder.build(), msbContext, null);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -105,6 +113,20 @@ public class ObjectFactoryImpl implements ObjectFactory {
                 .withWaitForResponses(0);
 
         return RequesterImpl.create(destination.getTopic(), optionsBuilder.build(), msbContext, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <T> Requester<T> createRequesterForFireAndForget(String namespace, MessageDestination forwardTo, MessageTemplate messageTemplate) {
+        RequestOptions.Builder optionsBuilder = new RequestOptions.Builder()
+                .withMessageTemplate(messageTemplate)
+                .withForwardNamespace(forwardTo.getTopic())
+                .withRoutingKey(forwardTo.getRoutingKey())
+                .withWaitForResponses(0);
+
+        return RequesterImpl.create(namespace, optionsBuilder.build(), msbContext, null);
     }
 
     /**

@@ -2,16 +2,18 @@ package io.github.tcdl.msb.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.tcdl.msb.ChannelManager;
-import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.message.MessageFactory;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
@@ -130,7 +132,7 @@ public class RequesterImpl<T> implements Requester<T> {
                 })
                 .onError((exception, message) -> futureResult.cancel(true));
 
-        publish(true, requestOptions, requestPayload, originalMessage, tags);
+        publish(true, requestPayload, originalMessage, tags);
         return futureResult;
     }
 
@@ -139,49 +141,48 @@ public class RequesterImpl<T> implements Requester<T> {
      */
     @Override
     public void publish(Object requestPayload, Message originalMessage, String... tags) {
-        publish(false, requestOptions, requestPayload, originalMessage, tags);
+        publish(false, requestPayload, originalMessage, tags);
     }
 
-    private void publish(boolean invokeHandlersDirectly, RequestOptions requestOptions, Object requestPayload, Message originalMessage, String... tags) {
+    private void publish(boolean invokeHandlersDirectly, Object requestPayload, Message originalMessage, String... tags) {
         MessageTemplate messageTemplate = MessageTemplate.copyOf(requestOptions.getMessageTemplate());
 
-
         if (tags != null) {
-            for(String tag: tags) {
-                if(tag != null) {
-                    messageTemplate.addTag(tag);
-                }
-            }
+            Arrays.stream(tags).filter(tag -> tag != null).forEach(messageTemplate::addTag);
         }
+
         Message.Builder messageBuilder = messageFactory.createRequestMessageBuilder(
                 namespace,
                 requestOptions.getForwardNamespace(),
+                requestOptions.getRoutingKey(),
                 messageTemplate,
                 originalMessage);
 
         Message message = messageFactory.createRequestMessage(messageBuilder, requestPayload);
-        String topic = message.getTopics().getTo();
 
-        //use Collector instance to handle expected responses/acks
-        if (isWaitForAckMs() || isWaitForResponses()) {
+        boolean fireAndForget = !(isWaitForAckMs() || isWaitForResponses());
+        boolean forwardingRequired = StringUtils.isNotBlank(requestOptions.getForwardNamespace());
 
-            Collector collector = createCollector(message.getTopics().getResponse(), message, requestOptions, context, eventHandlers, invokeHandlersDirectly);
+        if(forwardingRequired || fireAndForget){
+            publishMessage(message);
+        } else {
+            //set up collector for responses or acks
+            Collector collector = createCollector(message, requestOptions, context, eventHandlers, invokeHandlersDirectly);
             collector.listenForResponses();
 
-            publishMessage(topic, requestOptions, message);
+            publishMessage(message);
 
             collector.waitForResponses();
-        } else {
-            publishMessage(topic, requestOptions, message);
         }
     }
 
-    private void publishMessage(String topic, RequestOptions requestOptions, Message message) {
-        if (requestOptions.hasRoutingKey()) {
-            MessageDestination destination = new MessageDestination(topic, requestOptions.getRoutingKey());
-            getChannelManager().findOrCreateProducer(destination).publish(message, requestOptions.getRoutingKey());
+    private void publishMessage(Message message) {
+        Topics topics = message.getTopics();
+        if (StringUtils.isBlank(topics.getForward()) && StringUtils.isNotBlank(topics.getRoutingKey())) {
+            MessageDestination destination = new MessageDestination(topics.getTo(), topics.getRoutingKey());
+            getChannelManager().findOrCreateProducer(destination).publish(message);
         } else {
-            getChannelManager().findOrCreateProducer(topic).publish(message);
+            getChannelManager().findOrCreateProducer(topics.getTo()).publish(message);
         }
     }
 
@@ -241,7 +242,12 @@ public class RequesterImpl<T> implements Requester<T> {
         return context.getChannelManager();
     }
 
-    Collector<T> createCollector(String topic, Message requestMessage, RequestOptions requestOptions, MsbContextImpl context, EventHandlers<T> eventHandlers, boolean invokeHandlersDirectly) {
-        return new Collector<>(topic, requestMessage, requestOptions, context, eventHandlers, payloadTypeReference, invokeHandlersDirectly);
+    Collector<T> createCollector(Message requestMessage,
+                                 RequestOptions requestOptions,
+                                 MsbContextImpl context,
+                                 EventHandlers<T> eventHandlers,
+                                 boolean invokeHandlersDirectly) {
+        return new Collector<>(requestMessage.getTopics().getResponse(), requestMessage, requestOptions, context,
+                eventHandlers, payloadTypeReference, invokeHandlersDirectly);
     }
 }

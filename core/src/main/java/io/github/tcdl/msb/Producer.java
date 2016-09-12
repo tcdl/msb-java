@@ -36,10 +36,7 @@ public class Producer {
     }
 
     public void publish(Message message) {
-        publish(message, null);
-    }
-
-    public void publish(Message message, String routingKey) {
+        String routingKey = message.getTopics().getRoutingKey();
         try {
             String jsonMessage = Utils.toJson(message, messageMapper);
             LOG.debug("Publishing message to adapter : {}", jsonMessage);
@@ -50,6 +47,4 @@ public class Producer {
             throw e;
         }
     }
-
-
 }

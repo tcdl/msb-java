@@ -8,9 +8,12 @@ import io.github.tcdl.msb.api.MessageDestination;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.api.Requester;
+import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
@@ -25,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static io.github.tcdl.msb.acceptance.MsbTestHelper.DEFAULT_CONTEXT_NAME;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -54,7 +58,7 @@ public class RequesterResponderSteps extends MsbSteps {
     private final String PAYLOAD = "PAYLOAD";
     private final int ACK_TIMEOUT = 500;
     private final Map<String, List<String>> receivedMessagesByConsumer = new ConcurrentHashMap<>();
-
+    private final Deque<Message> rawIncomingMessages = new ConcurrentLinkedDeque<>();
 
     public Optional<String> getDefaultRequestsAckType() {
         return defaultRequestsAckType;
@@ -199,7 +203,7 @@ public class RequesterResponderSteps extends MsbSteps {
     }
 
     // requester steps
-    @Given("requester sets forwarding to $forwardNamespace and sends requests to namespace $namespace")
+    @Given("requester sets forwarding to $forwardNamespace and target namespace to $namespace")
     public void createRequesterWithForwarding(String forwardNamespace, String namespace) {
         requester = helper.createRequester(DEFAULT_CONTEXT_NAME, namespace, forwardNamespace, 0, RestPayload.class);
     }
@@ -261,6 +265,15 @@ public class RequesterResponderSteps extends MsbSteps {
         context.getObjectFactory().createResponderServer(namespace, new HashSet<>(routingKeys), new MessageTemplate(),
                 (request, responderContext) -> {
                     receivedMessagesByConsumer.computeIfAbsent(responderId, key -> new LinkedList<>()).add(request);
+                }, String.class).listen();
+    }
+
+    @Given("responder server listens on fanout namespace $namespace")
+    public void subscribeResponder(String namespace) {
+        MsbContext context = helper.getDefaultContext();
+        context.getObjectFactory().createResponderServer(namespace, new MessageTemplate(),
+                (request, responderContext) -> {
+                    rawIncomingMessages.add(responderContext.getOriginalMessage());
                 }, String.class).listen();
     }
 
@@ -344,17 +357,44 @@ public class RequesterResponderSteps extends MsbSteps {
 
     @Then("request forward namespace equals $forwardNamespace")
     public void responseEquals(String forwardNamespace) throws Exception {
-        Assert.assertEquals(forwardNamespace, latestForwardNamespace);
+        assertEquals(forwardNamespace, latestForwardNamespace);
+    }
+
+
+    @Then("message envelope topics section is $table")
+    public void checkTopicsSection(ExamplesTable table) throws InterruptedException {
+        TimeUnit.SECONDS.sleep(1);
+        Message lastMessage = rawIncomingMessages.pollLast();
+
+        Map<String, String> expected = table.getRow(0);
+        String expectedTo = normalizeNull(expected.get("to"));
+        String expectedForward = normalizeNull(expected.get("forward"));
+        String expectedResponse = normalizeNull(expected.get("response"));
+        String expectedRoutingKey = normalizeNull(expected.get("routingKey"));
+
+        Topics topics = lastMessage.getTopics();
+        assertEquals("Invalid value of topic 'to'", expectedTo, topics.getTo());
+        assertEquals("Invalid value of topic 'forward'", expectedForward, topics.getForward());
+        assertEquals("Invalid value of topic 'response'", expectedResponse, topics.getResponse());
+        assertEquals("Invalid value of field 'routingKey'", expectedRoutingKey, topics.getRoutingKey());
+    }
+
+    private String normalizeNull(String string){
+        if(string !=null && string.trim().equalsIgnoreCase("null")){
+            return null;
+        } else {
+            return string;
+        }
     }
 
     @Then("responder requests received count equals $expectedRequestsReceivedCount")
     public void requestCountEquals(int expectedCountRequestsReceived) throws Exception {
-        Assert.assertEquals(expectedCountRequestsReceived, countRequestsReceived.get());
+        assertEquals(expectedCountRequestsReceived, countRequestsReceived.get());
     }
 
     @Then("requester responses received count equals $expectedRequestsReceivedCount")
     public void responseCountEquals(int expectedCountResponsesReceived) throws Exception {
-        Assert.assertEquals(expectedCountResponsesReceived, countResponsesReceived.get());
+        assertEquals(expectedCountResponsesReceived, countResponsesReceived.get());
     }
 
     @Then("response contains $table")
@@ -384,6 +424,19 @@ public class RequesterResponderSteps extends MsbSteps {
         helper.getContext(DEFAULT_CONTEXT_NAME).getObjectFactory()
                 .createRequesterForFireAndForget(new MessageDestination(namespace, routingKey), new MessageTemplate())
                 .publish(body);
+    }
+
+    @When("requester sends to $namespace a request with forward namespace $forwardNamespace, body '$body' and routing key $routingKey")
+    public void publishWithRoutingKey(String namespace, String forwardNamespace, String body, String routingKey) throws Exception {
+        helper.initDefault();
+        helper.getContext(DEFAULT_CONTEXT_NAME).getObjectFactory()
+                .createRequesterForFireAndForget(namespace, new MessageDestination(forwardNamespace, routingKey), new MessageTemplate())
+                .publish(body);
+    }
+
+    @When("requester sends to $namespace a request with forward namespace $forwardNamespace, body '$body' without routing key")
+    public void publishWithoutRoutingKey(String namespace, String forwardNamespace, String body) throws Exception {
+        publishWithRoutingKey(namespace, forwardNamespace, body, StringUtils.EMPTY);
     }
 
     @When("requester blocks waiting for response for $timeout ms")

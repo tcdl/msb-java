@@ -141,7 +141,24 @@ public class MessageFactoryTest {
 
         assertNotNull(message.getCorrelationId());
         assertThat(message.getTopics().getTo(), is(namespace));
-        assertThat(message.getTopics().getResponse(), notNullValue());
+        assertThat(message.getTopics().getResponse(), nullValue());
+        assertThat(message.getTopics().getRoutingKey(), nullValue());
+        assertThat(message.getTopics().getForward(), is(forwardNamespace));
+    }
+
+    @Test
+    public void testCreateRequestMessageBuilderRoutingKey() {
+        String namespace = "test:request-builder";
+        String routingKey = "banana.key";
+        String forwardNamespace = "test:forward";
+
+        Builder requestMessageBuilder = messageFactory.createRequestMessageBuilder(namespace, forwardNamespace, routingKey, messageOptions, null);
+        Message message = requestMessageBuilder.build();
+
+        assertNotNull(message.getCorrelationId());
+        assertThat(message.getTopics().getTo(), is(namespace));
+        assertThat(message.getTopics().getResponse(), nullValue());
+        assertThat(message.getTopics().getRoutingKey(), is(routingKey));
         assertThat(message.getTopics().getForward(), is(forwardNamespace));
     }
 

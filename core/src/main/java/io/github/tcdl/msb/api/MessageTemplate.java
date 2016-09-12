@@ -67,9 +67,23 @@ public class MessageTemplate {
         return  this;
     }
 
+    public void addTags(String... tags) {
+        this.tags.addAll(Arrays.asList(tags));
+    }
+
+    /**
+     * @deprecated because of misleading signature and complete duplication of {@link #withTags(String...)} logic.
+     * Method will be removed in version 1.7
+     * todo remove it
+     */
+    @Deprecated
     public MessageTemplate addTag(String... tags) {
         this.tags.addAll(Arrays.asList(tags));
         return  this;
+    }
+
+    public void addTag(String tag) {
+        this.tags.add(tag);
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.monitor.AggregatorStats;
 import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
+import io.github.tcdl.msb.impl.RequesterImpl;
 
 import java.lang.reflect.Type;
 import java.util.Set;
@@ -127,12 +128,32 @@ public class TestMsbObjectFactory implements ObjectFactory {
     }
 
     @Override
+    public <T> Requester<T> createRequesterForFireAndForget(String namespace, String forwardTo, MessageTemplate messageTemplate) {
+        RequestOptions.Builder optionsBuilder = new RequestOptions.Builder()
+                .withForwardNamespace(forwardTo)
+                .withMessageTemplate(messageTemplate)
+                .withWaitForResponses(0);
+
+        return createRequester(namespace, optionsBuilder.build(), (Class<T>)null);
+    }
+
+    @Override
     public <T> Requester<T> createRequesterForFireAndForget(MessageDestination destination, MessageTemplate messageTemplate) {
         RequestOptions requestOptions = new RequestOptions.Builder()
                 .withWaitForResponses(0)
                 .withRoutingKey(destination.getRoutingKey())
                 .build();
         return createRequester(destination.getTopic(), requestOptions, (Class<T>)null);
+    }
+
+    @Override
+    public <T> Requester<T> createRequesterForFireAndForget(String namespace, MessageDestination forwardTo, MessageTemplate messageTemplate) {
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withWaitForResponses(0)
+                .withForwardNamespace(forwardTo.getTopic())
+                .withRoutingKey(forwardTo.getRoutingKey())
+                .build();
+        return createRequester(namespace, requestOptions, (Class<T>)null);
     }
 
     @Override
