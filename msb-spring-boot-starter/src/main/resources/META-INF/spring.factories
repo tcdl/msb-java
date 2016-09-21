@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=io.github.tcdl.msb.MsbContextAutoConfiguration,\
+io.github.tcdl.msb.MsbConfigAutoConfiguration
