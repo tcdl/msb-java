@@ -3,6 +3,7 @@ package io.github.tcdl.msb.monitor.agent;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.Producer;
+import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.collector.TimeoutManager;
 import io.github.tcdl.msb.config.ServiceDetails;
@@ -25,7 +26,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -57,14 +60,14 @@ public class DefaultChannelMonitorAgentTest {
     public void testAnnounceProducerForServiceTopic() {
         channelMonitorAgent.producerTopicCreated(TOPIC_ANNOUNCE);
 
-        verify(mockChannelManager, never()).findOrCreateProducer(anyString());
+        verify(mockChannelManager, never()).findOrCreateProducer(anyString(), any(RequestOptions.class));
     }
 
     @Test
     public void testAnnounceProducerForNormalTopic() {
         String topicName = "search:parsers:facets:v1";
         Producer mockProducer = mock(Producer.class);
-        when(mockChannelManager.findOrCreateProducer(TOPIC_ANNOUNCE)).thenReturn(mockProducer);
+        when(mockChannelManager.findOrCreateProducer(eq(TOPIC_ANNOUNCE), any(RequestOptions.class))).thenReturn(mockProducer);
 
         // method under test
         channelMonitorAgent.producerTopicCreated(topicName);
@@ -80,14 +83,14 @@ public class DefaultChannelMonitorAgentTest {
     @Test
     public void testAnnounceConsumerForServiceTopic() {
         channelMonitorAgent.consumerTopicCreated(TOPIC_ANNOUNCE);
-        verify(mockChannelManager, never()).subscribe(anyString(), Mockito.any(MessageHandler.class));
+        verify(mockChannelManager, never()).subscribe(anyString(), any(MessageHandler.class));
     }
 
     @Test
     public void testAnnounceConsumerForNormalTopic() {
         String topicName = "search:parsers:facets:v1";
         Producer mockProducer = mock(Producer.class);
-        when(mockChannelManager.findOrCreateProducer(TOPIC_ANNOUNCE)).thenReturn(mockProducer);
+        when(mockChannelManager.findOrCreateProducer(eq(TOPIC_ANNOUNCE), any(RequestOptions.class))).thenReturn(mockProducer);
 
         // method under test
         channelMonitorAgent.consumerTopicCreated(topicName);
@@ -104,7 +107,7 @@ public class DefaultChannelMonitorAgentTest {
     public void testRemoveConsumerForNormalTopic() {
         String topicName = "search:parsers:facets:v1";
         Producer mockProducer = mock(Producer.class);
-        when(mockChannelManager.findOrCreateProducer(TOPIC_ANNOUNCE)).thenReturn(mockProducer);
+        when(mockChannelManager.findOrCreateProducer(eq(TOPIC_ANNOUNCE), any(RequestOptions.class))).thenReturn(mockProducer);
         channelMonitorAgent.consumerTopicCreated(topicName); // subscribe to the topic as a preparation step
 
         // method under test
@@ -139,11 +142,11 @@ public class DefaultChannelMonitorAgentTest {
         ChannelMonitorAgent startedAgent = channelMonitorAgent.start();
 
         assertSame(channelMonitorAgent, startedAgent);
-        verify(mockChannelManager).subscribe(Mockito.eq(TOPIC_HEARTBEAT), Mockito.any(MessageHandler.class));
+        verify(mockChannelManager).subscribe(eq(TOPIC_HEARTBEAT), any(MessageHandler.class));
     }
 
     private Message verifyProducerInvokedAndReturnMessage(Producer mockProducer) {
-        verify(mockChannelManager).findOrCreateProducer(TOPIC_ANNOUNCE);
+        verify(mockChannelManager).findOrCreateProducer(eq(TOPIC_ANNOUNCE), any(RequestOptions.class));
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
         verify(mockProducer).publish(messageCaptor.capture());
         return messageCaptor.getValue();

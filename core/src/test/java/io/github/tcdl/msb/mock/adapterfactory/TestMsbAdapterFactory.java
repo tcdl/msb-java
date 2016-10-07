@@ -3,11 +3,9 @@ package io.github.tcdl.msb.mock.adapterfactory;
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
-import io.github.tcdl.msb.api.MessageDestination;
+import io.github.tcdl.msb.api.RequestOptions;
+import io.github.tcdl.msb.api.ResponderOptions;
 import io.github.tcdl.msb.config.MsbConfig;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Set;
 
 /**
  * This AdapterFactory implementation is used to capture/submit raw messages as JSON and could be used during testing.
@@ -30,17 +28,9 @@ public class TestMsbAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public ProducerAdapter createProducerAdapter(String namespace) {
-        TestMsbProducerAdapter producerAdapter = new TestMsbProducerAdapter(namespace, storage);
-        storage.addProducerAdapter(namespace, producerAdapter);
-        return producerAdapter;
-    }
-
-    @Override
-    public ProducerAdapter createProducerAdapter(MessageDestination destination) {
-        String namespace = destination.getTopic();
-        TestMsbProducerAdapter producerAdapter = new TestMsbProducerAdapter(namespace, storage);
-        storage.addProducerAdapter(namespace, producerAdapter);
+    public ProducerAdapter createProducerAdapter(String topic, RequestOptions requestOptions) {
+        TestMsbProducerAdapter producerAdapter = new TestMsbProducerAdapter(topic, storage);
+        storage.addProducerAdapter(topic, producerAdapter);
         return producerAdapter;
     }
 
@@ -52,9 +42,9 @@ public class TestMsbAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public ConsumerAdapter createConsumerAdapter(String namespace, Set<String> routingKeys) {
-        TestMsbConsumerAdapter consumerAdapter = new TestMsbConsumerAdapter(namespace, storage);
-        storage.addConsumerAdapter(namespace, routingKeys, consumerAdapter);
+    public ConsumerAdapter createConsumerAdapter(String topic, ResponderOptions responderOptions, boolean isResponseTopic) {
+        TestMsbConsumerAdapter consumerAdapter = new TestMsbConsumerAdapter(topic, storage);
+        storage.addConsumerAdapter(topic, responderOptions.getBindingKeys(), consumerAdapter);
         return consumerAdapter;
     }
 

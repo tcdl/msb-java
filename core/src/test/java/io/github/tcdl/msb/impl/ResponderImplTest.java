@@ -3,6 +3,7 @@ package io.github.tcdl.msb.impl;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -14,6 +15,7 @@ import static org.mockito.Mockito.when;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.MessageTemplate;
+import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.config.MsbConfig;
@@ -56,7 +58,7 @@ public class ResponderImplTest {
 
         when(msbContextSpy.getChannelManager()).thenReturn(mockChannelManager);
         when(msbContextSpy.getMessageFactory()).thenReturn(spyMessageFactory);
-        when(mockChannelManager.findOrCreateProducer(anyString())).thenReturn(mockProducer);
+        when(mockChannelManager.findOrCreateProducer(anyString(), any(RequestOptions.class))).thenReturn(mockProducer);
 
         responder = new ResponderImpl(messageTemplate, originalMessage, msbContextSpy);
     }
@@ -73,7 +75,7 @@ public class ResponderImplTest {
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
         responder.send("");
 
-        verify(mockChannelManager).findOrCreateProducer(argument.capture());
+        verify(mockChannelManager).findOrCreateProducer(argument.capture(), any(RequestOptions.class));
 
         assertEquals(originalMessage.getTopics().getResponse(), argument.getValue());
     }

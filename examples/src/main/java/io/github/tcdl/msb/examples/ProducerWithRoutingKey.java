@@ -1,9 +1,6 @@
 package io.github.tcdl.msb.examples;
 
-import io.github.tcdl.msb.api.MessageTemplate;
-import io.github.tcdl.msb.api.MsbContext;
-import io.github.tcdl.msb.api.MsbContextBuilder;
-import io.github.tcdl.msb.api.RequestOptions;
+import io.github.tcdl.msb.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +37,8 @@ public class ProducerWithRoutingKey {
         Runnable task = () -> {
 
             String routingKey = tikToRoutingKey.get(tik.getAndIncrement() % 3);
-            RequestOptions requestOptions = new RequestOptions.Builder()
+            RequestOptions requestOptions = new AmqpRequestOptions.Builder()
+                    .withExchangeType(ExchangeType.TOPIC)
                     .withRoutingKey(routingKey)
                     .withMessageTemplate(messageTemplate)
                     .build();

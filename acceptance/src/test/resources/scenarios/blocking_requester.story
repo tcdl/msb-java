@@ -3,7 +3,6 @@ Before:
 Given MSB configuration with consumer thread pool size 1
 And start MSB
 And clear log
-And reset mock responses
 After:
 Outcome: ANY
 Then shutdown MSB
