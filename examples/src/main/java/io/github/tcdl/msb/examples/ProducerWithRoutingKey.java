@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Run this consumer in conjunction with {@link ConsumerWithRoutingKeys} to see that only messages sent with
+ * Run this producer in conjunction with {@link ConsumerWithRoutingKeys} to see that only messages sent with
  * routing keys 'zero' and 'two' are consumed and the messages sent with routing key 'one' are not.
  */
 public class ProducerWithRoutingKey {
