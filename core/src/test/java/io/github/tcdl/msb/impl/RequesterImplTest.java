@@ -24,14 +24,12 @@ import static io.github.tcdl.msb.support.TestUtils.createPayloadWithTextBody;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by rdro on 4/27/2015.
@@ -39,8 +37,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class RequesterImplTest {
 
-    private static final String BROADCAST_NAMESPACE = "test:hello:all";
-    private static final String MULTICAST_NAMESPACE = "test:hello:everyone";
+    private static final String TOPIC = "test:hello:all";
 
     @Mock
     private ChannelManager channelManagerMock;
@@ -65,28 +62,8 @@ public class RequesterImplTest {
     }
 
     @Test
-    public void testPublishWithRoutingKeyNoWaitForResponses() throws Exception {
-        RequesterImpl<RestPayload> requester = initRequesterForResponsesWith("UK", 0, 0, 0, null, null, null, null);
-
-        publishByAllMethods(requester);
-
-        verify(collectorMock, never()).listenForResponses();
-        verify(collectorMock, never()).waitForResponses();
-    }
-
-    @Test
     public void testPublishWaitForResponses() throws Exception {
         RequesterImpl<RestPayload> requester = initRequesterForResponsesWith(1, 0, 0, null, null, null, null);
-
-        publishByAllMethods(requester);
-
-        verify(collectorMock, times(4)).listenForResponses();
-        verify(collectorMock, times(4)).waitForResponses();
-    }
-
-    @Test
-    public void testPublishWithRoutingKeyWaitForResponses() throws Exception {
-        RequesterImpl<RestPayload> requester = initRequesterForResponsesWith("UK", 1, 0, 0, null, null, null, null);
 
         publishByAllMethods(requester);
 
@@ -352,7 +329,7 @@ public class RequesterImplTest {
     public void testRequestMessage() throws Exception {
         ChannelManager channelManagerMock = mock(ChannelManager.class);
         Producer producerMock = mock(Producer.class);
-        when(channelManagerMock.findOrCreateProducer(BROADCAST_NAMESPACE)).thenReturn(producerMock);
+        when(channelManagerMock.findOrCreateProducer(eq(TOPIC), eq(RequestOptions.DEFAULTS))).thenReturn(producerMock);
         ArgumentCaptor<Message> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
 
         MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
@@ -361,7 +338,7 @@ public class RequesterImplTest {
                 .build();
 
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
-        Requester<RestPayload> requester = RequesterImpl.create(BROADCAST_NAMESPACE, TestUtils.createSimpleRequestOptions(), msbContext, new TypeReference<RestPayload>(){});
+        Requester<RestPayload> requester = RequesterImpl.create(TOPIC, RequestOptions.DEFAULTS, msbContext, new TypeReference<RestPayload>(){});
         requester.publish(requestPayload);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
@@ -375,7 +352,6 @@ public class RequesterImplTest {
     public void testRequestMessageWithTags() throws Exception {
         ChannelManager channelManagerMock = mock(ChannelManager.class);
         Producer producerMock = mock(Producer.class);
-        when(channelManagerMock.findOrCreateProducer(BROADCAST_NAMESPACE)).thenReturn(producerMock);
         ArgumentCaptor<Message> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
 
         MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
@@ -390,7 +366,9 @@ public class RequesterImplTest {
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
         RequestOptions requestOptions = TestUtils.createSimpleRequestOptionsWithTags(tag);
 
-        Requester<RestPayload> requester = RequesterImpl.create(BROADCAST_NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>(){});
+        when(channelManagerMock.findOrCreateProducer(eq(TOPIC), eq(requestOptions))).thenReturn(producerMock);
+
+        Requester<RestPayload> requester = RequesterImpl.create(TOPIC, requestOptions, msbContext, new TypeReference<RestPayload>(){});
         requester.publish(requestPayload, dynamicTag1, dynamicTag2, nullTag);
         verify(producerMock).publish(messageArgumentCaptor.capture());
 
@@ -398,42 +376,6 @@ public class RequesterImplTest {
         assertArrayEquals(new String[]{tag, dynamicTag1, dynamicTag2}, requestMessage.getTags().toArray());
     }
 
-    @Test
-    public void testRequestMessageWithForward_shouldNotWaitForResponsesOrAcks() throws Exception {
-        String routingKey = "to.santa";
-
-        ChannelManager channelManagerMock = mock(ChannelManager.class);
-        Producer producerMock = mock(Producer.class);
-        when(channelManagerMock.findOrCreateProducer(BROADCAST_NAMESPACE)).thenReturn(producerMock);
-        ArgumentCaptor<Message> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
-
-        MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
-                .withChannelManager(channelManagerMock)
-                .withClock(Clock.systemDefaultZone())
-                .build();
-
-        RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
-        RequestOptions requestOptions = new RequestOptions
-                .Builder()
-                .withRoutingKey(routingKey)
-                .withWaitForResponses(3)
-                .withAckTimeout(1)
-                .withForwardNamespace(MULTICAST_NAMESPACE).build();
-
-        RequesterImpl<RestPayload> requesterSpy = spy(RequesterImpl.create(BROADCAST_NAMESPACE, requestOptions, msbContext, new TypeReference<RestPayload>() {}));
-        requesterSpy.publish(requestPayload);
-
-        verify(producerMock).publish(messageArgumentCaptor.capture());
-
-        //check collector wasn't set up
-        verify(requesterSpy, never()).createCollector(any(), any(), any(), any(), anyBoolean());
-        verify(channelManagerMock, never()).findOrCreateProducer(any(MessageDestination.class));
-
-        //check message fields
-        Message requestMessage = messageArgumentCaptor.getValue();
-        assertEquals(MULTICAST_NAMESPACE, requestMessage.getTopics().getForward());
-        assertEquals(routingKey, requestMessage.getTopics().getRoutingKey());
-    }
 
     private RequesterImpl<RestPayload> initRequesterForResponsesWith(Integer numberOfResponses, Integer respTimeout, Integer ackTimeout,
                                                                      BiConsumer<RestPayload, MessageContext> onResponse, BiConsumer<Acknowledge, MessageContext> onAcknowledge,
@@ -447,27 +389,9 @@ public class RequesterImplTest {
                 .withAckTimeout(ackTimeout)
                 .build();
 
-        when(channelManagerMock.findOrCreateProducer(anyString())).thenReturn(producerMock);
+        when(channelManagerMock.findOrCreateProducer(anyString(), any(RequestOptions.class))).thenReturn(producerMock);
 
-        return setUpRequester(BROADCAST_NAMESPACE, onResponse, onAcknowledge, onError, endHandler, requestOptions);
-    }
-
-    private RequesterImpl<RestPayload> initRequesterForResponsesWith(String routingKey, Integer numberOfResponses, Integer respTimeout, Integer ackTimeout,
-                                                                     BiConsumer<RestPayload, MessageContext> onResponse, BiConsumer<Acknowledge, MessageContext> onAcknowledge,
-                                                                     BiConsumer<Exception, Message> onError,
-                                                                     Callback<Void> endHandler) throws Exception {
-
-        RequestOptions requestOptions = new RequestOptions.Builder()
-                .withMessageTemplate(mock(MessageTemplate.class))
-                .withWaitForResponses(numberOfResponses)
-                .withResponseTimeout(respTimeout)
-                .withRoutingKey(routingKey)
-                .withAckTimeout(ackTimeout)
-                .build();
-
-        when(channelManagerMock.findOrCreateProducer(any(MessageDestination.class))).thenReturn(producerMock);
-
-        return setUpRequester(MULTICAST_NAMESPACE, onResponse, onAcknowledge, onError, endHandler, requestOptions);
+        return setUpRequester(TOPIC, onResponse, onAcknowledge, onError, endHandler, requestOptions);
     }
 
     private RequesterImpl<RestPayload> setUpRequester(String namespace, BiConsumer<RestPayload, MessageContext> onResponse, BiConsumer<Acknowledge, MessageContext> onAcknowledge, BiConsumer<Exception, Message> onError, Callback<Void> endHandler, RequestOptions requestOptions) {

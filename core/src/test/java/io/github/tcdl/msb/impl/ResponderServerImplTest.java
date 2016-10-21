@@ -5,12 +5,7 @@ import com.google.common.collect.Sets;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.Producer;
-import io.github.tcdl.msb.api.AcknowledgementHandler;
-import io.github.tcdl.msb.api.MessageTemplate;
-import io.github.tcdl.msb.api.RequestOptions;
-import io.github.tcdl.msb.api.Responder;
-import io.github.tcdl.msb.api.ResponderContext;
-import io.github.tcdl.msb.api.ResponderServer;
+import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.TestUtils;
@@ -28,12 +23,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ResponderServerImplTest {
 
@@ -69,13 +59,15 @@ public class ResponderServerImplTest {
 
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
 
-        ResponderServerImpl<RestPayload<Object, Map<String, String>, Object, Map<String, String>>> responderServer = ResponderServerImpl
-                .create(TOPIC, Collections.emptySet(), requestOptions.getMessageTemplate(), spyMsbContext, handler, null,
+        ResponderOptions responderOptions = new ResponderOptions.Builder().withBindingKeys(Collections.emptySet()).withMessageTemplate(messageTemplate).build();
+
+        ResponderServerImpl<RestPayload<Object, Map<String, String>, Object, Map<String, String>>> responderServer =
+                ResponderServerImpl.create(TOPIC,responderOptions, spyMsbContext, handler, null,
                         new TypeReference<RestPayload<Object, Map<String, String>, Object, Map<String, String>>>() {});
 
         ResponderServerImpl spyResponderServer = (ResponderServerImpl) spy(responderServer).listen();
 
-        verify(spyChannelManager).subscribe(anyString(), subscriberCaptor.capture());
+        verify(spyChannelManager).subscribe(anyString(), any(ResponderOptions.class), subscriberCaptor.capture());
 
         assertNull("MessageContext must be absent outside message handler execution", MsbThreadContext.getMessageContext());
         assertNull("Request must be absent outside message handler execution", MsbThreadContext.getRequest());
@@ -98,8 +90,10 @@ public class ResponderServerImplTest {
         String bodyText = "some body";
         Message incomingMessage = TestUtils.createMsbRequestMessage(TOPIC, bodyText);
 
+        ResponderOptions responderOptions = new ResponderOptions.Builder().withMessageTemplate(messageTemplate).build();
+
         ResponderServerImpl<Integer> responderServer = ResponderServerImpl
-                .create(TOPIC, null, messageTemplate, msbContext, handler, null, new TypeReference<Integer>() {});
+                .create(TOPIC, responderOptions, msbContext, handler, null, new TypeReference<Integer>() {});
         responderServer.listen();
 
         // simulate incoming request
@@ -119,8 +113,10 @@ public class ResponderServerImplTest {
         Exception error = new Exception(exceptionMessage);
         ResponderServer.RequestHandler<String> handler = (request, responderContext) -> { throw error; };
 
+        ResponderOptions responderOptions = new ResponderOptions.Builder().withMessageTemplate(messageTemplate).build();
+
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, null, messageTemplate, msbContext, handler, null, new TypeReference<String>() {});
+                .create(TOPIC, responderOptions, msbContext, handler, null, new TypeReference<String>() {});
         responderServer.listen();
 
         // simulate incoming request
@@ -143,9 +139,10 @@ public class ResponderServerImplTest {
             throw error;
         };
 
+        ResponderOptions responderOptions = new ResponderOptions.Builder().withMessageTemplate(messageTemplate).build();
         ResponderServer.ErrorHandler errorHandlerMock = mock(ResponderServer.ErrorHandler.class);
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, null, messageTemplate, msbContext, handler, errorHandlerMock, new TypeReference<String>() {});
+                .create(TOPIC, responderOptions, msbContext, handler, errorHandlerMock, new TypeReference<String>() {});
         responderServer.listen();
 
         // simulate incoming request
@@ -166,13 +163,14 @@ public class ResponderServerImplTest {
 
         ChannelManager mockChannelManager = mock(ChannelManager.class);
         Producer mockProducer = mock(Producer.class);
-        when(mockChannelManager.findOrCreateProducer(anyString())).thenReturn(mockProducer);
+        when(mockChannelManager.findOrCreateProducer(anyString(), any(RequestOptions.class))).thenReturn(mockProducer);
         MsbContextImpl msbContext1 = new TestUtils.TestMsbContextBuilder()
                 .withChannelManager(mockChannelManager)
                 .build();
 
+        ResponderOptions responderOptions = new ResponderOptions.Builder().withBindingKeys(Collections.emptySet()).withMessageTemplate(messageTemplate).build();
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, null, messageTemplate, msbContext1, handler, null, new TypeReference<String>() {});
+                .create(TOPIC, responderOptions, msbContext1, handler, null, new TypeReference<String>() {});
 
         Message incomingMessage = TestUtils.createMsbRequestMessageNoPayload(TOPIC);
         Responder responder = responderServer.createResponder(incomingMessage);
@@ -194,14 +192,16 @@ public class ResponderServerImplTest {
                 .withChannelManager(mockChannelManager)
                 .build();
 
-        Set<String> routingKeys = Sets.newHashSet("routing.key.one", "routing.key.two");
+        Set<String> bindingKeys = Sets.newHashSet("routing.key.one", "routing.key.two");
 
         ResponderServer.RequestHandler<String> requestHandler = (request, responderContext) -> {};
+
+        ResponderOptions responderOptions = new ResponderOptions.Builder().withBindingKeys(bindingKeys).withMessageTemplate(messageTemplate).build();
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, routingKeys, messageTemplate, msbContext, requestHandler, null, new TypeReference<String>() {});
+                .create(TOPIC, responderOptions, msbContext, requestHandler, null, new TypeReference<String>() {});
 
         responderServer.listen();
-        verify(mockChannelManager).subscribe(eq(TOPIC), eq(routingKeys), any(MessageHandler.class));
+        verify(mockChannelManager).subscribe(eq(TOPIC), eq(responderOptions), any(MessageHandler.class));
     }
 
     @Test
@@ -213,11 +213,14 @@ public class ResponderServerImplTest {
                 .build();
 
         ResponderServer.RequestHandler<String> requestHandler = (request, responderContext) -> {};
+
+        ResponderOptions responderOptions = new ResponderOptions.Builder().withBindingKeys(Collections.emptySet()).withMessageTemplate(messageTemplate).build();
+
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, Collections.emptySet(), messageTemplate, msbContext, requestHandler, null, new TypeReference<String>() {});
+                .create(TOPIC, responderOptions, msbContext, requestHandler, null, new TypeReference<String>() {});
 
         responderServer.listen();
-        verify(mockChannelManager).subscribe(eq(TOPIC), any(MessageHandler.class));
+        verify(mockChannelManager).subscribe(eq(TOPIC), same(responderOptions), any(MessageHandler.class));
     }
 
     @Test
@@ -230,8 +233,10 @@ public class ResponderServerImplTest {
                 .withChannelManager(mockChannelManager)
                 .build();
 
+        ResponderOptions responderOptions = new ResponderOptions.Builder().withMessageTemplate(messageTemplate).build();
+
         ResponderServerImpl<String> responderServer = ResponderServerImpl
-                .create(TOPIC, null, messageTemplate, msbContext, handler, null, new TypeReference<String>() {});
+                .create(TOPIC, responderOptions, msbContext, handler, null, new TypeReference<String>() {});
 
         Message incomingMessage = TestUtils.createMsbBroadcastMessageNoPayload(TOPIC);
         Responder responder = responderServer.createResponder(incomingMessage);
@@ -252,8 +257,10 @@ public class ResponderServerImplTest {
                 .withChannelManager(mockChannelManager)
                 .build();
 
+        ResponderOptions responderOptions = new ResponderOptions.Builder().withMessageTemplate(messageTemplate).build();
+
         ResponderServerImpl<String> responderServer = ResponderServerImpl.create(
-                TOPIC, null, messageTemplate, msbContext, doNothingHandler, null, new TypeReference<String>() {}
+                TOPIC, responderOptions, msbContext, doNothingHandler, null, new TypeReference<String>() {}
         );
 
         responderServer.stop();

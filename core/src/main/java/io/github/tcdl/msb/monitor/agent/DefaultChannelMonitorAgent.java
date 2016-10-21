@@ -3,6 +3,7 @@ package io.github.tcdl.msb.monitor.agent;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.MessageTemplate;
+import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
@@ -143,7 +144,7 @@ public class DefaultChannelMonitorAgent implements ChannelMonitorAgent {
                 .withBody(topicInfoMap)
                 .build();
 
-        Producer producer = channelManager.findOrCreateProducer(Utils.TOPIC_ANNOUNCE);
+        Producer producer = channelManager.findOrCreateProducer(Utils.TOPIC_ANNOUNCE, RequestOptions.DEFAULTS);
 
         Message.Builder messageBuilder = messageFactory.createBroadcastMessageBuilder(Utils.TOPIC_ANNOUNCE, new MessageTemplate());
         Message announcementMessage = messageFactory.createBroadcastMessage(messageBuilder, payload);

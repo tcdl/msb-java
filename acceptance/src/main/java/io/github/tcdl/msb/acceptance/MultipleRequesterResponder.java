@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.acceptance;
 
+import com.google.common.base.Joiner;
 import io.github.tcdl.msb.api.Requester;
 
 import java.util.List;
@@ -7,7 +8,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 public class MultipleRequesterResponder {
 
@@ -32,7 +32,8 @@ public class MultipleRequesterResponder {
         util.createResponderServer(responderNamespace, (request, responderContext) -> {
             System.out.print(">>> REQUEST: " + request);
             Runnable onFinalResponse = () -> {
-                responderContext.getResponder().send("response from MultipleRequesterResponder:" + StringUtils.join(responseBodies));
+                String responses = Joiner.on(StringUtils.EMPTY).join(responseBodies);
+                responderContext.getResponder().send("response from MultipleRequesterResponder:" + responses);
             };
             createAndRunRequester(requesterNamespace1, onFinalResponse);
             createAndRunRequester(requesterNamespace2, onFinalResponse);

@@ -177,13 +177,7 @@ public class RequesterImpl<T> implements Requester<T> {
     }
 
     private void publishMessage(Message message) {
-        Topics topics = message.getTopics();
-        if (StringUtils.isBlank(topics.getForward()) && StringUtils.isNotBlank(topics.getRoutingKey())) {
-            MessageDestination destination = new MessageDestination(topics.getTo(), topics.getRoutingKey());
-            getChannelManager().findOrCreateProducer(destination).publish(message);
-        } else {
-            getChannelManager().findOrCreateProducer(topics.getTo()).publish(message);
-        }
+        getChannelManager().findOrCreateProducer(message.getTopics().getTo(), requestOptions).publish(message);
     }
 
     private boolean isWaitForAckMs() {

@@ -24,6 +24,7 @@ public class AmqpBrokerConfigTest {
     final boolean useSSL = false;
     final String groupId = "msb-java";
     final boolean durable = false;
+    final String exchangeType = "fanout";
     final int heartbeatIntervalSec = 1;
     final long networkRecoveryIntervalMs = 5000;
     final int prefetchCount = 1;
@@ -40,6 +41,7 @@ public class AmqpBrokerConfigTest {
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
+                + " defaultExchangeType = " + exchangeType + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -75,6 +77,7 @@ public class AmqpBrokerConfigTest {
                 + " port = \"" + port + "\"\n"
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " durable = " + durable + "\n"
+                + " defaultExchangeType = " + exchangeType + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
@@ -222,6 +225,7 @@ public class AmqpBrokerConfigTest {
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
+                + " defaultExchangeType = " + exchangeType + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
                 + "}";
@@ -241,6 +245,7 @@ public class AmqpBrokerConfigTest {
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
+                + " defaultExchangeType = " + exchangeType + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " prefetchCount = " + prefetchCount + "\n"
                 + "}";
@@ -260,6 +265,7 @@ public class AmqpBrokerConfigTest {
                 + " useSSL = \"" + useSSL + "\"\n"
                 + " groupId = \"" + groupId + "\"\n"
                 + " durable = " + durable + "\n"
+                + " defaultExchangeType = " + exchangeType + "\n"
                 + " heartbeatIntervalSec = " + heartbeatIntervalSec + "\n"
                 + " networkRecoveryIntervalMs = " + networkRecoveryIntervalMs + "\n"
                 + "}";

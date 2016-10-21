@@ -1,11 +1,10 @@
 package io.github.tcdl.msb.adapters;
 
-import io.github.tcdl.msb.api.MessageDestination;
-import io.github.tcdl.msb.config.MsbConfig;
+import io.github.tcdl.msb.api.RequestOptions;
+import io.github.tcdl.msb.api.ResponderOptions;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.api.exception.ConfigurationException;
-
-import java.util.Set;
+import io.github.tcdl.msb.config.MsbConfig;
 
 /**
  * MSBAdapterFactory interface represents a common way for creation a particular AdapterFactory
@@ -25,15 +24,14 @@ public interface AdapterFactory {
      * @param topic topic name
      * @return Producer Adapter associated with a topic
      * @throws ChannelException if some problems during creation were occurred
+     * @deprecated use {@link AdapterFactory#createProducerAdapter(String, RequestOptions)}
      */
-    ProducerAdapter createProducerAdapter(String topic);
+    @Deprecated
+    default ProducerAdapter createProducerAdapter(String topic) {
+        return createProducerAdapter(topic, RequestOptions.DEFAULTS);
+    }
 
-    /**
-     * @param destination message destination
-     * @return Producer Adapter associated with a topic
-     * @throws ChannelException if some problems during creation were occurred
-     */
-    ProducerAdapter createProducerAdapter(MessageDestination destination);
+    ProducerAdapter createProducerAdapter(String topic, RequestOptions requestOptions);
 
     /**
      * @param topic topic name
@@ -44,14 +42,11 @@ public interface AdapterFactory {
     ConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic);
 
     /**
-     * Creates ConsumerAdapter associated with a topic. Implementation must guarantee
-     * that bindings by provided routing keys are created. However, it does not guarantee
-     * that other bindings for the same queue do or do not exist.
+     * Creates ConsumerAdapter associated with a topic.
      * @param topic topic name
-     * @param routingKeys routing keys to be used for binding
      * @throws ChannelException if a problems has occurred during creation
      */
-    ConsumerAdapter createConsumerAdapter(String topic, Set<String> routingKeys);
+    ConsumerAdapter createConsumerAdapter(String topic, ResponderOptions responderOptions, boolean isResponseTopic);
 
     /**
      * @return true if custom MSB threading model should be used.
