@@ -9,8 +9,14 @@
 <h3>October 3, 2016</h3>
 
 <pre>
+Changes in MSB-Java version 1.6.0 (not yet released)
+   - Broken backward compatibility with 1.5.2 version. Now exchange type for AMQ is not determined by routing key
+    presence/absence. It can be set explicitly using AmqpRequestOptions. Default value 'fanout' is used if exchange
+    type is not specified. ResponderServer mirrors this behavior using AmqpResponderOptions (see examples for routing key)
+   - Fixed possible deadlock in AMQP channel automatic recovery logic.
+
 Features of MSB-Java version 1.5.2:
-   - Added routing key support to API and AMQP adapters
+   - Added routing key support to API and AMQP adapter
    - Added "routingKey" field to message envelope "topics" section
    - Removed confusing response topic for cases when no responses/acks are expected
 
