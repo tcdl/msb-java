@@ -78,10 +78,15 @@ public class Consumer {
         this.validator = validator;
         this.messageMapper = messageMapper;
 
-        this.rawAdapter.subscribe(this::handleRawMessage);
-
         this.loggingTag = String.format("[Consumer for: '%s' on topic: '%s']", messageHandlerResolver.getLoggingName(), topic);
         this.isSplitTagsForMdcLogging = !StringUtils.isEmpty(msbConfig.getMdcLoggingSplitTagsBy());
+    }
+
+    /**
+     * Start consuming messages
+     */
+    public void subscribe() {
+        this.rawAdapter.subscribe(this::handleRawMessage);
     }
 
     /**

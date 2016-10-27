@@ -18,15 +18,19 @@ public class ConsumerWithRoutingKeys {
                 enableShutdownHook(true).
                 build();
 
-        MessageTemplate messageTemplate = new MessageTemplate();
 
         ObjectFactory objectFactory = msbContext.getObjectFactory();
+
+        ResponderOptions responderOptions = new AmqpResponderOptions.Builder()
+                .withBindingKeys(Sets.newHashSet("zero", "two"))
+                .withExchangeType(ExchangeType.TOPIC)
+                .build();
+
         ResponderServer responderServer = objectFactory.createResponderServer("routing:namespace",
-                Sets.newHashSet("zero", "two"),
-                messageTemplate,
+                responderOptions,
                 (request, responderContext) -> {
                     LOG.info("Received message: {}", request);
-                });
+                }, String.class);
         responderServer.listen();
     }
 }

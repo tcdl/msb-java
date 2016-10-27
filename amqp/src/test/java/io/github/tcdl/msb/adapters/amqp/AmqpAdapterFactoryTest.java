@@ -1,31 +1,28 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.ProducerAdapter;
-import io.github.tcdl.msb.config.MsbConfig;
-import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
-
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Optional;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.api.ExchangeType;
+import io.github.tcdl.msb.config.MsbConfig;
+import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.Optional;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AmqpAdapterFactoryTest {
@@ -57,37 +54,33 @@ public class AmqpAdapterFactoryTest {
     AmqpBrokerConfig amqpConfig;
     AmqpAdapterFactory amqpAdapterFactory;
     MsbConfig msbConfigurations;
-    
+
     @Before
     public void setUp() {
 
         msbConfigurations = new MsbConfig(CONFIG);
 
         amqpConfig = new AmqpBrokerConfig(charset, host, port,
-                Optional.of(username), Optional.of(password), Optional.of(virtualHost), useSSL, Optional.of(groupId), durable,
+                Optional.of(username), Optional.of(password), Optional.of(virtualHost), useSSL, Optional.of(groupId), durable, ExchangeType.FANOUT,
                 heartbeatIntervalSec, networkRecoveryIntervalMs, prefetchCount);
-        
+
         amqpAdapterFactory = new AmqpAdapterFactory() {
-            @Override
-            public ProducerAdapter createProducerAdapter(String topic) {
-                return new AmqpProducerAdapter(topic, amqpConfig, mockConnectionManager);
-            }
 
             @Override
-            public ConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic) {
-                return new AmqpConsumerAdapter(topic, amqpConfig, mockConnectionManager, isResponseTopic);
+            public AmqpConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic) {
+                return new AmqpConsumerAdapter(topic, ExchangeType.FANOUT, Collections.emptySet(), amqpConfig, mockConnectionManager, isResponseTopic);
             }
 
             @Override
             protected ConnectionFactory createConnectionFactory() {
                 return mockConnectionFactory;
             }
-            
+
             @Override
             protected AmqpBrokerConfig createAmqpBrokerConfig(MsbConfig msbConfig) {
                 return amqpConfig;
             }
-            
+
             @Override
             protected AmqpConnectionManager createConnectionManager(Connection connection) {
                 return mockConnectionManager;

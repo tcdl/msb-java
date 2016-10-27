@@ -4,6 +4,7 @@ import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.MessageTemplate;
+import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Acknowledge.Builder;
 import io.github.tcdl.msb.api.message.Message;
@@ -60,7 +61,7 @@ public class ResponderImpl implements Responder {
     }
 
     private void sendMessage(Message message) {
-        Producer producer = channelManager.findOrCreateProducer(message.getTopics().getTo());
+        Producer producer = channelManager.findOrCreateProducer(message.getTopics().getTo(), RequestOptions.DEFAULTS);
         LOG.debug("Publishing message to topic : {}", message.getTopics().getTo());
         producer.publish(message);
     }

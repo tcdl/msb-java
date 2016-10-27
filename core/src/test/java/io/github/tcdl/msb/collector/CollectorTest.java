@@ -1065,7 +1065,7 @@ public class CollectorTest {
     @Test
     public void testProcessAckWillTakeDefaultTimeoutIsMaxAndNotCallTimerAgain() {
         int timeoutMs = 1500;
-        //will set default 3000;
+        when(msbConfigurationsMock.getDefaultResponseTimeout()).thenReturn(3000);
         when(requestOptionsMock.getResponseTimeout()).thenReturn(null);
         Collector<RestPayload> collector = createCollector();
 
@@ -1207,13 +1207,13 @@ public class CollectorTest {
 
     private void notifyMessagesConsumed(Collector collector, int messagesCount) {
         for(int i = 0; i < messagesCount; i++) {
-            ((ConsumedMessagesAwareMessageHandler)collector).notifyMessageConsumed();
+            collector.notifyMessageConsumed();
         }
     }
 
     private void notifyMessagesLost(Collector collector, int messagesCount) {
         for(int i = 0; i < messagesCount; i++) {
-            ((ConsumedMessagesAwareMessageHandler)collector).notifyConsumedMessageIsLost();
+            collector.notifyConsumedMessageIsLost();
         }
     }
     

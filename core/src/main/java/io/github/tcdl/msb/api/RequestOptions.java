@@ -9,6 +9,7 @@ public class RequestOptions {
 
     public static final int WAIT_FOR_RESPONSES_UNTIL_TIMEOUT = -1;
 
+    public static final RequestOptions DEFAULTS = new Builder().build();
     /**
      * Max time (in milliseconds) to wait for acknowledgements.
      */
@@ -38,7 +39,7 @@ public class RequestOptions {
 
     private final String routingKey;
 
-    private RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, MessageTemplate messageTemplate, String forwardNamespace, String routingKey) {
+    protected RequestOptions(Integer ackTimeout, Integer responseTimeout, Integer waitForResponses, MessageTemplate messageTemplate, String forwardNamespace, String routingKey) {
         this.ackTimeout = ackTimeout;
         this.responseTimeout = responseTimeout;
         this.waitForResponses = waitForResponses;
@@ -57,7 +58,7 @@ public class RequestOptions {
 
     public int getWaitForResponses() {
         if (waitForResponses == null || waitForResponses == -1) {
-            // use for Infinity number or expected responses
+            // use for infinite number or expected responses
             return WAIT_FOR_RESPONSES_UNTIL_TIMEOUT;
         } else {
             return waitForResponses;
@@ -76,6 +77,9 @@ public class RequestOptions {
         return routingKey;
     }
 
+    public Builder asBuilder() {
+        return new RequestOptions.Builder().from(this);
+    }
 
     @Override
     public String toString() {
@@ -89,12 +93,12 @@ public class RequestOptions {
 
     public static class Builder {
 
-        private String routingKey;
-        private Integer ackTimeout;
-        private Integer responseTimeout;
-        private Integer waitForResponses;
-        private MessageTemplate messageTemplate;
-        private String forwardNamespace;
+        protected String routingKey;
+        protected Integer ackTimeout;
+        protected Integer responseTimeout;
+        protected Integer waitForResponses;
+        protected MessageTemplate messageTemplate;
+        protected String forwardNamespace;
 
         public Builder withRoutingKey(String routingKey) {
             this.routingKey = routingKey;
@@ -130,7 +134,7 @@ public class RequestOptions {
          * Convenience method to prepare Builder with properties equal to {@literal source} properties.
          * Is useful for cases when almost same RequestOptions except one or two properties are needed.
          */
-        public Builder from(RequestOptions source) {
+        protected Builder from(RequestOptions source) {
             this.ackTimeout = source.ackTimeout;
             this.responseTimeout = source.responseTimeout;
             this.waitForResponses = source.waitForResponses;

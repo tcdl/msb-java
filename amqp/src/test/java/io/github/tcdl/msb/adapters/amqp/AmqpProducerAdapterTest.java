@@ -4,6 +4,7 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.MessageProperties;
+import io.github.tcdl.msb.api.ExchangeType;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -40,25 +41,27 @@ public class AmqpProducerAdapterTest {
     }
 
     @Test
-    public void testExchangeCreated() throws IOException {
+    public void testExchangeWithCorrectTypeCreated() throws IOException {
         String topicName = "myTopic";
 
-        new AmqpProducerAdapter(topicName, mockAmqpBrokerConfig, mockAmqpConnectionManager);
-
+        new AmqpProducerAdapter(topicName, ExchangeType.FANOUT, mockAmqpBrokerConfig, mockAmqpConnectionManager);
         verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
+
+        new AmqpProducerAdapter(topicName, ExchangeType.TOPIC, mockAmqpBrokerConfig, mockAmqpConnectionManager);
+        verify(mockChannel).exchangeDeclare(topicName, "topic", false, true, null);
     }
 
     @Test(expected = RuntimeException.class)
     public void testInitializationError() throws IOException {
         when(mockChannel.exchangeDeclare(anyString(), anyString(), anyBoolean(), anyBoolean(), any())).thenThrow(new IOException());
-        new AmqpProducerAdapter("myTopic", mockAmqpBrokerConfig, mockAmqpConnectionManager);
+        new AmqpProducerAdapter("myTopic", ExchangeType.FANOUT, mockAmqpBrokerConfig, mockAmqpConnectionManager);
     }
 
     @Test
     public void testPublish() throws ChannelException, IOException {
         String topicName = "myTopic";
         String message = "message";
-        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter(topicName, mockAmqpBrokerConfig, mockAmqpConnectionManager);
+        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter(topicName, ExchangeType.FANOUT, mockAmqpBrokerConfig, mockAmqpConnectionManager);
 
         producerAdapter.publish(message);
 
@@ -70,7 +73,7 @@ public class AmqpProducerAdapterTest {
         String topicName = "myTopic";
         String message = "message";
         String routingKey = "routingKey";
-        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter(topicName, mockAmqpBrokerConfig, mockAmqpConnectionManager);
+        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter(topicName, ExchangeType.TOPIC, mockAmqpBrokerConfig, mockAmqpConnectionManager);
 
         producerAdapter.publish(message, routingKey);
         verify(mockChannel).basicPublish(topicName, routingKey, MessageProperties.PERSISTENT_BASIC, message.getBytes());
@@ -82,7 +85,7 @@ public class AmqpProducerAdapterTest {
 
         String message = "ö";
         byte[] expectedEncodedMessage = new byte[] { 0, 0, 0, -10 }; // In UTF-32 ö is mapped to 000000f6
-        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter("myTopic", mockAmqpBrokerConfig, mockAmqpConnectionManager);
+        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter("myTopic", ExchangeType.FANOUT, mockAmqpBrokerConfig, mockAmqpConnectionManager);
 
         producerAdapter.publish(message);
 
