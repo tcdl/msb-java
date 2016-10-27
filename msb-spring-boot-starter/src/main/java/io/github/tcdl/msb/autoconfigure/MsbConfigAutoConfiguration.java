@@ -1,4 +1,4 @@
-package io.github.tcdl.msb;
+package io.github.tcdl.msb.autoconfigure;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;

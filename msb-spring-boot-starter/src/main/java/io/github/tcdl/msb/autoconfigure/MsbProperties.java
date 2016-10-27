@@ -1,4 +1,4 @@
-package io.github.tcdl.msb;
+package io.github.tcdl.msb.autoconfigure;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
