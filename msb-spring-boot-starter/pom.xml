@@ -35,14 +35,30 @@
 		<dependency>
 			<groupId>io.github.tcdl.msb</groupId>
 			<artifactId>msb-java-core</artifactId>
-			<version>${version}</version>
+			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.github.tcdl.msb</groupId>
 			<artifactId>msb-java-amqp</artifactId>
-			<version>${version}</version>
+			<version>${project.version}</version>
 		</dependency>
+
+        <!-- This dependency is a bridge between apache.commons.logging that is needed by AnnotationConfigApplicationContext and slf4j implementation-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.7.12</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Workaround. I've had a version conflict between 1.1.7 and 1.1.3 before explicit version set-->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.1.3</version>
+            <scope>test</scope>
+        </dependency>
 
 		<!--for metadata generation-->
 		<dependency>
