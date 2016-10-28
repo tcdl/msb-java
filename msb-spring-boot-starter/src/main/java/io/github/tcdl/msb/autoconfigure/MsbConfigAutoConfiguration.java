@@ -4,6 +4,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import io.github.tcdl.msb.config.MsbConfig;
+import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -22,7 +23,8 @@ public class MsbConfigAutoConfiguration {
     @Bean
     public MsbConfig config() {
         Config config = ConfigFactory.load("defaultMsbConfig");
-        config = config.withValue("msbConfig.serviceDetails.name", ConfigValueFactory.fromAnyRef(msbProperties.serviceDetails.name));
+        String appName = StringUtils.isNotBlank(msbProperties.serviceDetails.name) ? msbProperties.serviceDetails.name : Utils.generateId();
+        config = config.withValue("msbConfig.serviceDetails.name", ConfigValueFactory.fromAnyRef(appName));
         config = config.withValue("msbConfig.serviceDetails.instanceId", ConfigValueFactory.fromAnyRef(msbProperties.serviceDetails.instanceId));
 
         // Service Details
