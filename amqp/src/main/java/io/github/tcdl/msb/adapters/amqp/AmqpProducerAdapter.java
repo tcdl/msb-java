@@ -29,7 +29,7 @@ public class AmqpProducerAdapter implements ProducerAdapter {
 
         try {
             amqpAutoRecoveringChannel.exchangeDeclare(exchangeName, exchangeType.value(), false /* durable */, true /* auto-delete */, null);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new ChannelException("Failed to setup channel from ActiveMQ connection", e);
         }
     }
@@ -49,7 +49,7 @@ public class AmqpProducerAdapter implements ProducerAdapter {
 
         try {
             amqpAutoRecoveringChannel.basicPublish(exchangeName, routingKey, MessageProperties.PERSISTENT_BASIC, jsonMessage.getBytes(charset));
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new ChannelException(String.format("Failed to publish message '%s' into exchange '%s' with routing key '%s'", jsonMessage, exchangeName, routingKey), e);
         }
     }
