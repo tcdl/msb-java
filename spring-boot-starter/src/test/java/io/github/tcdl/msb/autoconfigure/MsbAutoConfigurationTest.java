@@ -30,19 +30,17 @@ public class MsbAutoConfigurationTest {
 
     @Test
     public void testDefaultMsbConfig() {
-        Config config = ConfigFactory.load("defaultMsbConfig");
+        Config config = ConfigFactory.load("reference.conf");
         load(EmptyConfiguration.class);
         MsbConfig msbConfig = this.context.getBean(MsbConfig.class);
 
         assertNotNull(msbConfig);
         assertNotNull(msbConfig.getServiceDetails().getName());
-        assertEquals(config.getString("msbConfig.serviceDetails.version"), msbConfig.getServiceDetails().getVersion());
         assertEquals(config.getString("msbConfig.brokerAdapterFactory"), msbConfig.getBrokerAdapterFactory());
-        assertEquals(config.getInt("msbConfig.timerThreadPoolSize"), msbConfig.getTimerThreadPoolSize());
+        assertEquals(MsbConfigAutoConfiguration.DEFAULT_TIMER_THREAD_POOL_SIZE, msbConfig.getTimerThreadPoolSize());
         assertEquals(config.getInt("msbConfig.threadingConfig.consumerThreadPoolSize"), msbConfig.getConsumerThreadPoolSize());
         assertEquals(config.getInt("msbConfig.threadingConfig.consumerThreadPoolQueueCapacity"), msbConfig.getConsumerThreadPoolQueueCapacity());
         assertEquals(config.getBoolean("msbConfig.validateMessage"), msbConfig.isValidateMessage());
-        assertEquals(config.getBoolean("msbConfig.brokerConfig.durable"), msbConfig.getBrokerConfig().getBoolean("durable"));
     }
 
     @Test
@@ -71,6 +69,10 @@ public class MsbAutoConfigurationTest {
         assertNotNull(messageTemplate);
         assertEquals(TTL, messageTemplate.getTtl());
     }
+
+
+
+
 
     static class ConfigurationWithCustomMessageTemplate extends EmptyConfiguration{
         @Bean

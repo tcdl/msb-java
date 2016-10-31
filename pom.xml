@@ -35,7 +35,7 @@
         <module>acceptance</module>
         <module>jmeter</module>
         <module>examples</module>
-        <module>msb-spring-boot-starter</module>
+        <module>spring-boot-starter</module>
     </modules>
 
     <properties>

@@ -13,6 +13,8 @@ public class MsbProperties {
     Boolean validateMessage;
     ThreadingConfig threadingConfig = new ThreadingConfig();
     BrokerConfig brokerConfig = new BrokerConfig();
+    MdcLogging mdcLogging = new MdcLogging();
+    RequestOptions requestOptions = new RequestOptions();
 
     public ServiceDetails getServiceDetails() {
         return serviceDetails;
@@ -60,6 +62,22 @@ public class MsbProperties {
 
     public void setThreadingConfig(ThreadingConfig threadingConfig) {
         this.threadingConfig = threadingConfig;
+    }
+
+    public MdcLogging getMdcLogging() {
+        return mdcLogging;
+    }
+
+    public void setMdcLogging(MdcLogging mdcLogging) {
+        this.mdcLogging = mdcLogging;
+    }
+
+    public RequestOptions getRequestOptions() {
+        return requestOptions;
+    }
+
+    public void setRequestOptions(RequestOptions requestOptions) {
+        this.requestOptions = requestOptions;
     }
 
     public class ThreadingConfig {
@@ -140,6 +158,69 @@ public class MsbProperties {
         }
     }
 
+    public class MdcLogging {
+        Boolean enabled;
+        String splitTagsBy;
+        MessageKeys messageKeys = new MessageKeys();
+
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getSplitTagsBy() {
+            return splitTagsBy;
+        }
+
+        public void setSplitTagsBy(String splitTagsBy) {
+            this.splitTagsBy = splitTagsBy;
+        }
+
+        public MessageKeys getMessageKeys() {
+            return messageKeys;
+        }
+
+        public void setMessageKeys(MessageKeys messageKeys) {
+            this.messageKeys = messageKeys;
+        }
+    }
+
+    public class MessageKeys {
+        String messageTags;
+        String correlationId;
+
+        public String getMessageTags() {
+            return messageTags;
+        }
+
+        public void setMessageTags(String messageTags) {
+            this.messageTags = messageTags;
+        }
+
+        public String getCorrelationId() {
+            return correlationId;
+        }
+
+        public void setCorrelationId(String correlationId) {
+            this.correlationId = correlationId;
+        }
+    }
+
+    public class RequestOptions {
+        Integer responseTimeout;
+
+        public Integer getResponseTimeout() {
+            return responseTimeout;
+        }
+
+        public void setResponseTimeout(Integer responseTimeout) {
+            this.responseTimeout = responseTimeout;
+        }
+    }
+
     public class BrokerConfig {
         Charset charset;
         String host;
@@ -150,8 +231,10 @@ public class MsbProperties {
         Boolean useSSL;
         String groupId;
         Boolean durable;
+        String defaultExchangeType;
         Integer heartbeatIntervalSec;
         Long networkRecoveryIntervalMs;
+        Integer prefetchCount;
 
         public Charset getCharset() {
             return charset;
@@ -239,6 +322,22 @@ public class MsbProperties {
 
         public void setNetworkRecoveryIntervalMs(Long networkRecoveryIntervalMs) {
             this.networkRecoveryIntervalMs = networkRecoveryIntervalMs;
+        }
+
+        public String getDefaultExchangeType() {
+            return defaultExchangeType;
+        }
+
+        public void setDefaultExchangeType(String defaultExchangeType) {
+            this.defaultExchangeType = defaultExchangeType;
+        }
+
+        public Integer getPrefetchCount() {
+            return prefetchCount;
+        }
+
+        public void setPrefetchCount(Integer prefetchCount) {
+            this.prefetchCount = prefetchCount;
         }
     }
 
