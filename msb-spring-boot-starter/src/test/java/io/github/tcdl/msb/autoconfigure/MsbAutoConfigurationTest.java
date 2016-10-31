@@ -2,35 +2,24 @@ package io.github.tcdl.msb.autoconfigure;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import io.github.tcdl.msb.adapters.amqp.AmqpAdapterFactory;
+import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContext;
 import io.github.tcdl.msb.config.MsbConfig;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mockito;
 import org.springframework.boot.test.util.EnvironmentTestUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class MsbAutoConfigurationTest {
 
+    private static final Integer TTL = 1000000;
     private AnnotationConfigApplicationContext context;
-
-    @Mock
-    private AmqpAdapterFactory amqpAdapterFactoryMock;
-
-    @Before
-    public void init() {
-        when(amqpAdapterFactoryMock.init()).thenReturn(); //TODO
-    }
 
     @After
     public void tearDown() {
@@ -67,15 +56,37 @@ public class MsbAutoConfigurationTest {
     }
 
     @Test
-    public void testDefaultMsbContextCreation() {
+    public void testDefaultMessageTemplate() {
         load(EmptyConfiguration.class);
-        MsbContext msbContext = this.context.getBean(MsbContext.class);
-        assertNotNull(msbContext);
+        MessageTemplate messageTemplate = this.context.getBean(MessageTemplate.class);
+
+        assertNotNull(messageTemplate);
     }
 
+    @Test
+    public void testOverrideMessageTemplate() {
+        load(ConfigurationWithCustomMessageTemplate.class);
+        MessageTemplate messageTemplate = this.context.getBean(MessageTemplate.class);
+
+        assertNotNull(messageTemplate);
+        assertEquals(TTL, messageTemplate.getTtl());
+    }
+
+    static class ConfigurationWithCustomMessageTemplate extends EmptyConfiguration{
+        @Bean
+        MessageTemplate messageTemplate() {
+            return MessageTemplate.copyOf(new MessageTemplate()).withTtl(TTL);
+        }
+    }
 
     @Configuration
-    static class EmptyConfiguration {}
+    static class EmptyConfiguration {
+        //override bean to prevent establishing connection to real message queue
+        @Bean
+        MsbContext msbContext(){
+            return Mockito.mock(MsbContext.class);
+        }
+    }
 
     private void load(Class<?> config, String... environment) {
         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();

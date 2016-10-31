@@ -46,10 +46,10 @@ public class MsbConfigAutoConfiguration {
             config = config.withValue("msbConfig.timerThreadPoolSize", ConfigValueFactory.fromAnyRef(msbProperties.timerThreadPoolSize));
 
         // Threading Config for Clients
-        if (msbProperties.consumerThreadPoolSize != null)
-            config = config.withValue("msbConfig.threadingConfig.consumerThreadPoolSize", ConfigValueFactory.fromAnyRef(msbProperties.consumerThreadPoolSize));
-        if (msbProperties.consumerThreadPoolQueueCapacity != null)
-            config = config.withValue("msbConfig.threadingConfig.consumerThreadPoolQueueCapacity", ConfigValueFactory.fromAnyRef(msbProperties.consumerThreadPoolQueueCapacity));
+        if (msbProperties.threadingConfig.consumerThreadPoolSize != null)
+            config = config.withValue("msbConfig.threadingConfig.consumerThreadPoolSize", ConfigValueFactory.fromAnyRef(msbProperties.threadingConfig.consumerThreadPoolSize));
+        if (msbProperties.threadingConfig.consumerThreadPoolQueueCapacity != null)
+            config = config.withValue("msbConfig.threadingConfig.consumerThreadPoolQueueCapacity", ConfigValueFactory.fromAnyRef(msbProperties.threadingConfig.consumerThreadPoolQueueCapacity));
 
         // Enable/disable message validation against json schema
         if (msbProperties.validateMessage != null)

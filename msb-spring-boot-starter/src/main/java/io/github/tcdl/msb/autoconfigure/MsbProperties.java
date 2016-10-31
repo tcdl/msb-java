@@ -11,8 +11,7 @@ public class MsbProperties {
     String brokerAdapterFactory;
     Integer timerThreadPoolSize;
     Boolean validateMessage;
-    Integer consumerThreadPoolSize;
-    Integer consumerThreadPoolQueueCapacity;
+    ThreadingConfig threadingConfig = new ThreadingConfig();
     BrokerConfig brokerConfig = new BrokerConfig();
 
     public ServiceDetails getServiceDetails() {
@@ -47,28 +46,41 @@ public class MsbProperties {
         this.validateMessage = validateMessage;
     }
 
-    public Integer getConsumerThreadPoolSize() {
-        return consumerThreadPoolSize;
-    }
-
-    public void setConsumerThreadPoolSize(Integer consumerThreadPoolSize) {
-        this.consumerThreadPoolSize = consumerThreadPoolSize;
-    }
-
-    public Integer getConsumerThreadPoolQueueCapacity() {
-        return consumerThreadPoolQueueCapacity;
-    }
-
-    public void setConsumerThreadPoolQueueCapacity(Integer consumerThreadPoolQueueCapacity) {
-        this.consumerThreadPoolQueueCapacity = consumerThreadPoolQueueCapacity;
-    }
-
     public BrokerConfig getBrokerConfig() {
         return brokerConfig;
     }
 
     public void setBrokerConfig(BrokerConfig brokerConfig) {
         this.brokerConfig = brokerConfig;
+    }
+
+    public ThreadingConfig getThreadingConfig() {
+        return threadingConfig;
+    }
+
+    public void setThreadingConfig(ThreadingConfig threadingConfig) {
+        this.threadingConfig = threadingConfig;
+    }
+
+    public class ThreadingConfig {
+        Integer consumerThreadPoolSize;
+        Integer consumerThreadPoolQueueCapacity;
+
+        public void setConsumerThreadPoolSize(Integer consumerThreadPoolSize) {
+            this.consumerThreadPoolSize = consumerThreadPoolSize;
+        }
+
+        public Integer getConsumerThreadPoolSize() {
+            return consumerThreadPoolSize;
+        }
+
+        public Integer getConsumerThreadPoolQueueCapacity() {
+            return consumerThreadPoolQueueCapacity;
+        }
+
+        public void setConsumerThreadPoolQueueCapacity(Integer consumerThreadPoolQueueCapacity) {
+            this.consumerThreadPoolQueueCapacity = consumerThreadPoolQueueCapacity;
+        }
     }
 
     public class ServiceDetails {
