@@ -320,6 +320,17 @@ Here, the override field `name = ${?MSB_SERVICE_NAME}` simply vanishes if there'
 
 `brokerAdapterFactory` – message broker class. Defaults to `"io.github.tcdl.adapters.amqp.AmqpAdapterFactory"`.
 
+### Environment Variables
+
+- MSB_SERVICE_NAME
+- MSB_SERVICE_VERSION
+- MSB_SERVICE_INSTANCE_ID
+- MSB_BROKER_HOST, default "127.0.0.1".
+- MSB_BROKER_PORT, default 5672.
+- MSB_BROKER_USER_NAME, default "guest".
+- MSB_BROKER_PASSWORD, default "guest".
+- MSB_BROKER_VIRTUAL_HOST, default "/".
+
 ### Mapped Diagnostic Context settings
 This section provides settings for Mapped Diagnostic Context logging that gives a possibility to save some parameters of the incoming messages into a thread-local storage so it would be easier to track message processing.
 The section `mdcLogging`:
