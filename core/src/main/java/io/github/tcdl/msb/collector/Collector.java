@@ -9,6 +9,7 @@ import io.github.tcdl.msb.api.MessageContext;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.impl.MessageContextImpl;
 import io.github.tcdl.msb.impl.MsbContextImpl;
@@ -16,6 +17,7 @@ import io.github.tcdl.msb.support.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -36,6 +38,7 @@ import static java.lang.Math.toIntExact;
 /**
  * {@link Collector} is a component which collects responses and acknowledgements for sent requests.
  */
+@NotThreadSafe
 public class Collector<T> implements ConsumedMessagesAwareMessageHandler, ExecutionOptionsAwareMessageHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(Collector.class);
@@ -73,6 +76,7 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler, Execut
     private ScheduledFuture ackTimeoutFuture;
     private ScheduledFuture responseTimeoutFuture;
     private final CollectorManager collectorManager;
+    private final MsbConfig msbConfig;
 
     /**
      * Count of consumed incoming messages so {@link #handleMessage} invocation is expected in future.
@@ -112,6 +116,7 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler, Execut
                      TypeReference<T> payloadTypeReference, boolean directlyInvokableCallbacks) {
         this.requestMessage = requestMessage;
 
+        this.msbConfig = msbContext.getMsbConfig();
         this.clock = msbContext.getClock();
         this.collectorManager = msbContext.getCollectorManagerFactory().findOrCreateCollectorManager(topic);
         this.timeoutManager = msbContext.getTimeoutManager();
@@ -311,8 +316,9 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler, Execut
         for (String responderId : timeoutMsById.keySet()) {
             // Use only what we're waiting for
             if (!responsesRemainingById.isEmpty() && responsesRemainingById.containsKey(responderId)
-                    && responsesRemainingById.get(responderId) == 0)
+                    && responsesRemainingById.get(responderId) == 0) {
                 continue;
+            }
             maxTimeoutMs = Math.max(timeoutMsById.get(responderId), maxTimeoutMs);
         }
 
@@ -387,7 +393,7 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler, Execut
 
     private int getResponseTimeoutFromConfigs(RequestOptions requestOptions) {
         if (requestOptions.getResponseTimeout() == null) {
-            return 3000;
+            return msbConfig.getDefaultResponseTimeout();
         }
         return requestOptions.getResponseTimeout();
     }

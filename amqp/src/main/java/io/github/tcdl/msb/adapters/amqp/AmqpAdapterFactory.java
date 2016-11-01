@@ -7,27 +7,26 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.adapters.ProducerAdapter;
-import io.github.tcdl.msb.api.MessageDestination;
+import io.github.tcdl.msb.api.*;
+import io.github.tcdl.msb.api.exception.AdapterCreationException;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.api.exception.ConfigurationException;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.TimeoutException;
 
 /**
  * AmqpAdapterFactory is an implementation of {@link AdapterFactory}
  * for {@link AmqpProducerAdapter} and {@link AmqpConsumerAdapter}
  */
 public class AmqpAdapterFactory implements AdapterFactory {
+
     private static final Logger LOG = LoggerFactory.getLogger(AmqpAdapterFactory.class);
 
     private volatile AmqpBrokerConfig amqpBrokerConfig;
@@ -45,6 +44,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
         connectionManager = createConnectionManager(connection);
     }
 
+    //TODO extract config loading from this class and then rewrite unit test for this class completely
     protected AmqpBrokerConfig createAmqpBrokerConfig(MsbConfig msbConfig) {
         Config amqpApplicationConfig = msbConfig.getBrokerConfig();
         Config amqpLibConfig = ConfigFactory.load("amqp").getConfig("config.amqp");
@@ -61,23 +61,48 @@ public class AmqpAdapterFactory implements AdapterFactory {
     }
     
     @Override
-    public ProducerAdapter createProducerAdapter(String topic) {
-        return new AmqpProducerAdapter(topic, amqpBrokerConfig, connectionManager);
+    public AmqpProducerAdapter createProducerAdapter(String topic, RequestOptions requestOptions) {
+        Validate.notNull(topic, "topic is mandatory");
+        Validate.notNull(requestOptions, "requestOptions are mandatory");
+
+        Class<? extends RequestOptions> requestOptionsClass = requestOptions.getClass();
+        ExchangeType exchangeType;
+
+        if (AmqpRequestOptions.class.isAssignableFrom(requestOptionsClass)) {
+            exchangeType = ((AmqpRequestOptions) requestOptions).getExchangeType();
+        } else if (requestOptionsClass.equals(RequestOptions.class)) {
+            exchangeType = amqpBrokerConfig.getDefaultExchangeType();
+        } else {
+            throw new AdapterCreationException("Illegal for this AdapterFactory RequestOptions subclass");
+        }
+
+        return new AmqpProducerAdapter(topic, exchangeType, amqpBrokerConfig, connectionManager);
     }
 
     @Override
-    public ProducerAdapter createProducerAdapter(MessageDestination destination) {
-        return new AmqpProducerAdapter(destination, amqpBrokerConfig, connectionManager);
+    public AmqpConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic) {
+        return new AmqpConsumerAdapter(topic, amqpBrokerConfig.getDefaultExchangeType(),
+                ResponderOptions.DEFAULTS.getBindingKeys(),
+                amqpBrokerConfig, connectionManager, isResponseTopic);
     }
 
     @Override
-    public ConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic) {
-        return new AmqpConsumerAdapter(topic, amqpBrokerConfig, connectionManager, isResponseTopic);
-    }
+    public AmqpConsumerAdapter createConsumerAdapter(String topic, ResponderOptions responderOptions, boolean isResponseTopic) {
+        Validate.notEmpty(topic, "topic is mandatory");
+        Validate.notNull(responderOptions, "responderOptions are mandatory");
 
-    @Override
-    public ConsumerAdapter createConsumerAdapter(String topic, Set<String> routingKeys) {
-        return new AmqpConsumerAdapter(topic, routingKeys, amqpBrokerConfig, connectionManager);
+        Class<? extends ResponderOptions> responderOptionsClass = responderOptions.getClass();
+        ExchangeType exchangeType;
+
+        if (AmqpResponderOptions.class.isAssignableFrom(responderOptionsClass)) {
+            exchangeType = ((AmqpResponderOptions) responderOptions).getExchangeType();
+        } else if (responderOptionsClass.equals(ResponderOptions.class)) {
+            exchangeType = amqpBrokerConfig.getDefaultExchangeType();
+        } else {
+            throw new AdapterCreationException("Illegal for this AdapterFactory ResponderOptions subclass");
+        }
+
+        return new AmqpConsumerAdapter(topic, exchangeType, responderOptions.getBindingKeys(), amqpBrokerConfig, connectionManager, isResponseTopic);
     }
 
     protected ConnectionFactory createConnectionFactory(AmqpBrokerConfig adapterConfig) {

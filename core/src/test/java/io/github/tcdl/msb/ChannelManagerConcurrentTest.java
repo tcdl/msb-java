@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.AdapterFactoryLoader;
+import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.RequesterResponderIT;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.collector.CollectorManager;
@@ -56,7 +57,7 @@ public class ChannelManagerConcurrentTest {
         String topic = "topic:test-producer-cached-multithreaded";
 
         new MultithreadingTester().add(() -> {
-            channelManager.findOrCreateProducer(topic);
+            channelManager.findOrCreateProducer(topic, RequestOptions.DEFAULTS);
             verify(mockChannelMonitorAgent).producerTopicCreated(topic);
         }).run();
     }
@@ -80,7 +81,7 @@ public class ChannelManagerConcurrentTest {
         int numberOfThreads = 10;
         int numberOfInvocationsPerThread = 20;
 
-        Producer producer = channelManager.findOrCreateProducer(topic);
+        Producer producer = channelManager.findOrCreateProducer(topic, RequestOptions.DEFAULTS);
         Message message = TestUtils.createSimpleRequestMessage(topic);
 
         CountDownLatch messagesSent = new CountDownLatch(numberOfThreads * numberOfInvocationsPerThread);
@@ -100,12 +101,12 @@ public class ChannelManagerConcurrentTest {
         int numberOfThreads = 4;
         int numberOfInvocationsPerThread = 20;
 
-        Producer producer = channelManager.findOrCreateProducer(topic);
+        Producer producer = channelManager.findOrCreateProducer(topic, RequestOptions.DEFAULTS);
         Message message = TestUtils.createSimpleRequestMessage(topic);
 
         CountDownLatch messagesReceived = new CountDownLatch(numberOfThreads * numberOfInvocationsPerThread);
 
-        channelManager.findOrCreateProducer(topic);
+        channelManager.findOrCreateProducer(topic, RequestOptions.DEFAULTS);
         channelManager.subscribe(topic,
                 (msg, acknowledgeHandler) -> {
                     messagesReceived.countDown();

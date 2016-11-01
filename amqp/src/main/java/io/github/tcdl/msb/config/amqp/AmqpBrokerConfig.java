@@ -1,5 +1,6 @@
 package io.github.tcdl.msb.config.amqp;
 
+import io.github.tcdl.msb.api.ExchangeType;
 import io.github.tcdl.msb.api.exception.ConfigurationException;
 import io.github.tcdl.msb.config.ConfigurationUtil;
 
@@ -21,6 +22,7 @@ public class AmqpBrokerConfig {
 
     private Optional<String> groupId;
     private final boolean durable;
+    private ExchangeType defaultExchangeType;
     private final int heartbeatIntervalSec;
     private final long networkRecoveryIntervalMs;
     private final int prefetchCount;
@@ -28,6 +30,7 @@ public class AmqpBrokerConfig {
     public AmqpBrokerConfig(Charset charset, String host, int port,
             Optional<String> username, Optional<String> password, Optional<String> virtualHost, boolean useSSL,
             Optional<String> groupId, boolean durable,
+            ExchangeType defaultExchangeType,
             int heartbeatIntervalSec, long networkRecoveryIntervalMs, int prefetchCount) {
         this.charset = charset;
         this.port = port;
@@ -38,6 +41,7 @@ public class AmqpBrokerConfig {
         this.useSSL = useSSL;
         this.groupId = groupId;
         this.durable = durable;
+        this.defaultExchangeType = defaultExchangeType;
         this.heartbeatIntervalSec = heartbeatIntervalSec;
         this.networkRecoveryIntervalMs = networkRecoveryIntervalMs;
         this.prefetchCount = prefetchCount;
@@ -53,6 +57,7 @@ public class AmqpBrokerConfig {
         private boolean useSSL;
         private Optional<String> groupId;
         private boolean durable;
+        private ExchangeType defaultExchangeType;
         private int heartbeatIntervalSec;
         private long networkRecoveryIntervalMs;
         private int prefetchCount;
@@ -80,6 +85,7 @@ public class AmqpBrokerConfig {
 
             this.groupId = ConfigurationUtil.getOptionalString(config, "groupId");
             this.durable = ConfigurationUtil.getBoolean(config, "durable");
+            this.defaultExchangeType = ExchangeType.valueOf(ConfigurationUtil.getString(config, "defaultExchangeType").toUpperCase());
             this.heartbeatIntervalSec = ConfigurationUtil.getInt(config, "heartbeatIntervalSec");
             this.networkRecoveryIntervalMs = ConfigurationUtil.getLong(config, "networkRecoveryIntervalMs");
             this.prefetchCount = ConfigurationUtil.getInt(config, "prefetchCount");
@@ -91,7 +97,7 @@ public class AmqpBrokerConfig {
          */
         public AmqpBrokerConfig build() {
             return new AmqpBrokerConfig(charset, host, port, username, password, virtualHost, useSSL,
-                    groupId, durable,
+                    groupId, durable, defaultExchangeType,
                     heartbeatIntervalSec, networkRecoveryIntervalMs, prefetchCount);
         }
     }
@@ -130,6 +136,10 @@ public class AmqpBrokerConfig {
 
     public boolean isDurable() {
         return durable;
+    }
+
+    public ExchangeType getDefaultExchangeType() {
+        return defaultExchangeType;
     }
 
     public void setGroupId(Optional<String> groupId) {

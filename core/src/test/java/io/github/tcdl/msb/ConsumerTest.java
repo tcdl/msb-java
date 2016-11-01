@@ -139,13 +139,6 @@ public class ConsumerTest {
     }
 
     @Test
-    public void testSubscribeAdapterSubscribed() {
-        new Consumer(adapterMock, messageHandlerInvokerMock, TOPIC, messageHandlerResolverMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);
-
-        verify(adapterMock).subscribe(any(ConsumerAdapter.RawMessageHandler.class));
-    }
-
-    @Test
     public void testValidMessageProcessedBySubscriber() throws JsonConversionException {
         Message originalMessage = TestUtils.createSimpleRequestMessage(TOPIC);
         Consumer consumer = new Consumer(adapterMock, messageHandlerInvokerMock, TOPIC, messageHandlerResolverMock, msbConfMock, clock, channelMonitorAgentMock, validator, messageMapper);

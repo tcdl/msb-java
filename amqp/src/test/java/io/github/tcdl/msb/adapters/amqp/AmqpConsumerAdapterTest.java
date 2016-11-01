@@ -5,6 +5,8 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Consumer;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.api.ExchangeType;
+import io.github.tcdl.msb.api.ResponderOptions;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 import org.apache.commons.collections.CollectionUtils;
@@ -36,7 +38,7 @@ public class AmqpConsumerAdapterTest {
         Connection mockConnection = mock(Connection.class);
         mockChannel = mock(Channel.class);
         mockAmqpConnectionManager = mock(AmqpConnectionManager.class);
-        
+
         when(mockAmqpConnectionManager.obtainConnection()).thenReturn(mockConnection);
         when(mockConnection.createChannel()).thenReturn(mockChannel);
     }
@@ -57,9 +59,9 @@ public class AmqpConsumerAdapterTest {
     public void testTopicExchangeCreated() throws Exception {
         String topicName = "myTopic";
         String groupId = "groupId";
-        String routingKey = "routing-key";
+        String bindingKey = "binding-key";
 
-        new AmqpConsumerAdapter(topicName, Collections.singleton(routingKey), brokerConfig(groupId, true), mockAmqpConnectionManager);
+        new AmqpConsumerAdapter(topicName, ExchangeType.TOPIC, Collections.singleton(bindingKey), brokerConfig(groupId, true), mockAmqpConnectionManager, true);
         verify(mockChannel).exchangeDeclare(topicName, "topic", false, true, null);
 
     }
@@ -76,21 +78,22 @@ public class AmqpConsumerAdapterTest {
         String topicName = "myTopic";
         String groupId = "groupId";
 
-        Set<String> routingKeys = Sets.newHashSet("routing-key-1", "routing-key-2");
+        Set<String> bindingKeys = Sets.newHashSet("routing-key-1", "routing-key-2");
 
-        AmqpConsumerAdapter amqpConsumerAdapter = new AmqpConsumerAdapter(topicName, routingKeys, brokerConfig(groupId, true), mockAmqpConnectionManager);
-        amqpConsumerAdapter.subscribe((jsonMessage, acknowledgementHandler) -> {});
+        AmqpConsumerAdapter amqpConsumerAdapter = new AmqpConsumerAdapter(topicName, ExchangeType.TOPIC, bindingKeys, brokerConfig(groupId, true), mockAmqpConnectionManager, false);
+        amqpConsumerAdapter.subscribe((jsonMessage, acknowledgementHandler) -> {
+        });
 
         ArgumentCaptor<String> routingKeysCaptor = ArgumentCaptor.forClass(String.class);
         verify(mockChannel, times(2)).queueBind(eq("myTopic.groupId.d"), eq(topicName), routingKeysCaptor.capture());
 
-        assertTrue(CollectionUtils.isEqualCollection(routingKeys, routingKeysCaptor.getAllValues()));
+        assertTrue(CollectionUtils.isEqualCollection(bindingKeys, routingKeysCaptor.getAllValues()));
     }
 
     @Test
     public void testSubscribeTransientQueueCreated() throws IOException {
         AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf("myTopic", "myGroupId", false);
-        
+
         adapter.subscribe((jsonMessage, ackHandler) -> {
         });
 
@@ -144,7 +147,8 @@ public class AmqpConsumerAdapterTest {
         AmqpConsumerAdapter adapter = createAdapterWithDurableConf("myTopic", "myGroupId", false);
         when(mockChannel.basicConsume(anyString(), anyBoolean(), any(AmqpMessageConsumer.class)))
                 .thenThrow(IOException.class);
-        adapter.subscribe((jsonMessage, ackHandler) -> {});
+        adapter.subscribe((jsonMessage, ackHandler) -> {
+        });
     }
 
     @Test
@@ -182,7 +186,8 @@ public class AmqpConsumerAdapterTest {
         String consumerTag = "my consumer tag";
         when(mockChannel.basicConsume(anyString(), anyBoolean(), any(Consumer.class)))
                 .thenThrow(IOException.class);
-        adapter.subscribe((jsonMessage, ackHandler) -> {});
+        adapter.subscribe((jsonMessage, ackHandler) -> {
+        });
         adapter.unsubscribe();
     }
 
@@ -225,22 +230,22 @@ public class AmqpConsumerAdapterTest {
     private AmqpConsumerAdapter createAdapterWithNonDurableConf(String topic, String groupId, boolean isResponseTopic) {
         boolean isDurableConf = false;
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig(Charset.forName("UTF-8"), "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(),
-                false, Optional.of(groupId), isDurableConf, 1, 5000, 1);
-        return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, isResponseTopic);
+                false, Optional.of(groupId), isDurableConf, ExchangeType.FANOUT, 1, 5000, 1);
+        return new AmqpConsumerAdapter(topic, ExchangeType.FANOUT, ResponderOptions.DEFAULTS.getBindingKeys(), nondurableAmqpConfig, mockAmqpConnectionManager, isResponseTopic);
     }
 
     private AmqpConsumerAdapter createAdapterWithDurableConf(String topic, String groupId, boolean isResponseTopic) {
         boolean isDurableConf = true;
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig(Charset.forName("UTF-8"), "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(),
-                false, Optional.of(groupId), isDurableConf, 1, 5000, 1);
-        return new AmqpConsumerAdapter(topic, nondurableAmqpConfig, mockAmqpConnectionManager, isResponseTopic);
+                false, Optional.of(groupId), isDurableConf, ExchangeType.FANOUT, 1, 5000, 1);
+        return new AmqpConsumerAdapter(topic, ExchangeType.FANOUT, ResponderOptions.DEFAULTS.getBindingKeys(), nondurableAmqpConfig, mockAmqpConnectionManager, isResponseTopic);
     }
 
     private AmqpBrokerConfig brokerConfig(String groupId, boolean durable) {
         return new AmqpBrokerConfig(
                 Charset.forName("UTF-8"),
                 "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(),
-                false, Optional.of(groupId), durable, 1, 5000, 1
+                false, Optional.of(groupId), durable, ExchangeType.FANOUT, 1, 5000, 1
         );
     }
 }

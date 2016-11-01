@@ -18,24 +18,22 @@ public class ResponderServerImpl<T> implements ResponderServer {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServerImpl.class);
 
     private String namespace;
-    private Set<String> routingKeys;
+    private ResponderOptions responderOptions;
     private MsbContextImpl msbContext;
-    private MessageTemplate messageTemplate;
     private RequestHandler<T> requestHandler;
     private Optional<ErrorHandler> errorHandler;
     private ObjectMapper payloadMapper;
     private TypeReference<T> payloadTypeReference;
 
     private ResponderServerImpl(String namespace,
-                                Set<String> routingKeys,
-                                MessageTemplate messageTemplate,
+                                ResponderOptions responderOptions,
                                 MsbContextImpl msbContext,
                                 RequestHandler<T> requestHandler,
                                 ErrorHandler errorHandler,
                                 TypeReference<T> payloadTypeReference) {
+        Validate.notNull(responderOptions);
         this.namespace = namespace;
-        this.routingKeys = routingKeys;
-        this.messageTemplate = messageTemplate;
+        this.responderOptions = responderOptions;
         this.msbContext = msbContext;
         this.requestHandler = requestHandler;
         this.errorHandler = Optional.ofNullable(errorHandler);
@@ -47,9 +45,9 @@ public class ResponderServerImpl<T> implements ResponderServer {
     /**
      * {@link io.github.tcdl.msb.api.ObjectFactory#createResponderServer(String, MessageTemplate, RequestHandler, ErrorHandler, Class)}
      */
-    static <T> ResponderServerImpl<T> create(String namespace, Set<String> routingKeys, MessageTemplate messageTemplate, MsbContextImpl msbContext,
+    static <T> ResponderServerImpl<T> create(String namespace, ResponderOptions responderOptions, MsbContextImpl msbContext,
             RequestHandler<T> requestHandler,  ErrorHandler errorHandler, TypeReference<T> payloadTypeReference) {
-        return new ResponderServerImpl<>(namespace, routingKeys, messageTemplate, msbContext, requestHandler, errorHandler, payloadTypeReference);
+        return new ResponderServerImpl<>(namespace, responderOptions, msbContext, requestHandler, errorHandler, payloadTypeReference);
     }
 
     /**
@@ -71,12 +69,7 @@ public class ResponderServerImpl<T> implements ResponderServer {
             onResponder(responderContext);
         };
 
-        if (routingKeys == null || routingKeys.isEmpty()) {
-            channelManager.subscribe(namespace, messageHandler);
-        } else {
-            channelManager.subscribe(namespace, routingKeys, messageHandler);
-        }
-
+        channelManager.subscribe(namespace, responderOptions, messageHandler);
         return this;
     }
 
@@ -89,7 +82,7 @@ public class ResponderServerImpl<T> implements ResponderServer {
 
     Responder createResponder(Message incomingMessage) {
         if (isResponseNeeded(incomingMessage)) {
-            return new ResponderImpl(messageTemplate, incomingMessage, msbContext);
+            return new ResponderImpl(responderOptions.getMessageTemplate(), incomingMessage, msbContext);
         } else {
             return new NoopResponderImpl(incomingMessage);
         }

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.tcdl.msb</groupId>
     <artifactId>msb-java</artifactId>
-    <version>1.5.2-SNAPSHOT</version>
+    <version>1.5.3-SNAPSHOT</version>
     <name>msb java</name>
     <description>msb java</description>
     <packaging>pom</packaging>
@@ -35,7 +35,7 @@
         <module>acceptance</module>
         <module>jmeter</module>
         <module>examples</module>
-        <module>msb-spring-boot-starter</module>
+        <module>spring-boot-starter</module>
     </modules>
 
     <properties>

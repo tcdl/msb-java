@@ -1,9 +1,6 @@
 package io.github.tcdl.msb.examples;
 
-import io.github.tcdl.msb.api.MessageTemplate;
-import io.github.tcdl.msb.api.MsbContext;
-import io.github.tcdl.msb.api.MsbContextBuilder;
-import io.github.tcdl.msb.api.Responder;
+import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.examples.payload.Query;
 import io.github.tcdl.msb.examples.payload.Request;
@@ -31,7 +28,9 @@ public class DateExtractor {
         MessageTemplate messageTemplate = new MessageTemplate().withTags("date-extractor");
         final String namespace = "search:parsers:facets:v1";
 
-        msbContext.getObjectFactory().createResponderServer(namespace, messageTemplate, (request, responderContext) -> {
+        ResponderOptions responderOptions = new ResponderOptions.Builder().withMessageTemplate(messageTemplate).build();
+
+        msbContext.getObjectFactory().createResponderServer(namespace, responderOptions, (request, responderContext) -> {
 
             Query query = request.getQuery();
             String queryString = query.getQ();

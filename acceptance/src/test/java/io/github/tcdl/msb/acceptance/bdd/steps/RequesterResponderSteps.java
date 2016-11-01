@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
-import io.github.tcdl.msb.api.MessageDestination;
-import io.github.tcdl.msb.api.MessageTemplate;
-import io.github.tcdl.msb.api.MsbContext;
-import io.github.tcdl.msb.api.Requester;
+import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
@@ -15,6 +12,7 @@ import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
+import org.jbehave.core.annotations.BeforeScenario;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
 import org.jbehave.core.annotations.When;
@@ -28,9 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static io.github.tcdl.msb.acceptance.MsbTestHelper.DEFAULT_CONTEXT_NAME;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Steps to send requests and respond with predefined responses
@@ -254,7 +250,7 @@ public class RequesterResponderSteps extends MsbSteps {
         helper.sendRequest(requester, payload, true, responsesToExpectCount, null, this::onResponse, this::onEnd);
     }
 
-    @Given("$responderId responder server listens on namespace $namespace with routing keys $routingKeys")
+    @Given("$responderId responder server listens on namespace $namespace with binding keys $routingKeys")
     public void subscribeResponder(String responderId, String namespace, List<String> routingKeys) {
         //modify name to make library generate different queue names for different consumers (responders)
         Config config = ConfigFactory.load()
@@ -262,7 +258,13 @@ public class RequesterResponderSteps extends MsbSteps {
 
         helper.initWithConfig(responderId, config);
         MsbContext context = helper.getContext(responderId);
-        context.getObjectFactory().createResponderServer(namespace, new HashSet<>(routingKeys), new MessageTemplate(),
+
+        ResponderOptions amqpResponderOptions = new AmqpResponderOptions.Builder()
+                .withBindingKeys(new HashSet<>(routingKeys))
+                .withExchangeType(ExchangeType.TOPIC)
+                .build();
+
+        context.getObjectFactory().createResponderServer(namespace, amqpResponderOptions,
                 (request, responderContext) -> {
                     receivedMessagesByConsumer.computeIfAbsent(responderId, key -> new LinkedList<>()).add(request);
                 }, String.class).listen();
@@ -379,8 +381,8 @@ public class RequesterResponderSteps extends MsbSteps {
         assertEquals("Invalid value of field 'routingKey'", expectedRoutingKey, topics.getRoutingKey());
     }
 
-    private String normalizeNull(String string){
-        if(string !=null && string.trim().equalsIgnoreCase("null")){
+    private String normalizeNull(String string) {
+        if (string != null && string.trim().equalsIgnoreCase("null")) {
             return null;
         } else {
             return string;
@@ -421,16 +423,26 @@ public class RequesterResponderSteps extends MsbSteps {
     @When("requester sends to $namespace a request with body '$body' and routing key $routingKey")
     public void requestForSingleResult(String namespace, String body, String routingKey) throws Exception {
         helper.initDefault();
+        RequestOptions requestOptions = new AmqpRequestOptions.Builder()
+                .withExchangeType(ExchangeType.TOPIC)
+                .withRoutingKey(routingKey).build();
+
         helper.getContext(DEFAULT_CONTEXT_NAME).getObjectFactory()
-                .createRequesterForFireAndForget(new MessageDestination(namespace, routingKey), new MessageTemplate())
+                .createRequesterForFireAndForget(namespace, requestOptions)
                 .publish(body);
     }
 
     @When("requester sends to $namespace a request with forward namespace $forwardNamespace, body '$body' and routing key $routingKey")
     public void publishWithRoutingKey(String namespace, String forwardNamespace, String body, String routingKey) throws Exception {
         helper.initDefault();
+
+        RequestOptions requestOptions = new RequestOptions.Builder()
+                .withForwardNamespace(forwardNamespace)
+                .withRoutingKey(routingKey)
+                .build();
+
         helper.getContext(DEFAULT_CONTEXT_NAME).getObjectFactory()
-                .createRequesterForFireAndForget(namespace, new MessageDestination(forwardNamespace, routingKey), new MessageTemplate())
+                .createRequesterForFireAndForget(namespace, requestOptions)
                 .publish(body);
     }
 
@@ -480,8 +492,13 @@ public class RequesterResponderSteps extends MsbSteps {
         fail("Expected exception not thrown");
     }
 
-    @Then("reset mock responses")
-    public void  resetMockResponses(){
+//    @Then("reset mock responses")
+//    public void resetMockResponses() {
+//        responses.clear();
+//    }
+
+    @BeforeScenario
+    public void resetMockResponses() {
         responses.clear();
     }
 }

@@ -1,4 +1,4 @@
-package io.github.tcdl.msb;
+package io.github.tcdl.msb.autoconfigure;
 
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.MsbContext;

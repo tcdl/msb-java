@@ -139,20 +139,14 @@ public class MsbTestHelper {
         return requester.request(payload, tags);
     }
 
-    public ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler<RestPayload> requestHandler) {
-        return createResponderServer(DEFAULT_CONTEXT_NAME, namespace, requestHandler);
-    }
-
     public ResponderServer createResponderServer(String contextName, String namespace, ResponderServer.RequestHandler<RestPayload> requestHandler) {
-        MessageTemplate options = new MessageTemplate();
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
-        return getContext(contextName).getObjectFactory().createResponderServer(namespace, options, requestHandler, RestPayload.class);
+        return getContext(contextName).getObjectFactory().createResponderServer(namespace, ResponderOptions.DEFAULTS, requestHandler, RestPayload.class);
     }
 
     public <T> ResponderServer createResponderServer(String namespace, ResponderServer.RequestHandler<T> requestHandler, Class<T> payloadClass) {
-        MessageTemplate options = new MessageTemplate();
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
-        return getDefaultContext().getObjectFactory().createResponderServer(namespace, options, requestHandler, payloadClass);
+        return getDefaultContext().getObjectFactory().createResponderServer(namespace, ResponderOptions.DEFAULTS, requestHandler, payloadClass);
     }
 
     public void shutdown(String contextName) {

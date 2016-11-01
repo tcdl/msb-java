@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<groupId>io.github.tcdl.msb</groupId>
+		<artifactId>msb-java</artifactId>
+		<version>1.5.3-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>io.github.tcdl.msb</groupId>
 	<artifactId>msb-spring-boot-starter</artifactId>
 	<name>msb spring boot starter</name>
-	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -14,8 +18,6 @@
 
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-
-		<msb.version>1.5.2-SNAPSHOT</msb.version> <!-- todo: change to release! -->
 	</properties>
 
 	<dependencies>
@@ -25,27 +27,48 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>io.github.tcdl.msb</groupId>
 			<artifactId>msb-java-core</artifactId>
-			<version>${msb.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>io.github.tcdl.msb</groupId>
 			<artifactId>msb-java-amqp</artifactId>
-			<version>${msb.version}</version>
+			<version>${project.version}</version>
 		</dependency>
+
+        <!-- This dependency is a bridge between apache.commons.logging that is needed by AnnotationConfigApplicationContext and slf4j implementation-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.7.12</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Workaround. I've had a version conflict between 1.1.7 and 1.1.3 before explicit version set-->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.1.3</version>
+            <scope>test</scope>
+        </dependency>
 
 		<!--for metadata generation-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
-			<optional>true</optional>
 		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
-		<dependencies> <!-- The parent should provide all that -->
+		<dependencies>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
@@ -55,26 +78,5 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-
-	<repositories>
-		<repository>
-			<id>spring-milestones</id>
-			<name>Spring Milestones</name>
-			<url>https://repo.spring.io/milestone</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>spring-milestones</id>
-			<name>Spring Milestones</name>
-			<url>https://repo.spring.io/milestone</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</pluginRepository>
-	</pluginRepositories>
 
 </project>
