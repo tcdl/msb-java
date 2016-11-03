@@ -330,6 +330,7 @@ Here, the override field `name = ${?MSB_SERVICE_NAME}` simply vanishes if there'
 - MSB_BROKER_USER_NAME, default "guest".
 - MSB_BROKER_PASSWORD, default "guest".
 - MSB_BROKER_VIRTUAL_HOST, default "/".
+- MSB_BROKER_USE_SSL, default false.
 
 ### Mapped Diagnostic Context settings
 This section provides settings for Mapped Diagnostic Context logging that gives a possibility to save some parameters of the incoming messages into a thread-local storage so it would be easier to track message processing.
