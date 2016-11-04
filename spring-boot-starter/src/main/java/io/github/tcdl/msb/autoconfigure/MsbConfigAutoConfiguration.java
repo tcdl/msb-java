@@ -36,9 +36,9 @@ public class MsbConfigAutoConfiguration {
         // Service Details
         String version = StringUtils.isNotBlank(msbProperties.serviceDetails.version) ? msbProperties.serviceDetails.version : DEFAULT_VERSION;
         config = config.withValue("msbConfig.serviceDetails.version", ConfigValueFactory.fromAnyRef(version));
-        if (StringUtils.isNoneBlank(msbProperties.serviceDetails.hostname))
+        if (StringUtils.isNotBlank(msbProperties.serviceDetails.hostname))
             config = config.withValue("msbConfig.serviceDetails.hostname", ConfigValueFactory.fromAnyRef(msbProperties.serviceDetails.hostname));
-        if (StringUtils.isNoneBlank(msbProperties.serviceDetails.ip))
+        if (StringUtils.isNotBlank(msbProperties.serviceDetails.ip))
             config = config.withValue("msbConfig.serviceDetails.ip", ConfigValueFactory.fromAnyRef(msbProperties.serviceDetails.ip));
         if (msbProperties.serviceDetails.pid != null)
             config = config.withValue("msbConfig.serviceDetails.pid", ConfigValueFactory.fromAnyRef(msbProperties.serviceDetails.pid));
