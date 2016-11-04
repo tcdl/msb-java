@@ -35,6 +35,7 @@ public class MsbContextBuilder {
     private static final Logger LOG = LoggerFactory.getLogger(MsbContextBuilder.class);
 
     private Config config;
+    private MsbConfig msbConfig;
     private boolean enableShutdownHook;
     private boolean enableChannelMonitorAgent;
     private ObjectMapper payloadMapper = createMessageEnvelopeMapper();
@@ -53,6 +54,12 @@ public class MsbContextBuilder {
         this.config = config;
         return this;
     }
+
+    public MsbContextBuilder withMsbConfig(MsbConfig config) {
+        this.msbConfig = config;
+        return this;
+    }
+
 
     /**
      * Provide a custom {@link MessageGroupStrategy} instance in order to process messages with the same groupId
@@ -110,10 +117,12 @@ public class MsbContextBuilder {
     public MsbContext build() {
         Clock clock = Clock.systemDefaultZone();
         JsonValidator validator = new JsonValidator();
-        if (config == null) {
-            config = ConfigFactory.load();
+        if (msbConfig == null) {
+            if (config == null) {
+                config = ConfigFactory.load();
+            }
+            msbConfig = new MsbConfig(config);
         }
-        MsbConfig msbConfig = new MsbConfig(config);
         ObjectMapper messageEnvelopeMapper = createMessageEnvelopeMapper();
 
         AdapterFactory adapterFactory = new AdapterFactoryLoader(msbConfig).getAdapterFactory();
