@@ -292,9 +292,9 @@ All configuration files use _key-value pair_ structure.
 ### Description of MSB configuration fields
 Service details section describes microservice parameters.
 
-- `name ` – microservice name. All running instances of the same microservice must have the same name.
-- `version` – microservice version. At the moment MSB-Java doesn't handle the value.
-- `instanceId` – unique microservice instance id. All running instances of the same microservice must have different instanceId.
+- `name ` – microservice name. All running instances of the same microservice must have the same name. Mandatory, has no default value.
+- `version` – microservice version. At the moment MSB-Java doesn't handle the value. Mandatory, has no default value.
+- `instanceId` – unique microservice instance id. All running instances of the same microservice must have different instanceId. If it is not set explicitly than it is set to random UUID at startup. Value is not preserved on restart.
 
 Additional instances of a microservice can help with load balancing. The simplest way to have multiple instances is to deploy, configure and run a microservice from different locations with different instanceId values. In this case a value of a instanceId need to be specified directly (or by means of environment variables, see below) in the application.conf, for example:
 
@@ -322,9 +322,9 @@ Here, the override field `name = ${?MSB_SERVICE_NAME}` simply vanishes if there'
 
 ### Environment Variables
 
-- MSB_SERVICE_NAME
-- MSB_SERVICE_VERSION
-- MSB_SERVICE_INSTANCE_ID
+- MSB_SERVICE_NAME, mandatory
+- MSB_SERVICE_VERSION, mandatory
+- MSB_SERVICE_INSTANCE_ID, default random UUID (generated on each startup)
 - MSB_BROKER_HOST, default "127.0.0.1".
 - MSB_BROKER_PORT, default 5672.
 - MSB_BROKER_USER_NAME, default "guest".
@@ -372,7 +372,7 @@ The section `brokerConfig` from [reference.conf](/core/src/main/resources/refere
 
 `port` – port number
 
-`useSSL` – defines whether we need to use SSL for AMQP connection. For the moment only simplest form of security is implemented that provides encryption but does not check remote certificates.
+`useSSL` – defines whether we need to use SSL for AMQP connection. For the moment only simplest form of security is implemented that provides encryption but does not check remote certificates. Is set fo `false` by default.
 
 `groupId` – microservices with the same `groupId` subscribed to the same namespace will receive messages from that namespace in round-robin fashion. If microservices have different `groupId`s and subscribed to the same namespace then all of those microservices are going to receive a copy of a message from that namespace.
 
