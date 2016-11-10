@@ -3,13 +3,9 @@ package io.github.tcdl.msb.mock.objectfactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.tcdl.msb.api.*;
-import io.github.tcdl.msb.api.monitor.AggregatorStats;
-import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
-import io.github.tcdl.msb.impl.RequesterImpl;
 import org.apache.commons.lang3.Validate;
 
 import java.lang.reflect.Type;
-import java.util.Set;
 
 /**
  * {@link ObjectFactory} implementation that captures all requesters/responders params and callbacks to be
@@ -74,16 +70,6 @@ public class TestMsbObjectFactory implements ObjectFactory {
     @Override
     public PayloadConverter getPayloadConverter() {
         return null;
-    }
-
-    @Override
-    public ChannelMonitorAggregator createChannelMonitorAggregator(Callback<AggregatorStats> aggregatorStatsHandler) {
-        return null;
-    }
-
-    @Override
-    public void shutdown() {
-
     }
 
     private static <U> TypeReference<U> toTypeReference(Class<U> clazz) {

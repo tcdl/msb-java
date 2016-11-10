@@ -20,18 +20,15 @@ public class Producer {
     private static final Logger LOG = LoggerFactory.getLogger(Producer.class);
 
     private final ProducerAdapter rawAdapter;
-    private final Callback<Message> messageHandler;
     private final ObjectMapper messageMapper;
 
-    public Producer(ProducerAdapter rawAdapter, String topic, Callback<Message> messageHandler, ObjectMapper messageMapper) {
+    public Producer(ProducerAdapter rawAdapter, String topic, ObjectMapper messageMapper) {
         LOG.debug("Creating producer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
         Validate.notNull(topic, "the 'topic' must not be null");
-        Validate.notNull(messageHandler, "the 'messageHandler' must not be null");
         Validate.notNull(messageMapper, "the 'messageMapper' must not be null");
 
         this.rawAdapter = rawAdapter;
-        this.messageHandler = messageHandler;
         this.messageMapper = messageMapper;
     }
 
@@ -41,7 +38,6 @@ public class Producer {
             String jsonMessage = Utils.toJson(message, messageMapper);
             LOG.debug("Publishing message to adapter : {}", jsonMessage);
             rawAdapter.publish(jsonMessage, routingKey != null ? routingKey : StringUtils.EMPTY);
-            messageHandler.call(message);
         } catch (ChannelException | JsonConversionException e) {
             LOG.error("Exception while message publish to adapter", e);
             throw e;

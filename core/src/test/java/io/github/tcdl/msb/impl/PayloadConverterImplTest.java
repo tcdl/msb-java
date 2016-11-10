@@ -21,7 +21,6 @@ public class PayloadConverterImplTest {
     public void setUp() {
         MsbContext msbContext = new MsbContextBuilder()
                 .withPayloadMapper(new ObjectMapper())
-                .enableChannelMonitorAgent(true)
                 .enableShutdownHook(true)
                 .build();
         payloadConverter = msbContext.getObjectFactory().getPayloadConverter();

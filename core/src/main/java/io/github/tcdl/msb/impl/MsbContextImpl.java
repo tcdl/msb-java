@@ -57,7 +57,6 @@ public class MsbContextImpl implements MsbContext {
             isShutdownComplete = true;
             LOG.info("Shutting down MSB context...");
             shutdownCallbackHandler.runCallbacks();
-            objectFactory.shutdown();
             timeoutManager.shutdown();
             channelManager.shutdown();
             LOG.info("MSB context has been shut down.");

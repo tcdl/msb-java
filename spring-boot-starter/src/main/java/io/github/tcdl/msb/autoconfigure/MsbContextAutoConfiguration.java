@@ -30,7 +30,6 @@ public class MsbContextAutoConfiguration {
     public MsbContext msbContext() {
 
         MsbContextBuilder builder = new MsbContextBuilder()
-                .enableChannelMonitorAgent(true)
                 .withMsbConfig(msbConfig);
 
         if (messageGroupStrategy != null)
