@@ -31,7 +31,6 @@
     <modules>
         <module>core</module>
         <module>amqp</module>
-        <module>cli</module>
         <module>acceptance</module>
         <module>jmeter</module>
         <module>examples</module>
