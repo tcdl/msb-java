@@ -18,11 +18,10 @@ import java.nio.charset.Charset;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class AmqpProducerAdapterTest {
+    public static final String TOPIC_NAME = "myTopic";
     private Channel mockChannel;
     private AmqpConnectionManager mockAmqpConnectionManager;
     private AmqpBrokerConfig mockAmqpBrokerConfig;
@@ -42,41 +41,43 @@ public class AmqpProducerAdapterTest {
 
     @Test
     public void testExchangeWithCorrectTypeCreated() throws IOException {
-        String topicName = "myTopic";
+        new AmqpProducerAdapter(TOPIC_NAME, ExchangeType.FANOUT, mockAmqpBrokerConfig, mockAmqpConnectionManager);
+        verify(mockChannel).exchangeDeclare(TOPIC_NAME, "fanout", false, true, null);
 
-        new AmqpProducerAdapter(topicName, ExchangeType.FANOUT, mockAmqpBrokerConfig, mockAmqpConnectionManager);
-        verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
-
-        new AmqpProducerAdapter(topicName, ExchangeType.TOPIC, mockAmqpBrokerConfig, mockAmqpConnectionManager);
-        verify(mockChannel).exchangeDeclare(topicName, "topic", false, true, null);
+        new AmqpProducerAdapter(TOPIC_NAME, ExchangeType.TOPIC, mockAmqpBrokerConfig, mockAmqpConnectionManager);
+        verify(mockChannel).exchangeDeclare(TOPIC_NAME, "topic", false, true, null);
     }
 
     @Test(expected = RuntimeException.class)
     public void testInitializationError() throws IOException {
         when(mockChannel.exchangeDeclare(anyString(), anyString(), anyBoolean(), anyBoolean(), any())).thenThrow(new IOException());
-        new AmqpProducerAdapter("myTopic", ExchangeType.FANOUT, mockAmqpBrokerConfig, mockAmqpConnectionManager);
+        new AmqpProducerAdapter(TOPIC_NAME, ExchangeType.FANOUT, mockAmqpBrokerConfig, mockAmqpConnectionManager);
     }
 
     @Test
     public void testPublish() throws ChannelException, IOException {
-        String topicName = "myTopic";
         String message = "message";
-        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter(topicName, ExchangeType.FANOUT, mockAmqpBrokerConfig, mockAmqpConnectionManager);
-
+        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter(TOPIC_NAME, ExchangeType.FANOUT, mockAmqpBrokerConfig, mockAmqpConnectionManager);
         producerAdapter.publish(message);
+        verify(mockChannel).basicPublish(TOPIC_NAME, StringUtils.EMPTY, MessageProperties.PERSISTENT_BASIC, message.getBytes());
+    }
 
-        verify(mockChannel).basicPublish(topicName, StringUtils.EMPTY, MessageProperties.PERSISTENT_BASIC, message.getBytes());
+    @Test(expected = ChannelException.class)
+    public void testPublishExceptionally() throws Exception {
+        String message = "message";
+        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter(TOPIC_NAME, ExchangeType.FANOUT, mockAmqpBrokerConfig, mockAmqpConnectionManager);
+        doThrow(new RuntimeException()).when(mockChannel).basicPublish(anyString(), anyString(), any(AMQP.BasicProperties.class), any(byte[].class));
+        producerAdapter.publish(message);
     }
 
     @Test
     public void testPublishWithRoutingKey() throws Exception{
-        String topicName = "myTopic";
         String message = "message";
         String routingKey = "routingKey";
-        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter(topicName, ExchangeType.TOPIC, mockAmqpBrokerConfig, mockAmqpConnectionManager);
+        AmqpProducerAdapter producerAdapter = new AmqpProducerAdapter(TOPIC_NAME, ExchangeType.TOPIC, mockAmqpBrokerConfig, mockAmqpConnectionManager);
 
         producerAdapter.publish(message, routingKey);
-        verify(mockChannel).basicPublish(topicName, routingKey, MessageProperties.PERSISTENT_BASIC, message.getBytes());
+        verify(mockChannel).basicPublish(TOPIC_NAME, routingKey, MessageProperties.PERSISTENT_BASIC, message.getBytes());
     }
 
     @Test

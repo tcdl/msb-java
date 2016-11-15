@@ -1,27 +1,25 @@
 package io.github.tcdl.msb;
 
-import java.time.Clock;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.tcdl.msb.adapters.*;
-import io.github.tcdl.msb.api.Callback;
+import io.github.tcdl.msb.adapters.AdapterFactory;
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.adapters.ProducerAdapter;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.ResponderOptions;
 import io.github.tcdl.msb.api.exception.ConsumerSubscriptionException;
 import io.github.tcdl.msb.collector.CollectorManager;
 import io.github.tcdl.msb.config.MsbConfig;
-import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.impl.SimpleMessageHandlerResolverImpl;
-import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
-import io.github.tcdl.msb.monitor.agent.NoopChannelMonitorAgent;
-import io.github.tcdl.msb.threading.MessageHandlerInvoker;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.Utils;
+import io.github.tcdl.msb.threading.MessageHandlerInvoker;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.Clock;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * {@link ChannelManager} creates consumers or producers on demand and manages them.
@@ -37,7 +35,6 @@ public class ChannelManager {
     private final ObjectMapper messageMapper;
     private final AdapterFactory adapterFactory;
     private final MessageHandlerInvoker messageHandlerInvoker;
-    private ChannelMonitorAgent channelMonitorAgent;
 
     private final Map<String, Producer> producersByTopic;
     private final Map<String, Consumer> consumersByTopic;
@@ -52,8 +49,6 @@ public class ChannelManager {
 
         this.producersByTopic = new ConcurrentHashMap<>();
         this.consumersByTopic = new ConcurrentHashMap<>();
-
-        channelMonitorAgent = new NoopChannelMonitorAgent();
     }
 
     public Producer findOrCreateProducer(String topic, RequestOptions requestOptions) {
@@ -62,7 +57,6 @@ public class ChannelManager {
 
         Producer producer = producersByTopic.computeIfAbsent(topic, key -> {
             Producer newProducer = createProducer(key, requestOptions);
-            channelMonitorAgent.producerTopicCreated(key);
             return newProducer;
         });
 
@@ -111,7 +105,7 @@ public class ChannelManager {
      */
     public synchronized void unsubscribe(String topic) {
         if (consumersByTopic.get(topic) != null) {
-            stopConsumer(topic, consumersByTopic.remove(topic));
+            stopConsumer(consumersByTopic.remove(topic));
         }
     }
 
@@ -121,29 +115,26 @@ public class ChannelManager {
         } else {
             Consumer newConsumer = createConsumer(topic, isResponseTopic, responderOptions, messageHandlerResolver);
             newConsumer.subscribe();
-            channelMonitorAgent.consumerTopicCreated(topic);
             consumersByTopic.put(topic, newConsumer);
         }
     }
 
-    private void stopConsumer(String topic, Consumer consumer) {
+    private void stopConsumer(Consumer consumer) {
         if (consumer != null) {
             consumer.end();
-            channelMonitorAgent.consumerTopicRemoved(topic);
         }
     }
 
     private Producer createProducer(String topic, RequestOptions requestOptions) {
         Utils.validateTopic(topic);
         ProducerAdapter adapter = this.adapterFactory.createProducerAdapter(topic, requestOptions);
-        Callback<Message> monitorAgentCallback = message -> channelMonitorAgent.producerMessageSent(topic);
-        return new Producer(adapter, topic, monitorAgentCallback, messageMapper);
+        return new Producer(adapter, topic, messageMapper);
     }
 
     private Consumer createConsumer(String topic, boolean isResponseTopic, ResponderOptions responderOptions, MessageHandlerResolver messageHandlerResolver) {
         Utils.validateTopic(topic);
         ConsumerAdapter adapter = this.adapterFactory.createConsumerAdapter(topic, responderOptions, isResponseTopic);
-        return new Consumer(adapter, messageHandlerInvoker, topic, messageHandlerResolver, msbConfig, clock, channelMonitorAgent, validator, messageMapper);
+        return new Consumer(adapter, messageHandlerInvoker, topic, messageHandlerResolver, msbConfig, clock, validator, messageMapper);
     }
 
     public void shutdown() {
@@ -151,9 +142,5 @@ public class ChannelManager {
         adapterFactory.shutdown();
         messageHandlerInvoker.shutdown();
         LOG.info("Shutdown complete");
-    }
-
-    public void setChannelMonitorAgent(ChannelMonitorAgent channelMonitorAgent) {
-        this.channelMonitorAgent = channelMonitorAgent;
     }
 }

@@ -2,11 +2,8 @@ package io.github.tcdl.msb.api;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.github.tcdl.msb.api.monitor.AggregatorStats;
-import io.github.tcdl.msb.api.monitor.ChannelMonitorAggregator;
 
 import java.lang.reflect.Type;
-import java.util.Set;
 
 /**
  * Provides methods for creation client-facing API objects.
@@ -205,16 +202,4 @@ public interface ObjectFactory {
      * using object mapper from {@link MsbContext}
      */
     PayloadConverter getPayloadConverter();
-
-    /**
-     * @param aggregatorStatsHandler this handler is invoked whenever statistics is updated via announcement channel or heartbeats.
-     *                               THE HANDLER SHOULD BE THREAD SAFE because it may be invoked from parallel threads.
-     * @return new instance of {@link ChannelMonitorAggregator}
-     */
-    ChannelMonitorAggregator createChannelMonitorAggregator(Callback<AggregatorStats> aggregatorStatsHandler);
-
-    /**
-     * Shuts down the factory and all the objects that were created by it.
-     */
-    void shutdown();
 }

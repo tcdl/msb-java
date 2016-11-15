@@ -43,8 +43,9 @@ public class TestMsbAdapterFactory implements AdapterFactory {
 
     @Override
     public ConsumerAdapter createConsumerAdapter(String topic, ResponderOptions responderOptions, boolean isResponseTopic) {
+        ResponderOptions effectiveResponderOptions = responderOptions != null ? responderOptions: ResponderOptions.DEFAULTS;
         TestMsbConsumerAdapter consumerAdapter = new TestMsbConsumerAdapter(topic, storage);
-        storage.addConsumerAdapter(topic, responderOptions.getBindingKeys(), consumerAdapter);
+        storage.addConsumerAdapter(topic, effectiveResponderOptions.getBindingKeys(), consumerAdapter);
         return consumerAdapter;
     }
 

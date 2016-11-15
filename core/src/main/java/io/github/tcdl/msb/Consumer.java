@@ -7,7 +7,6 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.collector.ConsumedMessagesAwareMessageHandler;
 import io.github.tcdl.msb.config.MsbConfig;
-import io.github.tcdl.msb.monitor.agent.ChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.Utils;
 
@@ -35,7 +34,6 @@ public class Consumer {
     private final MessageHandlerInvoker messageHandlerInvoker;
     private final String topic;
     private final MsbConfig msbConfig;
-    private final ChannelMonitorAgent channelMonitorAgent;
     private final Clock clock;
     private final MessageHandlerResolver messageHandlerResolver;
     private final JsonValidator validator;
@@ -49,13 +47,12 @@ public class Consumer {
      * @param messageHandlerResolver resolves {@link MessageHandler} instance that user can implement to handle received messages.
      * @param msbConfig consumer configs
      * @param clock
-     * @param channelMonitorAgent
      * @param validator validates incoming messages
      * @param messageMapper message deserializer
      */
     public Consumer(ConsumerAdapter rawAdapter, MessageHandlerInvoker messageHandlerInvoker,
             String topic, MessageHandlerResolver messageHandlerResolver, MsbConfig msbConfig,
-            Clock clock, ChannelMonitorAgent channelMonitorAgent, JsonValidator validator, ObjectMapper messageMapper) {
+            Clock clock, JsonValidator validator, ObjectMapper messageMapper) {
 
         LOG.debug("Creating consumer for topic: {}", topic);
         Validate.notNull(rawAdapter, "the 'rawAdapter' must not be null");
@@ -64,7 +61,6 @@ public class Consumer {
         Validate.notNull(messageHandlerResolver, "the 'messageHandlerResolver' must not be null");
         Validate.notNull(msbConfig, "the 'msbConfig' must not be null");
         Validate.notNull(clock, "the 'clock' must not be null");
-        Validate.notNull(channelMonitorAgent, "the 'channelMonitorAgent' must not be null");
         Validate.notNull(validator, "the 'validator' must not be null");
         Validate.notNull(messageMapper, "the 'messageMapper' must not be null");
 
@@ -74,7 +70,6 @@ public class Consumer {
         this.messageHandlerResolver = messageHandlerResolver;
         this.msbConfig = msbConfig;
         this.clock = clock;
-        this.channelMonitorAgent = channelMonitorAgent;
         this.validator = validator;
         this.messageMapper = messageMapper;
 
@@ -105,8 +100,6 @@ public class Consumer {
      */
     protected void handleRawMessage(String jsonMessage, AcknowledgementHandlerInternal acknowledgeHandler) {
         LOG.debug("{} message received [{}]", loggingTag, jsonMessage);
-
-        channelMonitorAgent.consumerMessageReceived(topic);
 
         Message message;
 

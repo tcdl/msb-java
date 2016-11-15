@@ -18,7 +18,6 @@ import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ObjectFactoryImpl;
 import io.github.tcdl.msb.message.MessageFactory;
-import io.github.tcdl.msb.monitor.agent.DefaultChannelMonitorAgent;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.threading.*;
 import org.slf4j.Logger;
@@ -37,7 +36,6 @@ public class MsbContextBuilder {
     private Config config;
     private MsbConfig msbConfig;
     private boolean enableShutdownHook;
-    private boolean enableChannelMonitorAgent;
     private ObjectMapper payloadMapper = createMessageEnvelopeMapper();
     private MessageGroupStrategy messageGroupStrategy;
 
@@ -85,16 +83,6 @@ public class MsbContextBuilder {
     }
 
     /**
-     * Specifies if monitoring agent is enabled.
-     * @param enableChannelMonitorAgent - true if monitoring agent is enabled and false otherwise
-     * @return MsbContextBuilder
-     */
-    public MsbContextBuilder enableChannelMonitorAgent(boolean enableChannelMonitorAgent) {
-        this.enableChannelMonitorAgent = enableChannelMonitorAgent;
-        return this;
-    }
-
-    /**
      * Specifies payload object mapper to serialize/deserialize message payload
      * @param payloadMapper if not provided default object mapper will be used
      * @return MsbContextBuilder
@@ -137,10 +125,6 @@ public class MsbContextBuilder {
                 payloadMapper, collectorManagerFactory,
                 new MutableCallbackHandler());
 
-        if (enableChannelMonitorAgent) {
-            DefaultChannelMonitorAgent.start(msbContext);
-        }
-        
         if (enableShutdownHook) {
             Runtime.getRuntime().addShutdownHook(new Thread("MSB shutdown hook") {
                 @Override

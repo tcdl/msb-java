@@ -50,39 +50,23 @@ public class ProducerTest {
 
     @Test(expected = NullPointerException.class)
     public void testCreateConsumerProducerNullAdapter() {
-        new Producer(null, "testTopic", handlerMock, messageMapper);
+        new Producer(null, "testTopic", messageMapper);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateProducerNullTopic() {
-        new Producer(adapterMock, null, handlerMock, messageMapper);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testCreateProducerNullHandler() {
-        new Producer(adapterMock, "testTopic", null, messageMapper);
+        new Producer(adapterMock, null, messageMapper);
     }
 
     @Test(expected = NullPointerException.class)
     public void testCreateProducerNullMapper() {
-        new Producer(adapterMock, "testTopic", handlerMock, null);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testPublishVerifyHandlerCalled() {
-        Message originaMessage = TestUtils.createSimpleRequestMessage(TOPIC);
-
-        Producer producer = new Producer(adapterMock, TOPIC, handlerMock, messageMapper);
-        producer.publish(originaMessage);
-
-        verify(handlerMock).call(any(Message.class));
+        new Producer(adapterMock, "testTopic", null);
     }
 
     @Test
     public void testPublishWithDefaultRoutingKey() throws Exception {
         Message originaMessage = TestUtils.createSimpleRequestMessage(TOPIC);
-        Producer producer = new Producer(adapterMock, TOPIC, handlerMock, messageMapper);
+        Producer producer = new Producer(adapterMock, TOPIC,  messageMapper);
         producer.publish(originaMessage);
         verify(adapterMock).publish(anyString(), eq(StringUtils.EMPTY));
     }
@@ -94,7 +78,7 @@ public class ProducerTest {
 
         Mockito.doThrow(ChannelException.class).when(adapterMock).publish(anyString(), anyString());
 
-        Producer producer = new Producer(adapterMock, TOPIC, handlerMock, messageMapper);
+        Producer producer = new Producer(adapterMock, TOPIC,  messageMapper);
         producer.publish(originaMessage);
 
         verify(handlerMock, never()).call(any(Message.class));
@@ -106,7 +90,7 @@ public class ProducerTest {
     public void testPublishThrowExceptionVerifyCallbackNotSetNotCalled() throws ChannelException {
         Message brokenMessage = createBrokenRequestMessageWithAndTopicTo(TOPIC);
 
-        Producer producer = new Producer(adapterMock, TOPIC, handlerMock, messageMapper);
+        Producer producer = new Producer(adapterMock, TOPIC, messageMapper);
         producer.publish(brokenMessage);
 
         verify(adapterMock, never()).publish(anyString());

@@ -23,7 +23,6 @@ public class FacetsAggregator {
     public static void main(String[] args) throws ScriptException, FileNotFoundException, NoSuchMethodException {
 
         MsbContext msbContext = new MsbContextBuilder()
-                .enableChannelMonitorAgent(true)
                 .enableShutdownHook(true)
                 .build();
 

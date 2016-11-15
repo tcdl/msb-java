@@ -60,7 +60,6 @@ public class MsbContextImplTest {
 
     private void verifyShutdownOnce() {
         verify(shutdownCallbackHandlerMock, times(1)).runCallbacks();
-        verify(objectFactoryMock, times(1)).shutdown();
         verify(timeoutManagerMock, times(1)).shutdown();
         verify(channelManagerMock, times(1)).shutdown();
     }
