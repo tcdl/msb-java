@@ -4,26 +4,31 @@
 </head>
 
 <body lang="en">
-<h2>Welcome to MSB-Java version 1.5.2</h2>
+<h2>Welcome to MSB-Java version 1.6.0</h2>
 
-<h3>October 3, 2016</h3>
+<h3>November 16, 2016</h3>
 
 <pre>
-Changes in MSB-Java version 1.6.0 (not yet released)
+Features of MSB-Java version 1.6.0:
    - Broken backward compatibility with 1.5.2 version. Now exchange type for AMQ is not determined by routing key
-    presence/absence. It can be set explicitly using AmqpRequestOptions. Default value 'fanout' is used if exchange
-    type is not specified. ResponderServer mirrors this behavior using AmqpResponderOptions (see examples for routing key)
-   - Fixed possible deadlock in AMQP channel automatic recovery logic.
+     presence/absence. It can be set explicitly using AmqpRequestOptions. Default value 'fanout' is used if exchange
+     type is not specified. ResponderServer mirrors this behavior using AmqpResponderOptions (see examples for routing key);
+   - Fixed possible deadlock in AMQP channel automatic recovery logic;
+   - Added Spring Boot auto-configuration spring-boot-starter module;
+   - MSB_BROKER_VIRTUAL_HOST environment variable was deprecated. MSB_BROKER_AMQP_VHOST environment variable is used for 
+     RabbitMQ Virutal host specification. The both variable are supported now. Deprecated will be removed in next release;
+   - Removed ChannelMonitorAgent and ChannelMonitorAggregator;
+   - Removed CLI module.
 
 Features of MSB-Java version 1.5.2:
-   - Added routing key support to API and AMQP adapter
-   - Added "routingKey" field to message envelope "topics" section
-   - Removed confusing response topic for cases when no responses/acks are expected
+   - Added routing key support to API and AMQP adapter;
+   - Added "routingKey" field to message envelope "topics" section;
+   - Removed confusing response topic for cases when no responses/acks are expected.
 
 Features of MSB-Java version 1.5.1:
-   - Added stop() method to ResponderServer
-   - Add request object and map into MsbThreadContext
-   - Fixed broken graceful shutdown of TimeoutManager on MsbContextImpl shutdown
+   - Added stop() method to ResponderServer;
+   - Add request object and map into MsbThreadContext;
+   - Fixed broken graceful shutdown of TimeoutManager on MsbContextImpl shutdown.
 
 Features of MSB-Java version 1.5.0:
    - Multithreading settings parameters consumerThreadPoolSize, consumerThreadPoolQueueCapacity moved
