@@ -136,8 +136,10 @@ MSB-Java has pluggable architecture that allows to use different bus adapters tr
 It consists of the following Maven modules:
 - msb-java-core: core classes
 - msb-java-amqp: AMQP adapter that allow to use AMQP broker (for example RabbitMQ) as a bus
-- msb-java-cli: CLI monitoring tool
+- msb-spring-boot-starter: Spring Boot auto-configuration classes
+- msb-java-acceptance: acceptance tests
 - msb-java-examples: examples of various microservices
+- ApacheJmeter_msb: MSB JMeter Sampler
 
 ## Core classes
 
@@ -247,11 +249,6 @@ To launch those you need to have RabbitMQ up and running. Also you have to start
 
 Another caveat is that the business logic of `PongService` (passed as lambda in the last argument during `ResponderServer` creation) can be invoked from different threads concurrently. So the lambda should be __thread-safe__. The same applies to the lambda passed as an argument to `onResponse` in `PingService`.
 
-## CLI tool
-
-See [Readme for CLI tool](/cli/README.md).
-
-
 ## Test support - mocking approaches.
 
 See [MSB-Java mocking support](MSB-TEST-MOCKING.md)
@@ -280,14 +277,12 @@ See [reference.conf example](/core/src/main/resources/reference.conf)
 _application.conf_ – applications should provide an application.conf with any settings specific for this particular application.
 Overrides values from _reference.conf_.
 
-See [application.conf example](/cli/src/main/resources/application.conf)
-
 All configuration files use _key-value pair_ structure.
 
 ### Configuration files hierarchy
 - [amqp.conf](/amqp/src/main/resources/amqp.conf)
 - [reference.conf](/core/src/main/resources/reference.conf) - overrides values from amqp.conf
-- [application.conf](/cli/src/main/resources/application.conf) - overrides values from reference.conf
+- [application.conf](/acceptance/src/main/resources/application.conf) - overrides values from reference.conf
 
 ### Description of MSB configuration fields
 Service details section describes microservice parameters.
