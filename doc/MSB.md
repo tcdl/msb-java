@@ -395,6 +395,28 @@ More references on how to configure the broker to allow the remote access with t
 
 `prefetchCount` - Specify the limit number of unacknowledged messages on a channel when consuming. Value of 0 stands for unlimited. The default value is 10.
 
+###Autoconfiguration for Srping Boot
+Integration with Spring Boot has been improved by adding an [autoconfiguration module](https://github.com/tcdl/msb-java/tree/master/spring-boot-starter). If your application is based on Spring Boot, this module can simplify the usage of msb-java. Using this type of connection msb to your project you'll get thinner dependency list, preconfigured spring beans in your application context and no need to write a single line of configuration (presuming that you have rabbitmq on your local machine with all default values).
+####How to start
+If you use maven, just add the following dependency:
+```xml
+	<dependency>
+        <groupId>io.github.tcdl.msb</groupId>
+        <artifactId>msb-spring-boot-starter</artifactId>
+        <version>${msb.version}</version>
+    </dependency>
+```
+In this case, you'll get MsbConfig, MessageTemplate and MsbContext beans ready to work with your local instance of integration bus (rabbitmq).
+####Customization
+You can use the full power of spring configuration with msb-spring-boot-starter. Complete list of configuration ways can be found in [Spring Boot documentation](http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-external-config). The idea lies in the fact that we have a simple mapping from [typesafe configuration parameters](https://github.com/tcdl/msb-java/blob/master/core/src/main/resources/reference.conf) to spring ones. Thus msbConfig{...serviceDetails={name=xxx}} will be translated into spring config property msbConfig.serviceDetails.name and can be set in application.yml or .properties or passed as a command line argument or set as an environment variable MSB_CONFIG_SERVICE_DETAILS_NAME and so on. Another aspect of configuration is using your instances of MessageGroupStrategy, MessageTemplate or MsbContext. Each of these beans is present in context but uses @ConditionalOnMissingBean annotation. So, your instances will be used if they appear in spring context.
+####Overridden default values
+Some of the default values has been overridden in this module to not bring unexpected side effects to projects which already use msb-java without autoconfiguration. 
+|value                             |reference|autoconfigure|
+|:--------------------------------:|:-------:|:-----------:|
+|msbConfig.serviceDetails.name     |required |random value |
+|msbConfig.serviceDetails.version  |required |1.0.0        |
+|msbProperties.brokerConfig.durable|false    |true         |
+|msbConfig.timerThreadPoolSize     |10       |2            |
 
 ## AMQP adapter
 
