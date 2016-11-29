@@ -376,6 +376,9 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler, Execut
     }
 
     public void waitForResponses() {
+        if(this.responseTimeoutFuture != null){
+            this.responseTimeoutFuture.cancel(true);
+        }
         int newTimeoutMs = this.currentTimeoutMs - toIntExact(clock.instant().toEpochMilli() - this.startedAt);
         LOG.debug("[correlation id: {}] Waiting for responses until {}.", requestMessage.getCorrelationId(), clock.instant().plus(newTimeoutMs, ChronoUnit.MILLIS));
         this.responseTimeoutFuture = timeoutManager.enableResponseTimeout(newTimeoutMs, this);

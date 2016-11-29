@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+import io.github.tcdl.msb.acceptance.MsbTestHelper;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.Topics;
@@ -31,7 +32,9 @@ import static org.junit.Assert.*;
 /**
  * Steps to send requests and respond with predefined responses
  */
-public class RequesterResponderSteps extends MsbSteps {
+public class RequesterResponderSteps {
+
+    protected final MsbTestHelper helper = MsbTestHelper.getInstance();
 
     private volatile Requester<RestPayload> requester;
     private volatile String responseBody;
@@ -66,35 +69,6 @@ public class RequesterResponderSteps extends MsbSteps {
         createResponderServer(DEFAULT_CONTEXT_NAME, namespace);
     }
 
-    @Given("responder server responds sequentially on namespace $namespace")
-    public void respondSequentially(String namespace) throws Exception {
-        ObjectMapper mapper = helper.getPayloadMapper(DEFAULT_CONTEXT_NAME);
-        helper.createResponderServer(DEFAULT_CONTEXT_NAME, namespace, (request, responderContext) -> {
-            if (responses.isEmpty()) {
-                return;
-            }
-
-            responses.forEach(nextResponse -> nextResponse.entrySet().stream().findFirst().ifPresent(entry -> {
-                switch (entry.getKey()) {
-                    case ACK:
-                        Integer responsesRemaining = (Integer) (entry.getValue());
-                        responderContext.getResponder().sendAck(ACK_TIMEOUT, responsesRemaining);
-                        try {
-                            TimeUnit.MILLISECONDS.sleep(ACK_TIMEOUT);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                        break;
-                    case PAYLOAD:
-                        RestPayload payload = new RestPayload.Builder<Object, Object, Object, Map>()
-                                .withBody(Utils.fromJson(responseBody, Map.class, mapper))
-                                .build();
-                        responderContext.getResponder().send(payload);
-                        break;
-                }
-            }));
-        }).listen();
-    }
 
     @Given("responder server from $contextName listens on namespace $namespace")
     @When("responder server from $contextName listens on namespace $namespace")
@@ -234,13 +208,6 @@ public class RequesterResponderSteps extends MsbSteps {
         onBeforeRequest();
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload("QUERY", null);
         helper.sendRequest(requester, payload, responsesToExpectCount, this::onResponse, this::onEnd, tag);
-    }
-
-    @When("requester sends a request with query '$query'")
-    public void sendRequestWithQuery(String query) throws Exception {
-        onBeforeRequest();
-        RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(query, null);
-        helper.sendRequest(requester, payload, true, responsesToExpectCount, null, this::onResponse, this::onEnd);
     }
 
     @When("^requester sends a request with body '$body'$")
@@ -411,15 +378,6 @@ public class RequesterResponderSteps extends MsbSteps {
         outcomes.verify();
     }
 
-    @When("requester sends a request for single result to namespace $namespace")
-    public void requestForSingleResult(String namespace) throws Exception {
-        String query = "QUERY";
-        String body = "body";
-        RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload(query, body);
-        requester = helper.createRequester(namespace, 1, RestPayload.class);
-        lastFutureResult = helper.sendForResult(requester, payload);
-    }
-
     @When("requester sends to $namespace a request with body '$body' and routing key $routingKey")
     public void requestForSingleResult(String namespace, String body, String routingKey) throws Exception {
         helper.initDefault();
@@ -450,52 +408,6 @@ public class RequesterResponderSteps extends MsbSteps {
     public void publishWithoutRoutingKey(String namespace, String forwardNamespace, String body) throws Exception {
         publishWithRoutingKey(namespace, forwardNamespace, body, StringUtils.EMPTY);
     }
-
-    @When("requester blocks waiting for response for $timeout ms")
-    public void blockUntilResponseReceived(int timeout) throws Exception {
-        resolvedResponse = lastFutureResult.get(timeout, TimeUnit.MILLISECONDS);
-    }
-
-    @Then("resolved response equals $table")
-    public void verifyFutureResult(ExamplesTable table) {
-        Map<String, String> expected = table.getRow(0);
-        OutcomesTable outcomes = new OutcomesTable();
-
-        for (String key : expected.keySet()) {
-            outcomes.addOutcome(key, resolvedResponse.getBody().toString(), Matchers.containsString(expected.get(key)));
-        }
-
-        outcomes.verify();
-    }
-
-    @Given("next response from responder contains acknowledge with $remaining remaining response")
-    public void addAckToResponsesQueue(int remainingResponses) {
-        Map<String, Object> request = new HashMap<>();
-        request.put(ACK, remainingResponses);
-        responses.add(request);
-    }
-
-    @Given("next response from responder contains body $responseBody")
-    public void addBodyToResponsesQueue(String responseBody) {
-        Map<String, Object> request = new HashMap<>();
-        request.put(PAYLOAD, responseBody);
-        responses.add(request);
-    }
-
-    @Then("requester gets exception when tries to obtain result")
-    public void assertExceptionOccured() throws Exception {
-        try {
-            resolvedResponse = lastFutureResult.get(5000, TimeUnit.MILLISECONDS);
-        } catch (CancellationException e) {
-            return;//ok
-        }
-        fail("Expected exception not thrown");
-    }
-
-//    @Then("reset mock responses")
-//    public void resetMockResponses() {
-//        responses.clear();
-//    }
 
     @BeforeScenario
     public void resetMockResponses() {

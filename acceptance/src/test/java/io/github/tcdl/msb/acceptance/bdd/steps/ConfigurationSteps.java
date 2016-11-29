@@ -3,6 +3,7 @@ package io.github.tcdl.msb.acceptance.bdd.steps;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+import io.github.tcdl.msb.acceptance.MsbTestHelper;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
 import org.jbehave.core.annotations.When;
@@ -10,16 +11,16 @@ import org.jbehave.core.annotations.When;
 /**
  * Steps to manipulate with MSB configuration
  */
-public class ConfigurationSteps extends MsbSteps {
+public class ConfigurationSteps {
+
+    protected final MsbTestHelper helper = MsbTestHelper.getInstance();
 
     private String MSB_CONFIG_ROOT = "msbConfig";
     private String VALIDATE_MESSAGE = MSB_CONFIG_ROOT + ".validateMessage";
-    private String TIME_THREAD_POOL_SIZE = MSB_CONFIG_ROOT + ".timerThreadPoolSize";
 
     private String MSB_BROKER_CONFIG_ROOT = "msbConfig.brokerConfig";
     private String MSB_THREADING_CONFIG_ROOT = "msbConfig.threadingConfig";
     private String MSB_BROKER_CONSUMER_THREAD_POOL_SIZE = MSB_THREADING_CONFIG_ROOT + ".consumerThreadPoolSize";
-    private String MSB_BROKER_CONSUMER_THREAD_POOL_QUEUE_CAPACITY = MSB_BROKER_CONFIG_ROOT + ".consumerThreadPoolQueueCapacity";
     private String MSB_BROKER_CONSUMER_THREAD_POOL_PREFETCH_COUNT = MSB_BROKER_CONFIG_ROOT + ".prefetchCount";
 
     private Config config = ConfigFactory.load();
@@ -29,19 +30,9 @@ public class ConfigurationSteps extends MsbSteps {
         config = config.withValue(VALIDATE_MESSAGE, ConfigValueFactory.fromAnyRef(validate));
     }
 
-    @Given("MSB configuration with timer thread pool size $size")
-    public void initWithTimerThreadPoolSize(int size) {
-        config = config.withValue(TIME_THREAD_POOL_SIZE, ConfigValueFactory.fromAnyRef(size));
-    }
-
     @Given("MSB configuration with consumer thread pool size $size")
     public void initWithConsumerThreadPoolSize(int size) {
         config = config.withValue(MSB_BROKER_CONSUMER_THREAD_POOL_SIZE, ConfigValueFactory.fromAnyRef(size));
-    }
-
-    @Given("MSB configuration with consumer thread pool queue capacity $capacity")
-    public void initWithConsumerThreadPoolQueueCapacity(int capacity) {
-        config = config.withValue(MSB_BROKER_CONSUMER_THREAD_POOL_QUEUE_CAPACITY, ConfigValueFactory.fromAnyRef(capacity));
     }
 
     @Given("MSB configuration with consumer prefetch count $count")

@@ -1075,6 +1075,31 @@ public class CollectorTest {
     }
 
     @Test
+    public void testProcessAckExtendsTimeout() throws Exception {
+        int initialTimeout = 50;
+        int timeoutFromAck = 500;
+
+        ScheduledFuture<?> timeoutTask1 = mock(ScheduledFuture.class);
+        ScheduledFuture<?> timeoutTask2= mock(ScheduledFuture.class);
+
+        when(requestOptionsMock.getResponseTimeout()).thenReturn(initialTimeout);
+        Collector collector = createCollector();
+
+        doReturn(timeoutTask1)
+                .doReturn(timeoutTask2)
+                .when(timeoutManagerMock).enableResponseTimeout(anyInt(), same(collector));
+
+        collector.waitForResponses();
+        collector.processAck(new Acknowledge.Builder().withResponderId("irrelevant").withTimeoutMs(timeoutFromAck).build());
+
+        ArgumentCaptor<Integer> intCaptor = ArgumentCaptor.forClass(Integer.class);
+
+        verify(timeoutTask1).cancel(anyBoolean());
+        verify(timeoutTask2, never()).cancel(anyBoolean());
+        verify(timeoutManagerMock, times(2)).enableResponseTimeout(intCaptor.capture(), same(collector));
+    }
+
+    @Test
     public void testEndHandlerTimersStopped() {
         ScheduledFuture ackTimerMock = mock(ScheduledFuture.class);
         ScheduledFuture timeoutTimerMock = mock(ScheduledFuture.class);
