@@ -217,26 +217,6 @@ public class RequesterResponderSteps {
         helper.sendRequest(requester, payload, true, responsesToExpectCount, null, this::onResponse, this::onEnd);
     }
 
-    @Given("$responderId responder server listens on namespace $namespace with binding keys $routingKeys")
-    public void subscribeResponder(String responderId, String namespace, List<String> routingKeys) {
-        //modify name to make library generate different queue names for different consumers (responders)
-        Config config = ConfigFactory.load()
-                .withValue("msbConfig.serviceDetails.name", ConfigValueFactory.fromAnyRef("msb_java_" + responderId));
-
-        helper.initWithConfig(responderId, config);
-        MsbContext context = helper.getContext(responderId);
-
-        ResponderOptions amqpResponderOptions = new AmqpResponderOptions.Builder()
-                .withBindingKeys(new HashSet<>(routingKeys))
-                .withExchangeType(ExchangeType.TOPIC)
-                .build();
-
-        context.getObjectFactory().createResponderServer(namespace, amqpResponderOptions,
-                (request, responderContext) -> {
-                    receivedMessagesByConsumer.computeIfAbsent(responderId, key -> new LinkedList<>()).add(request);
-                }, String.class).listen();
-    }
-
     @Given("responder server listens on fanout namespace $namespace")
     public void subscribeResponder(String namespace) {
         MsbContext context = helper.getDefaultContext();
@@ -244,17 +224,6 @@ public class RequesterResponderSteps {
                 (request, responderContext) -> {
                     rawIncomingMessages.add(responderContext.getOriginalMessage());
                 }, String.class).listen();
-    }
-
-    @Then("$responderId responder receives only messages $messages")
-    public void assertReceivedMessages(String responderId, List<String> expectedMessagesRaw) throws InterruptedException {
-
-        List<String> expectedMessages = expectedMessagesRaw.stream()
-                .map(message -> message.substring(1, message.length() - 1)) //remove surrounding ' symbols
-                .collect(Collectors.toList());
-        TimeUnit.SECONDS.sleep(1); //wait until messages will be delivered
-        List<String> capturedMessages = receivedMessagesByConsumer.get(responderId);
-        assertTrue(CollectionUtils.isEqualCollection(expectedMessages, capturedMessages));
     }
 
     private void onBeforeRequest() {
@@ -376,37 +345,6 @@ public class RequesterResponderSteps {
         }
 
         outcomes.verify();
-    }
-
-    @When("requester sends to $namespace a request with body '$body' and routing key $routingKey")
-    public void requestForSingleResult(String namespace, String body, String routingKey) throws Exception {
-        helper.initDefault();
-        RequestOptions requestOptions = new AmqpRequestOptions.Builder()
-                .withExchangeType(ExchangeType.TOPIC)
-                .withRoutingKey(routingKey).build();
-
-        helper.getContext(DEFAULT_CONTEXT_NAME).getObjectFactory()
-                .createRequesterForFireAndForget(namespace, requestOptions)
-                .publish(body);
-    }
-
-    @When("requester sends to $namespace a request with forward namespace $forwardNamespace, body '$body' and routing key $routingKey")
-    public void publishWithRoutingKey(String namespace, String forwardNamespace, String body, String routingKey) throws Exception {
-        helper.initDefault();
-
-        RequestOptions requestOptions = new RequestOptions.Builder()
-                .withForwardNamespace(forwardNamespace)
-                .withRoutingKey(routingKey)
-                .build();
-
-        helper.getContext(DEFAULT_CONTEXT_NAME).getObjectFactory()
-                .createRequesterForFireAndForget(namespace, requestOptions)
-                .publish(body);
-    }
-
-    @When("requester sends to $namespace a request with forward namespace $forwardNamespace, body '$body' without routing key")
-    public void publishWithoutRoutingKey(String namespace, String forwardNamespace, String body) throws Exception {
-        publishWithRoutingKey(namespace, forwardNamespace, body, StringUtils.EMPTY);
     }
 
     @BeforeScenario
