@@ -1,17 +1,12 @@
 package io.github.tcdl.msb.acceptance.bdd.steps;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValueFactory;
 import io.github.tcdl.msb.acceptance.MsbTestHelper;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
 import io.github.tcdl.msb.support.Utils;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.jbehave.core.annotations.BeforeScenario;
 import org.jbehave.core.annotations.Given;
@@ -24,7 +19,6 @@ import org.junit.Assert;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import static io.github.tcdl.msb.acceptance.MsbTestHelper.DEFAULT_CONTEXT_NAME;
 import static org.junit.Assert.*;
@@ -50,32 +44,15 @@ public class RequesterResponderSteps {
     private volatile int responsesToSendCount;
     private volatile int responsesToExpectCount;
     private volatile String latestForwardNamespace = null;
-    private CompletableFuture<RestPayload> lastFutureResult = null;
-    private RestPayload resolvedResponse = null;
     private final LinkedList<Map<String, Object>> responses = new LinkedList<>();
-    private final String ACK = "ACK";
-    private final String PAYLOAD = "PAYLOAD";
-    private final int ACK_TIMEOUT = 500;
-    private final Map<String, List<String>> receivedMessagesByConsumer = new ConcurrentHashMap<>();
     private final Deque<Message> rawIncomingMessages = new ConcurrentLinkedDeque<>();
-
-    public Optional<String> getDefaultRequestsAckType() {
-        return defaultRequestsAckType;
-    }
 
     // responder steps
     @Given("responder server listens on namespace $namespace")
     public void createResponderServer(String namespace) {
-        createResponderServer(DEFAULT_CONTEXT_NAME, namespace);
-    }
-
-
-    @Given("responder server from $contextName listens on namespace $namespace")
-    @When("responder server from $contextName listens on namespace $namespace")
-    public void createResponderServer(String contextName, String namespace) {
         beforeCreateResponder();
-        ObjectMapper mapper = helper.getPayloadMapper(contextName);
-        helper.createResponderServer(contextName, namespace, (request, responderContext) -> {
+        ObjectMapper mapper = helper.getPayloadMapper(DEFAULT_CONTEXT_NAME);
+        helper.createResponderServer(DEFAULT_CONTEXT_NAME, namespace, (request, responderContext) -> {
             if (responseBody == null) {
                 return;
             }
@@ -169,7 +146,7 @@ public class RequesterResponderSteps {
     // requester steps
     @Given("requester sends requests to namespace $namespace")
     public void createRequester(String namespace) {
-        createRequester(DEFAULT_CONTEXT_NAME, namespace);
+        requester = helper.createRequester(DEFAULT_CONTEXT_NAME, namespace, null, 1, RestPayload.class);
     }
 
     // requester steps
@@ -186,18 +163,12 @@ public class RequesterResponderSteps {
         requester = helper.createRequester(DEFAULT_CONTEXT_NAME, namespace, null, responsesToExpectCount, 100, requestTimeout, RestPayload.class);
     }
 
-    @Given("requester from $contextName sends requests to namespace $namespace")
-    public void createRequester(String contextName, String namespace) {
-        requester = helper.createRequester(contextName, namespace, null, 1, RestPayload.class);
-    }
-
     @When("requester sends a request")
     public void sendRequest() throws Exception {
         sendRequest(DEFAULT_CONTEXT_NAME);
     }
 
-    @When("requester from $contextName sends a request")
-    public void sendRequest(String contextName) throws Exception {
+    private void sendRequest(String contextName) throws Exception {
         onBeforeRequest();
         RestPayload<?, ?, ?, ?> payload = helper.createFacetParserPayload("QUERY", null);
         helper.sendRequest(requester, payload, responsesToExpectCount, this::onResponse, this::onEnd);

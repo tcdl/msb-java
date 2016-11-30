@@ -46,18 +46,6 @@ public class ConfigurationSteps {
         helper.initWithConfig(config);
     }
 
-    @Given("init MSB context $contextName")
-    @When("init MSB context $contextName")
-    public void initMsbContext(String contextName) {
-        helper.initWithConfig(contextName, config);
-    }
-
-    @Then("shutdown context $contextName")
-    @When("shutdown context $contextName")
-    public void shutdownMsbContext(String contextName) {
-        helper.shutdown(contextName);
-    }
-
     @Then("shutdown MSB")
     public void shutdownMSB() {
         helper.shutdown();
