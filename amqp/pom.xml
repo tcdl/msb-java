@@ -3,7 +3,7 @@
     <parent>
         <groupId>io.github.tcdl.msb</groupId>
         <artifactId>msb-java</artifactId>
-        <version>1.4.6</version>
+        <version>1.4.6-IN-1258</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
