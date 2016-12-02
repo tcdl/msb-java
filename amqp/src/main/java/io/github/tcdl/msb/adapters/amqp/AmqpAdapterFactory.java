@@ -86,6 +86,8 @@ public class AmqpAdapterFactory implements AdapterFactory {
         connectionFactory.setAutomaticRecoveryEnabled(true);
         connectionFactory.setNetworkRecoveryInterval(adapterConfig.getNetworkRecoveryIntervalMs());
         connectionFactory.setRequestedHeartbeat(adapterConfig.getHeartbeatIntervalSec());
+        connectionFactory.setExceptionHandler(new AmqpExceptionHandler());
+
         if (username.isPresent()) {
             connectionFactory.setUsername(username.get());
         }
