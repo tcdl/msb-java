@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.tcdl.msb</groupId>
     <artifactId>msb-java</artifactId>
-    <version>1.4.6-SNAPSHOT</version>
+    <version>1.4.6-hot-fix</version>
     <name>msb java</name>
     <description>msb java</description>
     <packaging>pom</packaging>
@@ -11,7 +11,7 @@
         <connection>scm:git:https://github.com/tcdl/msb-java.git</connection>
         <developerConnection>scm:git:git@github.com:tcdl/msb-java.git</developerConnection>
         <url>https://github.com/tcdl/msb-java</url>
-        <tag>msb-java-1.4.6</tag>
+        <tag>1.4.6-hot-fix</tag>
     </scm>
     <distributionManagement>
         <repository>
