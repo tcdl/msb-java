@@ -19,13 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BiConsumer;
@@ -364,6 +358,9 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler {
     }
 
     public void waitForResponses() {
+        if(this.responseTimeoutFuture != null){
+            this.responseTimeoutFuture.cancel(true);
+        }
         int newTimeoutMs = this.currentTimeoutMs - toIntExact(clock.instant().toEpochMilli() - this.startedAt);
         LOG.debug("[correlation id: {}] Waiting for responses until {}.", requestMessage.getCorrelationId(), clock.instant().plus(newTimeoutMs, ChronoUnit.MILLIS));
         this.responseTimeoutFuture = timeoutManager.enableResponseTimeout(newTimeoutMs, this);
