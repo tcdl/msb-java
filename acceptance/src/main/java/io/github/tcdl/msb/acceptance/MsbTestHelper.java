@@ -2,6 +2,7 @@ package io.github.tcdl.msb.acceptance;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigValueFactory;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
@@ -10,7 +11,7 @@ import io.github.tcdl.msb.support.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.UUID;
 
 /**
  * Utility to simplify using requester and responder server
@@ -33,19 +34,35 @@ public class MsbTestHelper {
         return instance;
     }
 
-    public void initDefault() {
-        contextMap.put(DEFAULT_CONTEXT_NAME, new MsbContextBuilder()
-                .enableShutdownHook(true).build());
+    public MsbContext initDefault() {
+        return contextMap.put(DEFAULT_CONTEXT_NAME, new MsbContextBuilder()
+                .build());
     }
 
-    public void initWithConfig(Config config) {
-        initWithConfig(DEFAULT_CONTEXT_NAME, config);
+    public MsbContext initWithConfig(Config config) {
+        return initWithConfig(DEFAULT_CONTEXT_NAME, config);
     }
 
-    public void initWithConfig(String contextName, Config config) {
-        contextMap.put(contextName, new MsbContextBuilder()
-                .withConfig(config)
-                .enableShutdownHook(true).build());
+    public MsbContext initWithConfig(String contextName, Config config) {
+        MsbContext context = new MsbContextBuilder().withConfig(config).build();
+        contextMap.put(contextName, context);
+        return context;
+    }
+
+    /**
+     * Sets exchanges to be non-durable and queues to be temporary. This reduces the chances for tests to affect each other.
+     */
+    public static Config temporaryInfrastructure(Config config){
+        return config.withValue("msbConfig.brokerConfig.durable", ConfigValueFactory.fromAnyRef(false));
+    }
+
+    /**
+     * Creates MsbContext that will create unique (from context to context) queue names.
+     */
+    public MsbContext initDistinctContext(Config baseConfig) {
+        String uuid = UUID.randomUUID().toString();
+        Config config = baseConfig.withValue("msbConfig.serviceDetails.name", ConfigValueFactory.fromAnyRef(uuid));
+        return initWithConfig(uuid, config);
     }
 
     public MsbContext getContext(String contextName) {
@@ -58,10 +75,6 @@ public class MsbTestHelper {
 
     public ObjectMapper getPayloadMapper(String contextName) {
         return ((MsbContextImpl) getContext(contextName)).getPayloadMapper();
-    }
-
-    public ObjectMapper getPayloadMapper() {
-        return getPayloadMapper(DEFAULT_CONTEXT_NAME);
     }
 
     public <T> Requester<T> createRequester(String namespace, Integer numberOfResponses, Class<T> responsePayloadClass) {
@@ -88,14 +101,6 @@ public class MsbTestHelper {
 
     public <T> void sendRequest(Requester<T> requester, Object payload, Integer waitForResponses, Callback<T> responseCallback) throws Exception {
         sendRequest(requester, payload, true, waitForResponses, null, responseCallback, null);
-    }
-
-    public <T> void sendRequest(Requester<T> requester, Object payload, Integer waitForResponses, Callback<T> responseCallback, Callback<Void> endCallback, String tag) throws Exception {
-        sendRequest(requester, payload, true, waitForResponses, null, responseCallback, endCallback, tag);
-    }
-
-    public <T> void sendRequest(Requester<T> requester, Object payload, Integer waitForResponses, Callback<T> responseCallback, Callback<Void> endCallback) throws Exception {
-        sendRequest(requester, payload, true, waitForResponses, null, responseCallback, endCallback);
     }
 
     public <T> void sendRequest(Requester<T> requester, Object payload, boolean waitForAck, Integer waitForResponses,
@@ -135,10 +140,6 @@ public class MsbTestHelper {
         requester.publish(payload, tag);
     }
 
-    public <T> CompletableFuture<T> sendForResult(Requester<T> requester, Object payload, String... tags){
-        return requester.request(payload, tags);
-    }
-
     public ResponderServer createResponderServer(String contextName, String namespace, ResponderServer.RequestHandler<RestPayload> requestHandler) {
         System.out.println(">>> RESPONDER SERVER on: " + namespace);
         return getContext(contextName).getObjectFactory().createResponderServer(namespace, ResponderOptions.DEFAULTS, requestHandler, RestPayload.class);
@@ -158,18 +159,14 @@ public class MsbTestHelper {
     }
 
     public void shutdown() {
-        getDefaultContext().shutdown();
+        MsbContext context = contextMap.remove(DEFAULT_CONTEXT_NAME);
+        if(context != null){
+            context.shutdown();
+        }
     }
 
-    public RestPayload<?, ?, ?, ?> createFacetParserPayload(String query, String body) {
-        Map<String, String> queryMap = new HashMap<>();
-        queryMap.put("q", query);
-
-        Map<String, String> bodyMap = new HashMap<>();
-        bodyMap.put("body", body);
-        return new RestPayload.Builder<Map<String, String>, Object, Object, Map<String, String>>()
-                .withQuery(queryMap)
-                .withBody(bodyMap)
-                .build();
+    public void shutdownAll(){
+        contextMap.values().forEach(MsbContext::shutdown);
+        contextMap.clear();
     }
 }

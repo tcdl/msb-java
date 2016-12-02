@@ -8,10 +8,7 @@ import io.github.tcdl.msb.api.*;
 import org.junit.After;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
@@ -27,12 +24,9 @@ public class RoutingKeysTest {
 
     private static final String NAMESPACE = "test:routing";
 
-    final List<MsbContext> contexts = new ArrayList<>();
-
     @After
     public void tearDown() throws Exception {
-        contexts.forEach(MsbContext::shutdown);
-        contexts.clear();
+        MsbTestHelper.getInstance().shutdownAll();
     }
 
     @Test
@@ -145,13 +139,7 @@ public class RoutingKeysTest {
     }
 
     private MsbContext distinctContext(Config baseConfig) {
-        Config config = baseConfig
-                .withValue("msbConfig.serviceDetails.name", ConfigValueFactory.fromAnyRef(UUID.randomUUID().toString()))
-                .withValue("msbConfig.brokerConfig.durable", ConfigValueFactory.fromAnyRef(false));
-
-        MsbContext context = new MsbContextBuilder().withConfig(config).build();
-        contexts.add(context);
-        return context;
+        return MsbTestHelper.getInstance().initDistinctContext(MsbTestHelper.temporaryInfrastructure(baseConfig));
     }
 
     private void publishMessage(MsbContext requesterContext, ExchangeType exchangeType, String routingKey, String message) {
