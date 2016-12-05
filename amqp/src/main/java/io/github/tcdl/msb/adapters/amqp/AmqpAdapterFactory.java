@@ -6,7 +6,6 @@ import com.rabbitmq.client.Recoverable;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.adapters.AdapterFactory;
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.exception.AdapterCreationException;
 import io.github.tcdl.msb.api.exception.ChannelException;
@@ -118,6 +117,8 @@ public class AmqpAdapterFactory implements AdapterFactory {
         connectionFactory.setAutomaticRecoveryEnabled(true);
         connectionFactory.setNetworkRecoveryInterval(adapterConfig.getNetworkRecoveryIntervalMs());
         connectionFactory.setRequestedHeartbeat(adapterConfig.getHeartbeatIntervalSec());
+        connectionFactory.setExceptionHandler(new AmqpExceptionHandler());
+
         if (username.isPresent()) {
             connectionFactory.setUsername(username.get());
         }
