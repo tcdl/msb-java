@@ -11,6 +11,18 @@
 	<name>msb spring boot starter</name>
 	<packaging>jar</packaging>
 
+	<scm>
+		<connection>scm:git:https://github.com/tcdl/msb-java.git</connection>
+		<developerConnection>scm:git:git@github.com:tcdl/msb-java.git</developerConnection>
+		<url>https://github.com/tcdl/msb-java</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<organization>
+		<name>tcdl</name>
+		<url>https://github.com/tcdl</url>
+	</organization>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
