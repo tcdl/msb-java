@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * Wrapper for {@link Channel} that support automatic re-initialization upon errors.
+ * Wrapper for {@link Channel} that provides some additional debug logging.
  */
 public class LoggingAmqpChannel {
     private static final Logger LOG = LoggerFactory.getLogger(LoggingAmqpChannel.class);
