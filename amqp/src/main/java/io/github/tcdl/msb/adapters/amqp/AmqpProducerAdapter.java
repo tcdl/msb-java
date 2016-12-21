@@ -8,14 +8,13 @@ import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 
 public class AmqpProducerAdapter implements ProducerAdapter {
 
     final String exchangeName;
     final AmqpBrokerConfig amqpBrokerConfig;
-    final AmqpAutoRecoveringChannel amqpAutoRecoveringChannel;
+    final LoggingAmqpChannel channel;
 
     public AmqpProducerAdapter(String topic, ExchangeType exchangeType, AmqpBrokerConfig amqpBrokerConfig, AmqpConnectionManager connectionManager) {
         Validate.notNull(topic, "Topic is mandatory");
@@ -25,10 +24,10 @@ public class AmqpProducerAdapter implements ProducerAdapter {
 
         this.exchangeName = topic;
         this.amqpBrokerConfig = amqpBrokerConfig;
-        this.amqpAutoRecoveringChannel = new AmqpAutoRecoveringChannel(connectionManager);
+        this.channel = LoggingAmqpChannel.instance(connectionManager);
 
         try {
-            amqpAutoRecoveringChannel.exchangeDeclare(exchangeName, exchangeType.value(), false /* durable */, true /* auto-delete */, null);
+            channel.exchangeDeclare(exchangeName, exchangeType.value(), false /* durable */, true /* auto-delete */, null);
         } catch (Exception e) {
             throw new ChannelException("Failed to setup channel from ActiveMQ connection", e);
         }
@@ -48,7 +47,7 @@ public class AmqpProducerAdapter implements ProducerAdapter {
         Charset charset = amqpBrokerConfig.getCharset();
 
         try {
-            amqpAutoRecoveringChannel.basicPublish(exchangeName, routingKey, MessageProperties.PERSISTENT_BASIC, jsonMessage.getBytes(charset));
+            channel.basicPublish(exchangeName, routingKey, MessageProperties.PERSISTENT_BASIC, jsonMessage.getBytes(charset));
         } catch (Exception e) {
             throw new ChannelException(String.format("Failed to publish message '%s' into exchange '%s' with routing key '%s'", jsonMessage, exchangeName, routingKey), e);
         }
