@@ -139,8 +139,8 @@ public class ChannelManager {
 
     public void shutdown() {
         LOG.info("Shutting down...");
-        adapterFactory.shutdown();
         messageHandlerInvoker.shutdown();
+        adapterFactory.shutdown();
         LOG.info("Shutdown complete");
     }
 }
