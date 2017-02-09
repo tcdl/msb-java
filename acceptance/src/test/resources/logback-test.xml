@@ -3,7 +3,7 @@
     <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <charset>UTF-8</charset>
-            <pattern>%d{HH:mm:ss.SSS} %-5level %logger [%t] tags[%X{msbTags}] corrId[%X{msbCorrelationId}] customTagKey[%X{customTagKey}] - %m%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{1} [%t] tags[%X{msbTags}] corrId[%X{msbCorrelationId}] customTagKey[%X{customTagKey}] - %m%n</pattern>
         </encoder>
     </appender>
 
@@ -13,6 +13,8 @@
             <Pattern>%-5level tags[%X{msbTags}] corrId[%X{msbCorrelationId}] customTagKey[%X{customTagKey}] %m%n</Pattern>
         </encoder>
     </appender>
+
+    <logger name="io.github.tcdl.msb.config" level="INFO"/>
 
     <root>
         <level value="DEBUG"/>
