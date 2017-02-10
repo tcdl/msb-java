@@ -4,11 +4,16 @@
 </head>
 
 <body lang="en">
-<h2>Welcome to MSB-Java version 1.6.0</h2>
+<h2>Welcome to MSB-Java version 1.6.1</h2>
 
-<h3>November 16, 2016</h3>
+<h3>February 2, 2017</h3>
 
 <pre>
+Features of MSB-Java version 1.6.1:
+   - Improved message processing during context shutdown;
+   - Improved AMQP exception handling and channel automatic recovery;
+   - Removed JBehave tests as deprecated;
+   
 Features of MSB-Java version 1.6.0:
    - Broken backward compatibility with 1.5.2 version. Now exchange type for AMQ is not determined by routing key
      presence/absence. It can be set explicitly using AmqpRequestOptions. Default value 'fanout' is used if exchange
