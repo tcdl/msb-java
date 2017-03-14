@@ -11,7 +11,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class AcknowledgementHandlerTest {
+public class AcknowledgementHandlerImplTest {
 
     private AcknowledgementHandlerImpl handler;
 
@@ -79,8 +79,15 @@ public class AcknowledgementHandlerTest {
     @Test
     public void testRedeliveredMessageRejectedInsteadOfRetry() throws Exception {
         handler = getHandler(true);
-        handler.retryMessage();
+        handler.autoRetry();
         verifySingleReject();
+    }
+
+    @Test
+    public void testManuallyRetriedMessageNotRejected() throws Exception {
+        handler = getHandler(true);
+        handler.retryMessage();
+        verifySingleRetry();
     }
 
     @Test

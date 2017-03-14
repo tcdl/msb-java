@@ -9,6 +9,10 @@
 <h3>February 2, 2017</h3>
 
 <pre>
+Changes in MSB-Java version 1.6.2:
+   - Manual message retry is not limited to a single attempt any more. It is completely up to client code to decide when
+     message should not be retried any more.
+
 Features of MSB-Java version 1.6.1:
    - Improved message processing during context shutdown;
    - Improved AMQP exception handling and channel automatic recovery;

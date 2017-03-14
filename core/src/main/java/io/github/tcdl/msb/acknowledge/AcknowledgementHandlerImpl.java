@@ -26,7 +26,6 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
 
     public AcknowledgementHandlerImpl(AcknowledgementAdapter acknowledgementAdapter,
                                       boolean isMessageRedelivered, String messageTextIdentifier) {
-        super();
         this.acknowledgementAdapter = acknowledgementAdapter;
         this.isMessageRedelivered = isMessageRedelivered;
         this.messageTextIdentifier = messageTextIdentifier;
@@ -51,13 +50,8 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
     @Override
     public void retryMessage() {
         executeAck("requeue", () -> {
-            if(!isMessageRedelivered) {
-                acknowledgementAdapter.retry();
-                LOG.debug("[{}] A message was rejected with requeue", messageTextIdentifier);
-            } else {
-                acknowledgementAdapter.reject();
-                LOG.warn("[{}] Can't requeue message because it already was redelivered once, discarding it instead", messageTextIdentifier);
-            }
+            acknowledgementAdapter.retry();
+            LOG.debug("[{}] A message was rejected with requeue", messageTextIdentifier);
         });
     }
 
@@ -97,8 +91,13 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
 
     public void autoRetry() {
         executeAutoAck(() -> {
-            retryMessage();
-            LOG.debug("[{}] A message was automatically rejected (with a requeue attempt) due to error during message processing", messageTextIdentifier);
+            if (!isMessageRedelivered) {
+                retryMessage();
+                LOG.debug("[{}] A message was rejected with requeue", messageTextIdentifier);
+            } else {
+                rejectMessage();
+                LOG.warn("[{}] Can't requeue message because it already was redelivered once, discarding it instead", messageTextIdentifier);
+            }
         });
     }
 
