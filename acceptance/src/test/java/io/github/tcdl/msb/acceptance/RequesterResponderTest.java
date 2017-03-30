@@ -92,7 +92,35 @@ public class RequesterResponderTest {
     }
 
     @Test
-    public void singleRedeliveryOnRetry() throws Exception {
+    public void manualRetry() throws Exception {
+
+        MsbContext requesterContext = helper.initDistinctContext(MsbTestHelper.temporaryInfrastructure(config));
+        MsbContext responderContext = helper.initDistinctContext(MsbTestHelper.temporaryInfrastructure(config));
+
+        int expectedDeliveryCount = 5;
+
+        AtomicInteger deliveryCount = new AtomicInteger(0);
+        responderContext.getObjectFactory().createResponderServer(NAMESPACE, ResponderOptions.DEFAULTS,
+                (request, ctx) -> {
+                    deliveryCount.incrementAndGet();
+                    if(deliveryCount.get() < expectedDeliveryCount) {
+                        ctx.getAcknowledgementHandler().retryMessage();
+                    } else {
+                        ctx.getAcknowledgementHandler().rejectMessage();
+                    }
+                },
+                String.class)
+                .listen();
+
+        requesterContext.getObjectFactory().createRequesterForFireAndForget(NAMESPACE).publish(REQUEST_BODY);
+
+        //wait a bit
+        TimeUnit.SECONDS.sleep(1);
+        assertEquals("Incorrect delivery count", expectedDeliveryCount, deliveryCount.get());
+    }
+
+    @Test
+    public void singleAutomaticRetryOnErrorHandlerFailure() throws Exception {
 
         MsbContext requesterContext = helper.initDistinctContext(MsbTestHelper.temporaryInfrastructure(config));
         MsbContext responderContext = helper.initDistinctContext(MsbTestHelper.temporaryInfrastructure(config));
@@ -103,7 +131,9 @@ public class RequesterResponderTest {
         responderContext.getObjectFactory().createResponderServer(NAMESPACE, ResponderOptions.DEFAULTS,
                 (request, ctx) -> {
                     deliveryCount.incrementAndGet();
-                    ctx.getAcknowledgementHandler().retryMessage();
+                    throw new RuntimeException("Trigger onError handler retry");
+                },(exception, originalMessage) -> {
+                    throw new RuntimeException("Trigger automatic retry");
                 },
                 String.class)
                 .listen();
