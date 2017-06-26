@@ -179,16 +179,18 @@ public class Collector<T> implements ConsumedMessagesAwareMessageHandler, Execut
 
     @Override
     public void handleMessage(Message incomingMessage, AcknowledgementHandler acknowledgeHandler) {
-        LOG.debug("[correlation ids: {}-{}] Received {}",
-                requestMessage.getCorrelationId(), incomingMessage.getCorrelationId(), incomingMessage);
+        LOG.debug("[correlation ids: {}-{}] Received.",
+                requestMessage.getCorrelationId(), incomingMessage.getCorrelationId());
+        LOG.trace("Message: {}", incomingMessage);
 
         JsonNode rawPayload = incomingMessage.getRawPayload();
         MessageContext messageContext = createMessageContext(acknowledgeHandler, incomingMessage);
         boolean isWithPayload = Utils.isPayloadPresent(rawPayload);
 
         if (isWithPayload) {
-            LOG.debug("[correlation ids: {}-{}] Received Payload {}",
-                    requestMessage.getCorrelationId(), incomingMessage.getCorrelationId(), rawPayload);
+            LOG.debug("[correlation ids: {}-{}] Received Payload.",
+                    requestMessage.getCorrelationId(), incomingMessage.getCorrelationId());
+            LOG.trace("Payload: {}", rawPayload);
             payloadMessages.add(incomingMessage);
             try {
                 onRawResponse.ifPresent(handler -> handler.accept(incomingMessage, messageContext));

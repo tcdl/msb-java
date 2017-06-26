@@ -36,7 +36,7 @@ public class Producer {
         String routingKey = message.getTopics().getRoutingKey();
         try {
             String jsonMessage = Utils.toJson(message, messageMapper);
-            LOG.debug("Publishing message to adapter : {}", jsonMessage);
+            LOG.trace("Publishing message to adapter : {}", jsonMessage);
             rawAdapter.publish(jsonMessage, routingKey != null ? routingKey : StringUtils.EMPTY);
         } catch (ChannelException | JsonConversionException e) {
             LOG.error("Exception while message publish to adapter", e);

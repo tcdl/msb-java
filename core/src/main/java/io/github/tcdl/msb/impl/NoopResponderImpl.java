@@ -21,13 +21,15 @@ public class NoopResponderImpl implements Responder {
     /** {@inheritDoc} */
     @Override
     public void sendAck(Integer timeoutMs, Integer responsesRemaining) {
-        LOG.error("Cannot send ack because response topic is unknown. Incoming message: {}", originalMessage);
+        LOG.error("Cannot send ack because response topic is unknown.");
+        LOG.trace("Incoming message: {}", originalMessage);
     }
 
     /** {@inheritDoc} */
     @Override
     public void send(Object responsePayload) {
-        LOG.error("Cannot send response because response topic is unknown. Incoming message: {}", originalMessage);
+        LOG.error("Cannot send response because response topic is unknown.");
+        LOG.trace("Incoming message: {}", originalMessage);
     }
 
 }
