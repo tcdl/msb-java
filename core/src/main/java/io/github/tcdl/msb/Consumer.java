@@ -121,7 +121,7 @@ public class Consumer {
             }
 
             if (isMessageExpired(message)) {
-                LOG.warn("{} Expired message.", loggingTag);
+                LOG.warn("[correlation id: {}, message id: {}] {} Expired message. ", message.getCorrelationId(), message.getId(), loggingTag);
                 LOG.trace("Message: {}", jsonMessage);
                 acknowledgeHandler.autoReject();
                 return;
@@ -141,7 +141,8 @@ public class Consumer {
                 acknowledgeHandler.autoReject();
             }
         } catch (Exception e) {
-            LOG.warn("{} Error while trying to handle a message. ", loggingTag, e);
+            LOG.warn("[correlation id: {}, message id: {}] {} Error while trying to handle a message. ",
+                    message.getCorrelationId(), message.getId(), loggingTag, e);
             LOG.trace("Message: {}", jsonMessage);
             acknowledgeHandler.autoRetry();
             if(consumedMessagesAwareMessageHandler != null) {
@@ -164,7 +165,8 @@ public class Consumer {
         LOG.trace("Message: {}", jsonMessage);
 
         Message result = Utils.fromJson(jsonMessage, Message.class, messageMapper);
-        LOG.debug("{} Message has been successfully parsed.", loggingTag);
+        LOG.debug("[correlation id: {}, message id: {}] {} Message has been successfully parsed.",
+                result.getCorrelationId(), result.getId(), loggingTag);
         LOG.trace("Message: {}", jsonMessage);
         return result;
     }

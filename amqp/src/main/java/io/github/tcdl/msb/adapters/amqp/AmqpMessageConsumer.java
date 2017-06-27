@@ -52,7 +52,7 @@ public class AmqpMessageConsumer extends DefaultConsumer {
                 LOG.trace("Message: {}", bodyStr);
             } catch (Exception e) {
                 LOG.error("[consumer tag: {}] Can't handle a raw message.", consumerTag, e);
-                LOG.trace("Message: {}.", bodyStr);
+                LOG.trace("Message: {}", bodyStr);
                 throw e;
             }
         } catch (Exception e) {

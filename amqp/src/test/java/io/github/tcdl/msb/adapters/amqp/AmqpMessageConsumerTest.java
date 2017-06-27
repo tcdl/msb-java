@@ -1,30 +1,26 @@
 package io.github.tcdl.msb.adapters.amqp;
 
-import static org.junit.Assert.assertEquals;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Envelope;
+import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerImpl;
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.concurrent.RejectedExecutionException;
+
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.*;
-
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
-import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerImpl;
-import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
-
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionException;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Envelope;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AmqpMessageConsumerTest {
