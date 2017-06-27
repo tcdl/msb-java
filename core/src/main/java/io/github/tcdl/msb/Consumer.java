@@ -99,14 +99,16 @@ public class Consumer {
      * @param jsonMessage message to process
      */
     protected void handleRawMessage(String jsonMessage, AcknowledgementHandlerInternal acknowledgeHandler) {
-        LOG.debug("{} message received [{}]", loggingTag, jsonMessage);
+        LOG.debug("{} message received.", loggingTag);
+        LOG.trace("Message: {}", jsonMessage);
 
         Message message;
 
         try {
             message = parseMessage(jsonMessage);
         } catch (Exception e) {
-            LOG.error("{} Unable to process consumed message {}", loggingTag, jsonMessage, e);
+            LOG.error("{} ", loggingTag, e);
+            LOG.trace("Unable to process consumed message: {}", jsonMessage);
             acknowledgeHandler.autoReject();
             return;
         }
@@ -119,7 +121,8 @@ public class Consumer {
             }
 
             if (isMessageExpired(message)) {
-                LOG.warn("{} Expired message: {}", loggingTag, jsonMessage);
+                LOG.warn("[correlation id: {}, message id: {}] {} Expired message. ", message.getCorrelationId(), message.getId(), loggingTag);
+                LOG.trace("Message: {}", jsonMessage);
                 acknowledgeHandler.autoReject();
                 return;
             }
@@ -133,11 +136,14 @@ public class Consumer {
                 }
                 messageHandlerInvoker.execute(messageHandler, message, acknowledgeHandler);
             } else {
-                LOG.warn("{} Cant't resolve message handler for a message: {}", loggingTag, jsonMessage);
+                LOG.warn("{} Can't resolve message handler.", loggingTag);
+                LOG.trace("Message: {}", jsonMessage);
                 acknowledgeHandler.autoReject();
             }
         } catch (Exception e) {
-            LOG.warn("{} Error while trying to handle a message: {}", loggingTag, jsonMessage, e);
+            LOG.warn("[correlation id: {}, message id: {}] {} Error while trying to handle a message. ",
+                    message.getCorrelationId(), message.getId(), loggingTag, e);
+            LOG.trace("Message: {}", jsonMessage);
             acknowledgeHandler.autoRetry();
             if(consumedMessagesAwareMessageHandler != null) {
                 consumedMessagesAwareMessageHandler.notifyConsumedMessageIsLost();
@@ -151,12 +157,17 @@ public class Consumer {
 
     private Message parseMessage(String jsonMessage) {
         if (msbConfig.getSchema() != null && !Utils.isServiceTopic(topic) && msbConfig.isValidateMessage()) {
-            LOG.debug("{} Validating schema for {}", loggingTag, jsonMessage);
+            LOG.debug("{} Validating schema.", loggingTag);
+            LOG.trace("Message: {}", jsonMessage);
             validator.validate(jsonMessage, msbConfig.getSchema());
         }
-        LOG.debug("{} Parsing message {}", loggingTag, jsonMessage);
+        LOG.debug("{} Parsing message.", loggingTag);
+        LOG.trace("Message: {}", jsonMessage);
+
         Message result = Utils.fromJson(jsonMessage, Message.class, messageMapper);
-        LOG.debug("{} Message has been successfully parsed {}", loggingTag, jsonMessage);
+        LOG.debug("[correlation id: {}, message id: {}] {} Message has been successfully parsed.",
+                result.getCorrelationId(), result.getId(), loggingTag);
+        LOG.trace("Message: {}", jsonMessage);
         return result;
     }
 

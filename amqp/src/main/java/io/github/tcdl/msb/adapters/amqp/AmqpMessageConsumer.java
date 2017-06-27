@@ -43,15 +43,16 @@ public class AmqpMessageConsumer extends DefaultConsumer {
 
             String bodyStr = new String(body, charset);
 
-            LOG.debug("[consumer tag: {}] Message consumed from broker: {}", consumerTag, bodyStr);
+            LOG.debug("[consumer tag: {}] Message consumed from broker.", consumerTag);
+            LOG.trace("Message: {}", bodyStr);
 
             try {
                 msgHandler.onMessage(bodyStr, ackHandler);
-                LOG.debug("[consumer tag: {}] Raw message has been handled: {}.",
-                        consumerTag, bodyStr);
+                LOG.debug("[consumer tag: {}] Raw message has been handled.", consumerTag);
+                LOG.trace("Message: {}", bodyStr);
             } catch (Exception e) {
-                LOG.error("[consumer tag: {}] Can't handle a raw message: {}.",
-                        consumerTag, bodyStr, e);
+                LOG.error("[consumer tag: {}] Can't handle a raw message.", consumerTag, e);
+                LOG.trace("Message: {}", bodyStr);
                 throw e;
             }
         } catch (Exception e) {

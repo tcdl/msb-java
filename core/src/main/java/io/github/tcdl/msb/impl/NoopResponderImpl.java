@@ -2,7 +2,6 @@ package io.github.tcdl.msb.impl;
 
 import io.github.tcdl.msb.api.Responder;
 import io.github.tcdl.msb.api.message.Message;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,13 +20,17 @@ public class NoopResponderImpl implements Responder {
     /** {@inheritDoc} */
     @Override
     public void sendAck(Integer timeoutMs, Integer responsesRemaining) {
-        LOG.error("Cannot send ack because response topic is unknown. Incoming message: {}", originalMessage);
+        LOG.error("[correlation id: {}, message id: {}] Cannot send ack because response topic is unknown.",
+                originalMessage.getCorrelationId(), originalMessage.getId());
+        LOG.trace("Incoming message: {}", originalMessage);
     }
 
     /** {@inheritDoc} */
     @Override
     public void send(Object responsePayload) {
-        LOG.error("Cannot send response because response topic is unknown. Incoming message: {}", originalMessage);
+        LOG.error("[correlation id: {}, message id: {}] Cannot send response because response topic is unknown.",
+                originalMessage.getCorrelationId(), originalMessage.getId());
+        LOG.trace("Incoming message: {}", originalMessage);
     }
 
 }
