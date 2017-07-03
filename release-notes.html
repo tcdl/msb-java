@@ -4,14 +4,16 @@
 </head>
 
 <body lang="en">
-<h2>Welcome to MSB-Java version 1.6.1</h2>
+<h2>Welcome to MSB-Java version 1.6.2</h2>
 
-<h3>February 2, 2017</h3>
+<h3>July 3, 2017</h3>
 
 <pre>
 Changes in MSB-Java version 1.6.2:
-   - Manual message retry is not limited to a single attempt any more. It is completely up to client code to decide when
-     message should not be retried any more.
+   - Manual message retry is not limited to a single attempt anymore. It is completely up to client code to decide 
+     when message should not be retried anymore;
+   - Restored CLI tool. Supported 'fanout' and 'topic' exchange types;
+   - Full message logging was replaced with separated message log with TRACE level;
 
 Features of MSB-Java version 1.6.1:
    - Improved message processing during context shutdown;
