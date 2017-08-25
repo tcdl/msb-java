@@ -7,10 +7,14 @@ import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.config.amqp.AmqpBrokerConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
 
 public class AmqpProducerAdapter implements ProducerAdapter {
+    private static final Logger LOG = LoggerFactory.getLogger(AmqpProducerAdapter.class);
+    private static final String ERROR_MESSAGE_TEMPLATE = "Failed to publish message into exchange '%s' with routing key '%s'";
 
     final String exchangeName;
     final AmqpBrokerConfig amqpBrokerConfig;
@@ -49,7 +53,9 @@ public class AmqpProducerAdapter implements ProducerAdapter {
         try {
             channel.basicPublish(exchangeName, routingKey, MessageProperties.PERSISTENT_BASIC, jsonMessage.getBytes(charset));
         } catch (Exception e) {
-            throw new ChannelException(String.format("Failed to publish message '%s' into exchange '%s' with routing key '%s'", jsonMessage, exchangeName, routingKey), e);
+            LOG.debug(ERROR_MESSAGE_TEMPLATE, exchangeName, routingKey);
+            LOG.trace("Message: {}", jsonMessage);
+            throw new ChannelException(String.format(ERROR_MESSAGE_TEMPLATE, exchangeName, routingKey), e);
         }
     }
 }

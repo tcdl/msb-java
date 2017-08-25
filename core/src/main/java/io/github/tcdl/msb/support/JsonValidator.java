@@ -8,6 +8,8 @@ import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import io.github.tcdl.msb.api.exception.JsonSchemaValidationException;
 import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -18,7 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Validates JSON against JSON Schema
  */
 public class JsonValidator {
-
+    private static final Logger LOG = LoggerFactory.getLogger(JsonValidator.class);
+    private static final String ERROR_MESSAGE_TEMPLATE = "Error while validating message using schema '%s'";
     private Map<String, JsonSchema> schemaCache = new ConcurrentHashMap<>();
     private JsonReader jsonReader;
 
@@ -58,7 +61,9 @@ public class JsonValidator {
             }
 
         } catch (IOException | ProcessingException e) {
-            throw new JsonSchemaValidationException(String.format("Error while validating message '%s' using schema '%s'", json, schema), e);
+            LOG.error(ERROR_MESSAGE_TEMPLATE, schema);
+            LOG.trace("Message: {}", json);
+            throw new JsonSchemaValidationException(String.format(ERROR_MESSAGE_TEMPLATE, schema), e);
         }
     }
 
