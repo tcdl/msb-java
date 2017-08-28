@@ -53,7 +53,7 @@ public class AmqpProducerAdapter implements ProducerAdapter {
         try {
             channel.basicPublish(exchangeName, routingKey, MessageProperties.PERSISTENT_BASIC, jsonMessage.getBytes(charset));
         } catch (Exception e) {
-            LOG.debug(ERROR_MESSAGE_TEMPLATE, exchangeName, routingKey);
+            LOG.error(ERROR_MESSAGE_TEMPLATE, exchangeName, routingKey);
             LOG.trace("Message: {}", jsonMessage);
             throw new ChannelException(String.format(ERROR_MESSAGE_TEMPLATE, exchangeName, routingKey), e);
         }
