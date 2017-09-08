@@ -93,14 +93,14 @@ public class AcknowledgementHandlerImplTest {
     @Test
     public void testConditionallyRetriedMessageRetried() throws Exception {
         handler = getHandler(false);
-        handler.retryMessageIfNotRedelivered();
+        handler.retryMessageFirstTime();
         verifySingleRetry();
     }
 
     @Test
     public void testConditionallyRetriedRedeliveredMessageRejected() throws Exception {
         handler = getHandler(true);
-        handler.retryMessageIfNotRedelivered();
+        handler.retryMessageFirstTime();
         verifySingleReject();
     }
 

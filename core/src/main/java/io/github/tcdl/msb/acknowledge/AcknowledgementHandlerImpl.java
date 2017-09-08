@@ -56,7 +56,7 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
     }
 
     @Override
-    public void retryMessageIfNotRedelivered() {
+    public void retryMessageFirstTime() {
         if (!isMessageRedelivered) {
             retryMessage();
         } else {

@@ -45,7 +45,7 @@ public interface AcknowledgementHandler {
      * Inform server that a message was rejected by customer. Message should be requeued only
      * if it was not delivered before.
      */
-    void retryMessageIfNotRedelivered();
+    void retryMessageFirstTime();
     
     /**
      * Inform server that a message was rejected by consumer without requeue  
