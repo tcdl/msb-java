@@ -77,7 +77,7 @@ public class AcknowledgementHandlerImplTest {
     }
 
     @Test
-    public void testRedeliveredMessageRejectedInsteadOfRetry() throws Exception {
+    public void testAutoRedeliveredMessageRejectedInsteadOfRetry() throws Exception {
         handler = getHandler(true);
         handler.autoRetry();
         verifySingleReject();
@@ -88,6 +88,20 @@ public class AcknowledgementHandlerImplTest {
         handler = getHandler(true);
         handler.retryMessage();
         verifySingleRetry();
+    }
+
+    @Test
+    public void testConditionallyRetriedMessageRetried() throws Exception {
+        handler = getHandler(false);
+        handler.retryMessageFirstTime();
+        verifySingleRetry();
+    }
+
+    @Test
+    public void testConditionallyRetriedRedeliveredMessageRejected() throws Exception {
+        handler = getHandler(true);
+        handler.retryMessageFirstTime();
+        verifySingleReject();
     }
 
     @Test

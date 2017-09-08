@@ -56,6 +56,15 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
     }
 
     @Override
+    public void retryMessageFirstTime() {
+        if (!isMessageRedelivered) {
+            retryMessage();
+        } else {
+            rejectMessage();
+        }
+    }
+
+    @Override
     public void rejectMessage() {
         executeAck("reject", () -> {
             acknowledgementAdapter.reject();
@@ -74,7 +83,8 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
             LOG.error(ACK_WAS_ALREADY_SENT, messageTextIdentifier);
         }
     }
-    
+
+    @Override
     public void autoConfirm() {
         executeAutoAck(() -> {
             confirmMessage();
@@ -82,6 +92,7 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
         });
     }
 
+    @Override
     public void autoReject() {
         executeAutoAck(() -> {
             rejectMessage();
@@ -89,6 +100,7 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
         });
     }
 
+    @Override
     public void autoRetry() {
         executeAutoAck(() -> {
             if (!isMessageRedelivered) {
