@@ -3,6 +3,8 @@ package io.github.tcdl.msb.adapters;
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
 import io.github.tcdl.msb.api.exception.ChannelException;
 
+import java.util.Optional;
+
 /**
  * {@link ConsumerAdapter} allows to receive messages from message bus. One adapter instance is associated with specific topic.
  *
@@ -22,6 +24,13 @@ public interface ConsumerAdapter {
      * @throws ChannelException if some problems during unsubscribing to topic were occurred
      */
     void unsubscribe();
+
+    /**
+     * Returns the number of messages in the queue, ready to be delivered to consumers.
+     * If the queue has not been subscribed to yet, this will return {@link Optional#empty()}.
+     * @return the number of messages in ready state
+     */
+    Optional<Long> messageCount();
 
     /**
      * Callback interface for incoming message handler

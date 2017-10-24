@@ -21,6 +21,7 @@ import org.junit.rules.ExpectedException;
 import javax.xml.ws.Holder;
 import java.time.Clock;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -101,6 +102,47 @@ public class ChannelManagerTest {
 
         assertTrue(awaitReceiveEvents.await(4000, TimeUnit.MILLISECONDS));
         assertNotNull(messageEvent.value);
+    }
+
+    @Test
+    public void testAvailableMessageCountInitialized() {
+        String topic = "some:topic";
+
+        Optional<Long> result = channelManager.getAvailableMessageCount(topic);
+
+        assertEquals(Optional.empty(), result);
+    }
+
+    @Test
+    public void testAvailableMessageCountSubscribed() {
+        String topic = "some:topic";
+
+        ResponderOptions responderOptions = new ResponderOptions.Builder().build();
+
+        channelManager.subscribe(topic, responderOptions, (message, acknowledgeHandler) -> {});
+
+        expectedException.expect(UnsupportedOperationException.class);
+        channelManager.getAvailableMessageCount(topic);
+    }
+
+    @Test
+    public void testAvailableMessageCountUnsubscribed() {
+        String topic = "some:topic";
+
+        ResponderOptions responderOptions = new ResponderOptions.Builder().build();
+
+        channelManager.subscribe(topic, responderOptions, (message, acknowledgeHandler) -> {});
+
+        expectedException.expect(UnsupportedOperationException.class);
+        channelManager.getAvailableMessageCount(topic);
+
+        channelManager.unsubscribe(topic);
+
+        Optional<Long> result = channelManager.getAvailableMessageCount(topic);
+
+        assertEquals(Optional.empty(), result);
+
+
     }
 
 }

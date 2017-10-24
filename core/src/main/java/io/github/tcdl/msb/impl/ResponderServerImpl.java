@@ -80,6 +80,11 @@ public class ResponderServerImpl<T> implements ResponderServer {
         return this;
     }
 
+    @Override
+    public Optional<Long> availableMessageCount() {
+        return msbContext.getChannelManager().getAvailableMessageCount(namespace);
+    }
+
     Responder createResponder(Message incomingMessage) {
         if (isResponseNeeded(incomingMessage)) {
             return new ResponderImpl(responderOptions.getMessageTemplate(), incomingMessage, msbContext);

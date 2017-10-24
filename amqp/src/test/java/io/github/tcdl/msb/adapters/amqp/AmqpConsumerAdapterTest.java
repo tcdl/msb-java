@@ -227,6 +227,64 @@ public class AmqpConsumerAdapterTest {
         assertTrue(adapter.isDurable());
     }
 
+    @Test
+    public void testMessageCount() throws Exception {
+        String topicName = "myTopic";
+        String groupId = "groupId";
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf(topicName, groupId, false);
+
+        when(mockChannel.messageCount(anyString())).thenReturn(42L);
+
+        adapter.subscribe((jsonMessage, ackHandler) -> {
+        });
+
+        verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
+
+        Optional<Long> answer = Optional.of(42L);
+        Optional<Long> result = adapter.messageCount();
+        verify(mockChannel, times(1)).messageCount(anyString());
+        assertEquals(answer, result);
+    }
+
+    @Test
+    public void testMessageCountNeverSubscribed() throws Exception {
+        String topicName = "myTopic";
+        String groupId = "groupId";
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf(topicName, groupId, false);
+
+
+        Optional<Long> result = adapter.messageCount();
+        verify(mockChannel, never()).messageCount(anyString());
+        assertEquals(result, Optional.empty());
+    }
+
+    @Test
+    public void testMessageCountAfterUnsubscribe() throws Exception {
+        String topicName = "myTopic";
+        String groupId = "groupId";
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf(topicName, groupId, false);
+
+        when(mockChannel.messageCount(anyString())).thenReturn(42L);
+
+        adapter.subscribe((jsonMessage, ackHandler) -> {
+        });
+
+        verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
+
+        Optional<Long> expectedAnswerWhileSubscribed = Optional.of(42L);
+        Optional<Long> expectedAnswerWhileUnsubscribed = Optional.empty();
+
+        Optional<Long> resultWhileSubscribed = adapter.messageCount();
+
+        adapter.unsubscribe();
+
+        Optional<Long> resultWhileUnsubscribed = adapter.messageCount();
+
+        verify(mockChannel, times(1)).messageCount(anyString());
+        assertEquals(resultWhileSubscribed, expectedAnswerWhileSubscribed);
+        assertEquals(resultWhileUnsubscribed, expectedAnswerWhileUnsubscribed);
+    }
+
     private AmqpConsumerAdapter createAdapterWithNonDurableConf(String topic, String groupId, boolean isResponseTopic) {
         boolean isDurableConf = false;
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig(Charset.forName("UTF-8"), "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(),
