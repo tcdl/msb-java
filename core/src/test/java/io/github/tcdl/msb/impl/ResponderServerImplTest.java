@@ -8,6 +8,7 @@ import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
+import io.github.tcdl.msb.api.metrics.Gauge;
 import io.github.tcdl.msb.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +26,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.same;
 
 public class ResponderServerImplTest {
 
@@ -90,14 +92,16 @@ public class ResponderServerImplTest {
         when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
         when(spyChannelManager.getAvailableMessageCount(anyString())).thenReturn(Optional.of(666L));
 
-        ResponderServerImpl<RestPayload<Object, Map<String, String>, Object, Map<String, String>>> responderServer =
+        ResponderServer responderServer =
                 ResponderServerImpl.create(TOPIC,responderOptions, spyMsbContext, handler, null,
-                        new TypeReference<RestPayload<Object, Map<String, String>, Object, Map<String, String>>>() {});
+                        new TypeReference<RestPayload<Object, Map<String, String>, Object, Map<String, String>>>() {})
+                .listen();
 
-        Optional<Long> result = responderServer.availableMessageCount();
+        Gauge availableMessageCount = (Gauge<Long>) responderServer.getMetrics().getMetric("availableMessageCount");
 
+        assertEquals(666L, availableMessageCount.getValue());
+        verify(spyChannelManager, times(1)).subscribe(eq(TOPIC), any(ResponderOptions.class), any(MessageHandler.class));
         verify(spyChannelManager, times(1)).getAvailableMessageCount(TOPIC);
-        assertEquals(Optional.of(666L), result);
     }
 
     @Test(expected = NullPointerException.class)

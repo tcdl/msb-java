@@ -255,7 +255,7 @@ public class AmqpConsumerAdapterTest {
 
         Optional<Long> result = adapter.messageCount();
         verify(mockChannel, never()).messageCount(anyString());
-        assertEquals(result, Optional.empty());
+        assertEquals(Optional.empty(), result);
     }
 
     @Test
@@ -281,8 +281,8 @@ public class AmqpConsumerAdapterTest {
         Optional<Long> resultWhileUnsubscribed = adapter.messageCount();
 
         verify(mockChannel, times(1)).messageCount(anyString());
-        assertEquals(resultWhileSubscribed, expectedAnswerWhileSubscribed);
-        assertEquals(resultWhileUnsubscribed, expectedAnswerWhileUnsubscribed);
+        assertEquals(expectedAnswerWhileSubscribed, resultWhileSubscribed);
+        assertEquals(expectedAnswerWhileUnsubscribed, resultWhileUnsubscribed);
     }
 
     private AmqpConsumerAdapter createAdapterWithNonDurableConf(String topic, String groupId, boolean isResponseTopic) {

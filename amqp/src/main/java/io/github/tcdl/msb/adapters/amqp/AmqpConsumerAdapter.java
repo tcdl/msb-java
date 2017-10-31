@@ -53,7 +53,6 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
 
         String queueName = generateQueueName(exchangeName, groupId, durable);
 
-
         try {
             channel.queueDeclare(queueName, durable /* durable */, false /* exclusive */, !durable /*auto-delete */, null);
             channel.basicQos(prefetchCount); // Don't accept more messages if we have any unacknowledged

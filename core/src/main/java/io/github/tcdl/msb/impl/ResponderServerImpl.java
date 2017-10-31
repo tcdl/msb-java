@@ -2,19 +2,22 @@ package io.github.tcdl.msb.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.MessageHandler;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.api.metrics.Gauge;
+import io.github.tcdl.msb.api.metrics.MetricSet;
 import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
-import java.util.Set;
 
 public class ResponderServerImpl<T> implements ResponderServer {
+
     private static final Logger LOG = LoggerFactory.getLogger(ResponderServerImpl.class);
 
     private String namespace;
@@ -81,8 +84,9 @@ public class ResponderServerImpl<T> implements ResponderServer {
     }
 
     @Override
-    public Optional<Long> availableMessageCount() {
-        return msbContext.getChannelManager().getAvailableMessageCount(namespace);
+    public MetricSet getMetrics() {
+        Gauge<Long> messageCountMetric = () -> msbContext.getChannelManager().getAvailableMessageCount(namespace).orElse(null);
+        return () -> ImmutableMap.of(MetricSet.MESSAGE_COUNT_METRIC, messageCountMetric);
     }
 
     Responder createResponder(Message incomingMessage) {
