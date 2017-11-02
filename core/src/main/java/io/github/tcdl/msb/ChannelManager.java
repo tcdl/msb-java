@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -61,6 +62,10 @@ public class ChannelManager {
         });
 
         return producer;
+    }
+
+    public Optional<Long> getAvailableMessageCount(String topic) {
+        return Optional.ofNullable(consumersByTopic.get(topic)).flatMap(Consumer::messageCount);
     }
 
     /**

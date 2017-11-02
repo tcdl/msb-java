@@ -1,6 +1,7 @@
 package io.github.tcdl.msb.api;
 
 import io.github.tcdl.msb.api.message.Message;
+import io.github.tcdl.msb.api.metrics.MetricSet;
 
 /**
  * {@link ResponderServer} enable user to listen on messages from the bus and executing microservice business logic.
@@ -23,6 +24,11 @@ public interface ResponderServer {
      * Stop listening
      */
     ResponderServer stop();
+
+    /**
+        Returns set of metrics related to the current responder server
+     */
+    MetricSet getMetrics();
 
     /**
      * Implementation of this interface contains business logic processed by microservice.

@@ -8,6 +8,7 @@ import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.payload.RestPayload;
+import io.github.tcdl.msb.api.metrics.Gauge;
 import io.github.tcdl.msb.support.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -24,6 +26,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.same;
 
 public class ResponderServerImplTest {
 
@@ -76,6 +79,29 @@ public class ResponderServerImplTest {
         assertNull("Request must be absent outside message handler execution", MsbThreadContext.getRequest());
 
         verify(spyResponderServer).onResponder(anyObject());
+    }
+
+    @Test
+    public void testResponderServerAvailableMessageCount() {
+        ResponderServer.RequestHandler<RestPayload<Object, Map<String, String>, Object, Map<String, String>>> handler =
+                (request, responderContext) -> {};
+        ResponderOptions responderOptions = new ResponderOptions.Builder().withBindingKeys(Collections.emptySet()).withMessageTemplate(messageTemplate).build();
+        MsbContextImpl spyMsbContext = spy(msbContext);
+
+        ChannelManager spyChannelManager = spy(msbContext.getChannelManager());
+        when(spyMsbContext.getChannelManager()).thenReturn(spyChannelManager);
+        when(spyChannelManager.getAvailableMessageCount(anyString())).thenReturn(Optional.of(666L));
+
+        ResponderServer responderServer =
+                ResponderServerImpl.create(TOPIC,responderOptions, spyMsbContext, handler, null,
+                        new TypeReference<RestPayload<Object, Map<String, String>, Object, Map<String, String>>>() {})
+                .listen();
+
+        Gauge availableMessageCount = (Gauge<Long>) responderServer.getMetrics().getMetric("availableMessageCount");
+
+        assertEquals(666L, availableMessageCount.getValue());
+        verify(spyChannelManager, times(1)).subscribe(eq(TOPIC), any(ResponderOptions.class), any(MessageHandler.class));
+        verify(spyChannelManager, times(1)).getAvailableMessageCount(TOPIC);
     }
 
     @Test(expected = NullPointerException.class)

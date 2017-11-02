@@ -196,6 +196,16 @@ public class ConsumerTest {
     }
 
     @Test
+    public void testMessageCount() {
+        Consumer consumer = new Consumer(adapterMock, messageHandlerInvokerMock, TOPIC, messageHandlerResolverMock, msbConfMock, clock, validator, messageMapper);
+        Optional<Long> answer = Optional.of(42L);
+        when(adapterMock.messageCount()).thenReturn(answer);
+        Optional<Long> result = consumer.messageCount();
+        verify(adapterMock, times(1)).messageCount();
+        assertEquals(answer, result);
+    }
+
+    @Test
     public void testHandleRawMessageConsumeFromTopicSkipValidation() {
         MsbConfig msbConf = spy(TestUtils.createMsbConfigurations());
 

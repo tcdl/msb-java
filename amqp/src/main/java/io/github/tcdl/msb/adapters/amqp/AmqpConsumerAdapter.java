@@ -9,6 +9,7 @@ import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -20,10 +21,10 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
     private String consumerTag;
     private AmqpBrokerConfig adapterConfig;
     private boolean isResponseTopic = false;
+    private Optional<String> currentQueueName = Optional.empty();
 
     public AmqpConsumerAdapter(String exchangeName, ExchangeType exchangeType, Set<String> bindingKeys, AmqpBrokerConfig amqpBrokerConfig,
                                AmqpConnectionManager connectionManager, boolean isResponseTopic) {
-
         Validate.notNull(exchangeName, "Exchange name is required");
         Validate.notNull(exchangeType, "Exchange type is required");
         Validate.notEmpty(bindingKeys, "At least one routing key is required");
@@ -55,10 +56,11 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
         try {
             channel.queueDeclare(queueName, durable /* durable */, false /* exclusive */, !durable /*auto-delete */, null);
             channel.basicQos(prefetchCount); // Don't accept more messages if we have any unacknowledged
-            for(String bindingKey : bindingKeys) {
+            for (String bindingKey : bindingKeys) {
                 channel.queueBind(queueName, exchangeName, bindingKey);
             }
             consumerTag = channel.basicConsume(queueName, false /* autoAck */, new AmqpMessageConsumer(channel, msgHandler, adapterConfig));
+            currentQueueName = Optional.of(queueName);
         } catch (IOException e) {
             throw new ChannelException(String.format("Failed to subscribe to topic %s with routing keys %s", exchangeName, bindingKeys), e);
         }
@@ -79,9 +81,24 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
     public void unsubscribe() {
         try {
             channel.basicCancel(consumerTag);
+            currentQueueName = Optional.empty();
         } catch (IOException e) {
             throw new ChannelException(String.format("Failed to unsubscribe from topic %s", exchangeName), e);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Optional<Long> messageCount() {
+        return currentQueueName.map(queueName -> {
+            try {
+                return channel.messageCount(queueName);
+            } catch (IOException e) {
+                throw new ChannelException(String.format("Failed to fetch ready messages for topic %s and queue %s", exchangeName, queueName), e);
+            }
+        });
     }
 
     /**

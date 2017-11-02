@@ -4,6 +4,7 @@ import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.mockito.Mockito.mock;
@@ -28,6 +29,11 @@ public class TestMsbConsumerAdapter implements ConsumerAdapter {
     @Override
     public void unsubscribe() {
 
+    }
+
+    @Override
+    public Optional<Long> messageCount() {
+        throw new UnsupportedOperationException("This method is not implemented in this test class.");
     }
 
     public void pushTestMessage(String jsonMessage) {
