@@ -86,7 +86,10 @@ public class ResponderServerImpl<T> implements ResponderServer {
     @Override
     public MetricSet getMetrics() {
         Gauge<Long> messageCountMetric = () -> msbContext.getChannelManager().getAvailableMessageCount(namespace).orElse(null);
-        return () -> ImmutableMap.of(MetricSet.MESSAGE_COUNT_METRIC, messageCountMetric);
+        Gauge<Boolean> consumerConnectedMetric = () -> msbContext.getChannelManager().isConnected(namespace).orElse(null);
+        return () -> ImmutableMap.of(
+                MetricSet.MESSAGE_COUNT_METRIC, messageCountMetric,
+                MetricSet.CONSUMER_CONNECTED_METRIC, consumerConnectedMetric);
     }
 
     Responder createResponder(Message incomingMessage) {

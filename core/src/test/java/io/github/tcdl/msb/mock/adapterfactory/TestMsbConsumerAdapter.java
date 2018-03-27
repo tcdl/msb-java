@@ -36,6 +36,11 @@ public class TestMsbConsumerAdapter implements ConsumerAdapter {
         throw new UnsupportedOperationException("This method is not implemented in this test class.");
     }
 
+    @Override
+    public Optional<Boolean> isConnected() {
+        throw new UnsupportedOperationException("This method is not implemented in this test class.");
+    }
+
     public void pushTestMessage(String jsonMessage) {
         AcknowledgementHandlerInternal ackHandler = mock(AcknowledgementHandlerInternal.class);
         rawMessageHandlers.forEach((handler)-> handler.onMessage(jsonMessage, ackHandler));
