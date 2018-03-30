@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.nio.charset.Charset;
 
-@ConfigurationProperties("msbConfig")
+@ConfigurationProperties("msb-config")
 public class MsbProperties {
 
     ServiceDetails serviceDetails = new ServiceDetails();
