@@ -13,7 +13,7 @@ public interface MetricSet extends Metric {
     String MESSAGE_COUNT_METRIC = "availableMessageCount";
 
     /**
-     * {@value #CONSUMER_CONNECTED_METRIC} metric key for the consumer status {@link Gauge} of {@link Long} type
+     * {@value #CONSUMER_CONNECTED_METRIC} metric key for the consumer status {@link Gauge} of {@link Boolean} type
      */
     String CONSUMER_CONNECTED_METRIC = "consumerConnected";
 
