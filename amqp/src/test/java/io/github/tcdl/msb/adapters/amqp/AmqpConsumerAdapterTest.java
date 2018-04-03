@@ -285,6 +285,76 @@ public class AmqpConsumerAdapterTest {
         assertEquals(expectedAnswerWhileUnsubscribed, resultWhileUnsubscribed);
     }
 
+    @Test
+    public void testIsConnected() throws Exception {
+        String topicName = "myTopic";
+        String groupId = "groupId";
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf(topicName, groupId, false);
+
+        Connection mockConnection = mock(Connection.class);
+        when(mockConnection.isOpen()).thenReturn(true);
+        when(mockChannel.isOpen()).thenReturn(true);
+        when(mockChannel.getConnection()).thenReturn(mockConnection);
+        when(mockChannel.consumerCount(anyString())).thenReturn(1L);
+
+        adapter.subscribe((jsonMessage, ackHandler) -> {
+        });
+
+        verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
+
+        Optional<Boolean> answer = Optional.of(true);
+        Optional<Boolean> result = adapter.isConnected();
+        verify(mockChannel, times(1)).isOpen();
+        verify(mockConnection, times(1)).isOpen();
+        verify(mockChannel, times(1)).consumerCount(anyString());
+        assertEquals(answer, result);
+    }
+
+    @Test
+    public void testIsConnectedNeverSubscribed() throws Exception {
+        String topicName = "myTopic";
+        String groupId = "groupId";
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf(topicName, groupId, false);
+
+        Optional<Boolean> result = adapter.isConnected();
+        verify(mockChannel, never()).isOpen();
+        assertEquals(Optional.empty(), result);
+    }
+
+    @Test
+    public void testIsConnectedAfterUnsubscribe() throws Exception {
+        String topicName = "myTopic";
+        String groupId = "groupId";
+        AmqpConsumerAdapter adapter = createAdapterWithNonDurableConf(topicName, groupId, false);
+
+        Connection mockConnection = mock(Connection.class);
+        when(mockConnection.isOpen()).thenReturn(true);
+        when(mockChannel.isOpen()).thenReturn(true);
+        when(mockChannel.getConnection()).thenReturn(mockConnection);
+        when(mockChannel.consumerCount(anyString())).thenReturn(1L);
+
+        adapter.subscribe((jsonMessage, ackHandler) -> {
+        });
+
+        verify(mockChannel).exchangeDeclare(topicName, "fanout", false, true, null);
+
+        Optional<Boolean> expectedAnswerWhileSubscribed = Optional.of(true);
+        Optional<Boolean> expectedAnswerWhileUnsubscribed = Optional.empty();
+
+        Optional<Boolean> resultWhileSubscribed = adapter.isConnected();
+
+        adapter.unsubscribe();
+
+        Optional<Boolean> resultWhileUnsubscribed = adapter.isConnected();
+
+        verify(mockChannel, times(1)).isOpen();
+        verify(mockConnection, times(1)).isOpen();
+        verify(mockChannel, times(1)).consumerCount(anyString());
+
+        assertEquals(expectedAnswerWhileSubscribed, resultWhileSubscribed);
+        assertEquals(expectedAnswerWhileUnsubscribed, resultWhileUnsubscribed);
+    }
+
     private AmqpConsumerAdapter createAdapterWithNonDurableConf(String topic, String groupId, boolean isResponseTopic) {
         boolean isDurableConf = false;
         AmqpBrokerConfig nondurableAmqpConfig = new AmqpBrokerConfig(Charset.forName("UTF-8"), "127.0.0.1", 10, Optional.empty(), Optional.empty(), Optional.empty(),

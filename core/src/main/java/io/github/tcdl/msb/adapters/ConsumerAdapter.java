@@ -33,6 +33,12 @@ public interface ConsumerAdapter {
     Optional<Long> messageCount();
 
     /**
+     * Returns a connection status of the consumer
+     * @return if a consumer connected to the broker
+     */
+    Optional<Boolean> isConnected();
+
+    /**
      * Callback interface for incoming message handler
      */
     interface RawMessageHandler {

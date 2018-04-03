@@ -141,8 +141,44 @@ public class ChannelManagerTest {
         Optional<Long> result = channelManager.getAvailableMessageCount(topic);
 
         assertEquals(Optional.empty(), result);
-
-
     }
 
+    @Test
+    public void testIsConsumerConnectedInitialized() {
+        String topic = "some:topic";
+
+        Optional<Boolean> result = channelManager.isConnected(topic);
+
+        assertEquals(Optional.empty(), result);
+    }
+
+    @Test
+    public void testConsumerCountSubscribed() {
+        String topic = "some:topic";
+
+        ResponderOptions responderOptions = new ResponderOptions.Builder().build();
+
+        channelManager.subscribe(topic, responderOptions, (message, acknowledgeHandler) -> {});
+
+        expectedException.expect(UnsupportedOperationException.class);
+        channelManager.isConnected(topic);
+    }
+
+    @Test
+    public void testConsumerCountUnsubscribed() {
+        String topic = "some:topic";
+
+        ResponderOptions responderOptions = new ResponderOptions.Builder().build();
+
+        channelManager.subscribe(topic, responderOptions, (message, acknowledgeHandler) -> {});
+
+        expectedException.expect(UnsupportedOperationException.class);
+        channelManager.isConnected(topic);
+
+        channelManager.unsubscribe(topic);
+
+        Optional<Long> result = channelManager.getAvailableMessageCount(topic);
+
+        assertEquals(Optional.empty(), result);
+    }
 }

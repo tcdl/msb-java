@@ -102,6 +102,20 @@ public class AmqpConsumerAdapter implements ConsumerAdapter {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Optional<Boolean> isConnected() {
+        return currentQueueName.map(queueName -> {
+            try {
+                return channel.isOpen() && channel.getConnection().isOpen() && channel.consumerCount(queueName) > 0;
+            } catch (IOException e) {
+                throw new ChannelException(String.format("Failed to get consumer status for topic %s and queue %s", exchangeName, queueName), e);
+            }
+        });
+    }
+
+    /**
      * Generate topic name to get unique topics for different microservices
      *
      * @param topic   - topic name associated with the adapter

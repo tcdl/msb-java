@@ -68,6 +68,10 @@ public class ChannelManager {
         return Optional.ofNullable(consumersByTopic.get(topic)).flatMap(Consumer::messageCount);
     }
 
+    public Optional<Boolean> isConnected(String topic) {
+        return Optional.ofNullable(consumersByTopic.get(topic)).flatMap(Consumer::isConnected);
+    }
+
     /**
      * Start consuming messages on specified topic with handler.
      * Calls to subscribe() and unsubscribe() have to be properly synchronized by client code not to lose messages.

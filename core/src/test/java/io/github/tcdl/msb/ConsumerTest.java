@@ -206,6 +206,16 @@ public class ConsumerTest {
     }
 
     @Test
+    public void testIsConsumerConnected() {
+        Consumer consumer = new Consumer(adapterMock, messageHandlerInvokerMock, TOPIC, messageHandlerResolverMock, msbConfMock, clock, validator, messageMapper);
+        Optional<Boolean> answer = Optional.of(true);
+        when(adapterMock.isConnected()).thenReturn(answer);
+        Optional<Boolean> result = consumer.isConnected();
+        verify(adapterMock, times(1)).isConnected();
+        assertEquals(answer, result);
+    }
+
+    @Test
     public void testHandleRawMessageConsumeFromTopicSkipValidation() {
         MsbConfig msbConf = spy(TestUtils.createMsbConfigurations());
 

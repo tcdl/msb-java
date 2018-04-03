@@ -1,27 +1,25 @@
 package io.github.tcdl.msb;
 
-import io.github.tcdl.msb.adapters.ConsumerAdapter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerInternal;
-import io.github.tcdl.msb.threading.MessageHandlerInvoker;
+import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.api.message.MetaMessage;
 import io.github.tcdl.msb.collector.ConsumedMessagesAwareMessageHandler;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.support.Utils;
+import io.github.tcdl.msb.threading.MessageHandlerInvoker;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.MDC;
 
 /**
  * {@link Consumer} is a component responsible for consuming messages from the bus.
@@ -99,6 +97,14 @@ public class Consumer {
      */
     public Optional<Long> messageCount() {
         return rawAdapter.messageCount();
+    }
+
+    /**
+     * Returns a connection status of the consumer
+     * @return if a consumer connected to the broker
+     */
+    public Optional<Boolean> isConnected() {
+        return rawAdapter.isConnected();
     }
 
     /**
