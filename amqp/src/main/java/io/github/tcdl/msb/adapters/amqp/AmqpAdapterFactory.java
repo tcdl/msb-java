@@ -120,6 +120,8 @@ public class AmqpAdapterFactory implements AdapterFactory {
         ConnectionFactory connectionFactory = createConnectionFactory();
         connectionFactory.setHost(host);
         connectionFactory.setPort(port);
+        connectionFactory.setAutomaticRecoveryEnabled(true);
+        connectionFactory.setTopologyRecoveryEnabled(true);
         connectionFactory.setNetworkRecoveryInterval(adapterConfig.getNetworkRecoveryIntervalMs());
         connectionFactory.setRequestedHeartbeat(adapterConfig.getHeartbeatIntervalSec());
         connectionFactory.setExceptionHandler(new AmqpExceptionHandler());
