@@ -3,10 +3,15 @@ package io.github.tcdl.msb.adapters.amqp;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Recoverable;
+import com.rabbitmq.client.RecoveryListener;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.adapters.AdapterFactory;
-import io.github.tcdl.msb.api.*;
+import io.github.tcdl.msb.api.AmqpRequestOptions;
+import io.github.tcdl.msb.api.AmqpResponderOptions;
+import io.github.tcdl.msb.api.ExchangeType;
+import io.github.tcdl.msb.api.RequestOptions;
+import io.github.tcdl.msb.api.ResponderOptions;
 import io.github.tcdl.msb.api.exception.AdapterCreationException;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.api.exception.ConfigurationException;
@@ -35,6 +40,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
      * @throws ChannelException if an error is encountered during connecting to broker
      * @throws ConfigurationException if provided configuration is broken
      */
+    @Override
     public void init(MsbConfig msbConfig) {
         amqpBrokerConfig = createAmqpBrokerConfig(msbConfig);
         LOG.debug("MSB AMQP Broker configuration {}", amqpBrokerConfig);
@@ -120,15 +126,9 @@ public class AmqpAdapterFactory implements AdapterFactory {
         connectionFactory.setRequestedHeartbeat(adapterConfig.getHeartbeatIntervalSec());
         connectionFactory.setExceptionHandler(new AmqpExceptionHandler());
 
-        if (username.isPresent()) {
-            connectionFactory.setUsername(username.get());
-        }
-        if (password.isPresent()) {
-            connectionFactory.setPassword(password.get());
-        }
-        if (virtualHost.isPresent()) {
-            connectionFactory.setVirtualHost(virtualHost.get());
-        }
+        username.ifPresent(connectionFactory::setUsername);
+        password.ifPresent(connectionFactory::setPassword);
+        virtualHost.ifPresent(connectionFactory::setVirtualHost);
 
         try {
             if (adapterConfig.useSSL()) {
@@ -163,7 +163,16 @@ public class AmqpAdapterFactory implements AdapterFactory {
             Connection connection = connectionFactory.newConnection();
             if (connection instanceof Recoverable) {
                 // This cast is possible for connections created by a factory that supports auto-recovery
-                ((Recoverable) connection).addRecoveryListener(recoverable -> LOG.info("AMQP connection recovered."));
+                ((Recoverable) connection).addRecoveryListener(new RecoveryListener() {
+                    @Override
+                    public void handleRecovery(Recoverable recoverable) {
+                        LOG.info("AMQP connection recovered.");
+                    }
+                    @Override
+                    public void handleRecoveryStarted(Recoverable recoverable) {
+                        LOG.info("AMQP connection recovery started.");
+                    }
+                });
             }
             LOG.info("AMQP connection opened.");
             return connection;
