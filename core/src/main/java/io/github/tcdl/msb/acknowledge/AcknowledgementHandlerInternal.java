@@ -21,4 +21,6 @@ public interface AcknowledgementHandlerInternal extends AcknowledgementHandler {
      * Implicit message requeue request invoked when there was an exception during a client callback execution.
      */
     void autoRetry();
+
+    void reportError(Throwable error);
 }

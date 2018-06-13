@@ -22,4 +22,6 @@ public interface AcknowledgementAdapter {
      * @throws Exception
      */
     void retry() throws Exception;
+
+    void reportError(Throwable error) throws Exception;
 }

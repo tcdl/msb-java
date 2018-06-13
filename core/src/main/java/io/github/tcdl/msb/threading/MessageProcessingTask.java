@@ -50,7 +50,7 @@ public class MessageProcessingTask implements Runnable {
             ackHandler.autoRetry();
         } catch (Error error) {
             LOG.error("[correlation id: {}] Failed to process message", message.getCorrelationId(), error);
-            throw error;
+            ackHandler.reportError(error);
         } finally {
             if(mdcLogCopy) {
                 MDC.clear();
