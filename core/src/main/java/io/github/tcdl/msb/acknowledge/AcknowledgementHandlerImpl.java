@@ -113,6 +113,15 @@ public class AcknowledgementHandlerImpl implements AcknowledgementHandlerInterna
         });
     }
 
+    @Override
+    public void reportError(Throwable error) {
+        try {
+            acknowledgementAdapter.reportError(error);
+        } catch (Exception e) {
+            LOG.error("[{}] Got exception when trying to report error for message: {}", messageTextIdentifier, e.getMessage(), e);
+        }
+    }
+
     private void executeAutoAck(AutoAckAction ackAction) {
         if (autoAcknowledgement && !acknowledgementSent.get()) {
             ackAction.perform();
