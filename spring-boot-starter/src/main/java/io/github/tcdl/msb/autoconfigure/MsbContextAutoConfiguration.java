@@ -7,9 +7,11 @@ import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.threading.MessageGroupStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+@ConditionalOnProperty(name = "msb-config.enabled", havingValue = "true", matchIfMissing = true)
 @Configuration
 public class MsbContextAutoConfiguration {
 

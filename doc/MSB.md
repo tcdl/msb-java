@@ -285,6 +285,10 @@ All configuration files use _key-value pair_ structure.
 - [application.conf](/acceptance/src/main/resources/application.conf) - overrides values from reference.conf
 
 ### Description of MSB configuration fields
+
+There is a feature flag for enable/disable MSB:
+- `msb-config.enabled` true or missing value means enabled. false for disable whole MSB. It's very useful for testing and for enable/disable the msb capabilities depending of environments (f.e. as feature flag if the functionality is not desirable and/or not tested yet).
+
 Service details section describes microservice parameters.
 
 - `name ` – microservice name. All running instances of the same microservice must have the same name. Mandatory, has no default value.
