@@ -1,4 +1,4 @@
-package io.github.tcdl.msb.adapters.amqp;
+package io.github.tcdl.msb.threading;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -11,14 +11,13 @@ import io.github.tcdl.msb.MessageHandler;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.*;
+import java.util.function.Supplier;
 
 import io.github.tcdl.msb.acknowledge.AcknowledgementHandlerImpl;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.threading.MessageProcessingTask;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.rabbitmq.client.Channel;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -30,8 +29,6 @@ public class MessageProcessingTaskTest {
     private final String MDC_VALUE = "any";
 
     private Message message;
-    @Mock
-    private Channel mockChannel;
 
     @Mock
     private MessageHandler mockMessageHandler;
@@ -57,13 +54,19 @@ public class MessageProcessingTaskTest {
 
     @Test
     public void testExceptionDuringProcessing() {
-        doThrow(new RuntimeException()).when(mockMessageHandler).handleMessage(any(), any());
+        testThrowableDuringProcessing(RuntimeException::new);
+    }
+
+    @Test
+    public void testErrorDuringProcessing() {
+        testThrowableDuringProcessing(AssertionError::new);
+    }
+
+    private <T extends Throwable> void testThrowableDuringProcessing(Supplier<T> throwable) {
+        doThrow(throwable.get()).when(mockMessageHandler).handleMessage(any(), any());
 
         try {
             task.run();
-            // Verify that AMQP ack has not been sent
-            verifyNoMoreInteractions(mockChannel);
-
             verify(mockAcknowledgementHandler, times(1)).autoRetry();
             verifyNoMoreInteractions(mockAcknowledgementHandler);
         } catch (Exception e) {
