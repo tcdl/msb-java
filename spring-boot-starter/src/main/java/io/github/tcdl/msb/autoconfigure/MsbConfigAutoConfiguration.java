@@ -8,10 +8,12 @@ import io.github.tcdl.msb.support.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+@ConditionalOnProperty(name = "msb-config.enabled", havingValue = "true", matchIfMissing = true)
 @Configuration
 @AutoConfigureBefore(MsbContextAutoConfiguration.class)
 @EnableConfigurationProperties(MsbProperties.class)
@@ -20,9 +22,8 @@ public class MsbConfigAutoConfiguration {
     public static final String DEFAULT_VERSION = "1.0.0";
     public static final String DEFAULT_APP_NAME = Utils.generateId();
     public static final String DEFAULT_ADAPTER_FACTORY = "io.github.tcdl.msb.adapters.amqp.AmqpAdapterFactory";
-    private static final boolean DEFAULT_BROKER_DURABLE = true;
     public static final int DEFAULT_TIMER_THREAD_POOL_SIZE = 2;
-
+    private static final boolean DEFAULT_BROKER_DURABLE = true;
     @Autowired
     MsbProperties msbProperties;
 
