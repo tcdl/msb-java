@@ -1,7 +1,9 @@
 package io.github.tcdl.msb.threading;
 
-import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.config.MsbConfig;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -9,25 +11,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import io.github.tcdl.msb.threading.ExecutorBasedMessageHandlerInvoker;
-import io.github.tcdl.msb.threading.MessageProcessingTask;
-import io.github.tcdl.msb.threading.ThreadPoolMessageHandlerInvoker;
-import org.junit.Before;
-import org.junit.Test;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConsumerExecutorFactoryTest {
 
-    ConsumerExecutorFactoryImpl factory;
+    private ConsumerExecutorFactoryImpl factory;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         factory = new ConsumerExecutorFactoryImpl();
     }
 
@@ -42,7 +36,7 @@ public class ConsumerExecutorFactoryTest {
         BlockingQueue<Runnable> queue = threadPoolExecutor.getQueue();
         assertNotNull(queue);
         assertTrue(queue instanceof ArrayBlockingQueue);
-        assertEquals(20, ((ArrayBlockingQueue) queue).remainingCapacity());
+        assertEquals(20, queue.remainingCapacity());
     }
 
     @Test

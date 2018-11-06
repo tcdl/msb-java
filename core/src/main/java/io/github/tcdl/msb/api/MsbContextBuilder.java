@@ -19,7 +19,13 @@ import io.github.tcdl.msb.impl.MsbContextImpl;
 import io.github.tcdl.msb.impl.ObjectFactoryImpl;
 import io.github.tcdl.msb.message.MessageFactory;
 import io.github.tcdl.msb.support.JsonValidator;
-import io.github.tcdl.msb.threading.*;
+import io.github.tcdl.msb.threading.ConsumerExecutorFactoryImpl;
+import io.github.tcdl.msb.threading.DirectInvocationCapableInvoker;
+import io.github.tcdl.msb.threading.DirectMessageHandlerInvoker;
+import io.github.tcdl.msb.threading.MessageGroupStrategy;
+import io.github.tcdl.msb.threading.MessageHandlerInvoker;
+import io.github.tcdl.msb.threading.MessageHandlerInvokerFactory;
+import io.github.tcdl.msb.threading.MessageHandlerInvokerFactoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +44,7 @@ public class MsbContextBuilder {
     private boolean enableShutdownHook;
     private ObjectMapper payloadMapper = createMessageEnvelopeMapper();
     private MessageGroupStrategy messageGroupStrategy;
+    private MessageHandlerInvokerFactory messageHandlerInvokerFactory;
 
     public MsbContextBuilder() {
         super();
@@ -93,6 +100,17 @@ public class MsbContextBuilder {
     }
 
     /**
+     * Specifies message handler invoker factory
+     *
+     * @param messageHandlerInvokerFactory if not provided default factory will be used
+     * @return MsbContextBuilder
+     */
+    public MsbContextBuilder withMessageHandlerInvokerFactory(MessageHandlerInvokerFactory messageHandlerInvokerFactory) {
+        this.messageHandlerInvokerFactory = messageHandlerInvokerFactory;
+        return this;
+    }
+
+    /**
      * Create implementation of {@link MsbContext}
      * Can be initialized with configuration from reference.conf (property file inside MSB library) or application.conf,
      * which will override library properties. Also configuration can be specified directly with withConfig method
@@ -110,6 +128,9 @@ public class MsbContextBuilder {
                 config = ConfigFactory.load();
             }
             msbConfig = new MsbConfig(config);
+        }
+        if (messageHandlerInvokerFactory == null) {
+            messageHandlerInvokerFactory = new MessageHandlerInvokerFactoryImpl(new ConsumerExecutorFactoryImpl());
         }
         ObjectMapper messageEnvelopeMapper = createMessageEnvelopeMapper();
 
@@ -142,21 +163,20 @@ public class MsbContextBuilder {
         return msbContext;
     }
 
-    protected MessageHandlerInvoker createMessageHandlerInvoker(AdapterFactory adapterFactory, MsbConfig msbConfig) {
-        ConsumerExecutorFactory consumerExecutorFactory = new ConsumerExecutorFactoryImpl();
-
+    private MessageHandlerInvoker createMessageHandlerInvoker(AdapterFactory adapterFactory, MsbConfig msbConfig) {
         MessageHandlerInvoker consumerMessageHandlerInvoker;
         if (adapterFactory.isUseMsbThreadingModel()) {
             if (messageGroupStrategy == null) {
-                consumerMessageHandlerInvoker = new ThreadPoolMessageHandlerInvoker(msbConfig.getConsumerThreadPoolSize(), msbConfig.getConsumerThreadPoolQueueCapacity(),
-                        consumerExecutorFactory);
+                consumerMessageHandlerInvoker = messageHandlerInvokerFactory.createExecutorBasedHandlerInvoker(
+                        msbConfig.getConsumerThreadPoolSize(), msbConfig.getConsumerThreadPoolQueueCapacity());
             } else {
-                consumerMessageHandlerInvoker = new GroupedExecutorBasedMessageHandlerInvoker(msbConfig.getConsumerThreadPoolSize(), msbConfig.getConsumerThreadPoolQueueCapacity(),
-                        consumerExecutorFactory,
+                consumerMessageHandlerInvoker = messageHandlerInvokerFactory.createGroupedExecutorBasedHandlerInvoker(
+                        msbConfig.getConsumerThreadPoolSize(),
+                        msbConfig.getConsumerThreadPoolQueueCapacity(),
                         messageGroupStrategy);
             }
         } else {
-            consumerMessageHandlerInvoker = new DirectMessageHandlerInvoker();
+            consumerMessageHandlerInvoker = messageHandlerInvokerFactory.createDirectHandlerInvoker();
         }
         return new DirectInvocationCapableInvoker(consumerMessageHandlerInvoker, new DirectMessageHandlerInvoker());
     }
