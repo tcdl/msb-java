@@ -142,7 +142,7 @@ public class MsbContextBuilder {
         return msbContext;
     }
 
-    private MessageHandlerInvoker createMessageHandlerInvoker(AdapterFactory adapterFactory, MsbConfig msbConfig) {
+    protected MessageHandlerInvoker createMessageHandlerInvoker(AdapterFactory adapterFactory, MsbConfig msbConfig) {
         ConsumerExecutorFactory consumerExecutorFactory = new ConsumerExecutorFactoryImpl();
 
         MessageHandlerInvoker consumerMessageHandlerInvoker;
