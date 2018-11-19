@@ -2,8 +2,6 @@ package io.github.tcdl.msb.threading;
 
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.support.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
 
@@ -12,11 +10,9 @@ import java.util.concurrent.ExecutorService;
  * in a single thread pool with a configured number of threads. This approach is effective, but may lead
  * to concurrent issues when incoming messages order matters. When facing this kind of issues,
  * it is possible either to configure this class to work in a single-threaded mode,
- * or use {@link GroupedExecutorBasedMessageHandlerInvoker} instead.
+ * or use {@link GroupedMessageHandlerInvoker} instead.
  */
 public class ThreadPoolMessageHandlerInvoker extends ExecutorBasedMessageHandlerInvoker {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ThreadPoolMessageHandlerInvoker.class);
 
     private final ExecutorService executor;
 
@@ -32,7 +28,10 @@ public class ThreadPoolMessageHandlerInvoker extends ExecutorBasedMessageHandler
 
     @Override
     public void shutdown() {
-        Utils.gracefulShutdown(executor, "consumer");
+        doShutdown(executor);
     }
 
+    protected void doShutdown(ExecutorService executor) {
+        Utils.gracefulShutdown(executor, "consumer");
+    }
 }

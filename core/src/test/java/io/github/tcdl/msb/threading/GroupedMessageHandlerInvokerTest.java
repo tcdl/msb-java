@@ -14,23 +14,30 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GroupedExecutorBasedMessageHandlerInvokerTest {
+public class GroupedMessageHandlerInvokerTest {
     private static final int CONFIG_THREADS = 5;
     private static final int CONFIG_QUEUE = -1;
 
-    ExecutorService[] executors;
+    private ExecutorService[] executors;
 
     @Mock
     AcknowledgementHandlerInternal acknowledgeHandler;
@@ -47,13 +54,13 @@ public class GroupedExecutorBasedMessageHandlerInvokerTest {
     @Mock
     MessageGroupStrategy messageGroupStrategy;
 
-    Message message = TestUtils.createMsbRequestMessage("any0","any0");
+    private Message message = TestUtils.createMsbRequestMessage("any0", "any0");
 
-    Message message1 = TestUtils.createMsbRequestMessage("any1","any1");
+    private Message message1 = TestUtils.createMsbRequestMessage("any1", "any1");
 
-    Message message2 = TestUtils.createMsbRequestMessage("any2","any2");
+    private Message message2 = TestUtils.createMsbRequestMessage("any2", "any2");
 
-    GroupedExecutorBasedMessageHandlerInvoker invoker;
+    private GroupedMessageHandlerInvoker invoker;
 
     @Before
     public void setUp() throws Exception {
@@ -71,7 +78,12 @@ public class GroupedExecutorBasedMessageHandlerInvokerTest {
         when(consumerExecutorFactory.createConsumerThreadPool(1, CONFIG_QUEUE))
                 .thenReturn(executors[0], Arrays.copyOfRange(executors, 1, CONFIG_THREADS));
 
-        invoker = new GroupedExecutorBasedMessageHandlerInvoker(CONFIG_THREADS, CONFIG_QUEUE, consumerExecutorFactory, messageGroupStrategy);
+        List<MessageHandlerInvoker> invokers = IntStream
+                .range(0, CONFIG_THREADS)
+                .boxed()
+                .map(i -> new ThreadPoolMessageHandlerInvoker(1, CONFIG_QUEUE, consumerExecutorFactory))
+                .collect(Collectors.toList());
+        invoker = new GroupedMessageHandlerInvoker<>(invokers, messageGroupStrategy);
 
         when(messageGroupStrategy.getMessageGroupId(message)).thenReturn(Optional.of(0));
         when(messageGroupStrategy.getMessageGroupId(message1)).thenReturn(Optional.of(1));

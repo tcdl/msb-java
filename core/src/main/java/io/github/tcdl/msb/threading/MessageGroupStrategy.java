@@ -6,7 +6,7 @@ import java.util.Optional;
 
 /**
  * Implementations of this interface define a way to resolve a message group by a message. Messages
- * with the same message group will be executed by {@link GroupedExecutorBasedMessageHandlerInvoker}
+ * with the same message group will be executed by {@link GroupedMessageHandlerInvoker}
  * one after another (in a single-threaded mode)
  * while messages with different message groups could be executed in parallel.
  */
