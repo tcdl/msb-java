@@ -11,8 +11,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -51,5 +53,14 @@ public class ConsumerExecutorFactoryTest {
         BlockingQueue<Runnable> queue = threadPoolExecutor.getQueue();
         assertNotNull(queue);
         assertTrue(queue instanceof LinkedBlockingQueue);
+    }
+
+    @Test
+    public void testThreadNames() {
+        ExecutorService executor1 = factory.createConsumerThreadPool(1, -1);
+        ExecutorService executor2 = factory.createConsumerThreadPool(1, -1);
+
+        executor1.execute(() -> assertThat(Thread.currentThread().getName(), is("msb-consumer-thread-1")));
+        executor2.execute(() -> assertThat(Thread.currentThread().getName(), is("msb-consumer-thread-2")));
     }
 }
