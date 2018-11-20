@@ -13,13 +13,13 @@ import org.apache.commons.lang3.Validate;
 public class DirectInvocationCapableInvoker implements MessageHandlerInvoker {
 
     private final MessageHandlerInvoker clientMessageHandlerInvoker;
-    private final DirectMessageHandlerInvoker directMessageHandlerInvoker;
+    private final MessageHandlerInvoker directMessageHandlerInvoker;
 
     /**
-     * Creates composite delegate that is guarantied to have an instance of {@link DirectMessageHandlerInvoker} in its disposal.
+     * Creates composite delegate that is guarantied to have an instance of direct {@link MessageHandlerInvoker} in its disposal.
      * There is no need to instantiate it in client code. It is intended to be used only internally by the library.
      */
-    public DirectInvocationCapableInvoker(MessageHandlerInvoker clientMessageHandlerInvoker, DirectMessageHandlerInvoker directMessageHandlerInvoker) {
+    public DirectInvocationCapableInvoker(MessageHandlerInvoker clientMessageHandlerInvoker, MessageHandlerInvoker directMessageHandlerInvoker) {
         Validate.notNull(clientMessageHandlerInvoker);
         Validate.notNull(directMessageHandlerInvoker);
         this.clientMessageHandlerInvoker = clientMessageHandlerInvoker;

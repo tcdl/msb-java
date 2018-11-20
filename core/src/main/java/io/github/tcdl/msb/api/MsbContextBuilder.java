@@ -21,7 +21,6 @@ import io.github.tcdl.msb.message.MessageFactory;
 import io.github.tcdl.msb.support.JsonValidator;
 import io.github.tcdl.msb.threading.ConsumerExecutorFactoryImpl;
 import io.github.tcdl.msb.threading.DirectInvocationCapableInvoker;
-import io.github.tcdl.msb.threading.DirectMessageHandlerInvoker;
 import io.github.tcdl.msb.threading.MessageGroupStrategy;
 import io.github.tcdl.msb.threading.MessageHandlerInvoker;
 import io.github.tcdl.msb.threading.MessageHandlerInvokerFactory;
@@ -164,21 +163,21 @@ public class MsbContextBuilder {
     }
 
     private MessageHandlerInvoker createMessageHandlerInvoker(AdapterFactory adapterFactory, MsbConfig msbConfig) {
-        MessageHandlerInvoker consumerMessageHandlerInvoker;
-        if (adapterFactory.isUseMsbThreadingModel()) {
-            if (messageGroupStrategy == null) {
-                consumerMessageHandlerInvoker = messageHandlerInvokerFactory.createExecutorBasedHandlerInvoker(
-                        msbConfig.getConsumerThreadPoolSize(), msbConfig.getConsumerThreadPoolQueueCapacity());
-            } else {
-                consumerMessageHandlerInvoker = messageHandlerInvokerFactory.createGroupedExecutorBasedHandlerInvoker(
-                        msbConfig.getConsumerThreadPoolSize(),
-                        msbConfig.getConsumerThreadPoolQueueCapacity(),
-                        messageGroupStrategy);
-            }
-        } else {
-            consumerMessageHandlerInvoker = messageHandlerInvokerFactory.createDirectHandlerInvoker();
+        MessageHandlerInvoker directMessageHandlerInvoker = messageHandlerInvokerFactory.createDirectHandlerInvoker();
+        if (!adapterFactory.isUseMsbThreadingModel()) {
+            return directMessageHandlerInvoker;
         }
-        return new DirectInvocationCapableInvoker(consumerMessageHandlerInvoker, new DirectMessageHandlerInvoker());
+        MessageHandlerInvoker consumerMessageHandlerInvoker;
+        if (messageGroupStrategy == null) {
+            consumerMessageHandlerInvoker = messageHandlerInvokerFactory.createExecutorBasedHandlerInvoker(
+                    msbConfig.getConsumerThreadPoolSize(), msbConfig.getConsumerThreadPoolQueueCapacity());
+        } else {
+            consumerMessageHandlerInvoker = messageHandlerInvokerFactory.createGroupedExecutorBasedHandlerInvoker(
+                    msbConfig.getConsumerThreadPoolSize(),
+                    msbConfig.getConsumerThreadPoolQueueCapacity(),
+                    messageGroupStrategy);
+        }
+        return new DirectInvocationCapableInvoker(consumerMessageHandlerInvoker, directMessageHandlerInvoker);
     }
 
     /**
