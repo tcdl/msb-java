@@ -41,5 +41,31 @@
             <artifactId>commons-collections</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Apache Connection Pooling -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+            <version>2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-pool</artifactId>
+            <version>5.15.0</version>
+        </dependency>
+
+        <!-- Apache ActiveMQ -->
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-client</artifactId>
+            <version>5.15.0</version>
+        </dependency>
+
+        <!-- Spring JmsTemplate //todo: copypasted, to check why needed -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jms</artifactId>
+            <version>5.0.3.RELEASE</version>
+        </dependency>
     </dependencies>
 </project>
