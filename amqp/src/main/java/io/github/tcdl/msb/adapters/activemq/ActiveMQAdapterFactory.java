@@ -3,8 +3,11 @@ package io.github.tcdl.msb.adapters.activemq;
 import io.github.tcdl.msb.adapters.AdapterFactory;
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 import io.github.tcdl.msb.adapters.ProducerAdapter;
+import io.github.tcdl.msb.api.AmqpRequestOptions;
+import io.github.tcdl.msb.api.ExchangeType;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.ResponderOptions;
+import io.github.tcdl.msb.api.exception.AdapterCreationException;
 import io.github.tcdl.msb.config.MsbConfig;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
@@ -49,7 +52,12 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
     @Override
     public ProducerAdapter createProducerAdapter(String topic, RequestOptions requestOptions) {
 
-        return new ActiveMQProducerAdapter();
+        try {
+            return new ActiveMQProducerAdapter(topic, requestOptions, session);
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
@@ -59,6 +67,12 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
 
     @Override
     public ConsumerAdapter createConsumerAdapter(String topic, ResponderOptions responderOptions, boolean isResponseTopic) {
+
+        try {
+            return new ActiveMQConsumerAdapter(topic, session, isResponseTopic);
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
