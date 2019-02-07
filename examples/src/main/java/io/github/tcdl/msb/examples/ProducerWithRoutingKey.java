@@ -43,13 +43,15 @@ public class ProducerWithRoutingKey {
                     .withMessageTemplate(messageTemplate)
                     .build();
 
-            LOG.info("Sending message with routing key '{}'", routingKey);
+            LOG.info("Sending message '{}'", routingKey.toUpperCase());
             msbContext.getObjectFactory()
                     .createRequester("routing:namespace", requestOptions, String.class)
                     .publish(routingKey.toUpperCase(), UUID.randomUUID().toString());
         };
 
         runEachNSeconds(2, task);
+
+        ConsumerWithRoutingKeys.main(null);
     }
 
     private static void runEachNSeconds(int secondsNumber, Runnable task) {

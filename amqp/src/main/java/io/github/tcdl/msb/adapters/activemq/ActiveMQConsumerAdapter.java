@@ -2,10 +2,7 @@ package io.github.tcdl.msb.adapters.activemq;
 
 import io.github.tcdl.msb.adapters.ConsumerAdapter;
 
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.Queue;
-import javax.jms.Session;
+import javax.jms.*;
 import java.util.Optional;
 
 public class ActiveMQConsumerAdapter implements ConsumerAdapter {
@@ -21,7 +18,18 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
 
     @Override
     public void subscribe(RawMessageHandler onMessageHandler) {
-
+        try {
+            consumer.setMessageListener(message -> {
+                try {
+                    String text = ((TextMessage) message).getText();
+                    onMessageHandler.onMessage(text, new ActiveMQAcknowledgementHandler());
+                } catch (JMSException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

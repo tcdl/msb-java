@@ -42,7 +42,7 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
         try {
             connection = connectionFactory.createConnection();
             connection.start();
-            session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
         } catch (JMSException e) {
             e.printStackTrace();
