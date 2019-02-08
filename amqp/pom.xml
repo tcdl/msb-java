@@ -61,11 +61,5 @@
             <version>5.15.0</version>
         </dependency>
 
-        <!-- Spring JmsTemplate //todo: copypasted, to check why needed -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jms</artifactId>
-            <version>5.0.3.RELEASE</version>
-        </dependency>
     </dependencies>
 </project>
