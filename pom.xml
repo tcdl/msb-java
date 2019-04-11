@@ -30,6 +30,7 @@
     </organization>
     <modules>
         <module>core</module>
+        <module>activemq</module>
         <module>amqp</module>
         <module>cli</module>
         <module>acceptance</module>
@@ -125,6 +126,16 @@
                 <groupId>com.rabbitmq</groupId>
                 <artifactId>amqp-client</artifactId>
                 <version>5.4.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-client</artifactId>
+                <version>5.15.8</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.activemq</groupId>
+                <artifactId>activemq-pool</artifactId>
+                <version>5.15.8</version>
             </dependency>
             <dependency>
                 <groupId>com.googlecode.junit-toolbox</groupId>
