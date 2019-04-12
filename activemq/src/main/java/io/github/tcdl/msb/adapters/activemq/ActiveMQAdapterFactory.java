@@ -129,6 +129,7 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
         password.ifPresent(connectionFactory::setPassword);
         connectionFactory.setPrefetchPolicy(activeMQPrefetchPolicy);
         connectionFactory.setRedeliveryPolicy(redeliveryPolicy);
+        connectionFactory.setMaxThreadPoolSize(brokerConfig.getPrefetchCount());
 
         PooledConnectionFactory pooledConnectionFactory = new PooledConnectionFactory();
         pooledConnectionFactory.setConnectionFactory(connectionFactory);

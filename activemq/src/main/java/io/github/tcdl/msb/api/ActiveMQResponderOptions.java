@@ -29,7 +29,7 @@ public class ActiveMQResponderOptions extends ResponderOptions {
 
     public static class Builder extends ResponderOptions.Builder {
 
-        private SubscriptionType subscriptionType;
+        private SubscriptionType subscriptionType = SubscriptionType.QUEUE;
         private Set<String> bindingKeys;
 
         public Builder withMessageTemplate(MessageTemplate responseMessageTemplate) {

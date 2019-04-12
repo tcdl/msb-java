@@ -9,15 +9,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.github.tcdl.msb.api.SubscriptionType.QUEUE;
-import static io.github.tcdl.msb.api.SubscriptionType.TOPIC;
 
 public class ActiveMQRecoverableSession {
 
     private static final Logger LOG = LoggerFactory.getLogger(ActiveMQRecoverableSession.class);
-
-    private static final String ROUTING_KEY = "routingKey";
 
     private static ActiveMQRecoverableSession instance;
     private ActiveMQConnectionManager connectionManager;
@@ -38,9 +36,8 @@ public class ActiveMQRecoverableSession {
         Validate.notNull(subscriptionType, "subscription type is mandatory");
 
         try {
-            Session session = openSession();
-            Destination destinationTopic = createDestination(session, topic, subscriptionType == TOPIC);
-            MessageProducer producer = session.createProducer(destinationTopic);
+            // omit destination to specify it later during sending a message
+            MessageProducer producer = getSession(null).createProducer(null);
             if (durable) {
                 producer.setDeliveryMode(DeliveryMode.PERSISTENT);
             }
@@ -57,20 +54,25 @@ public class ActiveMQRecoverableSession {
         Validate.notNull(subscriptionType, "subscription type is mandatory");
 
         try {
-            if (subscriptionType == QUEUE && durable) {
-                throw new ChannelException("Durable consumers are not supported for queue subscription", new IllegalArgumentException(subscriptionType.name()));
+            //create virtual destination with routing keys
+            String destinationTopic = topic;
+            if (bindingKeys != null && !bindingKeys.isEmpty()) {
+                destinationTopic = bindingKeys.stream()
+                        .filter(StringUtils::isNotBlank)
+                        .map(key -> topic + "." + key)
+                        .collect(Collectors.joining( ","));
+                destinationTopic = StringUtils.isNotBlank(destinationTopic) ? destinationTopic : topic;
             }
 
-            Session session = openSession();
-            Destination destinationTopic = createDestination(session, topic, subscriptionType == TOPIC);
-            String messageSelector = bindingKeys == null || bindingKeys.isEmpty() || (bindingKeys.size() == 1 && StringUtils.isBlank(bindingKeys.iterator().next()))?
-                    null: String.format(ROUTING_KEY + " IN('%s')", StringUtils.join(bindingKeys.toArray(), "','"));
-
             MessageConsumer consumer;
-            if (subscriptionType == QUEUE || !durable) {
-                consumer = session.createConsumer(destinationTopic, messageSelector);
+            if (subscriptionType == QUEUE) {
+                Session session = getSession(clientId);
+                Queue queueDestination = session.createQueue(destinationTopic);
+                consumer = session.createConsumer(queueDestination);
             } else  {
-                consumer = session.createDurableSubscriber((Topic)destinationTopic, clientId, messageSelector, false);
+                Session session = getSession(clientId);
+                Topic topicDestination = session.createTopic(topic);
+                consumer = session.createDurableSubscriber(topicDestination, clientId);
             }
 
             LOG.debug("Created consumer on topic '{}'", topic);
@@ -81,32 +83,29 @@ public class ActiveMQRecoverableSession {
         }
     }
 
-    public Message createMessage(String body, String routingKey) {
+    public Destination createDestination(String topic, boolean isTopic) {
         try {
-            Session session = openSession();
-            TextMessage message = session.createTextMessage(body);
-            if (StringUtils.isNotBlank(routingKey)) {
-                message.setStringProperty(ROUTING_KEY, routingKey);
-            }
-            return message;
+            Session session = getSession(null);
+            return isTopic ? session.createTopic(topic) : session.createQueue(topic);
+        } catch (JMSException e) {
+            throw new ChannelException("Topic creation failed with exception", e);
+        }
+    }
+
+    public Message createMessage(String body) {
+        try {
+            Session session = getSession(null);
+            return session.createTextMessage(body);
         } catch (JMSException e) {
             throw new ChannelException("Message creation failed with exception", e);
         }
     }
 
-    private Session openSession() {
+    private Session getSession(String clientId) {
         try {
-            return connectionManager.obtainConnection().createSession(false, Session.CLIENT_ACKNOWLEDGE);
+            return connectionManager.obtainConnection(clientId).createSession(false, Session.CLIENT_ACKNOWLEDGE);
         } catch (JMSException e) {
             throw new ChannelException("Session creation failed with exception", e);
-        }
-    }
-
-    private Destination createDestination(Session session, String topic, boolean isTopic) {
-        try {
-            return isTopic ? session.createTopic(topic) : session.createQueue(topic);
-        } catch (JMSException e) {
-            throw new ChannelException("Topic creation failed with exception", e);
         }
     }
 }

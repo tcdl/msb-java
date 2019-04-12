@@ -22,11 +22,11 @@ public class ActiveMQConnectionManager {
     /**
      * @throws ChannelException if some problems during connecting to Broker were occurred
      */
-    public Connection obtainConnection() {
+    public Connection obtainConnection(String clientId) {
         try {
             Connection connection = connectionFactory.createConnection();
             if (connection.getClientID() == null) {
-                connection.setClientID(UUID.randomUUID().toString());
+                connection.setClientID(clientId != null ? clientId : UUID.randomUUID().toString());
             }
             connection.start();
             LOG.info("ActiveMQ connection obtained.");
@@ -38,23 +38,5 @@ public class ActiveMQConnectionManager {
 
     public void close() throws JMSException {
         // All connections are closed after idle timeout
-    }
-
-    /**
-     * @throws ChannelException if some problems during connecting to Broker were occurred
-     */
-    public Connection createConnection() {
-        try {
-            LOG.info("Opening ActiveMQ connection");
-
-            Connection connection = connectionFactory.createConnection();
-            connection.setClientID(UUID.randomUUID().toString());
-            connection.start();
-
-            LOG.info("ActiveMQ connection opened.");
-            return connection;
-        } catch (JMSException e) {
-            throw new ChannelException("Failed to obtain connection to ActiveMQ broker", e);
-        }
     }
 }

@@ -9,10 +9,10 @@ public class ActiveMQRequestOptions extends RequestOptions {
                                Integer waitForResponses,
                                MessageTemplate messageTemplate,
                                String forwardNamespace,
-                               String messageSelector,
+                               String routingKey,
                                SubscriptionType subscriptionType) {
 
-        super(ackTimeout, responseTimeout, waitForResponses, messageTemplate, forwardNamespace, messageSelector);
+        super(ackTimeout, responseTimeout, waitForResponses, messageTemplate, forwardNamespace, routingKey);
         this.subscriptionType = subscriptionType;
     }
 
@@ -30,7 +30,7 @@ public class ActiveMQRequestOptions extends RequestOptions {
 
     public static class Builder extends RequestOptions.Builder {
 
-        private SubscriptionType subscriptionType;
+        private SubscriptionType subscriptionType = SubscriptionType.TOPIC;
 
         public Builder withSubscriptionType(SubscriptionType subscriptionType){
             this.subscriptionType = subscriptionType;

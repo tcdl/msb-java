@@ -17,7 +17,11 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
 
     private static final Logger LOG = LoggerFactory.getLogger(ActiveMQConsumerAdapter.class);
 
-    private final String topic;
+    private static final String VIRTUAL_DESTINATION_PREFIX = "VirtualTopic.";
+    private static final String CONSUMER_TOPIC_PATTERN = "Consumer.%s.%s";
+
+    private final String physicalTopic;
+    private final String groupId;
     private final SubscriptionType subscriptionType;
     private final Set<String> bindingKeys;
     private final ActiveMQBrokerConfig brokerConfig;
@@ -32,7 +36,8 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
         Validate.notNull(topic, "Topic name is required");
         Validate.notNull(subscriptionType, "Subscription type is required");
 
-        this.topic = topic;
+        this.groupId = brokerConfig.getGroupId().orElse("msb");
+        this.physicalTopic = String.format(CONSUMER_TOPIC_PATTERN, groupId, VIRTUAL_DESTINATION_PREFIX + topic);
         this.subscriptionType = subscriptionType;
         this.bindingKeys = bindingKeys;
         this.brokerConfig = brokerConfig;
@@ -47,11 +52,11 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
     public void subscribe(RawMessageHandler msgHandler) {
         try {
             ActiveMQMessageConsumer messageConsumer = new ActiveMQMessageConsumer(msgHandler);
-            String clientId = generateClientId(topic, brokerConfig.getGroupId().orElse("msb"), isDurable());
-            consumer = session.createConsumer(topic, subscriptionType, clientId, bindingKeys, isDurable());
+            String clientId = generateClientId(physicalTopic, groupId);
+            consumer = session.createConsumer(physicalTopic, subscriptionType, clientId, bindingKeys, isDurable());
             consumer.setMessageListener(messageConsumer::handlerMessage);
         } catch (JMSException e) {
-            throw new ChannelException(String.format("Failed to subscribe to topic %s with binding keys %s", topic, bindingKeys), e);
+            throw new ChannelException(String.format("Failed to subscribe to topic %s with binding keys %s", physicalTopic, bindingKeys), e);
         }
     }
 
@@ -59,8 +64,8 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
         return !isResponseTopic && brokerConfig.isDurable();
     }
 
-    private String generateClientId(String topic, String groupId, boolean durable) {
-        return topic + "." + groupId + "." + (durable ? "d" : "t");
+    private String generateClientId(String topic, String groupId) {
+        return String.format(CONSUMER_TOPIC_PATTERN, groupId, topic);
     }
 
     /**
@@ -71,7 +76,7 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
         try {
             consumer.close();
         } catch (JMSException e) {
-            throw new ChannelException(String.format("Failed to unsubscribe from topic %s", topic), e);
+            throw new ChannelException(String.format("Failed to unsubscribe from topic %s", physicalTopic), e);
         }
     }
 
