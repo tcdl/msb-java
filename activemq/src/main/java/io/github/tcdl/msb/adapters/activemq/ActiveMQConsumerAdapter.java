@@ -27,7 +27,7 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
     private final ActiveMQBrokerConfig brokerConfig;
     private boolean isResponseTopic = false;
 
-    private final ActiveMQRecoverableSession session;
+    private final ActiveMQSessionManager sessionManager;
     private MessageConsumer consumer;
 
 
@@ -37,12 +37,12 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
         Validate.notNull(subscriptionType, "Subscription type is required");
 
         this.groupId = brokerConfig.getGroupId().orElse("msb");
-        this.physicalTopic = String.format(CONSUMER_TOPIC_PATTERN, groupId, VIRTUAL_DESTINATION_PREFIX + topic);
+        this.isResponseTopic = isResponseTopic;
+        this.brokerConfig = brokerConfig;
         this.subscriptionType = subscriptionType;
         this.bindingKeys = bindingKeys;
-        this.brokerConfig = brokerConfig;
-        this.isResponseTopic = isResponseTopic;
-        this.session = ActiveMQRecoverableSession.instance(connectionManager);
+        this.physicalTopic = formatTopic(topic, subscriptionType, isDurable());
+        this.sessionManager = ActiveMQSessionManager.instance(connectionManager);
     }
 
     /**
@@ -52,8 +52,7 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
     public void subscribe(RawMessageHandler msgHandler) {
         try {
             ActiveMQMessageConsumer messageConsumer = new ActiveMQMessageConsumer(msgHandler);
-            String clientId = generateClientId(physicalTopic, groupId);
-            consumer = session.createConsumer(physicalTopic, subscriptionType, clientId, bindingKeys, isDurable());
+            consumer = sessionManager.createConsumer(physicalTopic, subscriptionType, physicalTopic, bindingKeys, isDurable());
             consumer.setMessageListener(messageConsumer::handlerMessage);
         } catch (JMSException e) {
             throw new ChannelException(String.format("Failed to subscribe to topic %s with binding keys %s", physicalTopic, bindingKeys), e);
@@ -62,10 +61,6 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
 
     private boolean isDurable() {
         return !isResponseTopic && brokerConfig.isDurable();
-    }
-
-    private String generateClientId(String topic, String groupId) {
-        return String.format(CONSUMER_TOPIC_PATTERN, groupId, topic);
     }
 
     /**
@@ -94,5 +89,9 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
     @Override
     public Optional<Boolean> isConnected() {
         throw new UnsupportedOperationException("IsConnected is not supported");
+    }
+
+    private String formatTopic(String topic, SubscriptionType subscriptionType, boolean durable) {
+        return String.format(CONSUMER_TOPIC_PATTERN, groupId, VIRTUAL_DESTINATION_PREFIX + topic);
     }
 }

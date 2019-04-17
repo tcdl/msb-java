@@ -19,11 +19,13 @@ public class ActiveMQProducerAdapter implements ProducerAdapter {
     private static final Logger LOG = LoggerFactory.getLogger(ActiveMQProducerAdapter.class);
 
     private static final String VIRTUAL_DESTINATION_PREFIX = "VirtualTopic.";
+    private static final String PRODUCER_ID_PATTERN = "Producer.%s";
     private static final String ERROR_MESSAGE_TEMPLATE = "Failed to publish message to topic '%s' with routing key '%s'";
 
     private String physicalTopic;
     private SubscriptionType subscriptionType;
-    private ActiveMQRecoverableSession session;
+    private boolean durable;
+    private ActiveMQSessionManager sessionManager;
     private MessageProducer producer;
 
     ActiveMQProducerAdapter(String topic, SubscriptionType subscriptionType, ActiveMQBrokerConfig brokerConfig, ActiveMQConnectionManager connectionManager) {
@@ -32,12 +34,14 @@ public class ActiveMQProducerAdapter implements ProducerAdapter {
         Validate.notNull(brokerConfig, "Broker config is mandatory");
         Validate.notNull(connectionManager, "Connection manager is mandatory");
 
-        this.physicalTopic = VIRTUAL_DESTINATION_PREFIX + topic;
+        this.physicalTopic = formatTopic(topic, subscriptionType, brokerConfig.isDurable());
         this.subscriptionType = subscriptionType;
+        this.durable = brokerConfig.isDurable();
 
         try {
-            this.session = ActiveMQRecoverableSession.instance(connectionManager);
-            producer = session.createProducer(physicalTopic, subscriptionType, brokerConfig.isDurable());
+            String clientId = String.format(PRODUCER_ID_PATTERN, physicalTopic);
+            this.sessionManager = ActiveMQSessionManager.instance(connectionManager);
+            this.producer = sessionManager.createProducer(physicalTopic, subscriptionType, clientId, brokerConfig.isDurable());
         } catch (Exception e) {
             throw new ChannelException("Failed to setup channel from ActiveMQ connection", e);
         }
@@ -57,7 +61,8 @@ public class ActiveMQProducerAdapter implements ProducerAdapter {
     @Override
     public void publish(String jsonMessage, String routingKey) {
         try {
-            Message message = session.createMessage(jsonMessage);
+            String clientId = String.format(PRODUCER_ID_PATTERN, physicalTopic);
+            Message message = sessionManager.createMessage(jsonMessage, clientId);
             LOG.debug("Publishing message. Topic name = [{}], routing key = [{}]", physicalTopic, routingKey);
 
             //create virtual destination with routing key
@@ -66,12 +71,16 @@ public class ActiveMQProducerAdapter implements ProducerAdapter {
                 destinationTopic += "." + routingKey;
             }
 
-            Destination destination = session.createDestination(destinationTopic, subscriptionType == SubscriptionType.TOPIC);
+            Destination destination = sessionManager.createDestination(physicalTopic, subscriptionType, durable, clientId);
             producer.send(destination, message);
         } catch (Exception e) {
             LOG.error(ERROR_MESSAGE_TEMPLATE, physicalTopic, routingKey);
             LOG.trace("Message: {}", jsonMessage);
             throw new ChannelException(String.format(ERROR_MESSAGE_TEMPLATE, physicalTopic, routingKey), e);
         }
+    }
+
+    private String formatTopic(String topic, SubscriptionType subscriptionType, boolean durable) {
+        return VIRTUAL_DESTINATION_PREFIX + topic;
     }
 }
