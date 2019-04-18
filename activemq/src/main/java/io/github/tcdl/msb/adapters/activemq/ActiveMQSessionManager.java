@@ -2,8 +2,6 @@ package io.github.tcdl.msb.adapters.activemq;
 
 import io.github.tcdl.msb.api.SubscriptionType;
 import io.github.tcdl.msb.api.exception.ChannelException;
-import org.apache.activemq.command.ActiveMQTempQueue;
-import org.apache.activemq.command.ActiveMQTempTopic;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -37,16 +35,14 @@ public class ActiveMQSessionManager {
         return instance;
     }
 
-    public MessageProducer createProducer(String topic, SubscriptionType subscriptionType, String clientId, boolean durable) {
+    public MessageProducer createProducer(String topic, SubscriptionType subscriptionType, String clientId) {
         Validate.notEmpty(topic, "topic is mandatory");
         Validate.notNull(subscriptionType, "subscription type is mandatory");
 
         try {
             // omit destination to specify it later during sending a message
             MessageProducer producer = getSession(clientId).createProducer(null);
-            if (durable) {
-                producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-            }
+            producer.setDeliveryMode(DeliveryMode.PERSISTENT);
             LOG.debug("Created producer on topic '{}'", topic);
 
             return producer;
@@ -71,7 +67,7 @@ public class ActiveMQSessionManager {
             }
 
             Session session = getSession(clientId);
-            Destination destination = createDestination(destinationTopic, subscriptionType, durable, clientId);
+            Destination destination = createDestination(destinationTopic, subscriptionType, clientId);
             MessageConsumer consumer;
             if (subscriptionType == QUEUE) {
                 consumer = session.createConsumer(destination);
@@ -87,26 +83,12 @@ public class ActiveMQSessionManager {
         }
     }
 
-    public Destination createDestination(String destinationTopic, SubscriptionType subscriptionType, boolean durable, String clientId) {
-        Destination destination;
+    public Destination createDestination(String destinationTopic, SubscriptionType subscriptionType, String clientId) {
         Session session = getSession(clientId);
         try {
-            if (subscriptionType == QUEUE) {
-                if (durable) {
-                    destination = session.createQueue(destinationTopic);
-                } else {
-                    destination = session.createTemporaryQueue();
-                    ((ActiveMQTempQueue) destination).setPhysicalName(destinationTopic);
-                }
-            } else  {
-                if (durable) {
-                    destination = session.createTopic(destinationTopic);
-                } else {
-                    destination = session.createTemporaryTopic();
-                    ((ActiveMQTempTopic) destination).setPhysicalName(destinationTopic);
-                }
-            }
-            return destination;
+            return subscriptionType == QUEUE?
+                    session.createQueue(destinationTopic):
+                    session.createTopic(destinationTopic);
         } catch (JMSException e) {
             throw new ChannelException("Topic creation failed with exception", e);
         }

@@ -1,5 +1,7 @@
+
 package io.github.tcdl.msb;
 
+import com.google.common.collect.Sets;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.api.*;
 import org.junit.After;
@@ -11,9 +13,9 @@ import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TransferQueue;
 
-public class ActiveMQRequesterResponderTest {
+public class ActiveMQRoutingKeyTest {
 
-    private String namespace = "activemq:test";
+    private String namespace = "activemq:rounting-keys:test";
     private MsbContext msbContext;
     private ResponderServer responderServer;
     private TransferQueue<String> transferQueue;
@@ -36,16 +38,19 @@ public class ActiveMQRequesterResponderTest {
     }
 
     @Test
-    public void requestResponseTest() throws InterruptedException {
-        String message = "test message";
+    public void requestResponseWithRoutingKeyTest() throws InterruptedException {
+        final String message = "test message";
+        final String routingKey = "RK";
 
         RequestOptions requestOptions = new ActiveMQRequestOptions.Builder()
                 .withSubscriptionType(SubscriptionType.TOPIC)
+                .withRoutingKey(routingKey)
                 .withWaitForResponses(0)
                 .build();
 
         ResponderOptions responderOptions = new ActiveMQResponderOptions.Builder()
                 .withSubscriptionType(SubscriptionType.QUEUE)
+                .withBindingKeys(Sets.newHashSet(routingKey))
                 .build();
 
         responderServer = msbContext.getObjectFactory().createResponderServer(namespace, responderOptions,

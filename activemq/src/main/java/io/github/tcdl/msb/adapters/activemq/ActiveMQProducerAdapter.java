@@ -41,7 +41,7 @@ public class ActiveMQProducerAdapter implements ProducerAdapter {
         try {
             String clientId = String.format(PRODUCER_ID_PATTERN, physicalTopic);
             this.sessionManager = ActiveMQSessionManager.instance(connectionManager);
-            this.producer = sessionManager.createProducer(physicalTopic, subscriptionType, clientId, brokerConfig.isDurable());
+            this.producer = sessionManager.createProducer(physicalTopic, subscriptionType, clientId);
         } catch (Exception e) {
             throw new ChannelException("Failed to setup channel from ActiveMQ connection", e);
         }
@@ -71,7 +71,7 @@ public class ActiveMQProducerAdapter implements ProducerAdapter {
                 destinationTopic += "." + routingKey;
             }
 
-            Destination destination = sessionManager.createDestination(physicalTopic, subscriptionType, durable, clientId);
+            Destination destination = sessionManager.createDestination(physicalTopic, subscriptionType, clientId);
             producer.send(destination, message);
         } catch (Exception e) {
             LOG.error(ERROR_MESSAGE_TEMPLATE, physicalTopic, routingKey);

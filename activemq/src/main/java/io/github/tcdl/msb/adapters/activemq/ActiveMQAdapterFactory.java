@@ -122,7 +122,7 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
         activeMQPrefetchPolicy.setQueuePrefetch(brokerConfig.getPrefetchCount());
 
         RedeliveryPolicy redeliveryPolicy = new RedeliveryPolicy();
-        redeliveryPolicy.setMaximumRedeliveries(1);
+        redeliveryPolicy.setMaximumRedeliveries(0);
 
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(uri);
         username.ifPresent(connectionFactory::setUserName);
