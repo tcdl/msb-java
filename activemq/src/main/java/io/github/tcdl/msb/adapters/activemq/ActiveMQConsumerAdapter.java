@@ -25,7 +25,7 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
     private final SubscriptionType subscriptionType;
     private final Set<String> bindingKeys;
     private final ActiveMQBrokerConfig brokerConfig;
-    private boolean isResponseTopic = false;
+    private final boolean isResponseTopic;
 
     private final ActiveMQSessionManager sessionManager;
     private MessageConsumer consumer;
@@ -41,7 +41,7 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
         this.brokerConfig = brokerConfig;
         this.subscriptionType = subscriptionType;
         this.bindingKeys = bindingKeys;
-        this.physicalTopic = formatTopic(topic, subscriptionType, isDurable());
+        this.physicalTopic = formatTopic(topic, groupId);
         this.sessionManager = ActiveMQSessionManager.instance(connectionManager);
     }
 
@@ -91,7 +91,7 @@ public class ActiveMQConsumerAdapter implements ConsumerAdapter {
         throw new UnsupportedOperationException("IsConnected is not supported");
     }
 
-    private String formatTopic(String topic, SubscriptionType subscriptionType, boolean durable) {
+    private String formatTopic(String topic, String groupId) {
         return String.format(CONSUMER_TOPIC_PATTERN, groupId, VIRTUAL_DESTINATION_PREFIX + topic);
     }
 }

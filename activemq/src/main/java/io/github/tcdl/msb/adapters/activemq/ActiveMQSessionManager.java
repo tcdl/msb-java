@@ -2,6 +2,9 @@ package io.github.tcdl.msb.adapters.activemq;
 
 import io.github.tcdl.msb.api.SubscriptionType;
 import io.github.tcdl.msb.api.exception.ChannelException;
+import org.apache.activemq.ActiveMQConnection;
+import org.apache.activemq.command.ActiveMQDestination;
+import org.apache.activemq.jms.pool.PooledConnection;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -65,14 +68,20 @@ public class ActiveMQSessionManager {
                         .collect(Collectors.joining( ","));
                 destinationTopic = StringUtils.isNotBlank(destinationTopic) ? destinationTopic : topic;
             }
+            destinationTopic += !durable ? ".t" : "";
 
             Session session = getSession(clientId);
             Destination destination = createDestination(destinationTopic, subscriptionType, clientId);
+
+            if (!durable) {
+                autoRemove(clientId, destination);
+            }
+
             MessageConsumer consumer;
-            if (subscriptionType == QUEUE) {
+            if (subscriptionType == QUEUE || !durable) {
                 consumer = session.createConsumer(destination);
             } else  {
-                consumer = session.createDurableSubscriber((Topic)destination, clientId);
+                consumer = session.createDurableSubscriber((Topic) destination, clientId);
             }
 
             LOG.debug("Created consumer on topic '{}'", topic);
@@ -101,6 +110,18 @@ public class ActiveMQSessionManager {
         } catch (JMSException e) {
             throw new ChannelException("Message creation failed with exception", e);
         }
+    }
+
+    public void autoRemove(String clientId, Destination destination) {
+        connectionManager.addConnectionCloseListener(clientId, connection -> {
+            try {
+                ActiveMQDestination activeMQDestination = (ActiveMQDestination) destination;
+                LOG.debug("Invoke connection close hook for {}", activeMQDestination.getPhysicalName());
+                ((ActiveMQConnection)((PooledConnection)connection).getConnection()).destroyDestination(activeMQDestination);
+            } catch (JMSException e) {
+                LOG.error("Error executing connection hook for {}", clientId, e);
+            }
+        });
     }
 
     private Session getSession(String clientId) {

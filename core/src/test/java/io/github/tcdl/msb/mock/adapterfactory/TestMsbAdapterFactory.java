@@ -28,7 +28,7 @@ public class TestMsbAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public ProducerAdapter createProducerAdapter(String topic, RequestOptions requestOptions) {
+    public ProducerAdapter createProducerAdapter(String topic, boolean isResponseTopic, RequestOptions requestOptions) {
         TestMsbProducerAdapter producerAdapter = new TestMsbProducerAdapter(topic, storage);
         storage.addProducerAdapter(topic, producerAdapter);
         return producerAdapter;

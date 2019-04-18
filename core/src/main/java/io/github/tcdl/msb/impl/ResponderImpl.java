@@ -2,7 +2,6 @@ package io.github.tcdl.msb.impl;
 
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Producer;
-import io.github.tcdl.msb.api.AcknowledgementHandler;
 import io.github.tcdl.msb.api.MessageTemplate;
 import io.github.tcdl.msb.api.RequestOptions;
 import io.github.tcdl.msb.api.Responder;
@@ -10,7 +9,6 @@ import io.github.tcdl.msb.api.message.Acknowledge.Builder;
 import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.message.MessageFactory;
 import io.github.tcdl.msb.support.Utils;
-
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +59,7 @@ public class ResponderImpl implements Responder {
     }
 
     private void sendMessage(Message message) {
-        Producer producer = channelManager.findOrCreateProducer(message.getTopics().getTo(), RequestOptions.DEFAULTS);
+        Producer producer = channelManager.findOrCreateProducer(message.getTopics().getTo(), true, RequestOptions.DEFAULTS);
         LOG.debug("Publishing message to topic : {}", message.getTopics().getTo());
         producer.publish(message);
     }

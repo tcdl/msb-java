@@ -10,6 +10,7 @@ import javax.jms.JMSException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public class ActiveMQConnectionManager {
 
@@ -17,10 +18,12 @@ public class ActiveMQConnectionManager {
 
     private ConnectionFactory connectionFactory;
     private Map<String, Connection> connectionsByClientId;
+    private Map<String, Consumer<Connection>> connectionCloseListeners;
 
     public ActiveMQConnectionManager(ConnectionFactory connectionFactory) {
         this.connectionFactory = connectionFactory;
         this.connectionsByClientId = new ConcurrentHashMap<>();
+        this.connectionCloseListeners = new ConcurrentHashMap<>();
     }
 
     /**
@@ -44,9 +47,16 @@ public class ActiveMQConnectionManager {
         }
     }
 
-    public void close() throws JMSException {
-        connectionsByClientId.values().stream().forEach(connection -> {
+    public void addConnectionCloseListener(String clientId, Consumer<Connection> connectionCloseListener) {
+        connectionCloseListeners.put(clientId, connectionCloseListener);
+    }
+
+    public void close() {
+        connectionsByClientId.forEach((clientId, connection) -> {
             try {
+                if (connectionCloseListeners.containsKey(clientId)) {
+                    connectionCloseListeners.get(clientId).accept(connection);
+                }
                 connection.stop();
                 connection.close();
             } catch (JMSException e) {

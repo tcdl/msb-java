@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
 import java.util.Optional;
 
 /**
@@ -60,7 +59,7 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
      * {@inheritDoc}
      */
     @Override
-    public ActiveMQProducerAdapter createProducerAdapter(String topic, RequestOptions requestOptions) {
+    public ActiveMQProducerAdapter createProducerAdapter(String topic, boolean isResponseTopic, RequestOptions requestOptions) {
         Validate.notEmpty(topic, "topic is mandatory");
         Validate.notNull(requestOptions, "subscription type is mandatory");
 
@@ -70,12 +69,12 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
         if (ActiveMQRequestOptions.class.isAssignableFrom(requestOptionsClass)) {
             subscriptionType = ((ActiveMQRequestOptions) requestOptions).getSubscriptionType();
         } else if (requestOptionsClass.equals(RequestOptions.class)) {
-            subscriptionType = brokerConfig.getDefaultSubscriptionType();
+            subscriptionType = isResponseTopic ? SubscriptionType.TOPIC : brokerConfig.getDefaultSubscriptionType();
         } else {
             throw new AdapterCreationException("Illegal for this AdapterFactory RequestOptions subclass");
         }
 
-        return new ActiveMQProducerAdapter(topic, subscriptionType, brokerConfig, connectionManager);
+        return new ActiveMQProducerAdapter(topic, subscriptionType, brokerConfig, connectionManager, isResponseTopic);
     }
 
     /**
@@ -102,7 +101,7 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
         if (ActiveMQResponderOptions.class.isAssignableFrom(responderOptionsClass)) {
             subscriptionType = ((ActiveMQResponderOptions) responderOptions).getSubscriptionType();
         } else if (responderOptionsClass.equals(ResponderOptions.class)) {
-            subscriptionType = brokerConfig.getDefaultSubscriptionType();
+            subscriptionType = isResponseTopic ? SubscriptionType.QUEUE : brokerConfig.getDefaultSubscriptionType();
         } else {
             throw new AdapterCreationException("Illegal for this AdapterFactory ResponderOptions subclass");
         }
@@ -112,7 +111,7 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
     }
 
     private ConnectionFactory createConnectionFactory(ActiveMQBrokerConfig brokerConfig)  {
-        String uri = brokerConfig.getUri();
+        String url = brokerConfig.getUrl();
         Optional<String> username = brokerConfig.getUsername();
         Optional<String> password = brokerConfig.getPassword();
 
@@ -124,7 +123,7 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
         RedeliveryPolicy redeliveryPolicy = new RedeliveryPolicy();
         redeliveryPolicy.setMaximumRedeliveries(0);
 
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(uri);
+        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(url);
         username.ifPresent(connectionFactory::setUserName);
         password.ifPresent(connectionFactory::setPassword);
         connectionFactory.setPrefetchPolicy(activeMQPrefetchPolicy);
@@ -157,11 +156,7 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
      */
     @Override
     public void shutdown() {
-        try {
-            connectionManager.close();
-        } catch (JMSException e) {
-            LOG.error("Error while closing ActiveMQ connection", e);
-        }
+        connectionManager.close();
     }
 }
 

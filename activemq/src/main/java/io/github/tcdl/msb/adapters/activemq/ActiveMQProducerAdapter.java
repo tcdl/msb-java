@@ -22,13 +22,15 @@ public class ActiveMQProducerAdapter implements ProducerAdapter {
     private static final String PRODUCER_ID_PATTERN = "Producer.%s";
     private static final String ERROR_MESSAGE_TEMPLATE = "Failed to publish message to topic '%s' with routing key '%s'";
 
-    private String physicalTopic;
-    private SubscriptionType subscriptionType;
-    private boolean durable;
-    private ActiveMQSessionManager sessionManager;
-    private MessageProducer producer;
+    private final String physicalTopic;
+    private final SubscriptionType subscriptionType;
+    private final boolean isResponseTopic;
+    private final ActiveMQBrokerConfig brokerConfig;
+    private final ActiveMQSessionManager sessionManager;
+    private final MessageProducer producer;
 
-    ActiveMQProducerAdapter(String topic, SubscriptionType subscriptionType, ActiveMQBrokerConfig brokerConfig, ActiveMQConnectionManager connectionManager) {
+    ActiveMQProducerAdapter(String topic, SubscriptionType subscriptionType, ActiveMQBrokerConfig brokerConfig,
+                            ActiveMQConnectionManager connectionManager, boolean isResponseTopic) {
         Validate.notNull(topic, "Topic is mandatory");
         Validate.notNull(subscriptionType, "Subscription type is mandatory");
         Validate.notNull(brokerConfig, "Broker config is mandatory");
@@ -36,7 +38,8 @@ public class ActiveMQProducerAdapter implements ProducerAdapter {
 
         this.physicalTopic = formatTopic(topic, subscriptionType, brokerConfig.isDurable());
         this.subscriptionType = subscriptionType;
-        this.durable = brokerConfig.isDurable();
+        this.isResponseTopic = isResponseTopic;
+        this.brokerConfig = brokerConfig;
 
         try {
             String clientId = String.format(PRODUCER_ID_PATTERN, physicalTopic);
@@ -70,14 +73,24 @@ public class ActiveMQProducerAdapter implements ProducerAdapter {
             if (StringUtils.isNotBlank(routingKey)) {
                 destinationTopic += "." + routingKey;
             }
+            destinationTopic += !isDurable() ? ".t" : "";
 
-            Destination destination = sessionManager.createDestination(physicalTopic, subscriptionType, clientId);
+            Destination destination = sessionManager.createDestination(destinationTopic, subscriptionType, clientId);
+
+            if (!isDurable()) {
+                sessionManager.autoRemove(clientId, destination);
+            }
+
             producer.send(destination, message);
         } catch (Exception e) {
             LOG.error(ERROR_MESSAGE_TEMPLATE, physicalTopic, routingKey);
             LOG.trace("Message: {}", jsonMessage);
             throw new ChannelException(String.format(ERROR_MESSAGE_TEMPLATE, physicalTopic, routingKey), e);
         }
+    }
+
+    private boolean isDurable() {
+        return !isResponseTopic && brokerConfig.isDurable();
     }
 
     private String formatTopic(String topic, SubscriptionType subscriptionType, boolean durable) {

@@ -3,20 +3,21 @@ package io.github.tcdl.msb;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.api.*;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TransferQueue;
+import java.util.function.BiConsumer;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class ActiveMQRequesterResponderTest {
 
     private String namespace = "activemq:test";
     private MsbContext msbContext;
     private ResponderServer responderServer;
-    private TransferQueue<String> transferQueue;
 
     @Before
     public void setUp() {
@@ -24,41 +25,39 @@ public class ActiveMQRequesterResponderTest {
                 .enableShutdownHook(true)
                 .withConfig(ConfigFactory.load())
                 .build();
-        transferQueue = new LinkedTransferQueue<>();
     }
 
     @After
     public void tearDown() throws InterruptedException {
         responderServer.stop();
         msbContext.shutdown();
-        transferQueue.clear();
         TimeUnit.SECONDS.sleep(5);
     }
 
     @Test
-    public void requestResponseTest() throws InterruptedException {
+    @SuppressWarnings("unchecked")
+    public void requestResponseTest() throws Exception {
         String message = "test message";
 
         RequestOptions requestOptions = new ActiveMQRequestOptions.Builder()
-                .withSubscriptionType(SubscriptionType.TOPIC)
-                .withWaitForResponses(0)
+                .withWaitForResponses(1)
                 .build();
 
         ResponderOptions responderOptions = new ActiveMQResponderOptions.Builder()
-                .withSubscriptionType(SubscriptionType.QUEUE)
                 .build();
 
+        BiConsumer<String, MessageContext> responseHandlerMock = mock(BiConsumer.class);
+
         responderServer = msbContext.getObjectFactory().createResponderServer(namespace, responderOptions,
-                (request, responderContext) -> transferQueue.tryTransfer(message), String.class)
+                (request, responderContext) -> {
+                    responderContext.getResponder().send(request);
+                }, String.class)
                 .listen();
 
-        TimeUnit.SECONDS.sleep(5);
-
-        msbContext.getObjectFactory().createRequester(namespace, requestOptions)
+        msbContext.getObjectFactory().createRequester(namespace, requestOptions, String.class)
+                .onResponse(responseHandlerMock)
                 .publish(message);
 
-        String receivedMessage = transferQueue.poll(5, TimeUnit.SECONDS);
-
-        Assert.assertEquals(message, receivedMessage);
+        verify(responseHandlerMock, timeout(5000).times(1)).accept(eq(message), any(MessageContext.class));
     }
 }

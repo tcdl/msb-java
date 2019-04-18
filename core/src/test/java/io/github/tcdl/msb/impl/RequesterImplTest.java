@@ -24,11 +24,7 @@ import static io.github.tcdl.msb.support.TestUtils.createPayloadWithTextBody;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.same;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -329,7 +325,7 @@ public class RequesterImplTest {
     public void testRequestMessage() throws Exception {
         ChannelManager channelManagerMock = mock(ChannelManager.class);
         Producer producerMock = mock(Producer.class);
-        when(channelManagerMock.findOrCreateProducer(eq(TOPIC), eq(RequestOptions.DEFAULTS))).thenReturn(producerMock);
+        when(channelManagerMock.findOrCreateProducer(eq(TOPIC), eq(false), eq(RequestOptions.DEFAULTS))).thenReturn(producerMock);
         ArgumentCaptor<Message> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
 
         MsbContextImpl msbContext = TestUtils.createMsbContextBuilder()
@@ -366,7 +362,7 @@ public class RequesterImplTest {
         RestPayload requestPayload = TestUtils.createSimpleRequestPayload();
         RequestOptions requestOptions = TestUtils.createSimpleRequestOptionsWithTags(tag);
 
-        when(channelManagerMock.findOrCreateProducer(eq(TOPIC), eq(requestOptions))).thenReturn(producerMock);
+        when(channelManagerMock.findOrCreateProducer(eq(TOPIC), eq(false), eq(requestOptions))).thenReturn(producerMock);
 
         Requester<RestPayload> requester = RequesterImpl.create(TOPIC, requestOptions, msbContext, new TypeReference<RestPayload>(){});
         requester.publish(requestPayload, dynamicTag1, dynamicTag2, nullTag);
@@ -389,7 +385,7 @@ public class RequesterImplTest {
                 .withAckTimeout(ackTimeout)
                 .build();
 
-        when(channelManagerMock.findOrCreateProducer(anyString(), any(RequestOptions.class))).thenReturn(producerMock);
+        when(channelManagerMock.findOrCreateProducer(anyString(), eq(false), any(RequestOptions.class))).thenReturn(producerMock);
 
         return setUpRequester(TOPIC, onResponse, onAcknowledge, onError, endHandler, requestOptions);
     }

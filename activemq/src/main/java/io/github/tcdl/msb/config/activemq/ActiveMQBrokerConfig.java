@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public class ActiveMQBrokerConfig {
 
-    private String uri;
+    private String url;
     private final Optional<String> username;
     private final Optional<String> password;
     private final SubscriptionType defaultSubscriptionType;
@@ -17,10 +17,10 @@ public class ActiveMQBrokerConfig {
     private final int prefetchCount;
     private final int connectionIdleTimeout;
 
-    private ActiveMQBrokerConfig(String uri, Optional<String> username, Optional<String> password,
+    private ActiveMQBrokerConfig(String url, Optional<String> username, Optional<String> password,
                                  SubscriptionType defaultSubscriptionType, Optional<String> groupId,
                                  boolean durable, int prefetchCount, int connectionIdleTimeout) {
-        this.uri = uri;
+        this.url = url;
         this.username = username;
         this.password = password;
         this.defaultSubscriptionType = defaultSubscriptionType;
@@ -32,7 +32,7 @@ public class ActiveMQBrokerConfig {
 
     public final static class ActiveMQBrokerConfigBuilder {
 
-        private String uri;
+        private String url;
         private Optional<String> username;
         private Optional<String> password;
         private SubscriptionType defaultSubscriptionType;
@@ -42,7 +42,7 @@ public class ActiveMQBrokerConfig {
         private int connectionIdleTimeout;
 
         public ActiveMQBrokerConfigBuilder withConfig(Config config) {
-            this.uri = ConfigurationUtil.getString(config, "uri");
+            this.url = ConfigurationUtil.getString(config, "url");
             this.username = ConfigurationUtil.getOptionalString(config, "username");
             this.password = ConfigurationUtil.getOptionalString(config, "password");
             this.defaultSubscriptionType = SubscriptionType.valueOf(ConfigurationUtil.getString(config, "defaultSubscriptionType").toUpperCase());
@@ -54,12 +54,12 @@ public class ActiveMQBrokerConfig {
         }
 
         public ActiveMQBrokerConfig build() {
-            return new ActiveMQBrokerConfig(uri, username, password, defaultSubscriptionType, groupId, durable, prefetchCount, connectionIdleTimeout);
+            return new ActiveMQBrokerConfig(url, username, password, defaultSubscriptionType, groupId, durable, prefetchCount, connectionIdleTimeout);
         }
     }
 
-    public String getUri() {
-        return uri;
+    public String getUrl() {
+        return url;
     }
 
     public Optional<String> getUsername() {
@@ -92,7 +92,7 @@ public class ActiveMQBrokerConfig {
 
     @Override
     public String toString() {
-        return String.format("ActiveMQBrokerConfig [uri=%s, username=%s, password=xxx, defaultSubscriptionType=%s, groupId=%s, durable=%s, prefetchCount=%s, connectionIdleTimeout=%s",
-                uri, username, defaultSubscriptionType, groupId, durable, prefetchCount, connectionIdleTimeout);
+        return String.format("ActiveMQBrokerConfig [url=%s, username=%s, password=xxx, defaultSubscriptionType=%s, groupId=%s, durable=%s, prefetchCount=%s, connectionIdleTimeout=%s",
+                url, username, defaultSubscriptionType, groupId, durable, prefetchCount, connectionIdleTimeout);
     }
 }

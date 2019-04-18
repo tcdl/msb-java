@@ -41,9 +41,9 @@ public class ChannelManagerConcurrentTest {
     public void testProducerCachedMultithreadInteraction() {
         String topic = "topic:test-producer-cached-multithreaded";
 
-        new MultithreadingTester().add(() -> {channelManager.findOrCreateProducer(topic, RequestOptions.DEFAULTS);}).run();
+        new MultithreadingTester().add(() -> {channelManager.findOrCreateProducer(topic, false, RequestOptions.DEFAULTS);}).run();
 
-        verify(adapterFactory, times(1)).createProducerAdapter(eq(topic), eq(RequestOptions.DEFAULTS));
+        verify(adapterFactory, times(1)).createProducerAdapter(eq(topic), eq(false), eq(RequestOptions.DEFAULTS));
     }
 
     @Test

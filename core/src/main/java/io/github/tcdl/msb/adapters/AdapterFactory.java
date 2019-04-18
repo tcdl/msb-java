@@ -24,14 +24,19 @@ public interface AdapterFactory {
      * @param topic topic name
      * @return Producer Adapter associated with a topic
      * @throws ChannelException if some problems during creation were occurred
-     * @deprecated use {@link AdapterFactory#createProducerAdapter(String, RequestOptions)}
+     * @deprecated use {@link AdapterFactory#createProducerAdapter(String, boolean, RequestOptions)}
      */
     @Deprecated
     default ProducerAdapter createProducerAdapter(String topic) {
-        return createProducerAdapter(topic, RequestOptions.DEFAULTS);
+        return createProducerAdapter(topic, false, RequestOptions.DEFAULTS);
     }
 
-    ProducerAdapter createProducerAdapter(String topic, RequestOptions requestOptions);
+    /**
+     * @param topic topic name
+     * @return Producer Adapter associated with a topic
+     * @throws ChannelException if some problems during creation were occurred
+     */
+    ProducerAdapter createProducerAdapter(String topic, boolean isResponseTopic, RequestOptions requestOptions);
 
     /**
      * @param topic topic name
