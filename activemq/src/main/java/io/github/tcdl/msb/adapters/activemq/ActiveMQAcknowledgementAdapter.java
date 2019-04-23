@@ -32,8 +32,7 @@ public class ActiveMQAcknowledgementAdapter implements AcknowledgementAdapter {
      */
     @Override
     public void reject() throws Exception {
-        LOG.warn("Reject operation is not supported for ActiveMQ broker");
-        confirm();
+        message.acknowledge();
     }
 
     /**
@@ -41,8 +40,7 @@ public class ActiveMQAcknowledgementAdapter implements AcknowledgementAdapter {
      */
     @Override
     public void retry() throws Exception {
-        LOG.warn("Retry operation is not supported for ActiveMQ broker");
-        confirm();
+        //Do nothing. Unconfirmed message will not be removed from the queue
     }
 }
 

@@ -18,7 +18,6 @@ import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jms.ConnectionFactory;
 import java.util.Optional;
 
 /**
@@ -40,7 +39,7 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
     public void init(MsbConfig msbConfig) {
         brokerConfig = createActiveMQBrokerConfig(msbConfig);
         LOG.debug("MSB ActiveMQ Broker configuration {}", brokerConfig);
-        ConnectionFactory connectionFactory = createConnectionFactory(brokerConfig);
+        PooledConnectionFactory connectionFactory = createConnectionFactory(brokerConfig);
         connectionManager = createConnectionManager(connectionFactory);
     }
 
@@ -91,7 +90,7 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
      * {@inheritDoc}
      */
     @Override
-    public ActiveMQConsumerAdapter createConsumerAdapter(String topic, ResponderOptions responderOptions, boolean isResponseTopic) {
+    public ActiveMQConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic, ResponderOptions responderOptions) {
         Validate.notEmpty(topic, "topic is mandatory");
         Validate.notNull(responderOptions, "responderOptions are mandatory");
 
@@ -110,7 +109,7 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
                 brokerConfig, connectionManager, isResponseTopic);
     }
 
-    private ConnectionFactory createConnectionFactory(ActiveMQBrokerConfig brokerConfig)  {
+    private PooledConnectionFactory createConnectionFactory(ActiveMQBrokerConfig brokerConfig)  {
         String url = brokerConfig.getUrl();
         Optional<String> username = brokerConfig.getUsername();
         Optional<String> password = brokerConfig.getPassword();
@@ -121,7 +120,7 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
         activeMQPrefetchPolicy.setQueuePrefetch(brokerConfig.getPrefetchCount());
 
         RedeliveryPolicy redeliveryPolicy = new RedeliveryPolicy();
-        redeliveryPolicy.setMaximumRedeliveries(0);
+        redeliveryPolicy.setMaximumRedeliveries(1);
 
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(url);
         username.ifPresent(connectionFactory::setUserName);
@@ -135,11 +134,13 @@ public class ActiveMQAdapterFactory implements AdapterFactory {
         pooledConnectionFactory.setCreateConnectionOnStartup(true);
         pooledConnectionFactory.setReconnectOnException(true);
         pooledConnectionFactory.setIdleTimeout(brokerConfig.getConnectionIdleTimeout());
+        pooledConnectionFactory.initConnectionsPool();
+        pooledConnectionFactory.start();
 
         return pooledConnectionFactory;
     }
 
-    private ActiveMQConnectionManager createConnectionManager(ConnectionFactory connectionFactory) {
+    private ActiveMQConnectionManager createConnectionManager(PooledConnectionFactory connectionFactory) {
         return new ActiveMQConnectionManager(connectionFactory);
     }
 

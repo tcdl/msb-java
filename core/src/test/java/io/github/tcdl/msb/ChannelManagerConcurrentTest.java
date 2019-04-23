@@ -53,7 +53,7 @@ public class ChannelManagerConcurrentTest {
         CollectorManager collectorManager = new CollectorManager(topic, channelManager);
 
         ConsumerAdapter consumerAdapter = mock(ConsumerAdapter.class);
-        when(adapterFactory.createConsumerAdapter(eq(topic), any(ResponderOptions.class), eq(true))).thenReturn(consumerAdapter);
+        when(adapterFactory.createConsumerAdapter(eq(topic), eq(true), any(ResponderOptions.class))).thenReturn(consumerAdapter);
 
         channelManager.subscribeForResponses(topic, collectorManager);
 

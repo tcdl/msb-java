@@ -88,7 +88,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public AmqpConsumerAdapter createConsumerAdapter(String topic, ResponderOptions responderOptions, boolean isResponseTopic) {
+    public AmqpConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic, ResponderOptions responderOptions) {
         Validate.notEmpty(topic, "topic is mandatory");
         Validate.notNull(responderOptions, "responderOptions are mandatory");
 

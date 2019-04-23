@@ -142,7 +142,7 @@ public class ChannelManager {
 
     private Consumer createConsumer(String topic, boolean isResponseTopic, ResponderOptions responderOptions, MessageHandlerResolver messageHandlerResolver) {
         Utils.validateTopic(topic);
-        ConsumerAdapter adapter = this.adapterFactory.createConsumerAdapter(topic, responderOptions, isResponseTopic);
+        ConsumerAdapter adapter = this.adapterFactory.createConsumerAdapter(topic, isResponseTopic, responderOptions);
         return new Consumer(adapter, messageHandlerInvoker, topic, messageHandlerResolver, msbConfig, clock, validator, messageMapper);
     }
 

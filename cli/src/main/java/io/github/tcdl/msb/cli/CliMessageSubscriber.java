@@ -31,7 +31,7 @@ public class CliMessageSubscriber {
                         .withExchangeType(exchangeType)
                         .withBindingKeys(Sets.newHashSet("*"))
                         .build();
-                ConsumerAdapter adapter = adapterFactory.createConsumerAdapter(topicName, responderOptions, false);
+                ConsumerAdapter adapter = adapterFactory.createConsumerAdapter(topicName, false, responderOptions);
 
                 adapter.subscribe(handler);
                 registeredTopics.add(topicName);

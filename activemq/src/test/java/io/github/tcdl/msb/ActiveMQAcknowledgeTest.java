@@ -3,19 +3,20 @@ package io.github.tcdl.msb;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.api.*;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-public class ActiveMQRequesterResponderTest {
+public class ActiveMQAcknowledgeTest {
 
-    private String namespace = "activemq:req-resp:test";
+    private String namespace = "activemq:acknowledge:test";
     private MsbContext msbContext;
     private ResponderServer responderServer;
 
@@ -36,28 +37,39 @@ public class ActiveMQRequesterResponderTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void requestResponseTest() throws Exception {
+    public void retryMessageTest() throws Exception {
         String message = "test message";
 
         RequestOptions requestOptions = new ActiveMQRequestOptions.Builder()
-                .withWaitForResponses(1)
+                .withWaitForResponses(0)
                 .build();
 
         ResponderOptions responderOptions = new ActiveMQResponderOptions.Builder()
                 .build();
 
-        BiConsumer<String, MessageContext> responseHandlerMock = mock(BiConsumer.class);
-
+        CountDownLatch receivedMessageLatch = new CountDownLatch(1);
         responderServer = msbContext.getObjectFactory().createResponderServer(namespace, responderOptions,
                 (request, responderContext) -> {
-                    responderContext.getResponder().send(request);
+                    responderContext.getAcknowledgementHandler().retryMessage();
+                    receivedMessageLatch.countDown();
                 }, String.class)
                 .listen();
 
         msbContext.getObjectFactory().createRequester(namespace, requestOptions, String.class)
-                .onResponse(responseHandlerMock)
                 .publish(message);
 
-        verify(responseHandlerMock, timeout(5000).times(1)).accept(eq(message), any(MessageContext.class));
+        receivedMessageLatch.await(5, TimeUnit.SECONDS);
+
+        Assert.assertEquals(0, receivedMessageLatch.getCount());
+
+        // do restart
+        responderServer.stop();
+
+        // message should be returned to the queue and processed again
+        ResponderServer.RequestHandler<String> handlerMock = mock(ResponderServer.RequestHandler.class);
+        responderServer = msbContext.getObjectFactory().createResponderServer(namespace, responderOptions,
+                handlerMock, String.class).listen();
+
+        verify(handlerMock, timeout(5000).times(1)).process(eq(message), any(ResponderContext.class));
     }
 }

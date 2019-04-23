@@ -9,11 +9,7 @@ import org.junit.Test;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class CliMessageSubscriberTest {
 
@@ -29,7 +25,7 @@ public class CliMessageSubscriberTest {
     public void setUp() {
         mockAdapterFactory = mock(AdapterFactory.class);
         mockConsumerAdapter = mock(ConsumerAdapter.class);
-        when(mockAdapterFactory.createConsumerAdapter(eq(TOPIC_NAME), any(ResponderOptions.class),eq(false))).thenReturn(mockConsumerAdapter);
+        when(mockAdapterFactory.createConsumerAdapter(eq(TOPIC_NAME), eq(false), any(ResponderOptions.class))).thenReturn(mockConsumerAdapter);
 
         mockMessageHandler = mock(CliMessageHandler.class);
 
@@ -57,7 +53,7 @@ public class CliMessageSubscriberTest {
         // method under test
         subscriptionManager.subscribe(topicName, ExchangeType.FANOUT, mockMessageHandler);
 
-        verify(mockAdapterFactory).createConsumerAdapter(eq(topicName), any(ResponderOptions.class),eq(false));
+        verify(mockAdapterFactory).createConsumerAdapter(eq(topicName), eq(false), any(ResponderOptions.class));
         verify(mockConsumerAdapter).subscribe(mockMessageHandler);
     }
 }

@@ -33,6 +33,8 @@ public interface AdapterFactory {
 
     /**
      * @param topic topic name
+     * @param isResponseTopic specify if this topic used to handle response
+     * @param requestOptions specific options depending on adapter implementation
      * @return Producer Adapter associated with a topic
      * @throws ChannelException if some problems during creation were occurred
      */
@@ -40,7 +42,7 @@ public interface AdapterFactory {
 
     /**
      * @param topic topic name
-     * @param isResponseTopic specify if this topic used to handle response
+     * @param isResponseTopic specify if topic for responses
      * @return Consumer Adapter associated with a topic
      * @throws ChannelException if some problems during creation were occurred
      */
@@ -49,9 +51,11 @@ public interface AdapterFactory {
     /**
      * Creates ConsumerAdapter associated with a topic.
      * @param topic topic name
+     * @param isResponseTopic specify if this topic used to handle response
+     * @param responderOptions specific options depending on adapter implementation
      * @throws ChannelException if a problems has occurred during creation
      */
-    ConsumerAdapter createConsumerAdapter(String topic, ResponderOptions responderOptions, boolean isResponseTopic);
+    ConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic, ResponderOptions responderOptions);
 
     /**
      * @return true if custom MSB threading model should be used.

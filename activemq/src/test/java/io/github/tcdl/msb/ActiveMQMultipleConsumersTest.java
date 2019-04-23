@@ -2,7 +2,7 @@ package io.github.tcdl.msb;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValue;
+import com.typesafe.config.ConfigValueFactory;
 import io.github.tcdl.msb.api.*;
 import org.junit.After;
 import org.junit.Before;
@@ -79,7 +79,6 @@ public class ActiveMQMultipleConsumersTest {
     }
 
     private Config getConfigWith(Config config, String path, Object value) {
-        ConfigValue configValue = ConfigFactory.parseString(path + "=\"" + value + "\"").getValue(path);
-        return  config.withValue(path, configValue);
+        return  config.withValue(path, ConfigValueFactory.fromAnyRef(value));
     }
 }
