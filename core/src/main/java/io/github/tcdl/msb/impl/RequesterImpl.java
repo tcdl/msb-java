@@ -5,7 +5,6 @@ import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.message.Acknowledge;
 import io.github.tcdl.msb.api.message.Message;
-import io.github.tcdl.msb.api.message.Topics;
 import io.github.tcdl.msb.collector.Collector;
 import io.github.tcdl.msb.events.EventHandlers;
 import io.github.tcdl.msb.message.MessageFactory;
@@ -177,7 +176,7 @@ public class RequesterImpl<T> implements Requester<T> {
     }
 
     private void publishMessage(Message message) {
-        getChannelManager().findOrCreateProducer(message.getTopics().getTo(), requestOptions).publish(message);
+        getChannelManager().findOrCreateProducer(message.getTopics().getTo(), false, requestOptions).publish(message);
     }
 
     private boolean isWaitForAckMs() {

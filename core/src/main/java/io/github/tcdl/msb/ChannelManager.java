@@ -52,12 +52,12 @@ public class ChannelManager {
         this.consumersByTopic = new ConcurrentHashMap<>();
     }
 
-    public Producer findOrCreateProducer(String topic, RequestOptions requestOptions) {
+    public Producer findOrCreateProducer(String topic, boolean isResponseTopic, RequestOptions requestOptions) {
         Validate.notEmpty(topic, "Topic is mandatory");
         Validate.notNull(requestOptions, "RequestOptions are mandatory");
 
         Producer producer = producersByTopic.computeIfAbsent(topic, key -> {
-            Producer newProducer = createProducer(key, requestOptions);
+            Producer newProducer = createProducer(key, isResponseTopic, requestOptions);
             return newProducer;
         });
 
@@ -134,20 +134,21 @@ public class ChannelManager {
         }
     }
 
-    private Producer createProducer(String topic, RequestOptions requestOptions) {
+    private Producer createProducer(String topic, boolean isResponseTopic, RequestOptions requestOptions) {
         Utils.validateTopic(topic);
-        ProducerAdapter adapter = this.adapterFactory.createProducerAdapter(topic, requestOptions);
+        ProducerAdapter adapter = this.adapterFactory.createProducerAdapter(topic, isResponseTopic, requestOptions);
         return new Producer(adapter, topic, messageMapper);
     }
 
     private Consumer createConsumer(String topic, boolean isResponseTopic, ResponderOptions responderOptions, MessageHandlerResolver messageHandlerResolver) {
         Utils.validateTopic(topic);
-        ConsumerAdapter adapter = this.adapterFactory.createConsumerAdapter(topic, responderOptions, isResponseTopic);
+        ConsumerAdapter adapter = this.adapterFactory.createConsumerAdapter(topic, isResponseTopic, responderOptions);
         return new Consumer(adapter, messageHandlerInvoker, topic, messageHandlerResolver, msbConfig, clock, validator, messageMapper);
     }
 
     public void shutdown() {
         LOG.info("Shutting down...");
+        consumersByTopic.values().forEach(this::stopConsumer);
         messageHandlerInvoker.shutdown();
         adapterFactory.shutdown();
         LOG.info("Shutdown complete");

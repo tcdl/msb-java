@@ -7,11 +7,7 @@ import com.rabbitmq.client.RecoveryListener;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.tcdl.msb.adapters.AdapterFactory;
-import io.github.tcdl.msb.api.AmqpRequestOptions;
-import io.github.tcdl.msb.api.AmqpResponderOptions;
-import io.github.tcdl.msb.api.ExchangeType;
-import io.github.tcdl.msb.api.RequestOptions;
-import io.github.tcdl.msb.api.ResponderOptions;
+import io.github.tcdl.msb.api.*;
 import io.github.tcdl.msb.api.exception.AdapterCreationException;
 import io.github.tcdl.msb.api.exception.ChannelException;
 import io.github.tcdl.msb.api.exception.ConfigurationException;
@@ -66,7 +62,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
     }
     
     @Override
-    public AmqpProducerAdapter createProducerAdapter(String topic, RequestOptions requestOptions) {
+    public AmqpProducerAdapter createProducerAdapter(String topic, boolean isResponseTopic, RequestOptions requestOptions) {
         Validate.notNull(topic, "topic is mandatory");
         Validate.notNull(requestOptions, "requestOptions are mandatory");
 
@@ -92,7 +88,7 @@ public class AmqpAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public AmqpConsumerAdapter createConsumerAdapter(String topic, ResponderOptions responderOptions, boolean isResponseTopic) {
+    public AmqpConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic, ResponderOptions responderOptions) {
         Validate.notEmpty(topic, "topic is mandatory");
         Validate.notNull(responderOptions, "responderOptions are mandatory");
 

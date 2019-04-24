@@ -52,11 +52,11 @@ public class ChannelManagerTest {
         String topic = "topic:test-producer-cached";
 
         // Producer was created
-        Producer producer1 = channelManager.findOrCreateProducer(topic, RequestOptions.DEFAULTS);
+        Producer producer1 = channelManager.findOrCreateProducer(topic, false, RequestOptions.DEFAULTS);
         assertNotNull(producer1);
 
         // Cached producer was returned
-        Producer producer2 = channelManager.findOrCreateProducer(topic, RequestOptions.DEFAULTS);
+        Producer producer2 = channelManager.findOrCreateProducer(topic, false, RequestOptions.DEFAULTS);
         assertNotNull(producer2);
         assertSame(producer1, producer2);
     }
@@ -98,7 +98,7 @@ public class ChannelManagerTest {
                     messageEvent.value = msg;
                     awaitReceiveEvents.countDown();
                 });
-        channelManager.findOrCreateProducer(topic, RequestOptions.DEFAULTS).publish(message);
+        channelManager.findOrCreateProducer(topic, false, RequestOptions.DEFAULTS).publish(message);
 
         assertTrue(awaitReceiveEvents.await(4000, TimeUnit.MILLISECONDS));
         assertNotNull(messageEvent.value);

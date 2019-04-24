@@ -28,7 +28,7 @@ public class TestMsbAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public ProducerAdapter createProducerAdapter(String topic, RequestOptions requestOptions) {
+    public ProducerAdapter createProducerAdapter(String topic, boolean isResponseTopic, RequestOptions requestOptions) {
         TestMsbProducerAdapter producerAdapter = new TestMsbProducerAdapter(topic, storage);
         storage.addProducerAdapter(topic, producerAdapter);
         return producerAdapter;
@@ -42,7 +42,7 @@ public class TestMsbAdapterFactory implements AdapterFactory {
     }
 
     @Override
-    public ConsumerAdapter createConsumerAdapter(String topic, ResponderOptions responderOptions, boolean isResponseTopic) {
+    public ConsumerAdapter createConsumerAdapter(String topic, boolean isResponseTopic, ResponderOptions responderOptions) {
         ResponderOptions effectiveResponderOptions = responderOptions != null ? responderOptions: ResponderOptions.DEFAULTS;
         TestMsbConsumerAdapter consumerAdapter = new TestMsbConsumerAdapter(topic, storage);
         storage.addConsumerAdapter(topic, effectiveResponderOptions.getBindingKeys(), consumerAdapter);

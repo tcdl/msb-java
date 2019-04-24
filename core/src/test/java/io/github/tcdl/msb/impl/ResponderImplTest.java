@@ -1,17 +1,5 @@
 package io.github.tcdl.msb.impl;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import io.github.tcdl.msb.ChannelManager;
 import io.github.tcdl.msb.Producer;
 import io.github.tcdl.msb.api.MessageTemplate;
@@ -21,12 +9,15 @@ import io.github.tcdl.msb.api.message.Message;
 import io.github.tcdl.msb.config.MsbConfig;
 import io.github.tcdl.msb.message.MessageFactory;
 import io.github.tcdl.msb.support.TestUtils;
-
-import java.time.Clock;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.time.Clock;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 public class ResponderImplTest {
 
@@ -58,7 +49,7 @@ public class ResponderImplTest {
 
         when(msbContextSpy.getChannelManager()).thenReturn(mockChannelManager);
         when(msbContextSpy.getMessageFactory()).thenReturn(spyMessageFactory);
-        when(mockChannelManager.findOrCreateProducer(anyString(), any(RequestOptions.class))).thenReturn(mockProducer);
+        when(mockChannelManager.findOrCreateProducer(anyString(), eq(true), any(RequestOptions.class))).thenReturn(mockProducer);
 
         responder = new ResponderImpl(messageTemplate, originalMessage, msbContextSpy);
     }
@@ -75,7 +66,7 @@ public class ResponderImplTest {
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
         responder.send("");
 
-        verify(mockChannelManager).findOrCreateProducer(argument.capture(), any(RequestOptions.class));
+        verify(mockChannelManager).findOrCreateProducer(argument.capture(), anyBoolean(), any(RequestOptions.class));
 
         assertEquals(originalMessage.getTopics().getResponse(), argument.getValue());
     }

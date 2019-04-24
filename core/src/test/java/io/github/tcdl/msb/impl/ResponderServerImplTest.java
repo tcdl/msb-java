@@ -21,12 +21,9 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.*;
 
 public class ResponderServerImplTest {
 
@@ -196,7 +193,7 @@ public class ResponderServerImplTest {
 
         ChannelManager mockChannelManager = mock(ChannelManager.class);
         Producer mockProducer = mock(Producer.class);
-        when(mockChannelManager.findOrCreateProducer(anyString(), any(RequestOptions.class))).thenReturn(mockProducer);
+        when(mockChannelManager.findOrCreateProducer(anyString(), eq(true), any(RequestOptions.class))).thenReturn(mockProducer);
         MsbContextImpl msbContext1 = new TestUtils.TestMsbContextBuilder()
                 .withChannelManager(mockChannelManager)
                 .build();

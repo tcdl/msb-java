@@ -3,6 +3,12 @@ jdk:
 - oraclejdk8
 services:
 - rabbitmq
+- docker
+before_install:
+  - docker pull webcenter/activemq:latest
+  - docker run -d --name='activemq' -p 8161:8161 -p 61616:61616 -p 61613:61613 webcenter/activemq:latest
+  - docker ps -a
+  - docker inspect activemq
 install: ''
 script:
 - mvn clean deploy --settings settings.xml -B -V

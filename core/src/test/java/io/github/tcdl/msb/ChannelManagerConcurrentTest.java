@@ -41,9 +41,9 @@ public class ChannelManagerConcurrentTest {
     public void testProducerCachedMultithreadInteraction() {
         String topic = "topic:test-producer-cached-multithreaded";
 
-        new MultithreadingTester().add(() -> {channelManager.findOrCreateProducer(topic, RequestOptions.DEFAULTS);}).run();
+        new MultithreadingTester().add(() -> {channelManager.findOrCreateProducer(topic, false, RequestOptions.DEFAULTS);}).run();
 
-        verify(adapterFactory, times(1)).createProducerAdapter(eq(topic), eq(RequestOptions.DEFAULTS));
+        verify(adapterFactory, times(1)).createProducerAdapter(eq(topic), eq(false), eq(RequestOptions.DEFAULTS));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class ChannelManagerConcurrentTest {
         CollectorManager collectorManager = new CollectorManager(topic, channelManager);
 
         ConsumerAdapter consumerAdapter = mock(ConsumerAdapter.class);
-        when(adapterFactory.createConsumerAdapter(eq(topic), any(ResponderOptions.class), eq(true))).thenReturn(consumerAdapter);
+        when(adapterFactory.createConsumerAdapter(eq(topic), eq(true), any(ResponderOptions.class))).thenReturn(consumerAdapter);
 
         channelManager.subscribeForResponses(topic, collectorManager);
 
